@@ -1,0 +1,69 @@
+#!/bin/bash
+
+expand_root_fs() {
+  # Expand rootfs and make it writable
+  /opt/victronenergy/swupdate-scripts/resize2fs.sh
+}
+
+is_root_fs_readonly() {
+ V=$(grep "[[:space:]]ro[[:space:],]" /proc/mounts)
+ if [ -z "${V}" ] ; then
+   echo false
+ else
+   echo true
+ fi
+}
+
+mount_root_fs_readwrite() {
+  echo "mounting fs as read write"
+  mount -o remount,rw /
+}
+
+mount_root_fs_readonly() {
+  echo "mounting fs as readonly"
+  mount -o remount,ro /
+}
+
+ensure_feed() {
+  FEED_CONFIG_FILE="/etc/opkg/thespinmaster.conf"
+  if [ ! -f $FEED_CONFIG_FILE ]; then
+    echo "adding opkg feed"
+    FEED_URL="https://github.com/thespinmaster/venus-os-configuration/raw/refs/heads/main/feed"
+    echo "src/gz thespinmaster ${FEED_URL}" > "${FEED_CONFIG_FILE}" 
+  fi
+  opkg update
+}
+
+echo "${1}"
+
+# get the ipk name from the dir name this script
+# is located in
+IPK=$(basename "$(dirname "$(realpath "${0}")")")
+echo "name:${IPK}"
+
+# see if the ipk is installed
+INSTALLED=$(opkg list-installed "${IPK}")
+#echo "Installed:${INSTALLED}"
+
+# if already installed then exit
+if [ -n "${INSTALLED}" ]; then
+  exit 0
+fi
+
+IS_FS_READONLY=$(is_root_fs_readonly)
+echo "fs is readonly:${IS_FS_READONLY}" 
+  
+if [ ${IS_FS_READONLY} = true ]; then
+  mount_root_fs_readwrite
+fi
+
+ensure_feed
+  
+echo "Installing... ${IPK}"
+#opkg install "${IPK}"
+
+if [ ${IS_FS_READONLY} = true ]; then
+  mount_root_fs_readonly
+fi
+  
+echo "Installed"

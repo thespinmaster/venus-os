@@ -1,0 +1,11 @@
+Package: test-install
+Version: 1.0.4
+Description: A simple app for testing install
+Section: utilities
+Priority: optional
+Maintainer: thespinmaster@github.com
+License: MIT
+Architecture: all
+OE: einstine
+Source: https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feed/test-install
+Depends: python3

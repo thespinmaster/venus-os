@@ -1,0 +1,73 @@
+Package: dbus-ne-shunt
+Version: 1.0.2
+Depends: python3
+Section: utilities
+Architecture: all
+Maintainer: thespinmaster@github.com
+MD5Sum: 8489c6b8612f90f3adfa8295f5ad4c60
+Size: 28670
+Filename: dbus-ne-shunt_1.0.2_all.ipk
+Source: https://github.com/thespinmaster/venus-os-configuration/tree/main/feed/dbus-ne-shunt
+Description: Adds support for NordElectronica shunt NE196/NE319 board to Venus-OS
+OE: dbus-ne-shunt
+License: MIT
+Priority: optional
+
+Package: dbus-relay-board
+Version: 1.0.0
+Section: utilities
+Architecture: all
+Maintainer: Lucien Denisey <ldenisey@gmail.com>
+MD5Sum: 15a00d5295240231b8c5f194c65e1e32
+Size: 16118
+Filename: dbus-relay-board_1.0.0_all.ipk
+Source: https://github.com/thespinmaster/venus-os-configuration/tree/main/feed/dbus-relay-board
+Description: Add support to RS485, RS232 and TTL232 relay boards
+OE: dbus-relay-board
+License: MIT
+Priority: optional
+
+Package: test-install
+Version: 1.0.4
+Depends: python3
+Section: utilities
+Architecture: all
+Maintainer: thespinmaster@github.com
+MD5Sum: 1bd0857cf9faa573890a49063c9d0495
+Size: 5154
+Filename: test-install_1.0.4_all.ipk
+Source: https://github.com/thespinmaster/venus-os-configuration/raw/refs/heads/main/feed/test-install
+Description: A simple app for testing install
+OE: einstine
+License: MIT
+Priority: optional
+
+Package: test-service
+Version: 1.0.0
+Depends: python3
+Section: utilities
+Architecture: all
+Maintainer: thespinmaster@github.com
+MD5Sum: 5ef154cfc9857a061210f97e9df3ac7e
+Size: 6264
+Filename: test-service_1.0.0_all.ipk
+Source: https://github.com/thespinmaster/venus-os-configuration/raw/refs/heads/main/feed/test-service
+Description: A simple service for testing
+OE: einstine
+License: MIT
+Priority: optional
+
+Package: virtual-gps
+Version: 1.0.0
+Section: utilities
+Architecture: all
+Maintainer: Lucien Denisey <ldenisey@gmail.com>
+MD5Sum: e2b9d18c471d2c6d1ad39e76f0ce7ad5
+Size: 1678
+Filename: virtual-gps_1.0.0_all.ipk
+Source: https://github.com/thespinmaster/venus-os-configuration/tree/main/feed/virtual-gps
+Description: Venus OS virtual GPS using NMEA network stream
+OE: virtual-gps
+License: MIT
+Priority: optional
+

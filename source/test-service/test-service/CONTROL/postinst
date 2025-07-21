@@ -1,0 +1,52 @@
+#!/bin/bash
+
+TEST_USB_ID="1a86:55d3"
+
+echo "postinst location:${0}" #//usr/lib/opkg/info/test-service.postinst
+ 
+BASE_INSTALL_FILE_PATH=${0%.*} # strip file extension (.postinst)
+echo "BASE_INSTALL_FILE_PATH:${BASE_INSTALL_FILE_PATH}" #remove the extension from the filename
+
+SERVICE_NAME2=$("${BASE_INSTALL_FILE_PATH}".control | grep Package | cut -d" " -f2)
+echo "SN2:${SERVICE_NAME2}"
+SERVICE_NAME=$(basename "${0%.*}") #get file name without path
+echo "SERVICE_NAME:${SERVICE_NAME}" #remove the extension from the filename
+ 
+INSTALL_HELPER_SCRIPT_FILE="${BASE_INSTALL_FILE_PATH}.install-helper" 
+echo "INSTALL_HELPER_SCRIPT_FILE:${INSTALL_HELPER_SCRIPT_FILE}"
+
+SERIAL_STARTER_RULES_FILE="/etc/udev/rules.d/serial-starter.rules"
+DBUS_MESSAGE_PATH="com.victronenergy.packageManager /GuiEditStatus"
+DBUS_MESSAGE_PATH=""
+VE_SERVICE_MAPPING_NAME="teststarter"
+
+INSTALL_HELPER_ACTION="usb-serial-helper.detect_add" #"detect_add" "add" "remove" 
+ 
+#if false; then
+python "${INSTALL_HELPER_SCRIPT_FILE}"\
+    "${INSTALL_HELPER_ACTION}"\
+    "${SERIAL_STARTER_RULES_FILE}"\
+    "${SERVICE_NAME}"\
+    "${VE_SERVICE_MAPPING_NAME}"\
+    "${DBUS_MESSAGE_PATH}"\
+    "${TEST_USB_ID}"
+
+#fi
+
+# Declare service in serial starter conf file
+SERIAL_STARTER_CONFIG_FILE='/etc/venus/serial-starter.conf'
+CONFIG="service ${VE_SERVICE_MAPPING_NAME}"$'\t\t'"${SERVICE_NAME}"
+ 
+#echo -e "config:${CONFIG}"
+if ! grep -q "^${CONFIG}$" "${SERIAL_STARTER_CONFIG_FILE}"; then
+ echo "adding service mapping config from ${SERIAL_STARTER_CONFIG_FILE}"
+ sed -i '1s/^/'"${CONFIG}"'\n/' $SERIAL_STARTER_CONFIG_FILE
+fi
+
+RCS_LOCAL_FILE='/data/rcS.local'
+RCS_LOCAL_ACTION="/data/${SERVICE_NAME}/ensure-installed"
+if ! grep -q "^${RCS_LOCAL_ACTION}$" "${RCS_LOCAL_FILE}"; then
+    echo "${RCS_LOCAL_ACTION}" >> "${RCS_LOCAL_FILE}"
+fi
+
+echo "${SERVICE_NAME} installed"
