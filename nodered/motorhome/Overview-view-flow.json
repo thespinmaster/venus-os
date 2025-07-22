@@ -1,0 +1,1631 @@
+[
+    {
+        "id": "431c9911afa626f9",
+        "type": "subflow",
+        "name": "Battery Charge Time",
+        "info": "",
+        "category": "",
+        "in": [
+            {
+                "x": 50,
+                "y": 210,
+                "wires": [
+                    {
+                        "id": "7260283731eee94f"
+                    },
+                    {
+                        "id": "7d008bec42d7a30a"
+                    }
+                ]
+            }
+        ],
+        "out": [
+            {
+                "x": 760,
+                "y": 50,
+                "wires": [
+                    {
+                        "id": "68d9d467e156fd78",
+                        "port": 0
+                    }
+                ]
+            }
+        ],
+        "env": [],
+        "meta": {},
+        "color": "#DEBD5C",
+        "inputLabels": [
+            "topics: battery_soc, battery_amps, battery_ah"
+        ],
+        "icon": "font-awesome/fa-battery-2",
+        "status": {
+            "x": 760,
+            "y": 150,
+            "wires": [
+                {
+                    "id": "68d9d467e156fd78",
+                    "port": 1
+                }
+            ]
+        }
+    },
+    {
+        "id": "7260283731eee94f",
+        "type": "aggregator",
+        "z": "431c9911afa626f9",
+        "name": "average\\n amps per min",
+        "topic": "battery_amps",
+        "intervalCount": "1",
+        "intervalUnits": "m",
+        "submitIncompleteInterval": true,
+        "submitPerTopic": false,
+        "aggregationType": "mean",
+        "x": 230,
+        "y": 100,
+        "wires": [
+            [
+                "7d008bec42d7a30a"
+            ]
+        ]
+    },
+    {
+        "id": "7d008bec42d7a30a",
+        "type": "join",
+        "z": "431c9911afa626f9",
+        "name": "",
+        "mode": "custom",
+        "build": "object",
+        "property": "payload",
+        "propertyType": "msg",
+        "key": "topic",
+        "joiner": "\\n",
+        "joinerType": "str",
+        "useparts": false,
+        "accumulate": false,
+        "timeout": "",
+        "count": "3",
+        "reduceRight": false,
+        "reduceExp": "",
+        "reduceInit": "",
+        "reduceInitType": "",
+        "reduceFixup": "",
+        "x": 430,
+        "y": 210,
+        "wires": [
+            [
+                "68d9d467e156fd78"
+            ]
+        ]
+    },
+    {
+        "id": "68d9d467e156fd78",
+        "type": "function",
+        "z": "431c9911afa626f9",
+        "name": "calculate \\n charge time",
+        "func": "var valid = msg.topic == \"battery_soc\" | msg.topic == \"battery_amps\" | msg.topic == \"battery_ah\";\nif (!valid) {\n    return [null, {fill:\"red\",text:\"invalid topic:\" + msg.topic}];\n}\n\nvar battery = {};\n\nconst batteryCapacityAh = msg.battery_ah | 200;\nconst batterySoc = msg.payload.battery_soc;\nconst chargeA = Math.round(msg.payload.battery_amps);\nconst batteryEfficency = 0.02; // lithium 98% efficent\n\n\nif (chargeA <= 0 | batterySoc >= 99) {\n    msg = {battery: {chargeTimeLeft: \"~\"}, payload: \"~\"};\n    return [msg, {fill:\"blue\",text:\"charge time left: ~\"}];\n}\n\nvar batterySocUsed = 100-batterySoc;\nvar batteryAhUsed = batteryCapacityAh*(batterySocUsed/100);\n\nvar chargeAe = chargeA - (chargeA * batteryEfficency);\nvar chargeTimeLeft = batteryAhUsed / chargeAe;\n\nif (isNaN(chargeTimeLeft)) {\n    msg = {battery: {chargeTimeLeft: \"~\"}, payload:\"~\"};\n    return [msg, {fill:\"blue\",text:\"charge time left: ~\"}];\n}\n\n\nbattery.capacityAh = batteryCapacityAh;\nbattery.chargeAmps = chargeA;\nbattery.usedAh = batteryAhUsed;\nbattery.chargeAe = chargeAe;\nbattery.chargeHrs = Math.floor(chargeTimeLeft); \nbattery.chargeMins = Math.round((chargeTimeLeft % 1) * 60);\nbattery.soc = batterySoc;\nbattery.chargeTimeLeft = battery.chargeHrs + \"h:\" + battery.chargeMins + \"m\";\n\nmsg.battery = battery;\nmsg.payload = battery.chargeTimeLeft\n\nreturn [msg, {fill:\"blue\",text:\"charge time left:\" + msg.payload}];",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 620,
+        "y": 100,
+        "wires": [
+            [],
+            []
+        ]
+    },
+    {
+        "id": "7bd952a16ba307cb",
+        "type": "tab",
+        "label": "Overview",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "1938f032b1dce60d",
+        "type": "ui-template",
+        "z": "7bd952a16ba307cb",
+        "d": true,
+        "group": "",
+        "page": "0e94453eb43f91ea",
+        "ui": "",
+        "name": "css helper",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "head": "",
+        "format": ".bg-m { background-color:magenta;}\n.bg-r { background-color:red;}\n.bg-y { background-color:yellow;}\n.bg-g { background-color:green;}\n.bg-b { background-color:dodgerblue;}\n.bg-o { background-color:orange;}\n\n.bd-r { border-style: solid;border-color:red;}\n.bd-g { border-style: solid;border-color:green;}\n.bd-w { border-style: solid;border-color:white;}\n.bd-b { border-style: solid;border-color:dodgerblue;}\n.bd-y { border-style: solid;border-color:yellow;}\n.bd-o { border-style: solid;border-color:orange;}\n.bd-m { border-style: solid;border-color:magenta;}\n\n/* iphone 11 max landscape */\n@media only screen and (min-device-width: 375px) and (max-device-width: 812px) \nand (-webkit-device-pixel-ratio: 3) \nand (orientation: landscape) {\n /* CSS styles specific to iphone 11 max  landscape mode */\n    .bd-r { border-style: dotted;}\n    .bd-g { border-style: dotted;}\n    .bd-w { border-style: dotted;}\n    .bd-b { border-style: dotted;}\n    .bd-y { border-style: dotted;}\n    .bd-o { border-style: dotted;}\n    .bd-m { border-style: dotted;}\n}\n\n/* iphone 11 max portrait */\n@media only screen and (min-device-width: 375px) and (max-device-width: 812px) \nand (-webkit-device-pixel-ratio: 3) \nand (orientation: portrait) {\n /* CSS styles specific to iphone 11 max portrait mode */\n    .bd-r { border-style: dashed;}\n    .bd-g { border-style: dashed;}\n    .bd-w { border-style: dashed;}\n    .bd-b { border-style: dashed;}\n    .bd-y { border-style: dashed;}\n    .bd-o { border-style: dashed;}\n    .bd-m { border-style: dashed;}\n}\n\n/* ipad air Portrait */\n@media only screen and (min-device-width: 768px) and (max-device-width: 1024px) \nand (-webkit-device-pixel-ratio: 2) \nand (orientation: portrait) {\n /* CSS styles specific to iPad Air portrait mode */\n    .bd-r { border-style: dotted;}\n    .bd-g { border-style: dotted;}\n    .bd-w { border-style: dotted;}\n    .bd-b { border-style: dotted;}\n    .bd-y { border-style: dotted;}\n    .bd-o { border-style: dotted;}\n    .bd-m { border-style: dotted;}\n}\n/* ipad air Landscape */\n@media only screen and (min-device-width: 768px) and (max-device-width: 1024px) \nand (-webkit-device-pixel-ratio: 2)\nand (orientation: landscape) {\n /* CSS styles specific to iPad Air landscape mode */\n    /*.bd-r { border-style: dashed;}\n    .bd-g { border-style: dashed;}\n    .bd-w { border-style: dashed;}\n    .bd-b { border-style: dashed;}\n    .bd-y { border-style: dashed;}\n    .bd-o { border-style: dashed;}\n    .bd-m { border-style: dashed;}*/\n}\n",
+        "storeOutMessages": true,
+        "passthru": true,
+        "resendOnRefresh": true,
+        "templateScope": "page:style",
+        "className": "",
+        "x": 320,
+        "y": 70,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "b6cbe5ec52c24d83",
+        "type": "ui-template",
+        "z": "7bd952a16ba307cb",
+        "group": "",
+        "page": "",
+        "ui": "563c3834aa95d21c",
+        "name": "left-column \\n (teleport to main)",
+        "order": 7,
+        "width": 0,
+        "height": 0,
+        "head": "",
+        "format": "<template>\n<teleport v-if=\"mounted\" to=\"#left-column\" >\n    \n  <div class=\"left-column-top bd-r\">\n    \n  </div>\n  \n  <div class=\"left-column-middle bd-b\">\n    <div class=\"input-output\">\n        <div v-if=\"msg.inputShore != null\" class=\"input-output-item bd-r\">\n            <span class=\"mdi mdi-transmission-tower-export fa\"></span><span>{{msg.inputShore}}w</span>\n        </div>\n        <div class=\"input-output-item bd-r\">\n            <span class=\"mdi mdi-weather-sunny fa\"></span><span>{{msg.inputSolar}}w</span>\n        </div>\n        <div class=\"input-output-item bd-r\">\n            <span class=\"mdi mdi-engine-outline fa\"></span><span>{{msg.inputAlternator}}w</span>\n        </div>\n    </div>\n  </div>\n  <div class=\"left-column-bottom\">\n    <span class=\"charge-time\">Charge time:&nbsp;{{msg.battery?.chargeTimeLeft}}</span>\n  </div>\n\n    </teleport>\n</template>\n<script>\n    export default {\n        data() {\n            return {\n                mounted: false\n                //,msg: {timetocharge:\"1h:23m\",inputAlternator:623,inputSolar:326,inputEhu:0,outputAC:1123,outputDC:49}\n            }\n        },\n        mounted() {\n            this.mounted = true\n        }\n    }\n</script>\n<style>\n\n.left-column {\n  width:33%;\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n}\n\n.left-column-top {\n  height: 33%;\n  width: 100%;\n}\n\n.left-column-middle {\n  height:100%;\n  width: 100%;\n  display: flex;\n  align-items: center;\n  justify-content: flex-end;\n}\n\n.left-column-bottom {\n  height: 33%;\n  width: 100%;\n  display:flex;\n  flex-direction:column;\n  justify-content:flex-end;\n  \n}\n\n.charge-time {\n    margin-left:12px;\n    font-size:1.5em;\n    white-space: nowrap\n}\n/* RESPONSIVE STYLES */\n\n/* iphone 11 max portrait */\n@media only screen and (min-device-width: 375px) and (max-device-width: 812px) \nand (-webkit-device-pixel-ratio: 3) \nand (orientation: portrait) {\n    .left-column {\n        width:20%;\n    }\n    \n    .charge-time {\n        font-size:.8em;\n    }\n\n}\n</style>",
+        "storeOutMessages": true,
+        "passthru": true,
+        "resendOnRefresh": true,
+        "templateScope": "widget:ui",
+        "className": "",
+        "x": 940,
+        "y": 170,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "acbee6d24650bb2f",
+        "type": "ui-template",
+        "z": "7bd952a16ba307cb",
+        "group": "025c21e42e07676b",
+        "page": "",
+        "ui": "",
+        "name": "main",
+        "order": 2,
+        "width": "16",
+        "height": "1",
+        "head": "",
+        "format": "<template>\n    <div class=\"container\">\n        <div id=\"left-column\" class=\"left-column bd-m\" ></div>\n        <div id=\"center-column\" class=\"center-column bd-o\"></div>\n        <div id=\"right-column\" class=\"right-column bd-m\"></div>\n    </div>\n</template>\n\n<style>\n\n \n.container {\n  /*background-color: #171821;\n  background-color: hsla(235, 27%, 11%, 1);*/\n  width:100%;\n  height: 100%;\n  display: flex;\n  justify-content: center;\n}\n\n/* remove margin from group */\n.nrdb-ui-group.overview-group .v-card-text {\n    padding:0;\n}\n\n.fa {\n  margin:4px;\n  font-size:26px;\n}\n\n.fy { \n  color:#F59B27;\n}\n\n\n.input-output {\n  font-size: 4em;\n  color: rgb(var(--theme-fg));\n}\n\n.input-output-item {\n    display:flex;\n    align-items: center;\n    width:100%;\n    margin:10% 0;\n}\n\n.ta-r {\n    text-align:right;\n}\n\n.fg-g {color:green;}\n.fg-r {color:red;}\n.fg-o {color:orange;}\n.fg-b {color:dodgerblue;}\n.fg-m {color:magenta;}\n.fg-off {color: rgb(var(--theme-fg-off));}\n.fg-on {color: rgb(var(--theme-fg-on));}\n.fg-auto {color: rgb(var(--theme-fg-auto));}\n.fg-auto-on {color: rgb(var(--theme-fg-auto-on));}\n\n.hide {display:none;}\n\n\n/* RESPONSIVE STYLES */\n\n/* iphone 11 max portrait */\n@media only screen and (min-device-width: 375px) and (max-device-width: 812px) \nand (-webkit-device-pixel-ratio: 3) \nand (orientation: portrait) {\n    .input-output {\n        font-size:16px;\n    }\n    .fa {\n        font-size:16px;\n    }\n}\n/* iphone 11 max landscape */\n@media only screen and (min-device-width: 375px) and (max-device-width: 812px) \nand (-webkit-device-pixel-ratio: 3) \nand (orientation: landscape) {\n    \n}\n\n/* ipad air portrait */\n@media only screen and (min-device-width: 768px) and (max-device-width: 1024px) \nand (-webkit-device-pixel-ratio: 2) \nand (orientation: portrait) {\n /* CSS styles specific to iPad Air portrait mode */\n\n}\n\n/* ipad air landscape */\n@media only screen and (min-device-width: 768px) and (max-device-width: 1024px) \nand (-webkit-device-pixel-ratio: 2)\nand (orientation: landscape) {\n /* CSS styles specific to iPad Air landscape mode */\n    \n}\n</style>",
+        "storeOutMessages": true,
+        "passthru": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 140,
+        "y": 70,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "a02a7df0b008380c",
+        "type": "ui-template",
+        "z": "7bd952a16ba307cb",
+        "group": "",
+        "page": "",
+        "ui": "563c3834aa95d21c",
+        "name": "center-column \\n (teleport to main)",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "head": "",
+        "format": "<template>\n    <teleport v-if=\"mounted\" to=\"#center-column\">\n    \n    <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"levels\" width=\"100%\" height=\"100%\" viewBox=\"-5 -12 200 200\">\n  \n        <text id=\"level-text\" x=\"82\" y=\"5\">Battery {{msg.battery_soc}}%</text>\n        <text id=\"level-text-small\" x=\"82\" y=\"11\" >Cab {{msg.vehicleBattery}}%</text>\n        \n        <path id=\"level-icon\" transform=\"translate(84,-3) scale(0.6)\"\n          d=\"M16 20H8V6H16M16.67 4H15V2H9V4H7.33C6.6 4 6 4.6 6 5.33V20.67C6 21.4 6.6 22 7.33 22H16.67C17.41 22 18 21.41 18 20.67V5.33C18 4.6 17.4 4 16.67 4M15 16H9V19H15V16M15 7H9V10H15V7M15 11.5H9V14.5H15V11.5Z\" />\n        <path id=\"track-level-path\" d=\"M105,5 A90 90 0 1,1 5,90\"/>\n        <path id=\"battery-level-path\" d=\"M105,5 A90 90 0 1,1 5,90\" \n          pathlength=\"100.2\"\n          :stroke-dasharray=\"`${msg.battery_soc} 1000`\" />\n    \n        <text id=\"level-text\" x=\"82\" y=\"22\" >Fresh water {{msg.freshwater}}%</text>\n        <path id=\"level-icon\" transform=\"translate(84,12) scale(0.6)\"\n          d=\"M12,3.77L11.25,4.61C11.25,4.61 9.97,6.06 8.68,7.94C7.39,9.82 6,12.07 6,14.23A6,6 0 0,0 12,20.23A6,6 0 0,0 18,14.23C18,12.07 16.61,9.82 15.32,7.94C14.03,6.06 12.75,4.61 12.75,4.61L12,3.77M12,6.9C12.44,7.42 12.84,7.85 13.68,9.07C14.89,10.83 16,13.07 16,14.23C16,16.45 14.22,18.23 12,18.23C9.78,18.23 8,16.45 8,14.23C8,13.07 9.11,10.83 10.32,9.07C11.16,7.85 11.56,7.42 12,6.9Z\" />\n                 \n        <path id=\"track-level-path\" d=\"M105,20 A75 75 0 1,1 20,90\"/>\n        <path id=\"water-level-path\" d=\"M105,20 A75 75 0 1,1 20,90\" \n          pathlength=\"100.1\"\n          :stroke-dasharray=\"`${msg.freshwater} 1000`\"/>\n                 \n        <text id=\"level-text\" x=\"82\" y=\"37\" >Grey waste {{msg.greywaste}}%</text>\n        <path id=\"level-icon\" transform=\"translate(84,26) scale(0.6)\"\n          d=\"M16 14V12H17.61C17.85 12.71 18 13.39 18 14H16M15.58 8C15.12 7.29 14.65 6.61 14.2 6H14V8H15.58M16 12V10H14V12H16M16 8.68V10H16.74C16.5 9.56 16.26 9.11 16 8.68M12 16V14H14V12H12V10H14V8H12V6H14V5.73C12.9 4.26 12 3.25 12 3.25S6 10 6 14C6 17.31 8.69 20 12 20V18H14V16H12M14 19.65C14.75 19.39 15.42 19 16 18.46V18H14V19.65M14 16H16V14H14V16M16 18H16.46C17 17.42 17.39 16.75 17.65 16H16V18Z\" />\n                 \n        <path id=\"track-level-path\" d=\"M105,35 A60 60 0 1,1 35,90\"/>\n        <path id=\"grey-waste-level-path\" d=\"M105,35 A60 60 0 1,1 35,90\" \n          pathlength=\"100.1\"\n          :stroke-dasharray=\"`${msg.greywaste} 1000`\"/>\n                 \n                 \n        <text id=\"level-text\" x=\"82\" y=\"53\">Gas {{msg.gas1}}%/{{msg.gas2}}%</text>\n        <path id=\"level-icon\" transform=\"translate(84,42) scale(0.6)\"\n              d=\"M17.66 11.2C17.43 10.9 17.15 10.64 16.89 10.38C16.22 9.78 15.46 9.35 14.82 8.72C13.33 7.26 13 4.85 13.95 3C13 3.23 12.17 3.75 11.46 4.32C8.87 6.4 7.85 10.07 9.07 13.22C9.11 13.32 9.15 13.42 9.15 13.55C9.15 13.77 9 13.97 8.8 14.05C8.57 14.15 8.33 14.09 8.14 13.93C8.08 13.88 8.04 13.83 8 13.76C6.87 12.33 6.69 10.28 7.45 8.64C5.78 10 4.87 12.3 5 14.47C5.06 14.97 5.12 15.47 5.29 15.97C5.43 16.57 5.7 17.17 6 17.7C7.08 19.43 8.95 20.67 10.96 20.92C13.1 21.19 15.39 20.8 17.03 19.32C18.86 17.66 19.5 15 18.56 12.72L18.43 12.46C18.22 12 17.66 11.2 17.66 11.2M14.5 17.5C14.22 17.74 13.76 18 13.4 18.1C12.28 18.5 11.16 17.94 10.5 17.28C11.69 17 12.4 16.12 12.61 15.23C12.78 14.43 12.46 13.77 12.33 13C12.21 12.26 12.23 11.63 12.5 10.94C12.69 11.32 12.89 11.7 13.13 12C13.9 13 15.11 13.44 15.37 14.8C15.41 14.94 15.43 15.08 15.43 15.23C15.46 16.05 15.1 16.95 14.5 17.5H14.5Z\" />\n                 \n        <path id=\"track-level-path\" d=\"M105,50 A45 45 0 1,1 50,90\" />\n        <path id=\"gas-level-path\" d=\"M105,50 A45 45 0 1,1 50,90\" \n          pathlength=\"205.1\"\n          :stroke-dasharray=\"`${msg.gas1} 11 ${msg.gas2} 1000`\"/>\n                     \n  </svg>\n\n    </teleport>\n</template>\n<script>\n    export default {\n        data() {\n            return {\n                mounted: false\n                //msg: {battery:67,freshwater:42,greywaste:32,gas1:38,gas2:28}\n            }\n        },\n        mounted() {\n            this.mounted = true\n        }\n    }\n</script>\n<style>\n    \n.center-column {\n  width:60%;\n  height:100%;\n}\n#track-level-path {\n    stroke: rgba(var(--theme-track-level))\n}\n#battery-level-path {\n    stroke: rgb(var(--theme-battery-level))\n}\n#water-level-path {\n    stroke: rgb(var(--theme-water-level))\n}\n#grey-waste-level-path {\n    stroke: rgb(var(--theme-grey-waste-level))\n}\n#gas-level-path {\n    stroke: rgb(var(--theme-gas-level))\n}\n\n#level-text, #level-text-small {\n    fill: rgb(var(--theme-fg));\n    text-anchor:end;\n    stroke-width:0;\n}\n#level-text-small { \n    font-size:.5em;\n}\n#level-icon {\n    stroke-width:0;\n    fill: rgb(var(--theme-fg));\n}\nsvg.levels {\n  fill:none;\n  stroke-linecap:round;\n  stroke-width:2px;\n  stroke: rgb(var(--theme-fg));\n  font-size:.65em;\n}\n\n/* RESPONSIVE STYLES */\n\n/* iphone 11 max portrait */\n@media only screen and (min-device-width: 375px) and (max-device-width: 812px) \nand (-webkit-device-pixel-ratio: 3) \nand (orientation: portrait) {\n\n    .center-column {\n        width:60%;\n    }\n    svg.levels {\n        font-size:.8em;\n    }\n\n}\n</style>",
+        "storeOutMessages": true,
+        "passthru": true,
+        "resendOnRefresh": true,
+        "templateScope": "widget:ui",
+        "className": "",
+        "x": 930,
+        "y": 450,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "e516d7a446b7eb27",
+        "type": "ui-template",
+        "z": "7bd952a16ba307cb",
+        "group": "",
+        "page": "",
+        "ui": "563c3834aa95d21c",
+        "name": "right-column \\n (teleport to main)",
+        "order": 8,
+        "width": 0,
+        "height": 0,
+        "head": "",
+        "format": "<template>\n    <teleport v-if=\"mounted\" to=\"#right-column\">\n  <div class=\"right-column-top bd-g\">\n    \n    <v-btn v-model=\"msg.fridge_state\" rounded=\"lg\"\n        class=\"right-column-top-button mdi mdi-fridge-outline icon-btn\"\n        v-bind:class=\"fridge_relay_class_selector\"\n        @click=\"fridge_relay_click()\">\n    </v-btn>\n\n     <v-btn v-model=\"msg.drawers_relay\" rounded=\"lg\"\n        class=\"right-column-top-button mdi mdi-arrow-vertical-lock icon-btn\"\n        :class=\"`${msg.drawers_relay ? 'fg-on' : 'fg-off'}`\"\n        @click=\"drawers_relay_click()\">\n    </v-btn>\n    \n    <v-btn v-model=\"msg.inverter_on\" rounded=\"lg\"\n        class=\"right-column-top-button mdi mdi-power icon-btn\"\n        :class=\"`${msg.inverter_on ? 'fg-on' : 'fg-off'}`\"\n        @click=\"inverter_click()\">\n    </v-btn>\n        \n  </div>\n  \n  <div class=\"right-column-middle bd-b\">\n    <div class=\"input-output\">\n         <div v-if=\"msg.acload != null\" class=\"justify-right input-output-item bd-r\">\n             <span>{{msg.acload}}w</span>\n             <span class=\"fa mdi mdi-power-socket-uk\"></span>\n         </div>\n        <div class=\"justify-right input-output-item bd-r\">\n            <span>{{msg.dcload}}w</span>\n            <span class=\"fa mdi mdi-power-plug-outline\"></span>\n        </div>\n     </div>\n    \n    \n  </div>\n  \n  <div class=\"right-column-bottom\"></div>\n\n    </teleport>\n</template>\n<script>\n    export default {\n        data() {\n            return {\n                mounted: false,\n                //msg:{fridge_relay: 0, drawers_relay: false, inverter_on: true}\n                //,msg: {acload:1047,dcload:47}\n            }\n        },\n        computed: {\n            fridge_relay_class_selector: function () {\n                return {\n                'fg-off': this.msg.fridge_state == \"off\",\n                'fg-on': this.msg.fridge_state == \"on\",\n                'fg-auto': this.msg.fridge_state == \"auto-off\",\n                'fg-auto-on': this.msg.fridge_state == \"auto-on\",\n                }\n            }\n        },\n        mounted() {\n            this.mounted = true\n        },\n        watch: {\n        \n        },\n        methods: {\n            inverter_click: function () {\n                this.msg.inverter_on = !this.msg.inverter_on;\n                this.send({payload: this.msg.inverter_on,topic:'inverter'});\n            },\n            drawers_relay_click: function () {\n                this.msg.drawers_relay = !this.msg.drawers_relay;\n                this.send({payload: this.msg.drawers_relay,topic:'drawers_relay'});\n            },\n            fridge_relay_click: function () {\n                var payload = null;\n                //this.send({inverter_on: this.msg.inverter_on})\n                if (this.msg.fridge_state == undefined | this.msg.fridge_state == \"off\") {\n                    this.msg.fridge_state = \"on\";\n                } else if (this.msg.fridge_state == \"on\") {\n                    \n                    this.msg.fridge_state = \"auto-off\";\n                    \n                } else if (this.msg.fridge_state == \"auto-off\" | this.msg.fridge_state == \"auto-on\") {\n                    this.msg.fridge_state = \"off\";\n                }\n                var payload = this.msg.fridge_state == \"auto-off\" ? \"auto\" : this.msg.fridge_state;\n                this.send({payload: payload, topic:'fridge_mode'});\n                \n            }\n            \n        }\n        \n    }\n</script>\n\n\n<style>\n\n.right-column {\n  width:33%;\n  display: flex;\n  flex-direction: column;\n  justify-content: flex-end;\n  align-items:flex-start;\n  \n}\n.justify-right {\n    display: flex;\n    justify-content:end;\n}\n.right-column-top {\n  height:33%;\n  width:160%;\n  margin-left:-60%;\n \n  display:flex;\n  justify-content: flex-end;\n  align-items:flex-start;\n}\n.right-column-middle {\n  height: 100%;\n  width: 100%;\n  display: flex;\n  align-items: center;\n  justify-content: start;\n  \n}\n.right-column-bottom {\n  height:33%;\n  width: 100%;\n}\n\n.right-column-top-button {\n    font-size:4em;\n    margin:6px;\n    width:64px !important;\n    height:64px !important;\n    min-width:0 !important; \n    min-height:0 !important;\n    background-color: transparent; /*#0094CE;*/\n}\n\n/* RESPONSIVE STYLES */\n\n/* iphone 11 max portrait */\n@media only screen and (min-device-width: 375px) and (max-device-width: 812px) \nand (-webkit-device-pixel-ratio: 3) \nand (orientation: portrait) {\n    .right-column {\n        width:20%;\n    }\n\n    .right-column-top-button {\n        font-size:1.8em;\n        margin:2px;\n        width:32px !important;\n        height:32px !important;\n    }\n}\n</style>\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+        "storeOutMessages": true,
+        "passthru": true,
+        "resendOnRefresh": true,
+        "templateScope": "widget:ui",
+        "className": "",
+        "x": 930,
+        "y": 800,
+        "wires": [
+            [
+                "9f06b809385d772f"
+            ]
+        ]
+    },
+    {
+        "id": "b77f3fbf4976fe67",
+        "type": "mqtt in",
+        "z": "7bd952a16ba307cb",
+        "name": "fresh water",
+        "topic": "N/c0619ab5fb12/tank/21/Level",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "cc4ba79e8dc93fb5",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 200,
+        "y": 500,
+        "wires": [
+            [
+                "e120ec0d4abd6eef"
+            ]
+        ]
+    },
+    {
+        "id": "e2c2aa1a96487eca",
+        "type": "mqtt in",
+        "z": "7bd952a16ba307cb",
+        "name": "grey waste",
+        "topic": "N/c0619ab5fb12/tank/20/Level",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "cc4ba79e8dc93fb5",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 200,
+        "y": 550,
+        "wires": [
+            [
+                "bfb38119e1c91b3f"
+            ]
+        ]
+    },
+    {
+        "id": "d50232a973485dc6",
+        "type": "mqtt in",
+        "z": "7bd952a16ba307cb",
+        "name": "left lpg tank",
+        "topic": "N/c0619ab5fb12/tank/24/Level",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "cc4ba79e8dc93fb5",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 190,
+        "y": 600,
+        "wires": [
+            [
+                "596af9aac082ba0c"
+            ]
+        ]
+    },
+    {
+        "id": "4ed05ab23721057d",
+        "type": "mqtt in",
+        "z": "7bd952a16ba307cb",
+        "name": "right lpg tank",
+        "topic": "N/c0619ab5fb12/tank/25/Level",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "cc4ba79e8dc93fb5",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 190,
+        "y": 650,
+        "wires": [
+            [
+                "fd8464736f0d68bd"
+            ]
+        ]
+    },
+    {
+        "id": "596af9aac082ba0c",
+        "type": "change",
+        "z": "7bd952a16ba307cb",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "gas1",
+                "pt": "msg",
+                "to": "payload.value",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 430,
+        "y": 600,
+        "wires": [
+            [
+                "a02a7df0b008380c"
+            ]
+        ]
+    },
+    {
+        "id": "bfb38119e1c91b3f",
+        "type": "change",
+        "z": "7bd952a16ba307cb",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "greywaste",
+                "pt": "msg",
+                "to": "payload.value",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 420,
+        "y": 550,
+        "wires": [
+            [
+                "a02a7df0b008380c"
+            ]
+        ]
+    },
+    {
+        "id": "e120ec0d4abd6eef",
+        "type": "change",
+        "z": "7bd952a16ba307cb",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "freshwater",
+                "pt": "msg",
+                "to": "payload.value",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 420,
+        "y": 500,
+        "wires": [
+            [
+                "a02a7df0b008380c"
+            ]
+        ]
+    },
+    {
+        "id": "fd8464736f0d68bd",
+        "type": "change",
+        "z": "7bd952a16ba307cb",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "gas2",
+                "pt": "msg",
+                "to": "payload.value",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 430,
+        "y": 650,
+        "wires": [
+            [
+                "a02a7df0b008380c"
+            ]
+        ]
+    },
+    {
+        "id": "3ac35c09c8450a48",
+        "type": "mqtt in",
+        "z": "7bd952a16ba307cb",
+        "name": "leisure battery soc",
+        "topic": "N/c0619ab5fb12/battery/512/Soc",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "cc4ba79e8dc93fb5",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 150,
+        "y": 390,
+        "wires": [
+            [
+                "6927339822c1fc58"
+            ]
+        ]
+    },
+    {
+        "id": "6927339822c1fc58",
+        "type": "change",
+        "z": "7bd952a16ba307cb",
+        "name": "set msg.battery",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "$round(payload.value)",
+                "tot": "jsonata"
+            },
+            {
+                "t": "set",
+                "p": "topic",
+                "pt": "msg",
+                "to": "battery_soc",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "battery_soc",
+                "pt": "msg",
+                "to": "payload",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 430,
+        "y": 390,
+        "wires": [
+            [
+                "a02a7df0b008380c",
+                "89502450870d758a"
+            ]
+        ]
+    },
+    {
+        "id": "cdf470ea266772e1",
+        "type": "mqtt in",
+        "z": "7bd952a16ba307cb",
+        "name": "leisure battery current (a)",
+        "topic": "N/c0619ab5fb12/battery/512/Dc/0/Current",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "cc4ba79e8dc93fb5",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 150,
+        "y": 290,
+        "wires": [
+            [
+                "dcd69e2fa0220bdf"
+            ]
+        ]
+    },
+    {
+        "id": "f2091fcc0fbfe7c9",
+        "type": "mqtt in",
+        "z": "7bd952a16ba307cb",
+        "name": "solar watts (mppt)",
+        "topic": "N/c0619ab5fb12/solarcharger/278/Yield/Power",
+        "qos": "2",
+        "datatype": "json",
+        "broker": "cc4ba79e8dc93fb5",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 170,
+        "y": 110,
+        "wires": [
+            [
+                "832f5d4b3a776c61"
+            ]
+        ]
+    },
+    {
+        "id": "832f5d4b3a776c61",
+        "type": "change",
+        "z": "7bd952a16ba307cb",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "inputSolar",
+                "pt": "msg",
+                "to": "$round(msg.payload.value)",
+                "tot": "jsonata"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 420,
+        "y": 110,
+        "wires": [
+            [
+                "b6cbe5ec52c24d83"
+            ]
+        ]
+    },
+    {
+        "id": "0ff476873aae6e5c",
+        "type": "mqtt in",
+        "z": "7bd952a16ba307cb",
+        "name": "alternator",
+        "topic": "N/c0619ab5fb12/alternator/277/Dc/0/Power",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "cc4ba79e8dc93fb5",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 200,
+        "y": 170,
+        "wires": [
+            [
+                "474b2f65b4333394"
+            ]
+        ]
+    },
+    {
+        "id": "d00c18952d43659d",
+        "type": "mqtt in",
+        "z": "7bd952a16ba307cb",
+        "name": "shore power",
+        "topic": "N/c0619ab5fb12/vebus/276/Ac/ActiveIn/P",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "cc4ba79e8dc93fb5",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 190,
+        "y": 230,
+        "wires": [
+            [
+                "f4c15a9f4b974966"
+            ]
+        ]
+    },
+    {
+        "id": "f4c15a9f4b974966",
+        "type": "change",
+        "z": "7bd952a16ba307cb",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "inputShore",
+                "pt": "msg",
+                "to": "payload.value",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 420,
+        "y": 230,
+        "wires": [
+            [
+                "b6cbe5ec52c24d83"
+            ]
+        ]
+    },
+    {
+        "id": "474b2f65b4333394",
+        "type": "change",
+        "z": "7bd952a16ba307cb",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "inputAlternator",
+                "pt": "msg",
+                "to": "$round(msg.payload.value)",
+                "tot": "jsonata"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 400,
+        "y": 170,
+        "wires": [
+            [
+                "b6cbe5ec52c24d83"
+            ]
+        ]
+    },
+    {
+        "id": "5ed30bd2967d32bc",
+        "type": "mqtt in",
+        "z": "7bd952a16ba307cb",
+        "name": "ac power output (w)",
+        "topic": "N/c0619ab5fb12/vebus/276/Ac/Out/L1/P",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "cc4ba79e8dc93fb5",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 170,
+        "y": 700,
+        "wires": [
+            [
+                "59ede0a009e0da99"
+            ]
+        ]
+    },
+    {
+        "id": "59ede0a009e0da99",
+        "type": "change",
+        "z": "7bd952a16ba307cb",
+        "name": "set msg.acload",
+        "rules": [
+            {
+                "t": "set",
+                "p": "acload",
+                "pt": "msg",
+                "to": "payload.value",
+                "tot": "msg"
+            },
+            {
+                "t": "delete",
+                "p": "payload",
+                "pt": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 430,
+        "y": 700,
+        "wires": [
+            [
+                "e516d7a446b7eb27"
+            ]
+        ]
+    },
+    {
+        "id": "1d32fcfd7a278b19",
+        "type": "mqtt in",
+        "z": "7bd952a16ba307cb",
+        "name": "dc power output (w)",
+        "topic": "N/c0619ab5fb12/system/0/Dc/System/Power",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "cc4ba79e8dc93fb5",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 170,
+        "y": 750,
+        "wires": [
+            [
+                "537010c7b652cded"
+            ]
+        ]
+    },
+    {
+        "id": "537010c7b652cded",
+        "type": "change",
+        "z": "7bd952a16ba307cb",
+        "name": "set msg.dcload",
+        "rules": [
+            {
+                "t": "set",
+                "p": "dcload",
+                "pt": "msg",
+                "to": "$round(msg.payload.value)",
+                "tot": "jsonata"
+            },
+            {
+                "t": "delete",
+                "p": "payload",
+                "pt": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 430,
+        "y": 750,
+        "wires": [
+            [
+                "e516d7a446b7eb27"
+            ]
+        ]
+    },
+    {
+        "id": "e3619daf2237daa9",
+        "type": "mqtt in",
+        "z": "7bd952a16ba307cb",
+        "name": "multiplus inverter switch",
+        "topic": "N/c0619ab5fb12/vebus/276/Mode",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "cc4ba79e8dc93fb5",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 160,
+        "y": 810,
+        "wires": [
+            [
+                "f2b5c5835b2e723c"
+            ]
+        ]
+    },
+    {
+        "id": "2add69d017d050f1",
+        "type": "inject",
+        "z": "7bd952a16ba307cb",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"value\":2}",
+        "payloadType": "json",
+        "x": 200,
+        "y": 860,
+        "wires": [
+            [
+                "f2b5c5835b2e723c"
+            ]
+        ]
+    },
+    {
+        "id": "f2b5c5835b2e723c",
+        "type": "change",
+        "z": "7bd952a16ba307cb",
+        "name": "set msg.inverter_on",
+        "rules": [
+            {
+                "t": "move",
+                "p": "payload.value",
+                "pt": "msg",
+                "to": "inverter_on",
+                "tot": "msg"
+            },
+            {
+                "t": "change",
+                "p": "inverter_on",
+                "pt": "msg",
+                "from": "2",
+                "fromt": "num",
+                "to": "true",
+                "tot": "bool"
+            },
+            {
+                "t": "change",
+                "p": "inverter_on",
+                "pt": "msg",
+                "from": "3",
+                "fromt": "num",
+                "to": "true",
+                "tot": "bool"
+            },
+            {
+                "t": "change",
+                "p": "inverter_on",
+                "pt": "msg",
+                "from": "4",
+                "fromt": "num",
+                "to": "false",
+                "tot": "bool"
+            },
+            {
+                "t": "change",
+                "p": "inverter_on",
+                "pt": "msg",
+                "from": "1",
+                "fromt": "num",
+                "to": "false",
+                "tot": "bool"
+            },
+            {
+                "t": "delete",
+                "p": "payload",
+                "pt": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 420,
+        "y": 800,
+        "wires": [
+            [
+                "e516d7a446b7eb27"
+            ]
+        ]
+    },
+    {
+        "id": "a61bb56cd87cc9b8",
+        "type": "inject",
+        "z": "7bd952a16ba307cb",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"value\":4}",
+        "payloadType": "json",
+        "x": 200,
+        "y": 900,
+        "wires": [
+            [
+                "f2b5c5835b2e723c"
+            ]
+        ]
+    },
+    {
+        "id": "031b0d38dd20e018",
+        "type": "mqtt out",
+        "z": "7bd952a16ba307cb",
+        "name": "set inverter mode",
+        "topic": "W/c0619ab5fb12/vebus/276/Mode",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "cc4ba79e8dc93fb5",
+        "x": 1630,
+        "y": 700,
+        "wires": []
+    },
+    {
+        "id": "ea4dc71e2d6a096a",
+        "type": "switch",
+        "z": "7bd952a16ba307cb",
+        "name": "",
+        "property": "topic",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "inverter",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "drawers_relay",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "fridge_mode",
+                "vt": "str"
+            }
+        ],
+        "checkall": "false",
+        "repair": false,
+        "outputs": 3,
+        "x": 1220,
+        "y": 800,
+        "wires": [
+            [
+                "0e87ea8a2d68a343"
+            ],
+            [
+                "03a58b1e62cee867"
+            ],
+            [
+                "4bc18d94fdbad360"
+            ]
+        ]
+    },
+    {
+        "id": "0e87ea8a2d68a343",
+        "type": "change",
+        "z": "7bd952a16ba307cb",
+        "name": "",
+        "rules": [
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "true",
+                "fromt": "bool",
+                "to": "{\"value\":3}",
+                "tot": "json"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "false",
+                "fromt": "bool",
+                "to": "{\"value\":4}",
+                "tot": "json"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1430,
+        "y": 700,
+        "wires": [
+            [
+                "031b0d38dd20e018",
+                "f0990b61d43824cb"
+            ]
+        ]
+    },
+    {
+        "id": "f0990b61d43824cb",
+        "type": "debug",
+        "z": "7bd952a16ba307cb",
+        "name": "set inverter",
+        "active": false,
+        "tosidebar": false,
+        "console": false,
+        "tostatus": true,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "payload",
+        "statusType": "auto",
+        "x": 1610,
+        "y": 750,
+        "wires": []
+    },
+    {
+        "id": "03a58b1e62cee867",
+        "type": "change",
+        "z": "7bd952a16ba307cb",
+        "name": "",
+        "rules": [
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "true",
+                "fromt": "bool",
+                "to": "{\"value\":1}",
+                "tot": "json"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "false",
+                "fromt": "bool",
+                "to": "{\"value\":0}",
+                "tot": "json"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1430,
+        "y": 800,
+        "wires": [
+            [
+                "a0543d54dab36896",
+                "2eb780616fdea298"
+            ]
+        ]
+    },
+    {
+        "id": "f41a54271c0934fb",
+        "type": "change",
+        "z": "7bd952a16ba307cb",
+        "name": "set msg.drawers_relay",
+        "rules": [
+            {
+                "t": "move",
+                "p": "payload.value",
+                "pt": "msg",
+                "to": "drawers_relay",
+                "tot": "msg"
+            },
+            {
+                "t": "change",
+                "p": "drawers_relay",
+                "pt": "msg",
+                "from": "0",
+                "fromt": "num",
+                "to": "false",
+                "tot": "bool"
+            },
+            {
+                "t": "change",
+                "p": "drawers_relay",
+                "pt": "msg",
+                "from": "1",
+                "fromt": "num",
+                "to": "true",
+                "tot": "bool"
+            },
+            {
+                "t": "delete",
+                "p": "payload",
+                "pt": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 410,
+        "y": 960,
+        "wires": [
+            [
+                "e516d7a446b7eb27"
+            ]
+        ]
+    },
+    {
+        "id": "a0543d54dab36896",
+        "type": "mqtt out",
+        "z": "7bd952a16ba307cb",
+        "name": "set relay 0 drawer locks",
+        "topic": "W/c0619ab5fb12/system/0/Relay/0/State",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "cc4ba79e8dc93fb5",
+        "x": 1650,
+        "y": 800,
+        "wires": []
+    },
+    {
+        "id": "2eb780616fdea298",
+        "type": "debug",
+        "z": "7bd952a16ba307cb",
+        "name": "set drawers relay",
+        "active": true,
+        "tosidebar": false,
+        "console": false,
+        "tostatus": true,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "payload",
+        "statusType": "auto",
+        "x": 1640,
+        "y": 880,
+        "wires": []
+    },
+    {
+        "id": "ed689bd02ed5e37a",
+        "type": "inject",
+        "z": "7bd952a16ba307cb",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"value\":0}",
+        "payloadType": "json",
+        "x": 190,
+        "y": 1020,
+        "wires": [
+            [
+                "f41a54271c0934fb"
+            ]
+        ]
+    },
+    {
+        "id": "2f4b081b49f3924d",
+        "type": "inject",
+        "z": "7bd952a16ba307cb",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"value\":1}",
+        "payloadType": "json",
+        "x": 190,
+        "y": 1060,
+        "wires": [
+            [
+                "f41a54271c0934fb"
+            ]
+        ]
+    },
+    {
+        "id": "06b1898b0d9f20a0",
+        "type": "mqtt in",
+        "z": "7bd952a16ba307cb",
+        "name": "relay 0 drawers",
+        "topic": "N/c0619ab5fb12/system/0/Relay/0/State",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "cc4ba79e8dc93fb5",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 180,
+        "y": 960,
+        "wires": [
+            [
+                "f41a54271c0934fb"
+            ]
+        ]
+    },
+    {
+        "id": "9f3eef154d479707",
+        "type": "link in",
+        "z": "7bd952a16ba307cb",
+        "name": "link in 5",
+        "links": [
+            "2b0bd9a566abcc0d"
+        ],
+        "x": 495,
+        "y": 1030,
+        "wires": [
+            [
+                "adb4f7b46c4aa91b",
+                "e516d7a446b7eb27"
+            ]
+        ]
+    },
+    {
+        "id": "4bc18d94fdbad360",
+        "type": "link out",
+        "z": "7bd952a16ba307cb",
+        "name": "link out fridge",
+        "mode": "link",
+        "links": [
+            "671de09bbc93c0f7"
+        ],
+        "x": 1365,
+        "y": 890,
+        "wires": []
+    },
+    {
+        "id": "adb4f7b46c4aa91b",
+        "type": "debug",
+        "z": "7bd952a16ba307cb",
+        "name": "overview-fridge-in",
+        "active": true,
+        "tosidebar": false,
+        "console": false,
+        "tostatus": true,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "payload",
+        "statusType": "auto",
+        "x": 680,
+        "y": 1030,
+        "wires": []
+    },
+    {
+        "id": "9f06b809385d772f",
+        "type": "rbe",
+        "z": "7bd952a16ba307cb",
+        "name": "",
+        "func": "rbe",
+        "gap": "",
+        "start": "",
+        "inout": "out",
+        "septopics": true,
+        "property": "payload",
+        "topi": "topic",
+        "x": 1090,
+        "y": 800,
+        "wires": [
+            [
+                "ea4dc71e2d6a096a"
+            ]
+        ]
+    },
+    {
+        "id": "a74ff95b1dd70c0c",
+        "type": "mqtt in",
+        "z": "7bd952a16ba307cb",
+        "name": "vehicle battery voltage \\n (from orion xs)",
+        "topic": "N/c0619ab5fb12/alternator/277/Dc/In/V",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "cc4ba79e8dc93fb5",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 160,
+        "y": 450,
+        "wires": [
+            [
+                "83969b1f57bf7699"
+            ]
+        ]
+    },
+    {
+        "id": "83969b1f57bf7699",
+        "type": "change",
+        "z": "7bd952a16ba307cb",
+        "name": "set msg.vehicleBattery",
+        "rules": [
+            {
+                "t": "set",
+                "p": "vehicleBattery",
+                "pt": "msg",
+                "to": "payload.value",
+                "tot": "jsonata"
+            },
+            {
+                "t": "delete",
+                "p": "payload",
+                "pt": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 410,
+        "y": 450,
+        "wires": [
+            [
+                "193a4fe216ab6d66"
+            ]
+        ]
+    },
+    {
+        "id": "193a4fe216ab6d66",
+        "type": "range",
+        "z": "7bd952a16ba307cb",
+        "minin": "11.5",
+        "maxin": "12.7",
+        "minout": "0",
+        "maxout": "100",
+        "action": "clamp",
+        "round": true,
+        "property": "vehicleBattery",
+        "name": "",
+        "x": 630,
+        "y": 450,
+        "wires": [
+            [
+                "a02a7df0b008380c"
+            ]
+        ]
+    },
+    {
+        "id": "89502450870d758a",
+        "type": "subflow:431c9911afa626f9",
+        "z": "7bd952a16ba307cb",
+        "name": "",
+        "x": 670,
+        "y": 340,
+        "wires": [
+            [
+                "b6cbe5ec52c24d83"
+            ]
+        ]
+    },
+    {
+        "id": "dcd69e2fa0220bdf",
+        "type": "change",
+        "z": "7bd952a16ba307cb",
+        "name": "set msg.battery_amps",
+        "rules": [
+            {
+                "t": "set",
+                "p": "topic",
+                "pt": "msg",
+                "to": "battery_amps",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "payload.value",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 410,
+        "y": 290,
+        "wires": [
+            [
+                "89502450870d758a"
+            ]
+        ]
+    },
+    {
+        "id": "5326022128faa825",
+        "type": "comment",
+        "z": "7bd952a16ba307cb",
+        "name": "Description",
+        "info": "# Overview group\n\nThe main template defines three columns and any shared styles\n\nFor easier management each of the three columns, **left/center/right** are defined in separeate UI Template nodes. These nodes use the **teleport** functionality to embed there content into the respective columns defined in the **main** UI Template\n\nresponsive css is used to alter the css styles for different devices, iphones,ipads etc\n\nThe css helper class is used to show a border around css elements to help with layouts.\nTo use open the UI template and click the enable button at the bottom of the dialog.",
+        "x": 140,
+        "y": 30,
+        "wires": []
+    },
+    {
+        "id": "499daf54c9416b86",
+        "type": "mqtt in",
+        "z": "7bd952a16ba307cb",
+        "name": "leisure battery soc",
+        "topic": "N/c0619ab5fb12/battery/512/InstalledCapacity",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "cc4ba79e8dc93fb5",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 170,
+        "y": 340,
+        "wires": [
+            [
+                "88aaaae3fad5dee1"
+            ]
+        ]
+    },
+    {
+        "id": "88aaaae3fad5dee1",
+        "type": "change",
+        "z": "7bd952a16ba307cb",
+        "name": "set msg.battery_ah",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "payload.value",
+                "tot": "msg"
+            },
+            {
+                "t": "set",
+                "p": "topic",
+                "pt": "msg",
+                "to": "battery_ah",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "battery_ah",
+                "pt": "msg",
+                "to": "payload",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 420,
+        "y": 340,
+        "wires": [
+            [
+                "89502450870d758a"
+            ]
+        ]
+    },
+    {
+        "id": "8023e2ec12a83a62",
+        "type": "comment",
+        "z": "7bd952a16ba307cb",
+        "name": "Date: 22/Jul/2025",
+        "info": "# Fridge\nThis flow turns the Cerbo GX relay 2 on or off either manualy or automaticaly.\nRelay 2 is supplies a 12v to the Fridges S+ input, signaling to use power from the battery/solar.\n\nThis is depentent on how your fridge is wired.\n\n## 3 modes\n - On (manual)\n - Off (manual)\n - Auto\n\n**On** and **off** turn relay 2 on an off manually.\n**Auto** will automaticaly determin when to turn the relay on or off based on the battery level\n\n**Auto* Switches the fridge to battery when there is no shore power(ehu) and the battery charge level reaches 98% or above.\n\n**Auto** Switches the fridge to off When the battery level goes below 95%",
+        "x": 290,
+        "y": 30,
+        "wires": []
+    },
+    {
+        "id": "0e94453eb43f91ea",
+        "type": "ui-page",
+        "name": "Motorhome",
+        "ui": "563c3834aa95d21c",
+        "path": "/grace",
+        "icon": "rv-truck",
+        "layout": "grid",
+        "theme": "b4dc292b8e533b16",
+        "breakpoints": [
+            {
+                "name": "Default",
+                "px": "0",
+                "cols": "8"
+            },
+            {
+                "name": "Tablet",
+                "px": "576",
+                "cols": "16"
+            },
+            {
+                "name": "Small Desktop",
+                "px": "768",
+                "cols": "16"
+            },
+            {
+                "name": "Desktop",
+                "px": "1024",
+                "cols": "16"
+            }
+        ],
+        "order": 1,
+        "className": "",
+        "visible": "true",
+        "disabled": "true"
+    },
+    {
+        "id": "563c3834aa95d21c",
+        "type": "ui-base",
+        "name": "Motorhome",
+        "path": "/dashboard",
+        "appIcon": "rv-truck",
+        "includeClientData": true,
+        "acceptsClientConfig": [
+            "ui-notification",
+            "ui-control"
+        ],
+        "showPathInSidebar": false,
+        "headerContent": "none",
+        "navigationStyle": "none",
+        "titleBarStyle": "hidden",
+        "showReconnectNotification": false,
+        "notificationDisplayTime": "1",
+        "showDisconnectNotification": false,
+        "allowInstall": true
+    },
+    {
+        "id": "025c21e42e07676b",
+        "type": "ui-group",
+        "name": "Overview",
+        "page": "0e94453eb43f91ea",
+        "width": "16",
+        "height": 1,
+        "order": 2,
+        "showTitle": false,
+        "className": "overview-group",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default"
+    },
+    {
+        "id": "cc4ba79e8dc93fb5",
+        "type": "mqtt-broker",
+        "name": "cerbo",
+        "broker": "192.168.10.20",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "b4dc292b8e533b16",
+        "type": "ui-theme",
+        "name": "dark theme",
+        "colors": {
+            "surface": "#282828",
+            "primary": "#0094ce",
+            "bgPage": "#00374a",
+            "groupBg": "#171821",
+            "groupOutline": "#323344"
+        },
+        "sizes": {
+            "density": "default",
+            "pagePadding": "2px",
+            "groupGap": "6px",
+            "groupBorderRadius": "12px",
+            "widgetGap": "4px"
+        },
+        "info": "0094CE\n\n00374A\n\n171821"
+    }
+]

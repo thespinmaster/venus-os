@@ -1,0 +1,1540 @@
+[
+    {
+        "id": "532ea3b5017daebf",
+        "type": "subflow",
+        "name": "confirm dialog",
+        "info": "",
+        "category": "",
+        "in": [
+            {
+                "x": 20,
+                "y": 240,
+                "wires": [
+                    {
+                        "id": "5df67f0a85d806b0"
+                    },
+                    {
+                        "id": "bc0d687c1f825b99"
+                    },
+                    {
+                        "id": "5c07332081cff754"
+                    },
+                    {
+                        "id": "d48ffbca283c3d5e"
+                    },
+                    {
+                        "id": "038583a4bd8500bf"
+                    }
+                ]
+            }
+        ],
+        "out": [
+            {
+                "x": 1240,
+                "y": 240,
+                "wires": [
+                    {
+                        "id": "45921eb8b9ef8d73",
+                        "port": 0
+                    },
+                    {
+                        "id": "9479c0f112e42edf",
+                        "port": 0
+                    }
+                ]
+            },
+            {
+                "x": 1230,
+                "y": 180,
+                "wires": [
+                    {
+                        "id": "45921eb8b9ef8d73",
+                        "port": 0
+                    }
+                ]
+            },
+            {
+                "x": 1230,
+                "y": 300,
+                "wires": [
+                    {
+                        "id": "9479c0f112e42edf",
+                        "port": 0
+                    }
+                ]
+            }
+        ],
+        "env": [],
+        "meta": {},
+        "color": "#DDAA99",
+        "outputLabels": [
+            "boolean output",
+            "true output",
+            "false output"
+        ]
+    },
+    {
+        "id": "a1284914e836e667",
+        "type": "ui-control",
+        "z": "532ea3b5017daebf",
+        "name": "close dialog",
+        "ui": "563c3834aa95d21c",
+        "events": "all",
+        "x": 970,
+        "y": 240,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "3298409f852decb4",
+        "type": "ui-control",
+        "z": "532ea3b5017daebf",
+        "name": "",
+        "ui": "563c3834aa95d21c",
+        "events": "all",
+        "x": 600,
+        "y": 420,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "416bf968b2024204",
+        "type": "change",
+        "z": "532ea3b5017daebf",
+        "name": "false",
+        "rules": [
+            {
+                "t": "set",
+                "p": "response",
+                "pt": "msg",
+                "to": "false",
+                "tot": "bool"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 770,
+        "y": 280,
+        "wires": [
+            [
+                "9479c0f112e42edf"
+            ]
+        ]
+    },
+    {
+        "id": "5b5f3ae5cbfe65c9",
+        "type": "change",
+        "z": "532ea3b5017daebf",
+        "name": "true",
+        "rules": [
+            {
+                "t": "set",
+                "p": "response",
+                "pt": "msg",
+                "to": "true",
+                "tot": "bool"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 770,
+        "y": 200,
+        "wires": [
+            [
+                "45921eb8b9ef8d73"
+            ]
+        ]
+    },
+    {
+        "id": "294b74b93b1343bf",
+        "type": "change",
+        "z": "532ea3b5017daebf",
+        "name": "show dialog",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "{\"groups\":{\"show\":[\"Motorhome:Confirm\"]}}",
+                "tot": "json"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 430,
+        "y": 420,
+        "wires": [
+            [
+                "3298409f852decb4"
+            ]
+        ]
+    },
+    {
+        "id": "5df67f0a85d806b0",
+        "type": "switch",
+        "z": "532ea3b5017daebf",
+        "name": "",
+        "property": "messagelabel",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "nempty"
+            },
+            {
+                "t": "else"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 210,
+        "y": 120,
+        "wires": [
+            [
+                "bba665b927188399"
+            ],
+            [
+                "4873a0ebdfd3e749"
+            ]
+        ]
+    },
+    {
+        "id": "2363ce8d3c50aa8b",
+        "type": "ui-button",
+        "z": "532ea3b5017daebf",
+        "group": "e87ad35fd6744eaf",
+        "name": "",
+        "label": "Yes",
+        "order": 3,
+        "width": "2",
+        "height": "1",
+        "emulateClick": false,
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "",
+        "iconPosition": "left",
+        "payload": "",
+        "payloadType": "str",
+        "topic": "topic",
+        "topicType": "msg",
+        "buttonColor": "",
+        "textColor": "",
+        "iconColor": "",
+        "enableClick": true,
+        "enablePointerdown": false,
+        "pointerdownPayload": "",
+        "pointerdownPayloadType": "str",
+        "enablePointerup": false,
+        "pointerupPayload": "",
+        "pointerupPayloadType": "str",
+        "x": 590,
+        "y": 200,
+        "wires": [
+            [
+                "c31a85752c6bbebe",
+                "5b5f3ae5cbfe65c9"
+            ]
+        ]
+    },
+    {
+        "id": "f9890af110ce4ea4",
+        "type": "ui-button",
+        "z": "532ea3b5017daebf",
+        "group": "e87ad35fd6744eaf",
+        "name": "",
+        "label": "No",
+        "order": 2,
+        "width": "2",
+        "height": "1",
+        "emulateClick": false,
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "",
+        "iconPosition": "left",
+        "payload": "",
+        "payloadType": "str",
+        "topic": "topic",
+        "topicType": "msg",
+        "buttonColor": "",
+        "textColor": "",
+        "iconColor": "",
+        "enableClick": true,
+        "enablePointerdown": false,
+        "pointerdownPayload": "",
+        "pointerdownPayloadType": "str",
+        "enablePointerup": false,
+        "pointerupPayload": "",
+        "pointerupPayloadType": "str",
+        "x": 590,
+        "y": 280,
+        "wires": [
+            [
+                "c31a85752c6bbebe",
+                "416bf968b2024204"
+            ]
+        ]
+    },
+    {
+        "id": "bba665b927188399",
+        "type": "change",
+        "z": "532ea3b5017daebf",
+        "name": "set message label",
+        "rules": [
+            {
+                "t": "set",
+                "p": "ui_update",
+                "pt": "msg",
+                "to": "{\"label\":msg.messagelabel}",
+                "tot": "jsonata"
+            },
+            {
+                "t": "delete",
+                "p": "payload",
+                "pt": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 390,
+        "y": 120,
+        "wires": [
+            [
+                "4b41fac5f8fe0e0f"
+            ]
+        ]
+    },
+    {
+        "id": "3431418758326f49",
+        "type": "change",
+        "z": "532ea3b5017daebf",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "response",
+                "pt": "msg",
+                "to": "false",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 390,
+        "y": 340,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "038583a4bd8500bf",
+        "type": "switch",
+        "z": "532ea3b5017daebf",
+        "name": "",
+        "property": "response",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "nempty"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 210,
+        "y": 340,
+        "wires": [
+            [
+                "3431418758326f49"
+            ]
+        ]
+    },
+    {
+        "id": "c31a85752c6bbebe",
+        "type": "change",
+        "z": "532ea3b5017daebf",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "{\"groups\":{\"hide\":[\"Motorhome:Confirm\"]}}",
+                "tot": "json"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 800,
+        "y": 240,
+        "wires": [
+            [
+                "a1284914e836e667"
+            ]
+        ]
+    },
+    {
+        "id": "d48ffbca283c3d5e",
+        "type": "change",
+        "z": "532ea3b5017daebf",
+        "name": "save payload",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "flow",
+                "to": "payload",
+                "tot": "msg",
+                "dc": true
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 190,
+        "y": 420,
+        "wires": [
+            [
+                "294b74b93b1343bf"
+            ]
+        ]
+    },
+    {
+        "id": "45921eb8b9ef8d73",
+        "type": "change",
+        "z": "532ea3b5017daebf",
+        "name": "restore payload",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "payload",
+                "tot": "flow",
+                "dc": true
+            },
+            {
+                "t": "delete",
+                "p": "ui_update",
+                "pt": "msg"
+            },
+            {
+                "t": "delete",
+                "p": "payload",
+                "pt": "flow"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1020,
+        "y": 200,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "bc0d687c1f825b99",
+        "type": "switch",
+        "z": "532ea3b5017daebf",
+        "name": "",
+        "property": "truelabel",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "nempty"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 210,
+        "y": 200,
+        "wires": [
+            [
+                "06ee270eb7e4c02f"
+            ]
+        ]
+    },
+    {
+        "id": "06ee270eb7e4c02f",
+        "type": "change",
+        "z": "532ea3b5017daebf",
+        "name": "set true label",
+        "rules": [
+            {
+                "t": "set",
+                "p": "ui_update",
+                "pt": "msg",
+                "to": "{\"label\":msg.truelabel}",
+                "tot": "jsonata"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 410,
+        "y": 200,
+        "wires": [
+            [
+                "2363ce8d3c50aa8b"
+            ]
+        ]
+    },
+    {
+        "id": "5c07332081cff754",
+        "type": "switch",
+        "z": "532ea3b5017daebf",
+        "name": "",
+        "property": "falselabel",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "nempty"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 210,
+        "y": 280,
+        "wires": [
+            [
+                "e687f3f4cd9780b7"
+            ]
+        ]
+    },
+    {
+        "id": "e687f3f4cd9780b7",
+        "type": "change",
+        "z": "532ea3b5017daebf",
+        "name": "set false label",
+        "rules": [
+            {
+                "t": "set",
+                "p": "ui_update",
+                "pt": "msg",
+                "to": "{\"label\":msg.falselabel}",
+                "tot": "jsonata"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 400,
+        "y": 280,
+        "wires": [
+            [
+                "f9890af110ce4ea4"
+            ]
+        ]
+    },
+    {
+        "id": "9479c0f112e42edf",
+        "type": "change",
+        "z": "532ea3b5017daebf",
+        "name": "restore payload",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "payload",
+                "tot": "flow",
+                "dc": true
+            },
+            {
+                "t": "delete",
+                "p": "ui_update",
+                "pt": "msg"
+            },
+            {
+                "t": "delete",
+                "p": "payload",
+                "pt": "flow"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1020,
+        "y": 280,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "4873a0ebdfd3e749",
+        "type": "change",
+        "z": "532ea3b5017daebf",
+        "name": "set message label",
+        "rules": [
+            {
+                "t": "set",
+                "p": "ui_update",
+                "pt": "msg",
+                "to": "{\"label\":\"Are you sure?\"}",
+                "tot": "jsonata"
+            },
+            {
+                "t": "delete",
+                "p": "payload",
+                "pt": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 390,
+        "y": 160,
+        "wires": [
+            [
+                "4b41fac5f8fe0e0f"
+            ]
+        ]
+    },
+    {
+        "id": "4b41fac5f8fe0e0f",
+        "type": "ui-text",
+        "z": "532ea3b5017daebf",
+        "group": "e87ad35fd6744eaf",
+        "order": 1,
+        "width": "4",
+        "height": "1",
+        "name": "",
+        "label": "Are you sure?",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#ffffff",
+        "wrapText": false,
+        "className": "",
+        "x": 620,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "e87ad35fd6744eaf",
+        "type": "ui-group",
+        "name": "Confirm",
+        "page": "1c55ed2ae243e7a0",
+        "width": "4",
+        "height": 1,
+        "order": 1,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": false,
+        "groupType": "dialog"
+    },
+    {
+        "id": "1c55ed2ae243e7a0",
+        "type": "ui-page",
+        "name": "Level",
+        "ui": "563c3834aa95d21c",
+        "path": "/level",
+        "icon": "home",
+        "layout": "grid",
+        "theme": "b4dc292b8e533b16",
+        "breakpoints": [
+            {
+                "name": "Default",
+                "px": "0",
+                "cols": "3"
+            },
+            {
+                "name": "Tablet",
+                "px": "576",
+                "cols": "6"
+            },
+            {
+                "name": "Small Desktop",
+                "px": "768",
+                "cols": "9"
+            },
+            {
+                "name": "Desktop",
+                "px": "1024",
+                "cols": "12"
+            }
+        ],
+        "order": 2,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "b4dc292b8e533b16",
+        "type": "ui-theme",
+        "name": "dark theme",
+        "colors": {
+            "surface": "#282828",
+            "primary": "#0094ce",
+            "bgPage": "#00374a",
+            "groupBg": "#171821",
+            "groupOutline": "#323344"
+        },
+        "sizes": {
+            "density": "default",
+            "pagePadding": "2px",
+            "groupGap": "6px",
+            "groupBorderRadius": "12px",
+            "widgetGap": "4px"
+        },
+        "info": "0094CE\n\n00374A\n\n171821"
+    },
+    {
+        "id": "4fde4c7e9d6f95a6",
+        "type": "tab",
+        "label": "Options",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "122ecd614a7d9410",
+        "type": "switch",
+        "z": "4fde4c7e9d6f95a6",
+        "name": "",
+        "property": "file.type",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "text/plain",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "application/json",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "text/csv",
+                "vt": "str"
+            },
+            {
+                "t": "else"
+            }
+        ],
+        "checkall": "false",
+        "repair": false,
+        "outputs": 4,
+        "x": 230,
+        "y": 280,
+        "wires": [
+            [
+                "e401ac4734b193b5"
+            ],
+            [
+                "e401ac4734b193b5"
+            ],
+            [
+                "e401ac4734b193b5"
+            ],
+            [
+                "9b3b5292fbc57756"
+            ]
+        ]
+    },
+    {
+        "id": "e401ac4734b193b5",
+        "type": "function",
+        "z": "4fde4c7e9d6f95a6",
+        "name": "Make path",
+        "func": "msg.path = \"/data/assets/\" + msg.file.name;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [
+            {
+                "var": "myfs",
+                "module": "fs"
+            }
+        ],
+        "x": 410,
+        "y": 270,
+        "wires": [
+            [
+                "3bb4ef0c5d74281e"
+            ]
+        ]
+    },
+    {
+        "id": "3bb4ef0c5d74281e",
+        "type": "file",
+        "z": "4fde4c7e9d6f95a6",
+        "name": "",
+        "filename": "path",
+        "filenameType": "msg",
+        "appendNewline": true,
+        "createDir": false,
+        "overwriteFile": "true",
+        "encoding": "none",
+        "x": 570,
+        "y": 270,
+        "wires": [
+            [
+                "839613d13e5842bc"
+            ]
+        ]
+    },
+    {
+        "id": "9b3b5292fbc57756",
+        "type": "change",
+        "z": "4fde4c7e9d6f95a6",
+        "name": "invalid file",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "Invalid file",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 400,
+        "y": 330,
+        "wires": [
+            [
+                "332bf2e70a821e4d"
+            ]
+        ]
+    },
+    {
+        "id": "839613d13e5842bc",
+        "type": "change",
+        "z": "4fde4c7e9d6f95a6",
+        "name": "File Successfully Saved",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "File Successfully Saved",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 780,
+        "y": 270,
+        "wires": [
+            [
+                "332bf2e70a821e4d"
+            ]
+        ]
+    },
+    {
+        "id": "4705ce522a9ad83c",
+        "type": "file",
+        "z": "4fde4c7e9d6f95a6",
+        "name": "",
+        "filename": "/data/home/nodered/header-image",
+        "filenameType": "str",
+        "appendNewline": true,
+        "createDir": false,
+        "overwriteFile": "true",
+        "encoding": "none",
+        "x": 530,
+        "y": 90,
+        "wires": [
+            [
+                "281461df8189951b"
+            ]
+        ]
+    },
+    {
+        "id": "281461df8189951b",
+        "type": "change",
+        "z": "4fde4c7e9d6f95a6",
+        "name": "delete payload",
+        "rules": [
+            {
+                "t": "delete",
+                "p": "payload",
+                "pt": "msg"
+            },
+            {
+                "t": "set",
+                "p": "topic",
+                "pt": "msg",
+                "to": "set-background-image",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 570,
+        "y": 140,
+        "wires": [
+            [
+                "8505197984fb099b"
+            ]
+        ]
+    },
+    {
+        "id": "f909caff42b76d0b",
+        "type": "ui-file-input",
+        "z": "4fde4c7e9d6f95a6",
+        "group": "58f8ed25a024fb50",
+        "name": "",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "topic": "topic",
+        "topicType": "msg",
+        "label": "Select header image",
+        "icon": "image",
+        "allowMultiple": false,
+        "accept": "image/jpeg",
+        "className": "",
+        "x": 230,
+        "y": 90,
+        "wires": [
+            [
+                "4705ce522a9ad83c"
+            ]
+        ]
+    },
+    {
+        "id": "d2b084ced59282c1",
+        "type": "ui-file-input",
+        "z": "4fde4c7e9d6f95a6",
+        "group": "58f8ed25a024fb50",
+        "name": "",
+        "order": 4,
+        "width": 0,
+        "height": 0,
+        "topic": "select-file",
+        "topicType": "str",
+        "label": "Select file to store locally",
+        "icon": "file-document-outline",
+        "allowMultiple": false,
+        "accept": "text/plain,text/csv,application/json",
+        "className": "",
+        "x": 240,
+        "y": 180,
+        "wires": [
+            [
+                "122ecd614a7d9410"
+            ]
+        ]
+    },
+    {
+        "id": "332bf2e70a821e4d",
+        "type": "ui-notification",
+        "z": "4fde4c7e9d6f95a6",
+        "ui": "563c3834aa95d21c",
+        "position": "bottom center",
+        "colorDefault": true,
+        "color": "#000000",
+        "displayTime": "5",
+        "showCountdown": false,
+        "outputs": 1,
+        "allowDismiss": true,
+        "dismissText": "Close",
+        "allowConfirm": false,
+        "confirmText": "Confirm",
+        "raw": true,
+        "className": "",
+        "name": "Save file notification",
+        "x": 770,
+        "y": 330,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "8505197984fb099b",
+        "type": "link out",
+        "z": "4fde4c7e9d6f95a6",
+        "name": "header/background",
+        "mode": "link",
+        "links": [
+            "895577a7aed83abb"
+        ],
+        "x": 735,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "e7d388bb5279fa57",
+        "type": "mqtt out",
+        "z": "4fde4c7e9d6f95a6",
+        "name": "reboot",
+        "topic": "W/c0619ab5fb12/platform/0/Device/Reboot",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "cc4ba79e8dc93fb5",
+        "x": 970,
+        "y": 460,
+        "wires": []
+    },
+    {
+        "id": "395cae5a1a52845f",
+        "type": "ui-button",
+        "z": "4fde4c7e9d6f95a6",
+        "group": "7eb229ea315a5a6f",
+        "name": "",
+        "label": "Reboot Cerbo GX",
+        "order": 1,
+        "width": "8",
+        "height": "1",
+        "emulateClick": false,
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "",
+        "iconPosition": "left",
+        "payload": "{\"value\":1}",
+        "payloadType": "json",
+        "topic": "reboot-cerbo",
+        "topicType": "str",
+        "buttonColor": "",
+        "textColor": "",
+        "iconColor": "",
+        "enableClick": true,
+        "enablePointerdown": false,
+        "pointerdownPayload": "",
+        "pointerdownPayloadType": "str",
+        "enablePointerup": false,
+        "pointerupPayload": "",
+        "pointerupPayloadType": "str",
+        "x": 230,
+        "y": 460,
+        "wires": [
+            [
+                "faafe08d03e41bf0"
+            ]
+        ]
+    },
+    {
+        "id": "4432dedab5f9813c",
+        "type": "ui-button",
+        "z": "4fde4c7e9d6f95a6",
+        "group": "7eb229ea315a5a6f",
+        "name": "",
+        "label": "Reboot Truma inetbox",
+        "order": 2,
+        "width": "8",
+        "height": "1",
+        "emulateClick": false,
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "",
+        "iconPosition": "left",
+        "payload": "1",
+        "payloadType": "num",
+        "topic": "reboot-truma",
+        "topicType": "str",
+        "buttonColor": "",
+        "textColor": "",
+        "iconColor": "",
+        "enableClick": true,
+        "enablePointerdown": false,
+        "pointerdownPayload": "",
+        "pointerdownPayloadType": "str",
+        "enablePointerup": false,
+        "pointerupPayload": "",
+        "pointerupPayloadType": "str",
+        "x": 220,
+        "y": 540,
+        "wires": [
+            [
+                "faafe08d03e41bf0"
+            ]
+        ]
+    },
+    {
+        "id": "6552282870cb2448",
+        "type": "mqtt out",
+        "z": "4fde4c7e9d6f95a6",
+        "name": "reboot",
+        "topic": "service/truma/set/reboot",
+        "qos": "2",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "cc4ba79e8dc93fb5",
+        "x": 970,
+        "y": 540,
+        "wires": []
+    },
+    {
+        "id": "2335507b55cc038a",
+        "type": "ui-button",
+        "z": "4fde4c7e9d6f95a6",
+        "group": "7eb229ea315a5a6f",
+        "name": "",
+        "label": "Reboot Cerbo - Node Red",
+        "order": 3,
+        "width": "8",
+        "height": "1",
+        "emulateClick": false,
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "",
+        "iconPosition": "left",
+        "payload": "{\"value\": 0}",
+        "payloadType": "json",
+        "topic": "reboot-cerbo-nodered",
+        "topicType": "str",
+        "buttonColor": "",
+        "textColor": "",
+        "iconColor": "",
+        "enableClick": true,
+        "enablePointerdown": false,
+        "pointerdownPayload": "",
+        "pointerdownPayloadType": "str",
+        "enablePointerup": false,
+        "pointerupPayload": "",
+        "pointerupPayloadType": "str",
+        "x": 210,
+        "y": 620,
+        "wires": [
+            [
+                "faafe08d03e41bf0"
+            ]
+        ]
+    },
+    {
+        "id": "e5b07edc898bd824",
+        "type": "mqtt out",
+        "z": "4fde4c7e9d6f95a6",
+        "name": "disable node red",
+        "topic": "W/c0619ab5fb12/platform/0/Services/NodeRed/Mode",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "cc4ba79e8dc93fb5",
+        "x": 1010,
+        "y": 620,
+        "wires": []
+    },
+    {
+        "id": "3e21a52faf6838e3",
+        "type": "delay",
+        "z": "4fde4c7e9d6f95a6",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "5",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 980,
+        "y": 680,
+        "wires": [
+            [
+                "557183884877657c"
+            ]
+        ]
+    },
+    {
+        "id": "3e7ebc93099cf312",
+        "type": "mqtt out",
+        "z": "4fde4c7e9d6f95a6",
+        "name": "enable node red",
+        "topic": "W/c0619ab5fb12/platform/0/Services/NodeRed/Mode",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "cc4ba79e8dc93fb5",
+        "x": 1360,
+        "y": 680,
+        "wires": []
+    },
+    {
+        "id": "557183884877657c",
+        "type": "change",
+        "z": "4fde4c7e9d6f95a6",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "{\"value\": 1}",
+                "tot": "json"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1160,
+        "y": 680,
+        "wires": [
+            [
+                "3e7ebc93099cf312"
+            ]
+        ]
+    },
+    {
+        "id": "623ec041d1a40a22",
+        "type": "switch",
+        "z": "4fde4c7e9d6f95a6",
+        "name": "",
+        "property": "topic",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "reboot-cerbo",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "reboot-truma",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "reboot-cerbo-nodered",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 3,
+        "x": 610,
+        "y": 540,
+        "wires": [
+            [
+                "e7d388bb5279fa57"
+            ],
+            [
+                "6552282870cb2448"
+            ],
+            [
+                "e5b07edc898bd824",
+                "3e21a52faf6838e3"
+            ]
+        ]
+    },
+    {
+        "id": "faafe08d03e41bf0",
+        "type": "subflow:532ea3b5017daebf",
+        "z": "4fde4c7e9d6f95a6",
+        "name": "",
+        "x": 450,
+        "y": 540,
+        "wires": [
+            [],
+            [
+                "623ec041d1a40a22"
+            ],
+            []
+        ],
+        "info": "Can pass\r\nmsg.messagelabel for a custom message\r\nmsg.truelabel for a custom true button label\r\nmsg.falselabel for a custom false button label\r\n"
+    },
+    {
+        "id": "e786b423e867aa3c",
+        "type": "inject",
+        "z": "4fde4c7e9d6f95a6",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "1",
+        "payloadType": "num",
+        "x": 210,
+        "y": 740,
+        "wires": [
+            [
+                "72fd4504cc38d633"
+            ]
+        ]
+    },
+    {
+        "id": "fdf02ce4bcdd45a6",
+        "type": "inject",
+        "z": "4fde4c7e9d6f95a6",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "1",
+        "payloadType": "num",
+        "x": 210,
+        "y": 800,
+        "wires": [
+            [
+                "e9918bb2528e1f94"
+            ]
+        ]
+    },
+    {
+        "id": "72fd4504cc38d633",
+        "type": "mqtt out",
+        "z": "4fde4c7e9d6f95a6",
+        "name": "reboot",
+        "topic": "service/truma/set/reboot",
+        "qos": "2",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "cc4ba79e8dc93fb5",
+        "x": 380,
+        "y": 740,
+        "wires": []
+    },
+    {
+        "id": "e9918bb2528e1f94",
+        "type": "mqtt out",
+        "z": "4fde4c7e9d6f95a6",
+        "name": "reboot",
+        "topic": "service/truma/set/os_run",
+        "qos": "2",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "cc4ba79e8dc93fb5",
+        "x": 380,
+        "y": 800,
+        "wires": []
+    },
+    {
+        "id": "6552446e77eddb99",
+        "type": "comment",
+        "z": "4fde4c7e9d6f95a6",
+        "name": "Description",
+        "info": "# Options\nThis flow provides options for the other flows. such as changing the background header image. Providing the json file used for the truma error lookups\n\n",
+        "x": 90,
+        "y": 30,
+        "wires": []
+    },
+    {
+        "id": "e946242af9bae8fa",
+        "type": "comment",
+        "z": "4fde4c7e9d6f95a6",
+        "name": "Date: 22/Jul/2025",
+        "info": "# Fridge\nThis flow turns the Cerbo GX relay 2 on or off either manualy or automaticaly.\nRelay 2 is supplies a 12v to the Fridges S+ input, signaling to use power from the battery/solar.\n\nThis is depentent on how your fridge is wired.\n\n## 3 modes\n - On (manual)\n - Off (manual)\n - Auto\n\n**On** and **off** turn relay 2 on an off manually.\n**Auto** will automaticaly determin when to turn the relay on or off based on the battery level\n\n**Auto* Switches the fridge to battery when there is no shore power(ehu) and the battery charge level reaches 98% or above.\n\n**Auto** Switches the fridge to off When the battery level goes below 95%",
+        "x": 250,
+        "y": 30,
+        "wires": []
+    },
+    {
+        "id": "58f8ed25a024fb50",
+        "type": "ui-group",
+        "name": "Settings",
+        "page": "0e94453eb43f91ea",
+        "width": "8",
+        "height": "1",
+        "order": 9,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default"
+    },
+    {
+        "id": "563c3834aa95d21c",
+        "type": "ui-base",
+        "name": "Motorhome",
+        "path": "/dashboard",
+        "appIcon": "rv-truck",
+        "includeClientData": true,
+        "acceptsClientConfig": [
+            "ui-notification",
+            "ui-control"
+        ],
+        "showPathInSidebar": false,
+        "headerContent": "none",
+        "navigationStyle": "none",
+        "titleBarStyle": "hidden",
+        "showReconnectNotification": false,
+        "notificationDisplayTime": "1",
+        "showDisconnectNotification": false,
+        "allowInstall": true
+    },
+    {
+        "id": "cc4ba79e8dc93fb5",
+        "type": "mqtt-broker",
+        "name": "cerbo",
+        "broker": "192.168.10.20",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "7eb229ea315a5a6f",
+        "type": "ui-group",
+        "name": "Reboot",
+        "page": "0e94453eb43f91ea",
+        "width": "8",
+        "height": 1,
+        "order": 10,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default"
+    },
+    {
+        "id": "0e94453eb43f91ea",
+        "type": "ui-page",
+        "name": "Motorhome",
+        "ui": "563c3834aa95d21c",
+        "path": "/grace",
+        "icon": "rv-truck",
+        "layout": "grid",
+        "theme": "b4dc292b8e533b16",
+        "breakpoints": [
+            {
+                "name": "Default",
+                "px": "0",
+                "cols": "8"
+            },
+            {
+                "name": "Tablet",
+                "px": "576",
+                "cols": "16"
+            },
+            {
+                "name": "Small Desktop",
+                "px": "768",
+                "cols": "16"
+            },
+            {
+                "name": "Desktop",
+                "px": "1024",
+                "cols": "16"
+            }
+        ],
+        "order": 1,
+        "className": "",
+        "visible": "true",
+        "disabled": "true"
+    }
+]

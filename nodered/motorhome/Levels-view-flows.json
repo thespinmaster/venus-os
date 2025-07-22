@@ -1,0 +1,399 @@
+[
+    {
+        "id": "3d163acaf29f8a1c",
+        "type": "tab",
+        "label": "Level",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "b15ffeb70d932fdb",
+        "type": "ui-template",
+        "z": "3d163acaf29f8a1c",
+        "group": "a7bfa918849b8208",
+        "page": "",
+        "ui": "",
+        "name": "",
+        "order": 2,
+        "width": "6",
+        "height": "1",
+        "head": "",
+        "format": "<template>\n    <div>\n        <svg width=\"200\" height=\"130\">\n        <g :transform=\"`rotate(${msg.degrees}, 100, 50)`\" >\n          <rect x=\"20\" y=\"10\" width=\"20\" height=\"40\" rx=\"2\" ry=\"2\" style=\"fill:red\"></rect>\n          <rect x=\"160\" y=\"10\" width=\"20\" height=\"40\" rx=\"2\" ry=\"2\" style=\"fill:red\"></rect>\n          <line x1=\"0\" y1=\"50\" x2=\"200\" y2=\"50\" style=\"stroke:red;stroke-width:2\" />\n        </g>\n        <text y=\"80\" x=\"50%\" style=\"font:normal 20px sans-serif\" text-anchor=\"middle\" fill=\"white\">{{msg.degrees}}°</text>\n        <g>\n            <rect x=\"1\" y=\"100\" width=\"198\" height=\"20\" rx=\"10\" ry=\"10\" style=\"stroke:red;stroke-width:2;fill:none\"></rect>\n            <circle :cx=\"`${msg.degrees_len}`\" cy=\"110\" r=\"9\" style=\"fill:green\"></circle>\n            <line x1=\"90\" y1=\"100\" x2=\"90\" y2=\"120\" style=\"stroke:red;stroke-width:1\"></line>\n            <line x1=\"110\" y1=\"100\" x2=\"110\" y2=\"120\" style=\"stroke:red;stroke-width:1\"></line>\n            \n        </g>\n        </svg>\n        <div>\n            <span>{{msg.payload}}</span>\n        </div>\n        \n    </div>\n</template>",
+        "storeOutMessages": true,
+        "passthru": false,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 1180,
+        "y": 480,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "508c911bc279013d",
+        "type": "mqtt in",
+        "z": "3d163acaf29f8a1c",
+        "name": "",
+        "topic": "N/c0619ab5fb12/tank/24/AccelX",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "cc4ba79e8dc93fb5",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 150,
+        "y": 460,
+        "wires": [
+            [
+                "ae77c2cc22933bd1"
+            ]
+        ]
+    },
+    {
+        "id": "af84018d72155a30",
+        "type": "mqtt in",
+        "z": "3d163acaf29f8a1c",
+        "name": "",
+        "topic": "N/c0619ab5fb12/tank/24/AccelY",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "cc4ba79e8dc93fb5",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 150,
+        "y": 580,
+        "wires": [
+            [
+                "cf745cfe9f9aaad2"
+            ]
+        ]
+    },
+    {
+        "id": "2d69ab461e968b38",
+        "type": "function",
+        "z": "3d163acaf29f8a1c",
+        "name": "Acceleraton to degrees",
+        "func": "\n//msg.degrees = radians_to_degrees(msg.payload);\nvar accel_xy = msg.payload;\n//accel_xy=0.125;\nvar offset = 0;// -0.05;\nvar degrees = ((Math.asin((accel_xy - offset) / 9.81) * 180) / Math.PI) *10//+ msg.offset;\nmsg.degrees = Math.round(degrees,2);\nmsg.degrees_len = degrees;\nreturn msg;\n\nfunction radians_to_degrees(radians)\n{\n  // Store the value of pi.\n  var pi = Math.PI;\n  // Multiply radians by 180 divided by pi to convert to degrees.\n  return radians * (180/pi);\n}",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 650,
+        "y": 520,
+        "wires": [
+            [
+                "39e82c7ee57f88e2"
+            ]
+        ]
+    },
+    {
+        "id": "d9d74cb3687a96ea",
+        "type": "switch",
+        "z": "3d163acaf29f8a1c",
+        "name": "",
+        "property": "$substring(msg.topic, -6)",
+        "propertyType": "jsonata",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "AccelX",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "AccelY",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 1010,
+        "y": 520,
+        "wires": [
+            [
+                "b15ffeb70d932fdb",
+                "67890a2a756322e2"
+            ],
+            [
+                "ca7ea184add6b864",
+                "67890a2a756322e2"
+            ]
+        ]
+    },
+    {
+        "id": "67890a2a756322e2",
+        "type": "debug",
+        "z": "3d163acaf29f8a1c",
+        "name": "debug 3",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1220,
+        "y": 520,
+        "wires": []
+    },
+    {
+        "id": "ae77c2cc22933bd1",
+        "type": "change",
+        "z": "3d163acaf29f8a1c",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "payload.value",
+                "tot": "msg",
+                "dc": true
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 400,
+        "y": 460,
+        "wires": [
+            [
+                "2d69ab461e968b38"
+            ]
+        ]
+    },
+    {
+        "id": "ca7ea184add6b864",
+        "type": "ui-template",
+        "z": "3d163acaf29f8a1c",
+        "group": "a7bfa918849b8208",
+        "page": "",
+        "ui": "",
+        "name": "",
+        "order": 1,
+        "width": "6",
+        "height": "1",
+        "head": "",
+        "format": "<template>\n    <div>\n        <svg width=\"200\" height=\"130\">\n        <g :transform=\"`rotate(${msg.degrees}, 100, 50)`\" >\n          <circle cx=\"20\" cy=\"40\" r=\"10\" style=\"fill:red\"></circle>\n          <circle cx=\"180\" cy=\"40\" r=\"10\" style=\"fill:red\"></circle>\n          <line x1=\"0\" y1=\"50\" x2=\"200\" y2=\"50\" style=\"stroke:red;stroke-width:2\" />\n        </g>\n        <text y=\"80\" x=\"50%\" style=\"font:normal 20px sans-serif\" text-anchor=\"middle\" fill=\"white\">{{msg.degrees}}°</text>\n        <g>\n            <rect x=\"1\" y=\"100\" width=\"198\" height=\"20\" rx=\"10\" ry=\"10\" style=\"stroke:red;stroke-width:2;fill:none\"></rect>\n            <circle :cx=\"`${msg.degrees_len}`\" cy=\"110\" r=\"9\" style=\"fill:green\"></circle>\n            <line x1=\"90\" y1=\"100\" x2=\"90\" y2=\"120\" style=\"stroke:red;stroke-width:1\"></line>\n            <line x1=\"110\" y1=\"100\" x2=\"110\" y2=\"120\" style=\"stroke:red;stroke-width:1\"></line>\n            \n        </g>\n        </svg>\n        <div>\n            <span>{{msg.payload}}</span>\n        </div>\n        \n    </div>\n</template>",
+        "storeOutMessages": true,
+        "passthru": false,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 1180,
+        "y": 560,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "f28231645e63030e",
+        "type": "comment",
+        "z": "3d163acaf29f8a1c",
+        "name": "24=left, 25=right",
+        "info": "",
+        "x": 100,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "cf745cfe9f9aaad2",
+        "type": "change",
+        "z": "3d163acaf29f8a1c",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "payload.value",
+                "tot": "msg",
+                "dc": true
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 400,
+        "y": 580,
+        "wires": [
+            [
+                "2d69ab461e968b38"
+            ]
+        ]
+    },
+    {
+        "id": "39e82c7ee57f88e2",
+        "type": "range",
+        "z": "3d163acaf29f8a1c",
+        "minin": "-7.3",
+        "maxin": "7.3",
+        "minout": "10",
+        "maxout": "190",
+        "action": "scale",
+        "round": false,
+        "property": "degrees_len",
+        "name": "",
+        "x": 860,
+        "y": 520,
+        "wires": [
+            [
+                "d9d74cb3687a96ea"
+            ]
+        ]
+    },
+    {
+        "id": "ab6e4c44b96eb78b",
+        "type": "comment",
+        "z": "3d163acaf29f8a1c",
+        "name": "Description",
+        "info": "# Levels\nThis flow uses the acceleromiters that are part of the bluetooth Mokeka gas level sensors \n",
+        "x": 80,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "8a6b650a5a951a79",
+        "type": "comment",
+        "z": "3d163acaf29f8a1c",
+        "name": "Date: 22/Jul/2025",
+        "info": "# Fridge\nThis flow turns the Cerbo GX relay 2 on or off either manualy or automaticaly.\nRelay 2 is supplies a 12v to the Fridges S+ input, signaling to use power from the battery/solar.\n\nThis is depentent on how your fridge is wired.\n\n## 3 modes\n - On (manual)\n - Off (manual)\n - Auto\n\n**On** and **off** turn relay 2 on an off manually.\n**Auto** will automaticaly determin when to turn the relay on or off based on the battery level\n\n**Auto* Switches the fridge to battery when there is no shore power(ehu) and the battery charge level reaches 98% or above.\n\n**Auto** Switches the fridge to off When the battery level goes below 95%",
+        "x": 240,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "a7bfa918849b8208",
+        "type": "ui-group",
+        "name": "Level",
+        "page": "1c55ed2ae243e7a0",
+        "width": "12",
+        "height": 1,
+        "order": 2,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default"
+    },
+    {
+        "id": "cc4ba79e8dc93fb5",
+        "type": "mqtt-broker",
+        "name": "cerbo",
+        "broker": "192.168.10.20",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "1c55ed2ae243e7a0",
+        "type": "ui-page",
+        "name": "Level",
+        "ui": "563c3834aa95d21c",
+        "path": "/level",
+        "icon": "home",
+        "layout": "grid",
+        "theme": "b4dc292b8e533b16",
+        "breakpoints": [
+            {
+                "name": "Default",
+                "px": "0",
+                "cols": "3"
+            },
+            {
+                "name": "Tablet",
+                "px": "576",
+                "cols": "6"
+            },
+            {
+                "name": "Small Desktop",
+                "px": "768",
+                "cols": "9"
+            },
+            {
+                "name": "Desktop",
+                "px": "1024",
+                "cols": "12"
+            }
+        ],
+        "order": 2,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "563c3834aa95d21c",
+        "type": "ui-base",
+        "name": "Motorhome",
+        "path": "/dashboard",
+        "appIcon": "rv-truck",
+        "includeClientData": true,
+        "acceptsClientConfig": [
+            "ui-notification",
+            "ui-control"
+        ],
+        "showPathInSidebar": false,
+        "headerContent": "none",
+        "navigationStyle": "none",
+        "titleBarStyle": "hidden",
+        "showReconnectNotification": false,
+        "notificationDisplayTime": "1",
+        "showDisconnectNotification": false,
+        "allowInstall": true
+    },
+    {
+        "id": "b4dc292b8e533b16",
+        "type": "ui-theme",
+        "name": "dark theme",
+        "colors": {
+            "surface": "#282828",
+            "primary": "#0094ce",
+            "bgPage": "#00374a",
+            "groupBg": "#171821",
+            "groupOutline": "#323344"
+        },
+        "sizes": {
+            "density": "default",
+            "pagePadding": "2px",
+            "groupGap": "6px",
+            "groupBorderRadius": "12px",
+            "widgetGap": "4px"
+        },
+        "info": "0094CE\n\n00374A\n\n171821"
+    }
+]

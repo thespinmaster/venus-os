@@ -1,0 +1,1066 @@
+[
+    {
+        "id": "57c45cb45289b0fb",
+        "type": "tab",
+        "label": "Energy Mix",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "0765f1bddd14861d",
+        "type": "junction",
+        "z": "57c45cb45289b0fb",
+        "x": 1020,
+        "y": 390,
+        "wires": [
+            [
+                "0f1b80ce7efae793"
+            ]
+        ]
+    },
+    {
+        "id": "785e346e354a9d87",
+        "type": "mqtt in",
+        "z": "57c45cb45289b0fb",
+        "name": "max electricity power level in",
+        "topic": "service/truma/control_status/el_power_level",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "cc4ba79e8dc93fb5",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 130,
+        "y": 310,
+        "wires": [
+            [
+                "9b8cb6f61e107148",
+                "79ae41865d0e5013"
+            ]
+        ]
+    },
+    {
+        "id": "4831ffde7a69bcac",
+        "type": "mqtt in",
+        "z": "57c45cb45289b0fb",
+        "name": "energy mix  in",
+        "topic": "service/truma/control_status/energy_mix",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "cc4ba79e8dc93fb5",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 180,
+        "y": 390,
+        "wires": [
+            [
+                "be901b0d36655978",
+                "117e50a967fce4c0"
+            ]
+        ]
+    },
+    {
+        "id": "6e7f489d0fbefd8d",
+        "type": "inject",
+        "z": "57c45cb45289b0fb",
+        "name": "Gas",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "gas-0",
+        "payloadType": "str",
+        "x": 370,
+        "y": 40,
+        "wires": [
+            [
+                "cdb8ede920b32709"
+            ]
+        ]
+    },
+    {
+        "id": "5c1abf31019d626a",
+        "type": "inject",
+        "z": "57c45cb45289b0fb",
+        "name": "Mix1",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "mix-900",
+        "payload": "mix1",
+        "payloadType": "str",
+        "x": 370,
+        "y": 80,
+        "wires": [
+            [
+                "cdb8ede920b32709"
+            ]
+        ]
+    },
+    {
+        "id": "e9fe2d3145a91dcc",
+        "type": "inject",
+        "z": "57c45cb45289b0fb",
+        "name": "Mix2",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "mix-1800",
+        "payload": "mix2",
+        "payloadType": "str",
+        "x": 370,
+        "y": 120,
+        "wires": [
+            [
+                "cdb8ede920b32709"
+            ]
+        ]
+    },
+    {
+        "id": "6ff3e5fa1c3a744b",
+        "type": "inject",
+        "z": "57c45cb45289b0fb",
+        "name": "Electric 1",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "electricity-900",
+        "payloadType": "str",
+        "x": 360,
+        "y": 160,
+        "wires": [
+            [
+                "cdb8ede920b32709"
+            ]
+        ]
+    },
+    {
+        "id": "3c5c74c1a3b5c91c",
+        "type": "inject",
+        "z": "57c45cb45289b0fb",
+        "name": "Electric 2",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "electricity-1800",
+        "payloadType": "str",
+        "x": 360,
+        "y": 200,
+        "wires": [
+            [
+                "cdb8ede920b32709"
+            ]
+        ]
+    },
+    {
+        "id": "5a4066b79fe7e8f6",
+        "type": "rbe",
+        "z": "57c45cb45289b0fb",
+        "name": "",
+        "func": "rbe",
+        "gap": "",
+        "start": "",
+        "inout": "out",
+        "septopics": true,
+        "property": "payload",
+        "topi": "topic",
+        "x": 160,
+        "y": 540,
+        "wires": [
+            [
+                "e1948ef966966bf6"
+            ]
+        ]
+    },
+    {
+        "id": "1ea100381dab905e",
+        "type": "change",
+        "z": "57c45cb45289b0fb",
+        "name": "gas",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "gas",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 580,
+        "y": 420,
+        "wires": [
+            [
+                "21e5b74360dc70c5",
+                "a12411677c1391c7"
+            ]
+        ]
+    },
+    {
+        "id": "64625ba369b44155",
+        "type": "change",
+        "z": "57c45cb45289b0fb",
+        "name": "el off",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "0",
+                "tot": "num"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 580,
+        "y": 540,
+        "wires": [
+            [
+                "e0120c784aab649e"
+            ]
+        ]
+    },
+    {
+        "id": "99be5781ee683b2f",
+        "type": "change",
+        "z": "57c45cb45289b0fb",
+        "name": "el1",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "900",
+                "tot": "num"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 580,
+        "y": 580,
+        "wires": [
+            [
+                "e0120c784aab649e"
+            ]
+        ]
+    },
+    {
+        "id": "90398a6a7f47c061",
+        "type": "change",
+        "z": "57c45cb45289b0fb",
+        "name": "mix",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "mix",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 580,
+        "y": 460,
+        "wires": [
+            [
+                "21e5b74360dc70c5",
+                "a12411677c1391c7"
+            ]
+        ]
+    },
+    {
+        "id": "6317298be27b9e85",
+        "type": "change",
+        "z": "57c45cb45289b0fb",
+        "name": "el2",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "1800",
+                "tot": "num"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 580,
+        "y": 620,
+        "wires": [
+            [
+                "e0120c784aab649e"
+            ]
+        ]
+    },
+    {
+        "id": "c3d800abbf6169bc",
+        "type": "change",
+        "z": "57c45cb45289b0fb",
+        "name": "electricity",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "electricity",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 570,
+        "y": 500,
+        "wires": [
+            [
+                "21e5b74360dc70c5",
+                "a12411677c1391c7"
+            ]
+        ]
+    },
+    {
+        "id": "21e5b74360dc70c5",
+        "type": "debug",
+        "z": "57c45cb45289b0fb",
+        "name": "debug 1",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1010,
+        "y": 520,
+        "wires": []
+    },
+    {
+        "id": "a12411677c1391c7",
+        "type": "mqtt out",
+        "z": "57c45cb45289b0fb",
+        "name": "energy mix out",
+        "topic": "service/truma/set/energy_mix",
+        "qos": "1",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "cc4ba79e8dc93fb5",
+        "x": 1090,
+        "y": 460,
+        "wires": []
+    },
+    {
+        "id": "10d4f030bba8a6a3",
+        "type": "mqtt out",
+        "z": "57c45cb45289b0fb",
+        "name": "max electricity power level out",
+        "topic": "service/truma/set/el_power_level",
+        "qos": "1",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "cc4ba79e8dc93fb5",
+        "x": 1140,
+        "y": 570,
+        "wires": []
+    },
+    {
+        "id": "cf980a148bf7dcf3",
+        "type": "link out",
+        "z": "57c45cb45289b0fb",
+        "name": "link out 2",
+        "mode": "link",
+        "links": [
+            "0bd6ac50a07e37fb"
+        ],
+        "x": 1225,
+        "y": 350,
+        "wires": []
+    },
+    {
+        "id": "0bd6ac50a07e37fb",
+        "type": "link in",
+        "z": "57c45cb45289b0fb",
+        "name": "link in 2",
+        "links": [
+            "cf980a148bf7dcf3",
+            "2d2628b7253ca649"
+        ],
+        "x": 45,
+        "y": 540,
+        "wires": [
+            [
+                "5a4066b79fe7e8f6"
+            ]
+        ]
+    },
+    {
+        "id": "22d87cd4259ba798",
+        "type": "ui-button-group",
+        "z": "57c45cb45289b0fb",
+        "name": "",
+        "group": "fb72bc095a54ad37",
+        "order": 1,
+        "width": "",
+        "height": "",
+        "label": "",
+        "className": "my-group-button-compact my-btn-border my-btn-separator",
+        "rounded": true,
+        "useThemeColors": true,
+        "passthru": false,
+        "options": [
+            {
+                "label": "Gas",
+                "icon": "fire",
+                "value": "gas-0",
+                "valueType": "str",
+                "color": "#009933"
+            },
+            {
+                "label": "Mix1",
+                "icon": "numeric-1-circle-outline",
+                "value": "mix-900",
+                "valueType": "str",
+                "color": "#999999"
+            },
+            {
+                "label": "Mix2",
+                "icon": "numeric-1-circle-outline",
+                "value": "mix-1800",
+                "valueType": "str",
+                "color": "#ff6666"
+            },
+            {
+                "label": "El1",
+                "icon": "lightning-bolt-outline",
+                "value": "electricity-900",
+                "valueType": "str",
+                "color": "#009999"
+            },
+            {
+                "label": "EL2",
+                "icon": "lightning-bolt",
+                "value": "electricity-1800",
+                "valueType": "str",
+                "color": "#cccc00"
+            }
+        ],
+        "topic": "topic",
+        "topicType": "msg",
+        "x": 1080,
+        "y": 350,
+        "wires": [
+            [
+                "cf980a148bf7dcf3",
+                "0f1b80ce7efae793"
+            ]
+        ]
+    },
+    {
+        "id": "5a3279120cb52a78",
+        "type": "join",
+        "z": "57c45cb45289b0fb",
+        "name": "",
+        "mode": "custom",
+        "build": "object",
+        "property": "payload",
+        "propertyType": "msg",
+        "key": "topic",
+        "joiner": "-",
+        "joinerType": "str",
+        "useparts": false,
+        "accumulate": false,
+        "timeout": "",
+        "count": "2",
+        "reduceRight": false,
+        "reduceExp": "",
+        "reduceInit": "",
+        "reduceInitType": "num",
+        "reduceFixup": "",
+        "x": 660,
+        "y": 350,
+        "wires": [
+            [
+                "cdb8ede920b32709"
+            ]
+        ]
+    },
+    {
+        "id": "cdb8ede920b32709",
+        "type": "change",
+        "z": "57c45cb45289b0fb",
+        "name": "join payload strings",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "payload.energy_mix & \"-\" & payload.el_power_level",
+                "tot": "jsonata"
+            },
+            {
+                "t": "set",
+                "p": "truma_energy_mix",
+                "pt": "global",
+                "to": "payload.energy_mix",
+                "tot": "msg"
+            },
+            {
+                "t": "set",
+                "p": "truma_el_power_level",
+                "pt": "global",
+                "to": "payload.el_power_level",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 880,
+        "y": 350,
+        "wires": [
+            [
+                "020506a6e5eda38a",
+                "22d87cd4259ba798",
+                "0765f1bddd14861d"
+            ]
+        ]
+    },
+    {
+        "id": "9b8cb6f61e107148",
+        "type": "change",
+        "z": "57c45cb45289b0fb",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "topic",
+                "pt": "msg",
+                "to": "el_power_level",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 370,
+        "y": 310,
+        "wires": [
+            [
+                "1fa6c99380f48ed1"
+            ]
+        ]
+    },
+    {
+        "id": "be901b0d36655978",
+        "type": "change",
+        "z": "57c45cb45289b0fb",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "topic",
+                "pt": "msg",
+                "to": "energy_mix",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 370,
+        "y": 390,
+        "wires": [
+            [
+                "1fa6c99380f48ed1"
+            ]
+        ]
+    },
+    {
+        "id": "020506a6e5eda38a",
+        "type": "debug",
+        "z": "57c45cb45289b0fb",
+        "name": "debug 9",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": true,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "payload",
+        "statusType": "msg",
+        "x": 1020,
+        "y": 280,
+        "wires": []
+    },
+    {
+        "id": "e1948ef966966bf6",
+        "type": "switch",
+        "z": "57c45cb45289b0fb",
+        "name": "",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "gas-0",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "mix-900",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "mix-1800",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "electricity-900",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "electricity-1800",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 5,
+        "x": 320,
+        "y": 540,
+        "wires": [
+            [
+                "1ea100381dab905e",
+                "64625ba369b44155"
+            ],
+            [
+                "99be5781ee683b2f",
+                "90398a6a7f47c061"
+            ],
+            [
+                "6317298be27b9e85",
+                "90398a6a7f47c061"
+            ],
+            [
+                "99be5781ee683b2f",
+                "c3d800abbf6169bc"
+            ],
+            [
+                "6317298be27b9e85",
+                "c3d800abbf6169bc"
+            ]
+        ]
+    },
+    {
+        "id": "e0120c784aab649e",
+        "type": "delay",
+        "z": "57c45cb45289b0fb",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "50",
+        "timeoutUnits": "milliseconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 840,
+        "y": 570,
+        "wires": [
+            [
+                "10d4f030bba8a6a3",
+                "21e5b74360dc70c5"
+            ]
+        ]
+    },
+    {
+        "id": "79ae41865d0e5013",
+        "type": "debug",
+        "z": "57c45cb45289b0fb",
+        "name": "energy level in",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 380,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "117e50a967fce4c0",
+        "type": "debug",
+        "z": "57c45cb45289b0fb",
+        "name": "energy mix in",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 360,
+        "y": 350,
+        "wires": []
+    },
+    {
+        "id": "0f1b80ce7efae793",
+        "type": "change",
+        "z": "57c45cb45289b0fb",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "energy_mix",
+                "pt": "global",
+                "to": "payload",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1280,
+        "y": 390,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "1fa6c99380f48ed1",
+        "type": "switch",
+        "z": "57c45cb45289b0fb",
+        "name": "",
+        "property": "ac-mode-changed",
+        "propertyType": "flow",
+        "rules": [
+            {
+                "t": "true"
+            },
+            {
+                "t": "else"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 530,
+        "y": 350,
+        "wires": [
+            [
+                "ac8dd5487f325093"
+            ],
+            [
+                "5a3279120cb52a78"
+            ]
+        ]
+    },
+    {
+        "id": "ac8dd5487f325093",
+        "type": "change",
+        "z": "57c45cb45289b0fb",
+        "name": "set payload to flow.energy_mix",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "energy_mix",
+                "tot": "flow"
+            },
+            {
+                "t": "set",
+                "p": "ac-mode-changed",
+                "pt": "flow",
+                "to": "false",
+                "tot": "bool"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 780,
+        "y": 190,
+        "wires": [
+            [
+                "2d2628b7253ca649",
+                "02781825b7bb93b7"
+            ]
+        ]
+    },
+    {
+        "id": "2d2628b7253ca649",
+        "type": "link out",
+        "z": "57c45cb45289b0fb",
+        "name": "link out 2",
+        "mode": "link",
+        "links": [
+            "0bd6ac50a07e37fb"
+        ],
+        "x": 1015,
+        "y": 190,
+        "wires": []
+    },
+    {
+        "id": "02781825b7bb93b7",
+        "type": "debug",
+        "z": "57c45cb45289b0fb",
+        "name": "debug 8",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": true,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "payload",
+        "statusType": "auto",
+        "x": 1020,
+        "y": 230,
+        "wires": []
+    },
+    {
+        "id": "9b67fc338beb845a",
+        "type": "comment",
+        "z": "57c45cb45289b0fb",
+        "name": "Description",
+        "info": "# Energy mix\nThis flow controls the truma energy mix options via an inetbox2mqtt microcontroller\n\n",
+        "x": 90,
+        "y": 30,
+        "wires": []
+    },
+    {
+        "id": "edee46f964a63bed",
+        "type": "comment",
+        "z": "57c45cb45289b0fb",
+        "name": "Date: 22/Jul/2025",
+        "info": "# Fridge\nThis flow turns the Cerbo GX relay 2 on or off either manualy or automaticaly.\nRelay 2 is supplies a 12v to the Fridges S+ input, signaling to use power from the battery/solar.\n\nThis is depentent on how your fridge is wired.\n\n## 3 modes\n - On (manual)\n - Off (manual)\n - Auto\n\n**On** and **off** turn relay 2 on an off manually.\n**Auto** will automaticaly determin when to turn the relay on or off based on the battery level\n\n**Auto* Switches the fridge to battery when there is no shore power(ehu) and the battery charge level reaches 98% or above.\n\n**Auto** Switches the fridge to off When the battery level goes below 95%",
+        "x": 110,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "cc4ba79e8dc93fb5",
+        "type": "mqtt-broker",
+        "name": "cerbo",
+        "broker": "192.168.10.20",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "fb72bc095a54ad37",
+        "type": "ui-group",
+        "name": "Energy Mix",
+        "page": "0e94453eb43f91ea",
+        "width": "16",
+        "height": "1",
+        "order": 7,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default"
+    },
+    {
+        "id": "0e94453eb43f91ea",
+        "type": "ui-page",
+        "name": "Motorhome",
+        "ui": "563c3834aa95d21c",
+        "path": "/grace",
+        "icon": "rv-truck",
+        "layout": "grid",
+        "theme": "b4dc292b8e533b16",
+        "breakpoints": [
+            {
+                "name": "Default",
+                "px": "0",
+                "cols": "8"
+            },
+            {
+                "name": "Tablet",
+                "px": "576",
+                "cols": "16"
+            },
+            {
+                "name": "Small Desktop",
+                "px": "768",
+                "cols": "16"
+            },
+            {
+                "name": "Desktop",
+                "px": "1024",
+                "cols": "16"
+            }
+        ],
+        "order": 1,
+        "className": "",
+        "visible": "true",
+        "disabled": "true"
+    },
+    {
+        "id": "563c3834aa95d21c",
+        "type": "ui-base",
+        "name": "Motorhome",
+        "path": "/dashboard",
+        "appIcon": "rv-truck",
+        "includeClientData": true,
+        "acceptsClientConfig": [
+            "ui-notification",
+            "ui-control"
+        ],
+        "showPathInSidebar": false,
+        "headerContent": "none",
+        "navigationStyle": "none",
+        "titleBarStyle": "hidden",
+        "showReconnectNotification": false,
+        "notificationDisplayTime": "1",
+        "showDisconnectNotification": false,
+        "allowInstall": true
+    },
+    {
+        "id": "b4dc292b8e533b16",
+        "type": "ui-theme",
+        "name": "dark theme",
+        "colors": {
+            "surface": "#282828",
+            "primary": "#0094ce",
+            "bgPage": "#00374a",
+            "groupBg": "#171821",
+            "groupOutline": "#323344"
+        },
+        "sizes": {
+            "density": "default",
+            "pagePadding": "2px",
+            "groupGap": "6px",
+            "groupBorderRadius": "12px",
+            "widgetGap": "4px"
+        },
+        "info": "0094CE\n\n00374A\n\n171821"
+    }
+]

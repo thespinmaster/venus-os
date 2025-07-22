@@ -1,0 +1,1906 @@
+[
+    {
+        "id": "3e11d4a62984f385",
+        "type": "tab",
+        "label": "Water",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "17c6fc55efb9ef6c",
+        "type": "mqtt in",
+        "z": "3e11d4a62984f385",
+        "name": "water temp in",
+        "topic": "service/truma/control_status/current_temp_water",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "cc4ba79e8dc93fb5",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 150,
+        "y": 90,
+        "wires": [
+            [
+                "4728929002c1ad46"
+            ]
+        ]
+    },
+    {
+        "id": "937794734152444a",
+        "type": "mqtt in",
+        "z": "3e11d4a62984f385",
+        "name": "water mode in",
+        "topic": "service/truma/control_status/target_temp_water",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "cc4ba79e8dc93fb5",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 150,
+        "y": 160,
+        "wires": [
+            [
+                "674c8ec688d0114f"
+            ]
+        ]
+    },
+    {
+        "id": "d79e6a8aeea4a358",
+        "type": "mqtt out",
+        "z": "3e11d4a62984f385",
+        "name": "water mode out",
+        "topic": "service/truma/set/target_temp_water",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "cc4ba79e8dc93fb5",
+        "x": 560,
+        "y": 160,
+        "wires": []
+    },
+    {
+        "id": "5264826ba714aa0b",
+        "type": "change",
+        "z": "3e11d4a62984f385",
+        "name": "set msg.enabled",
+        "rules": [
+            {
+                "t": "set",
+                "p": "enabled",
+                "pt": "msg",
+                "to": "payload",
+                "tot": "msg"
+            },
+            {
+                "t": "delete",
+                "p": "payload",
+                "pt": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1140,
+        "y": 530,
+        "wires": [
+            [
+                "93e7e2eea7169a7f",
+                "41f4ba5caf06944b",
+                "4747c78a6246d562",
+                "c654b455223d5123"
+            ]
+        ],
+        "info": "sets msg.enabled to enable/disable connected nodes\npayload is deleted"
+    },
+    {
+        "id": "c654b455223d5123",
+        "type": "function",
+        "z": "3e11d4a62984f385",
+        "name": "Current time",
+        "func": "var datetime = new Date();\n//datetime = new Date(Date.parse('2025-01-01T03:32'));\nvar options = {hour: '2-digit', minute: '2-digit'};\nvar time = datetime.toLocaleTimeString('en-GB', options);\n\nnode.status ({\n        fill: \"blue\",\n        shape: \"dot\",\n        text: time});\n\nmsg.payload = time;\nmsg.topic = 'current-time';\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1560,
+        "y": 530,
+        "wires": [
+            [
+                "c775cf16fc3462cd"
+            ]
+        ]
+    },
+    {
+        "id": "75fbc04b83a39974",
+        "type": "inject",
+        "z": "3e11d4a62984f385",
+        "name": "Send payload every 28 seconds",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "28",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "1",
+        "topic": "time",
+        "payload": "",
+        "payloadType": "str",
+        "x": 1230,
+        "y": 650,
+        "wires": [
+            [
+                "c654b455223d5123",
+                "43f4abe992a293ff",
+                "455d971e1d47e1f0",
+                "f25f09a66c2198df",
+                "0c80522352e70bb8",
+                "21ca763182ba3031"
+            ]
+        ]
+    },
+    {
+        "id": "7b93dc3074c4dc14",
+        "type": "mqtt out",
+        "z": "3e11d4a62984f385",
+        "name": "water mode out",
+        "topic": "service/truma/set/target_temp_water",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "cc4ba79e8dc93fb5",
+        "x": 3650,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "c775cf16fc3462cd",
+        "type": "join",
+        "z": "3e11d4a62984f385",
+        "name": "join inputs",
+        "mode": "custom",
+        "build": "object",
+        "property": "payload",
+        "propertyType": "msg",
+        "key": "topic",
+        "joiner": "\\n",
+        "joinerType": "str",
+        "accumulate": true,
+        "timeout": "",
+        "count": "4",
+        "reduceRight": false,
+        "reduceExp": "",
+        "reduceInit": "",
+        "reduceInitType": "",
+        "reduceFixup": "",
+        "x": 1930,
+        "y": 350,
+        "wires": [
+            [
+                "7241c053ad95487c",
+                "bed738a1c5b08d12"
+            ]
+        ]
+    },
+    {
+        "id": "7241c053ad95487c",
+        "type": "switch",
+        "z": "3e11d4a62984f385",
+        "name": "enabled switch",
+        "property": "water-schedule-enabled",
+        "propertyType": "flow",
+        "rules": [
+            {
+                "t": "true"
+            },
+            {
+                "t": "false"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 2140,
+        "y": 350,
+        "wires": [
+            [
+                "da90def5536419e7",
+                "fd9df1de1dd23d42",
+                "67f5d7c3dcba75db"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "da90def5536419e7",
+        "type": "switch",
+        "z": "3e11d4a62984f385",
+        "name": "timer  equals",
+        "property": "payload['current-time']",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "payload['water-on-time']",
+                "vt": "msg"
+            }
+        ],
+        "checkall": "false",
+        "repair": false,
+        "outputs": 1,
+        "x": 2360,
+        "y": 640,
+        "wires": [
+            [
+                "1c0b3a3b8fab37ec",
+                "0f5c294c5467cdbb"
+            ]
+        ]
+    },
+    {
+        "id": "1ca51fd5b7feef8b",
+        "type": "mqtt in",
+        "z": "3e11d4a62984f385",
+        "name": "water temp in",
+        "topic": "service/truma/control_status/current_temp_water",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "cc4ba79e8dc93fb5",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 2160,
+        "y": 230,
+        "wires": [
+            [
+                "6a3ea7bf50b81c72"
+            ]
+        ]
+    },
+    {
+        "id": "6f03237b999b4a1c",
+        "type": "change",
+        "z": "3e11d4a62984f385",
+        "name": "set msg.enabled to true",
+        "rules": [
+            {
+                "t": "set",
+                "p": "enabled",
+                "pt": "msg",
+                "to": "false",
+                "tot": "bool"
+            },
+            {
+                "t": "delete",
+                "p": "payload",
+                "pt": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 2500,
+        "y": 290,
+        "wires": [
+            [
+                "37abe0da58528c90"
+            ]
+        ]
+    },
+    {
+        "id": "fd9df1de1dd23d42",
+        "type": "switch",
+        "z": "3e11d4a62984f385",
+        "name": "",
+        "property": "payload['water-auto-off']",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "-1",
+                "vt": "num"
+            },
+            {
+                "t": "gte",
+                "v": "0",
+                "vt": "num"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 2300,
+        "y": 320,
+        "wires": [
+            [
+                "6f03237b999b4a1c"
+            ],
+            [
+                "d2ee63c1251cacce"
+            ]
+        ]
+    },
+    {
+        "id": "d2ee63c1251cacce",
+        "type": "change",
+        "z": "3e11d4a62984f385",
+        "name": "set msg.enabled to false",
+        "rules": [
+            {
+                "t": "set",
+                "p": "enabled",
+                "pt": "msg",
+                "to": "false",
+                "tot": "bool"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 2500,
+        "y": 360,
+        "wires": [
+            [
+                "37abe0da58528c90"
+            ]
+        ]
+    },
+    {
+        "id": "9b41cd7c753b34e2",
+        "type": "change",
+        "z": "3e11d4a62984f385",
+        "name": "set payload to flow.water-auto-off",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "water-auto-off",
+                "tot": "flow"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 3370,
+        "y": 380,
+        "wires": [
+            [
+                "7b93dc3074c4dc14",
+                "2621c504715fb7c4"
+            ]
+        ]
+    },
+    {
+        "id": "fa3bf4f3bc47853a",
+        "type": "inject",
+        "z": "3e11d4a62984f385",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "current_temp_water",
+        "payload": "60",
+        "payloadType": "num",
+        "x": 2520,
+        "y": 160,
+        "wires": [
+            [
+                "37abe0da58528c90"
+            ]
+        ]
+    },
+    {
+        "id": "1c0b3a3b8fab37ec",
+        "type": "change",
+        "z": "3e11d4a62984f385",
+        "name": "set water mode",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "payload['water-on-mode']",
+                "tot": "msg"
+            },
+            {
+                "t": "set",
+                "p": "water-schedule-heating",
+                "pt": "flow",
+                "to": "true",
+                "tot": "bool"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 2560,
+        "y": 640,
+        "wires": [
+            [
+                "8bbfc539d516e43d",
+                "483f5722efd1757b"
+            ]
+        ]
+    },
+    {
+        "id": "8bbfc539d516e43d",
+        "type": "rbe",
+        "z": "3e11d4a62984f385",
+        "name": "",
+        "func": "rbe",
+        "gap": "",
+        "start": "",
+        "inout": "out",
+        "septopics": true,
+        "property": "payload",
+        "topi": "topic",
+        "x": 2750,
+        "y": 640,
+        "wires": [
+            [
+                "a7f923b2aacecf07"
+            ]
+        ]
+    },
+    {
+        "id": "d1c6da11da10b7f7",
+        "type": "inject",
+        "z": "3e11d4a62984f385",
+        "name": "Init State: water-on-time",
+        "props": [
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "",
+        "topic": "water-on-time",
+        "x": 220,
+        "y": 370,
+        "wires": [
+            [
+                "3b9fd0de09f260e3"
+            ]
+        ]
+    },
+    {
+        "id": "f5b7c782f6ba37ce",
+        "type": "inject",
+        "z": "3e11d4a62984f385",
+        "name": "Init State: water-on-mode",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "",
+        "topic": "water-on-mode",
+        "payload": "60",
+        "payloadType": "num",
+        "x": 220,
+        "y": 450,
+        "wires": [
+            [
+                "3b9fd0de09f260e3"
+            ]
+        ]
+    },
+    {
+        "id": "c7fea725872a6ac0",
+        "type": "inject",
+        "z": "3e11d4a62984f385",
+        "name": "Init State: water-auto-off",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "",
+        "topic": "water-auto-off",
+        "payload": "",
+        "payloadType": "num",
+        "x": 220,
+        "y": 520,
+        "wires": [
+            [
+                "3b9fd0de09f260e3"
+            ]
+        ]
+    },
+    {
+        "id": "62818b6c4025ab75",
+        "type": "change",
+        "z": "3e11d4a62984f385",
+        "name": "set payload to false for Enabled btn",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "false",
+                "tot": "bool"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 3370,
+        "y": 430,
+        "wires": [
+            [
+                "f52884f88d0f2531"
+            ]
+        ]
+    },
+    {
+        "id": "6a3ea7bf50b81c72",
+        "type": "switch",
+        "z": "3e11d4a62984f385",
+        "name": "is water-schedule-heating true",
+        "property": "water-schedule-heating",
+        "propertyType": "flow",
+        "rules": [
+            {
+                "t": "true"
+            }
+        ],
+        "checkall": "false",
+        "repair": false,
+        "outputs": 1,
+        "x": 2490,
+        "y": 230,
+        "wires": [
+            [
+                "37abe0da58528c90"
+            ]
+        ]
+    },
+    {
+        "id": "7bc5a12c2a3603fb",
+        "type": "change",
+        "z": "3e11d4a62984f385",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "water-schedule-enabled",
+                "pt": "flow",
+                "to": "payload",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1760,
+        "y": 830,
+        "wires": [
+            [
+                "4b7c5dce47b9ba34"
+            ]
+        ]
+    },
+    {
+        "id": "0c80522352e70bb8",
+        "type": "function",
+        "z": "3e11d4a62984f385",
+        "name": "water-schedule-enabled",
+        "func": "var status = flow.get(\"water-schedule-enabled\");\n\nif (status == undefined) {\n    node.status ({\n        fill: \"grey\",\n        shape: \"dot\",\n        text: \"undefined\"});\n} else if (status) {\n    node.status ({\n        fill: \"green\",\n        shape: \"dot\",\n        text: \"true\"});\n} else {\n    node.status ({\n        fill: \"red\",\n        shape: \"dot\",\n        text: \"false\"});\n}\n\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "// Code added here will be run once\n// whenever the node is started.\n//if (flow.water-schedule-enabled == undefined) {\n//    flow.water-schedule-enabled = undefined;\n//}\n",
+        "finalize": "",
+        "libs": [],
+        "x": 1600,
+        "y": 680,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "f25f09a66c2198df",
+        "type": "function",
+        "z": "3e11d4a62984f385",
+        "name": "water-on-time",
+        "func": "var status = flow.get(\"water-on-time\");\n\nif (status == undefined) {\n    node.status ({\n        fill: \"grey\",\n        shape: \"dot\",\n        text: \"undefined\"});\n} else {\n    node.status ({\n        fill: \"green\",\n        shape: \"dot\",\n        text: status});\n}\n\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "// Code added here will be run once\n// whenever the node is started.\n//if (flow.water-schedule-enabled == undefined) {\n//    flow.water-schedule-enabled = undefined;\n//}\n",
+        "finalize": "",
+        "libs": [],
+        "x": 1570,
+        "y": 730,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "455d971e1d47e1f0",
+        "type": "function",
+        "z": "3e11d4a62984f385",
+        "name": "water-on-mode",
+        "func": "var status = flow.get(\"water-on-mode\");\n\nif (status == undefined) {\n    node.status ({\n        fill: \"grey\",\n        shape: \"dot\",\n        text: \"undefined\"});\n} else if (status == 0) {\n    node.status ({\n        fill: \"red\",\n        shape: \"dot\",\n        text: \"Off (\" + status + \")\"});\n} else if (status == 60) {\n    node.status ({\n        fill: \"green\",\n        shape: \"dot\",\n        text: \"Hot (\" + status + \")\"});\n} else {\n    node.status ({\n        fill: \"green\",\n        shape: \"dot\",\n        text: \"Boost (\" + status + \")\"});\n}\n\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "// Code added here will be run once\n// whenever the node is started.\n//if (flow.water-schedule-enabled == undefined) {\n//    flow.water-schedule-enabled = undefined;\n//}\n",
+        "finalize": "",
+        "libs": [],
+        "x": 1570,
+        "y": 630,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "43f4abe992a293ff",
+        "type": "function",
+        "z": "3e11d4a62984f385",
+        "name": "water-auto-off",
+        "func": "var status = flow.get(\"water-auto-off\");\n\nif (status == undefined) {\n    node.status ({\n        fill: \"grey\",\n        shape: \"dot\",\n        text: \"undefined\"});\n} else if (status == 0) {\n    node.status ({\n        fill: \"red\",\n        shape: \"dot\",\n        text: \"Off (\" + status + \")\"});\n} else if (status == -1) {\n    node.status ({\n        fill: \"green\",\n        shape: \"dot\",\n        text: \"On (\" + status + \")\"});\n} else {\n    node.status ({\n        fill: \"green\",\n        shape: \"dot\",\n        text: \"Eco (\" + status + \")\"});\n}\n\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "// Code added here will be run once\n// whenever the node is started.\n//if (flow.water-schedule-enabled == undefined) {\n//    flow.water-schedule-enabled = undefined;\n//}\n",
+        "finalize": "",
+        "libs": [],
+        "x": 1570,
+        "y": 580,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "21ca763182ba3031",
+        "type": "function",
+        "z": "3e11d4a62984f385",
+        "name": "water-schedule-heating",
+        "func": "var status = flow.get(\"water-schedule-heating\");\n\nif (status == undefined) {\n    node.status ({\n        fill: \"grey\",\n        shape: \"dot\",\n        text: \"undefined\"});\n} else if (status == false) {\n    node.status ({\n        fill: \"red\",\n        shape: \"dot\",\n        text: \"Off (\" + status + \")\"});\n} else {\n    node.status ({\n        fill: \"green\",\n        shape: \"dot\",\n        text: \"On (\" + status + \")\"});\n}\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "// Code added here will be run once\n// whenever the node is started.\n//if (flow.water-schedule-enabled == undefined) {\n//    flow.water-schedule-enabled = undefined;\n//}\n",
+        "finalize": "",
+        "libs": [],
+        "x": 1600,
+        "y": 780,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "67f5d7c3dcba75db",
+        "type": "debug",
+        "z": "3e11d4a62984f385",
+        "name": "enabled switch",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 2390,
+        "y": 460,
+        "wires": []
+    },
+    {
+        "id": "bed738a1c5b08d12",
+        "type": "debug",
+        "z": "3e11d4a62984f385",
+        "name": "join ",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 2110,
+        "y": 450,
+        "wires": []
+    },
+    {
+        "id": "2621c504715fb7c4",
+        "type": "debug",
+        "z": "3e11d4a62984f385",
+        "name": "set water-auto-off ",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 3660,
+        "y": 330,
+        "wires": []
+    },
+    {
+        "id": "483f5722efd1757b",
+        "type": "change",
+        "z": "3e11d4a62984f385",
+        "name": "set schedule button to yellow",
+        "rules": [
+            {
+                "t": "delete",
+                "p": "payload",
+                "pt": "msg"
+            },
+            {
+                "t": "set",
+                "p": "ui_update.buttonColor",
+                "pt": "msg",
+                "to": "yellow",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 2840,
+        "y": 730,
+        "wires": [
+            [
+                "d0e96bbe40c677a2"
+            ]
+        ]
+    },
+    {
+        "id": "e94588d94fc7d9fd",
+        "type": "change",
+        "z": "3e11d4a62984f385",
+        "name": "set schedule button color to default",
+        "rules": [
+            {
+                "t": "delete",
+                "p": "payload",
+                "pt": "msg"
+            },
+            {
+                "t": "set",
+                "p": "ui_update.buttonColor",
+                "pt": "msg",
+                "to": "",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 2830,
+        "y": 840,
+        "wires": [
+            [
+                "d0e96bbe40c677a2"
+            ]
+        ]
+    },
+    {
+        "id": "2c0d2b0a935a850e",
+        "type": "change",
+        "z": "3e11d4a62984f385",
+        "name": "set schedule button color to green",
+        "rules": [
+            {
+                "t": "delete",
+                "p": "payload",
+                "pt": "msg"
+            },
+            {
+                "t": "set",
+                "p": "ui_update.buttonColor",
+                "pt": "msg",
+                "to": "green",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 2830,
+        "y": 780,
+        "wires": [
+            [
+                "d0e96bbe40c677a2"
+            ]
+        ]
+    },
+    {
+        "id": "4b7c5dce47b9ba34",
+        "type": "switch",
+        "z": "3e11d4a62984f385",
+        "name": "is water-schedule-enabled",
+        "property": "water-schedule-enabled",
+        "propertyType": "flow",
+        "rules": [
+            {
+                "t": "true"
+            },
+            {
+                "t": "else"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 2060,
+        "y": 830,
+        "wires": [
+            [
+                "81ac77491c76be97"
+            ],
+            [
+                "02409e4ad0943472"
+            ]
+        ]
+    },
+    {
+        "id": "81ac77491c76be97",
+        "type": "switch",
+        "z": "3e11d4a62984f385",
+        "name": "is water-schedule-heating",
+        "property": "water-schedule-heating",
+        "propertyType": "flow",
+        "rules": [
+            {
+                "t": "true"
+            },
+            {
+                "t": "else"
+            }
+        ],
+        "checkall": "false",
+        "repair": false,
+        "outputs": 2,
+        "x": 2340,
+        "y": 780,
+        "wires": [
+            [
+                "483f5722efd1757b"
+            ],
+            [
+                "2c0d2b0a935a850e"
+            ]
+        ]
+    },
+    {
+        "id": "37abe0da58528c90",
+        "type": "switch",
+        "z": "3e11d4a62984f385",
+        "name": "water-on-mode switch",
+        "property": "water-on-mode",
+        "propertyType": "flow",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "60",
+                "vt": "num"
+            },
+            {
+                "t": "eq",
+                "v": "200",
+                "vt": "num"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 2800,
+        "y": 360,
+        "wires": [
+            [
+                "9183e3fa9d60f38f"
+            ],
+            [
+                "a38456d5c723071c"
+            ]
+        ]
+    },
+    {
+        "id": "a38456d5c723071c",
+        "type": "switch",
+        "z": "3e11d4a62984f385",
+        "name": "65° temp switch",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "gte",
+                "v": "65",
+                "vt": "num"
+            }
+        ],
+        "checkall": "false",
+        "repair": false,
+        "outputs": 1,
+        "x": 3050,
+        "y": 400,
+        "wires": [
+            [
+                "9b41cd7c753b34e2",
+                "62818b6c4025ab75",
+                "c1485942ed19ffda"
+            ]
+        ]
+    },
+    {
+        "id": "9183e3fa9d60f38f",
+        "type": "switch",
+        "z": "3e11d4a62984f385",
+        "name": "60° temp switch",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "gte",
+                "v": "60",
+                "vt": "num"
+            }
+        ],
+        "checkall": "false",
+        "repair": false,
+        "outputs": 1,
+        "x": 3050,
+        "y": 340,
+        "wires": [
+            [
+                "9b41cd7c753b34e2",
+                "62818b6c4025ab75",
+                "c1485942ed19ffda"
+            ]
+        ]
+    },
+    {
+        "id": "c1485942ed19ffda",
+        "type": "debug",
+        "z": "3e11d4a62984f385",
+        "name": "temp reached",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 3310,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "f58571c35645a9f1",
+        "type": "function",
+        "z": "3e11d4a62984f385",
+        "name": "set flow context (topic:payload)",
+        "func": "if (msg.payload == undefined) {\n    return;\n}\nif (msg.topic == '') {\n    node.warn(\"no topic supplied\");\n}\n\nflow.set(msg.topic, msg.payload);\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1670,
+        "y": 350,
+        "wires": [
+            [
+                "c775cf16fc3462cd"
+            ]
+        ]
+    },
+    {
+        "id": "3b9fd0de09f260e3",
+        "type": "function",
+        "z": "3e11d4a62984f385",
+        "name": "init from flow|payload",
+        "func": "if (msg.topic == undefined || msg.topic == '') {\n    node.error('topic not defined');\n    return;\n}\n\nmsg.payload = flow.get(msg.topic) || msg.payload;\n\nif (msg.payload == undefined) {\n    return;\n}\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "// Code added here will be run once\n// whenever the node is started.\nif (flow.get(\"water-on-time\") == undefined\n    || flow.get(\"water-schedule-enabled\") == undefined)  {\n    flow.set(\"water-schedule-enabled\", false);\n}\n",
+        "finalize": "",
+        "libs": [],
+        "x": 520,
+        "y": 410,
+        "wires": [
+            [
+                "4836168fd7d205fd"
+            ]
+        ]
+    },
+    {
+        "id": "4836168fd7d205fd",
+        "type": "switch",
+        "z": "3e11d4a62984f385",
+        "name": "init state switch",
+        "property": "topic",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "water-on-time",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "water-on-mode",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "water-auto-off",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "water-schedule-enabled",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 4,
+        "x": 730,
+        "y": 410,
+        "wires": [
+            [
+                "93e7e2eea7169a7f"
+            ],
+            [
+                "41f4ba5caf06944b"
+            ],
+            [
+                "4747c78a6246d562"
+            ],
+            [
+                "b4b3223698290402"
+            ]
+        ],
+        "outputLabels": [
+            "water-on-time",
+            "water-on-mode",
+            "water-auto-off",
+            "water-schedule-enabled"
+        ]
+    },
+    {
+        "id": "a7f923b2aacecf07",
+        "type": "mqtt out",
+        "z": "3e11d4a62984f385",
+        "name": "water mode out",
+        "topic": "service/truma/set/target_temp_water",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "cc4ba79e8dc93fb5",
+        "x": 2900,
+        "y": 640,
+        "wires": []
+    },
+    {
+        "id": "cf9832b1c1e959dd",
+        "type": "inject",
+        "z": "3e11d4a62984f385",
+        "name": "Test",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 2370,
+        "y": 570,
+        "wires": [
+            [
+                "1c0b3a3b8fab37ec"
+            ]
+        ]
+    },
+    {
+        "id": "40bb6735ad77ddb8",
+        "type": "inject",
+        "z": "3e11d4a62984f385",
+        "name": "Test true",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "schedule-enabled",
+        "payload": "true",
+        "payloadType": "bool",
+        "x": 700,
+        "y": 790,
+        "wires": [
+            [
+                "b4b3223698290402"
+            ]
+        ]
+    },
+    {
+        "id": "0a32bf5d93c6ab87",
+        "type": "inject",
+        "z": "3e11d4a62984f385",
+        "name": "Test false",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "schedule-enabled",
+        "payload": "false",
+        "payloadType": "bool",
+        "x": 700,
+        "y": 880,
+        "wires": [
+            [
+                "b4b3223698290402"
+            ]
+        ]
+    },
+    {
+        "id": "02409e4ad0943472",
+        "type": "change",
+        "z": "3e11d4a62984f385",
+        "name": "set water-schedule-heating to false",
+        "rules": [
+            {
+                "t": "delete",
+                "p": "payload",
+                "pt": "msg"
+            },
+            {
+                "t": "set",
+                "p": "water-schedule-heating",
+                "pt": "flow",
+                "to": "false",
+                "tot": "bool"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 2370,
+        "y": 840,
+        "wires": [
+            [
+                "e94588d94fc7d9fd"
+            ]
+        ]
+    },
+    {
+        "id": "9da85e73c4fcbeed",
+        "type": "inject",
+        "z": "3e11d4a62984f385",
+        "name": "Send timestamp now \\n then every min",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "60",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 880,
+        "y": 290,
+        "wires": [
+            [
+                "3ce265fdc2dd442f"
+            ]
+        ]
+    },
+    {
+        "id": "3ce265fdc2dd442f",
+        "type": "function",
+        "z": "3e11d4a62984f385",
+        "name": "inject current  time + 1min",
+        "func": "//use saved time\nvar time = global.time;\nif (time == undefined) \n    return;\n    \nmsg.payload = time;\nmsg.topic = 'water-on-time';\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1130,
+        "y": 290,
+        "wires": [
+            [
+                "93e7e2eea7169a7f",
+                "fb33149f6aa199bf"
+            ]
+        ]
+    },
+    {
+        "id": "0f5c294c5467cdbb",
+        "type": "debug",
+        "z": "3e11d4a62984f385",
+        "name": "timer equals",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 2560,
+        "y": 690,
+        "wires": []
+    },
+    {
+        "id": "fb33149f6aa199bf",
+        "type": "debug",
+        "z": "3e11d4a62984f385",
+        "name": "inject time",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1380,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "53d198215c53468f",
+        "type": "link in",
+        "z": "3e11d4a62984f385",
+        "name": "link in 1",
+        "links": [
+            "f52884f88d0f2531"
+        ],
+        "x": 775,
+        "y": 940,
+        "wires": [
+            [
+                "b4b3223698290402"
+            ]
+        ]
+    },
+    {
+        "id": "f52884f88d0f2531",
+        "type": "link out",
+        "z": "3e11d4a62984f385",
+        "name": "link out 1",
+        "mode": "link",
+        "links": [
+            "53d198215c53468f"
+        ],
+        "x": 3585,
+        "y": 430,
+        "wires": []
+    },
+    {
+        "id": "89415ece4897ab7c",
+        "type": "inject",
+        "z": "3e11d4a62984f385",
+        "name": "Init State: water-schedule-enabled",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "",
+        "topic": "water-schedule-enabled",
+        "payload": "false",
+        "payloadType": "bool",
+        "x": 200,
+        "y": 300,
+        "wires": [
+            [
+                "3b9fd0de09f260e3"
+            ]
+        ]
+    },
+    {
+        "id": "93e7e2eea7169a7f",
+        "type": "ui-text-input",
+        "z": "3e11d4a62984f385",
+        "group": "52d1d46de62f8042",
+        "name": "Water on time",
+        "label": "On Time",
+        "order": 3,
+        "width": "8",
+        "height": "1",
+        "topic": "water-on-time",
+        "topicType": "str",
+        "mode": "time",
+        "tooltip": "",
+        "delay": 300,
+        "passthru": true,
+        "sendOnDelay": false,
+        "sendOnBlur": true,
+        "sendOnEnter": true,
+        "className": "",
+        "clearable": true,
+        "sendOnClear": false,
+        "icon": "clock-time-two-outline",
+        "iconPosition": "left",
+        "iconInnerPosition": "inside",
+        "x": 1390,
+        "y": 350,
+        "wires": [
+            [
+                "f58571c35645a9f1"
+            ]
+        ]
+    },
+    {
+        "id": "d0e96bbe40c677a2",
+        "type": "ui-button",
+        "z": "3e11d4a62984f385",
+        "group": "671ceaffb5c55d2f",
+        "name": "",
+        "label": "Schedule",
+        "order": 4,
+        "width": "4",
+        "height": "1",
+        "emulateClick": false,
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "calendar-month",
+        "iconPosition": "left",
+        "payload": "{\"groups\":{\"show\":[\"Motorhome:Water Schedule\"]}}",
+        "payloadType": "json",
+        "topic": "topic",
+        "topicType": "msg",
+        "buttonColor": "green",
+        "textColor": "",
+        "iconColor": "",
+        "enableClick": true,
+        "enablePointerdown": false,
+        "pointerdownPayload": "",
+        "pointerdownPayloadType": "str",
+        "enablePointerup": false,
+        "pointerupPayload": "",
+        "pointerupPayloadType": "str",
+        "x": 3100,
+        "y": 780,
+        "wires": [
+            [
+                "04f94d13243a0409"
+            ]
+        ]
+    },
+    {
+        "id": "674c8ec688d0114f",
+        "type": "ui-button-group",
+        "z": "3e11d4a62984f385",
+        "name": "",
+        "group": "671ceaffb5c55d2f",
+        "order": 1,
+        "width": "7",
+        "height": "1",
+        "label": "",
+        "className": "my-group-button-compact white-label my-btn-border my-btn-separator",
+        "rounded": true,
+        "useThemeColors": true,
+        "passthru": false,
+        "options": [
+            {
+                "label": "Off",
+                "icon": "power-off",
+                "value": "0",
+                "valueType": "num",
+                "color": "#009933"
+            },
+            {
+                "label": "Eco",
+                "icon": "thermometer-low",
+                "value": "40",
+                "valueType": "num",
+                "color": "#999999"
+            },
+            {
+                "label": "Hot",
+                "icon": "thermometer-high",
+                "value": "60",
+                "valueType": "num",
+                "color": "#ff6666"
+            },
+            {
+                "label": "Boost&nbsp;",
+                "icon": "thermometer-lines",
+                "value": "200",
+                "valueType": "num",
+                "color": "#009999"
+            }
+        ],
+        "topic": "topic",
+        "topicType": "msg",
+        "x": 350,
+        "y": 160,
+        "wires": [
+            [
+                "d79e6a8aeea4a358"
+            ]
+        ]
+    },
+    {
+        "id": "41f4ba5caf06944b",
+        "type": "ui-button-group",
+        "z": "3e11d4a62984f385",
+        "name": "Water on mode",
+        "group": "52d1d46de62f8042",
+        "order": 2,
+        "width": "8",
+        "height": 1,
+        "label": "",
+        "className": "my-btn-border my-btn-separator",
+        "rounded": true,
+        "useThemeColors": true,
+        "passthru": true,
+        "options": [
+            {
+                "label": "Hot",
+                "icon": "thermometer-high",
+                "value": "60",
+                "valueType": "num",
+                "color": "#009933"
+            },
+            {
+                "label": "Boost",
+                "icon": "thermometer-lines",
+                "value": "200",
+                "valueType": "num",
+                "color": "#999999"
+            }
+        ],
+        "topic": "water-on-mode",
+        "topicType": "str",
+        "x": 1390,
+        "y": 400,
+        "wires": [
+            [
+                "f58571c35645a9f1"
+            ]
+        ]
+    },
+    {
+        "id": "4747c78a6246d562",
+        "type": "ui-button-group",
+        "z": "3e11d4a62984f385",
+        "name": "AutoOff",
+        "group": "52d1d46de62f8042",
+        "order": 4,
+        "width": "8",
+        "height": 1,
+        "label": "Auto off",
+        "className": "my-btn-border my-btn-separator",
+        "rounded": true,
+        "useThemeColors": true,
+        "passthru": true,
+        "options": [
+            {
+                "label": "Off",
+                "icon": "power-off",
+                "value": "0",
+                "valueType": "num",
+                "color": "#009933"
+            },
+            {
+                "label": "On",
+                "icon": "power-on",
+                "value": "-1",
+                "valueType": "num",
+                "color": "#ff6666"
+            },
+            {
+                "label": "Eco",
+                "icon": "thermometer-low",
+                "value": "40",
+                "valueType": "num",
+                "color": "#999999"
+            }
+        ],
+        "topic": "water-auto-off",
+        "topicType": "str",
+        "x": 1410,
+        "y": 450,
+        "wires": [
+            [
+                "f58571c35645a9f1"
+            ]
+        ]
+    },
+    {
+        "id": "b4b3223698290402",
+        "type": "ui-switch",
+        "z": "3e11d4a62984f385",
+        "name": "",
+        "label": "Enabled",
+        "group": "52d1d46de62f8042",
+        "order": 1,
+        "width": "6",
+        "height": "1",
+        "passthru": true,
+        "decouple": false,
+        "topic": "schedule-enabled",
+        "topicType": "str",
+        "style": "",
+        "className": "",
+        "layout": "row-left-swapped",
+        "clickableArea": "switch",
+        "onvalue": "true",
+        "onvalueType": "bool",
+        "onicon": "",
+        "oncolor": "",
+        "offvalue": "false",
+        "offvalueType": "bool",
+        "officon": "",
+        "offcolor": "",
+        "x": 920,
+        "y": 830,
+        "wires": [
+            [
+                "5264826ba714aa0b",
+                "7bc5a12c2a3603fb"
+            ]
+        ]
+    },
+    {
+        "id": "a41ebfcc3134166f",
+        "type": "ui-text",
+        "z": "3e11d4a62984f385",
+        "group": "52d1d46de62f8042",
+        "order": 5,
+        "width": "8",
+        "height": "1",
+        "name": "Description",
+        "label": "When the temperature reaches 65°c switch the water mode to either Off or Eco",
+        "format": "{{msg.payload}}",
+        "layout": "row-left",
+        "style": true,
+        "font": "",
+        "fontSize": "12",
+        "color": "#999999",
+        "wrapText": false,
+        "className": "",
+        "x": 1590,
+        "y": 450,
+        "wires": []
+    },
+    {
+        "id": "04f94d13243a0409",
+        "type": "ui-control",
+        "z": "3e11d4a62984f385",
+        "name": "",
+        "ui": "563c3834aa95d21c",
+        "events": "all",
+        "x": 3290,
+        "y": 780,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "0fa9080cce43a50c",
+        "type": "ui-text",
+        "z": "3e11d4a62984f385",
+        "group": "671ceaffb5c55d2f",
+        "order": 2,
+        "width": "1",
+        "height": "1",
+        "name": "current temp2",
+        "label": "",
+        "format": "{{msg.payload}}",
+        "layout": "row-right",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#717171",
+        "wrapText": false,
+        "className": "",
+        "x": 560,
+        "y": 90,
+        "wires": []
+    },
+    {
+        "id": "4728929002c1ad46",
+        "type": "change",
+        "z": "3e11d4a62984f385",
+        "name": "format payload",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "$round(msg.payload) & \"°c\"",
+                "tot": "jsonata"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 360,
+        "y": 90,
+        "wires": [
+            [
+                "0fa9080cce43a50c"
+            ]
+        ]
+    },
+    {
+        "id": "7e26c7b65cdea637",
+        "type": "comment",
+        "z": "3e11d4a62984f385",
+        "name": "Date: 22/Jul/2025",
+        "info": "# Fridge\nThis flow turns the Cerbo GX relay 2 on or off either manualy or automaticaly.\nRelay 2 is supplies a 12v to the Fridges S+ input, signaling to use power from the battery/solar.\n\nThis is depentent on how your fridge is wired.\n\n## 3 modes\n - On (manual)\n - Off (manual)\n - Auto\n\n**On** and **off** turn relay 2 on an off manually.\n**Auto** will automaticaly determin when to turn the relay on or off based on the battery level\n\n**Auto* Switches the fridge to battery when there is no shore power(ehu) and the battery charge level reaches 98% or above.\n\n**Auto** Switches the fridge to off When the battery level goes below 95%",
+        "x": 250,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "193979068e957bd7",
+        "type": "comment",
+        "z": "3e11d4a62984f385",
+        "name": "Description",
+        "info": "# Water\nThis flow controls the truma water via an inetbox2mqtt microcontroller\n\n",
+        "x": 90,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "cc4ba79e8dc93fb5",
+        "type": "mqtt-broker",
+        "name": "cerbo",
+        "broker": "192.168.10.20",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "52d1d46de62f8042",
+        "type": "ui-group",
+        "name": "Water Schedule",
+        "page": "0e94453eb43f91ea",
+        "width": "4",
+        "height": "1",
+        "order": 6,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "dialog"
+    },
+    {
+        "id": "671ceaffb5c55d2f",
+        "type": "ui-group",
+        "name": "Water",
+        "page": "0e94453eb43f91ea",
+        "width": "8",
+        "height": "1",
+        "order": 4,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default"
+    },
+    {
+        "id": "563c3834aa95d21c",
+        "type": "ui-base",
+        "name": "Motorhome",
+        "path": "/dashboard",
+        "appIcon": "rv-truck",
+        "includeClientData": true,
+        "acceptsClientConfig": [
+            "ui-notification",
+            "ui-control"
+        ],
+        "showPathInSidebar": false,
+        "headerContent": "none",
+        "navigationStyle": "none",
+        "titleBarStyle": "hidden",
+        "showReconnectNotification": false,
+        "notificationDisplayTime": "1",
+        "showDisconnectNotification": false,
+        "allowInstall": true
+    },
+    {
+        "id": "0e94453eb43f91ea",
+        "type": "ui-page",
+        "name": "Motorhome",
+        "ui": "563c3834aa95d21c",
+        "path": "/grace",
+        "icon": "rv-truck",
+        "layout": "grid",
+        "theme": "b4dc292b8e533b16",
+        "breakpoints": [
+            {
+                "name": "Default",
+                "px": "0",
+                "cols": "8"
+            },
+            {
+                "name": "Tablet",
+                "px": "576",
+                "cols": "16"
+            },
+            {
+                "name": "Small Desktop",
+                "px": "768",
+                "cols": "16"
+            },
+            {
+                "name": "Desktop",
+                "px": "1024",
+                "cols": "16"
+            }
+        ],
+        "order": 1,
+        "className": "",
+        "visible": "true",
+        "disabled": "true"
+    },
+    {
+        "id": "b4dc292b8e533b16",
+        "type": "ui-theme",
+        "name": "dark theme",
+        "colors": {
+            "surface": "#282828",
+            "primary": "#0094ce",
+            "bgPage": "#00374a",
+            "groupBg": "#171821",
+            "groupOutline": "#323344"
+        },
+        "sizes": {
+            "density": "default",
+            "pagePadding": "2px",
+            "groupGap": "6px",
+            "groupBorderRadius": "12px",
+            "widgetGap": "4px"
+        },
+        "info": "0094CE\n\n00374A\n\n171821"
+    }
+]
