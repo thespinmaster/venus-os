@@ -1,0 +1,613 @@
+[
+    {
+        "id": "2c6afe8e67e92eb5",
+        "type": "subflow",
+        "name": "GPS Reverse lookup",
+        "info": "Uses geoapify api to do a reverse lookup from lat, long gps data",
+        "category": "Motorhome",
+        "in": [
+            {
+                "x": 40,
+                "y": 140,
+                "wires": [
+                    {
+                        "id": "50a06c6b059e8ed6"
+                    }
+                ]
+            }
+        ],
+        "out": [
+            {
+                "x": 1200,
+                "y": 120,
+                "wires": [
+                    {
+                        "id": "358766d06c846a61",
+                        "port": 0
+                    }
+                ]
+            }
+        ],
+        "env": [],
+        "meta": {
+            "desc": "Converts GPS Lat/Long into address location and time zone info"
+        },
+        "color": "#88BBFF",
+        "inputLabels": [
+            "required input topics/payloads are lat/lng/apikey"
+        ],
+        "icon": "font-awesome/fa-globe",
+        "status": {
+            "x": 1200,
+            "y": 180,
+            "wires": [
+                {
+                    "id": "358766d06c846a61",
+                    "port": 1
+                },
+                {
+                    "id": "90e9ecea7255c46e",
+                    "port": 0
+                }
+            ]
+        }
+    },
+    {
+        "id": "50a06c6b059e8ed6",
+        "type": "join",
+        "z": "2c6afe8e67e92eb5",
+        "name": "",
+        "mode": "custom",
+        "build": "object",
+        "property": "payload",
+        "propertyType": "msg",
+        "key": "topic",
+        "joiner": "\\n",
+        "joinerType": "str",
+        "useparts": true,
+        "accumulate": true,
+        "timeout": "",
+        "count": "3",
+        "reduceRight": false,
+        "reduceExp": "",
+        "reduceInit": "",
+        "reduceInitType": "",
+        "reduceFixup": "",
+        "x": 150,
+        "y": 140,
+        "wires": [
+            [
+                "bee04ded6f535591"
+            ]
+        ]
+    },
+    {
+        "id": "aa6b8acc843186de",
+        "type": "template",
+        "z": "2c6afe8e67e92eb5",
+        "name": "build geoapify url",
+        "field": "url",
+        "fieldType": "msg",
+        "format": "handlebars",
+        "syntax": "mustache",
+        "template": "https://api.geoapify.com/v1/geocode/reverse?lat={{payload.lat}}&lon={{payload.lng}}&apiKey={{payload.apikey}}",
+        "output": "str",
+        "x": 530,
+        "y": 140,
+        "wires": [
+            [
+                "5df01c7dc6ec1145"
+            ]
+        ]
+    },
+    {
+        "id": "5df01c7dc6ec1145",
+        "type": "http request",
+        "z": "2c6afe8e67e92eb5",
+        "name": "",
+        "method": "GET",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": true,
+        "headers": [],
+        "x": 730,
+        "y": 140,
+        "wires": [
+            [
+                "b9f265a74520681c"
+            ]
+        ]
+    },
+    {
+        "id": "867cc78daff6f040",
+        "type": "catch",
+        "z": "2c6afe8e67e92eb5",
+        "name": "",
+        "scope": [
+            "5df01c7dc6ec1145"
+        ],
+        "uncaught": false,
+        "x": 750,
+        "y": 220,
+        "wires": [
+            [
+                "90e9ecea7255c46e",
+                "bf6b9aa508e24af0"
+            ]
+        ]
+    },
+    {
+        "id": "358766d06c846a61",
+        "type": "function",
+        "z": "2c6afe8e67e92eb5",
+        "name": "create payload",
+        "func": "\n\nvar newMsg = {payload:{}}\n\nnewMsg.payload.country = msg.payload.features[0].properties.country\nnewMsg.payload.countrycode = msg.payload.features[0].properties.country_code\nnewMsg.payload.area = msg.payload.features[0].properties.state\nnewMsg.payload.city = msg.payload.features[0].properties.city\nnewMsg.payload.formatted = msg.payload.features[0].properties.formatted\nnewMsg.payload.timezone = msg.payload.features[0].properties.timezone\n\n\nvar statusMsg =  {payload:{\"fill\":\"green\", \"shape\": \"dot\", \"text\": newMsg.payload.formatted }};\n\nreturn [newMsg, statusMsg];\n\n",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1060,
+        "y": 140,
+        "wires": [
+            [],
+            []
+        ]
+    },
+    {
+        "id": "90e9ecea7255c46e",
+        "type": "function",
+        "z": "2c6afe8e67e92eb5",
+        "name": "create json status",
+        "func": "if (msg.error != undefined) {\n    return {\"fill\":\"red\", \"shape\": \"dot\", \"text\": msg.error };\n}\n\nmsg.payload = {\"fill\":\"green\", \"shape\": \"dot\", \"text\": msg.payload.formatted };\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1050,
+        "y": 220,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "b9f265a74520681c",
+        "type": "switch",
+        "z": "2c6afe8e67e92eb5",
+        "name": "",
+        "property": "statusCode",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "200",
+                "vt": "num"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 890,
+        "y": 140,
+        "wires": [
+            [
+                "358766d06c846a61"
+            ]
+        ]
+    },
+    {
+        "id": "bf6b9aa508e24af0",
+        "type": "debug",
+        "z": "2c6afe8e67e92eb5",
+        "name": "reverse gps lookup",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1050,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "bee04ded6f535591",
+        "type": "delay",
+        "z": "2c6afe8e67e92eb5",
+        "name": "",
+        "pauseType": "rate",
+        "timeout": "20",
+        "timeoutUnits": "minutes",
+        "rate": "1",
+        "nbRateUnits": "20",
+        "rateUnits": "minute",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": true,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 320,
+        "y": 140,
+        "wires": [
+            [
+                "aa6b8acc843186de"
+            ]
+        ]
+    },
+    {
+        "id": "539101e99d0e51e7",
+        "type": "tab",
+        "label": "Motorhome - Services",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "e6b47a4142e23c35",
+        "type": "subflow:2c6afe8e67e92eb5",
+        "z": "539101e99d0e51e7",
+        "name": "",
+        "x": 360,
+        "y": 270,
+        "wires": [
+            [
+                "86c0f80ca2f9852d"
+            ]
+        ]
+    },
+    {
+        "id": "f0fe88e4ee186c29",
+        "type": "inject",
+        "z": "539101e99d0e51e7",
+        "name": "lng",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "lng",
+        "payload": "-6.88282585144043",
+        "payloadType": "str",
+        "x": 130,
+        "y": 320,
+        "wires": [
+            [
+                "e6b47a4142e23c35"
+            ]
+        ]
+    },
+    {
+        "id": "1fcf059b48885b06",
+        "type": "inject",
+        "z": "539101e99d0e51e7",
+        "name": "lat",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "lat",
+        "payload": "30.08635711669922",
+        "payloadType": "str",
+        "x": 130,
+        "y": 230,
+        "wires": [
+            [
+                "e6b47a4142e23c35"
+            ]
+        ]
+    },
+    {
+        "id": "3a0f3288919d682b",
+        "type": "inject",
+        "z": "539101e99d0e51e7",
+        "name": "geoapify key",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "apikey",
+        "payload": "7642fd0680ce4455a61076c4decbc4a7",
+        "payloadType": "str",
+        "x": 110,
+        "y": 270,
+        "wires": [
+            [
+                "e6b47a4142e23c35"
+            ]
+        ]
+    },
+    {
+        "id": "76f30083f7785587",
+        "type": "debug",
+        "z": "539101e99d0e51e7",
+        "name": "debug 112",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 890,
+        "y": 270,
+        "wires": []
+    },
+    {
+        "id": "86c0f80ca2f9852d",
+        "type": "change",
+        "z": "539101e99d0e51e7",
+        "name": "store payload in global.location",
+        "rules": [
+            {
+                "t": "set",
+                "p": "location",
+                "pt": "global",
+                "to": "payload",
+                "tot": "msg"
+            },
+            {
+                "t": "set",
+                "p": "topic",
+                "pt": "msg",
+                "to": "set-location",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 630,
+        "y": 270,
+        "wires": [
+            [
+                "76f30083f7785587",
+                "ea1388a440753ecb",
+                "d95068b5cb6f8bd3"
+            ]
+        ]
+    },
+    {
+        "id": "ea1388a440753ecb",
+        "type": "change",
+        "z": "539101e99d0e51e7",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "payload.timezone.name",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 900,
+        "y": 330,
+        "wires": [
+            [
+                "f7d93534b9515da2"
+            ]
+        ]
+    },
+    {
+        "id": "ab058f4f5c54bd72",
+        "type": "debug",
+        "z": "539101e99d0e51e7",
+        "name": "gps",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 530,
+        "y": 170,
+        "wires": []
+    },
+    {
+        "id": "b96677f3e3e2e03d",
+        "type": "mqtt in",
+        "z": "539101e99d0e51e7",
+        "name": "gps position",
+        "topic": "N/c0619ab5fb12/gps/0/Position/+",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "cc4ba79e8dc93fb5",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 110,
+        "y": 170,
+        "wires": [
+            [
+                "ba0cf1bdf22dbb02"
+            ]
+        ]
+    },
+    {
+        "id": "ba0cf1bdf22dbb02",
+        "type": "change",
+        "z": "539101e99d0e51e7",
+        "name": "change topic to lat/long",
+        "rules": [
+            {
+                "t": "change",
+                "p": "topic",
+                "pt": "msg",
+                "from": "N/c0619ab5fb12/gps/0/Position/Latitude",
+                "fromt": "str",
+                "to": "lat",
+                "tot": "str"
+            },
+            {
+                "t": "change",
+                "p": "topic",
+                "pt": "msg",
+                "from": "N/c0619ab5fb12/gps/0/Position/Longitude",
+                "fromt": "str",
+                "to": "lng",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "payload.value",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 330,
+        "y": 170,
+        "wires": [
+            [
+                "ab058f4f5c54bd72",
+                "e6b47a4142e23c35"
+            ]
+        ]
+    },
+    {
+        "id": "f7d93534b9515da2",
+        "type": "mqtt out",
+        "z": "539101e99d0e51e7",
+        "name": "set timezone on cerbo",
+        "topic": "W/c0619ab5fb12/settings/0/Settings/System/TimeZone",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "cc4ba79e8dc93fb5",
+        "x": 1120,
+        "y": 330,
+        "wires": []
+    },
+    {
+        "id": "d95068b5cb6f8bd3",
+        "type": "link out",
+        "z": "539101e99d0e51e7",
+        "name": "gps/set-global-location",
+        "mode": "link",
+        "links": [
+            "ee60518f48e26bc6"
+        ],
+        "x": 835,
+        "y": 210,
+        "wires": []
+    },
+    {
+        "id": "ba813bd850b1f831",
+        "type": "comment",
+        "z": "539101e99d0e51e7",
+        "name": "Date: 22/Jul/2025",
+        "info": "# Fridge\nThis flow turns the Cerbo GX relay 2 on or off either manualy or automaticaly.\nRelay 2 is supplies a 12v to the Fridges S+ input, signaling to use power from the battery/solar.\n\nThis is depentent on how your fridge is wired.\n\n## 3 modes\n - On (manual)\n - Off (manual)\n - Auto\n\n**On** and **off** turn relay 2 on an off manually.\n**Auto** will automaticaly determin when to turn the relay on or off based on the battery level\n\n**Auto* Switches the fridge to battery when there is no shore power(ehu) and the battery charge level reaches 98% or above.\n\n**Auto** Switches the fridge to off When the battery level goes below 95%",
+        "x": 310,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "f7f01646a8bba6fb",
+        "type": "comment",
+        "z": "539101e99d0e51e7",
+        "name": "Description",
+        "info": "# Motorhome services\n\n\nThis flow contains misc services \n\n\n",
+        "x": 100,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "a7ad23eca57a4fd6",
+        "type": "comment",
+        "z": "539101e99d0e51e7",
+        "name": "GPS Reverse lookup using geoapify.com",
+        "info": "# Motorhome services\n\n\nThis flow contains misc services \n\n\n",
+        "x": 200,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "cc4ba79e8dc93fb5",
+        "type": "mqtt-broker",
+        "name": "cerbo",
+        "broker": "192.168.10.20",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    }
+]

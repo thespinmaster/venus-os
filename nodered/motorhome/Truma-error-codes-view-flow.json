@@ -1,0 +1,376 @@
+[
+    {
+        "id": "f2dc821cb96432fd",
+        "type": "tab",
+        "label": "Truma Errors",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "7277638cfb7c5272",
+        "type": "file in",
+        "z": "f2dc821cb96432fd",
+        "name": "load truma error\\n codes from json",
+        "filename": "/data/assets/trumaErrorCodes.json",
+        "filenameType": "str",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 540,
+        "y": 80,
+        "wires": [
+            [
+                "d5a9a392c3f98715"
+            ]
+        ]
+    },
+    {
+        "id": "66a125bbd4a467a0",
+        "type": "function",
+        "z": "f2dc821cb96432fd",
+        "name": "Get Truma \\n Error Info",
+        "func": "msg.error = msg.payload;\nvar msgShowHideGroup = {};\n\nif (msg.payload == 0) {\n    \n    msgShowHideGroup.payload = {groups:{ hide:[\"Motorhome:Truma Error\"]}};\n    msg.payload = \"Ok\";\n    return [msg, null, msgShowHideGroup];\n}\nelse { \n    msgShowHideGroup.payload = {groups:{ show:[\"Motorhome:Truma Error\"]}};\n    return [null, msg, msgShowHideGroup];\n}\n",
+        "outputs": 3,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 330,
+        "y": 80,
+        "wires": [
+            [],
+            [
+                "7277638cfb7c5272"
+            ],
+            [
+                "d9601ab11684c50f"
+            ]
+        ]
+    },
+    {
+        "id": "d5a9a392c3f98715",
+        "type": "json",
+        "z": "f2dc821cb96432fd",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 710,
+        "y": 80,
+        "wires": [
+            [
+                "dbf401f4066d44d3"
+            ]
+        ]
+    },
+    {
+        "id": "7cd2ccb5bda05b80",
+        "type": "inject",
+        "z": "f2dc821cb96432fd",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": "0.5",
+        "topic": "",
+        "payload": "507",
+        "payloadType": "num",
+        "x": 100,
+        "y": 130,
+        "wires": [
+            [
+                "66a125bbd4a467a0"
+            ]
+        ]
+    },
+    {
+        "id": "dbf401f4066d44d3",
+        "type": "function",
+        "z": "f2dc821cb96432fd",
+        "name": "lookup error",
+        "func": "\nvar errorNumber = msg.error;\nvar errors = msg.payload;\n\nvar count = 0;\nfor (const err of errors) {\n    if (err.number == errorNumber) {\n        msg.payload = err;\n        return msg;\n    }\n}\n \nmsg.payload = {number: errorNumber, description: \"Unknown error\", errors: msg.payload};\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 860,
+        "y": 80,
+        "wires": [
+            [
+                "c34df56ec106f337"
+            ]
+        ]
+    },
+    {
+        "id": "b320012595471c9c",
+        "type": "mqtt in",
+        "z": "f2dc821cb96432fd",
+        "name": "truma error code",
+        "topic": "service/truma/control_status/error_code",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "cc4ba79e8dc93fb5",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 110,
+        "y": 80,
+        "wires": [
+            [
+                "66a125bbd4a467a0"
+            ]
+        ]
+    },
+    {
+        "id": "f8a8e33d917bf7c7",
+        "type": "inject",
+        "z": "f2dc821cb96432fd",
+        "name": "(auto) Hide group (default) ",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"groups\":{\"hide\":[\"Motorhome:Truma Error\"]}}",
+        "payloadType": "json",
+        "x": 170,
+        "y": 220,
+        "wires": [
+            [
+                "d9601ab11684c50f"
+            ]
+        ]
+    },
+    {
+        "id": "f1a13ae1010823a9",
+        "type": "inject",
+        "z": "f2dc821cb96432fd",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "0",
+        "payloadType": "num",
+        "x": 100,
+        "y": 170,
+        "wires": [
+            [
+                "66a125bbd4a467a0"
+            ]
+        ]
+    },
+    {
+        "id": "c34df56ec106f337",
+        "type": "ui-template",
+        "z": "f2dc821cb96432fd",
+        "group": "b9f3bb94774c7a88",
+        "page": "",
+        "ui": "",
+        "name": "Truma Error Info",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "head": "",
+        "format": "<template>\n    <div>\n        <div class=\"row\">\n            <span>Error Number</span>\n            <span ref=\"my-number\"></span>\n        </div><br>\n        <div class=\"row\">\n            <span>Description</span>\n            <span ref=\"my-description\"></span>\n        </div><br>\n        <div class=\"row\">\n            <span>Actions</span>\n            <span></span>\n            <span style=\"position: relative;margin-left: 268px;\">\n                <ul style=\"display:inline-block;vertical-align:top\" ref=\"my-list\"></ul>\n            </span>\n        </div>\n     \n    </div>\n</template>\n\n<script>\n    \n    export default {\n        \n        watch: {\n            msg: function () {\n                // do stuff with this.msg\n                // runs onLoad and onInput\n                \n                //***NOTES*** \n                //*** It isnot possible to mix custom html insertion\n                //*** with mustache brackets.\n                //*** When you do a page reload you loose the\n                //*** inserted html (The actions list below)\n                const mynumber = this.$refs['my-number'];\n                mynumber.innerText = this.msg.payload.number;\n                 \n                const mydescription = this.$refs['my-description'];\n                mydescription.innerText = this.msg.payload.description;\n                \n                const mylist = this.$refs['my-list'];\n\n                mylist.replaceChildren();\n                \n                var data = this.msg.payload.actions;\n                for (i = 0; i < data.length; ++i) {\n                    let li = document.createElement('li');\n                    \n                    // remove \"-\" and whitespace characters from start.\n                    var cleanString = data[i].replace(/^[\\s+-]+/,\"\");\n                    li.innerText = cleanString;\n                    mylist.appendChild(li);\n                }   \n            }\n        },\n        mounted() {\n            \n            \n        }\n    }\n</script>\n\n<style>\n \n    div.row span{position: absolute;}\n    div.row span:nth-child(1){left: 0px;}\n    div.row span:nth-child(2){left: 250px;}\n \n</style>",
+        "storeOutMessages": true,
+        "passthru": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 1040,
+        "y": 80,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "d9601ab11684c50f",
+        "type": "ui-control",
+        "z": "f2dc821cb96432fd",
+        "name": "",
+        "ui": "563c3834aa95d21c",
+        "events": "all",
+        "x": 530,
+        "y": 220,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "d5435c92207e950f",
+        "type": "comment",
+        "z": "f2dc821cb96432fd",
+        "name": "Date: 22/Jul/2025",
+        "info": "# Fridge\nThis flow turns the Cerbo GX relay 2 on or off either manualy or automaticaly.\nRelay 2 is supplies a 12v to the Fridges S+ input, signaling to use power from the battery/solar.\n\nThis is depentent on how your fridge is wired.\n\n## 3 modes\n - On (manual)\n - Off (manual)\n - Auto\n\n**On** and **off** turn relay 2 on an off manually.\n**Auto** will automaticaly determin when to turn the relay on or off based on the battery level\n\n**Auto* Switches the fridge to battery when there is no shore power(ehu) and the battery charge level reaches 98% or above.\n\n**Auto** Switches the fridge to off When the battery level goes below 95%",
+        "x": 340,
+        "y": 30,
+        "wires": []
+    },
+    {
+        "id": "69c68097ebdecbdc",
+        "type": "comment",
+        "z": "f2dc821cb96432fd",
+        "name": "Description",
+        "info": "# Truma Error Code Lookup\nThis flow turns reads the error code from the Truma boiler can looks up the human readable text from the stored csv file\n\nRequires TrumaErrorCodes.json file",
+        "x": 90,
+        "y": 30,
+        "wires": []
+    },
+    {
+        "id": "cc4ba79e8dc93fb5",
+        "type": "mqtt-broker",
+        "name": "cerbo",
+        "broker": "192.168.10.20",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "b9f3bb94774c7a88",
+        "type": "ui-group",
+        "name": "Truma Error",
+        "page": "0e94453eb43f91ea",
+        "width": "16",
+        "height": "1",
+        "order": 3,
+        "showTitle": true,
+        "className": "trumaerror",
+        "visible": true,
+        "disabled": "false",
+        "groupType": "default"
+    },
+    {
+        "id": "563c3834aa95d21c",
+        "type": "ui-base",
+        "name": "Motorhome",
+        "path": "/dashboard",
+        "appIcon": "rv-truck",
+        "includeClientData": true,
+        "acceptsClientConfig": [
+            "ui-notification",
+            "ui-control"
+        ],
+        "showPathInSidebar": false,
+        "headerContent": "none",
+        "navigationStyle": "none",
+        "titleBarStyle": "hidden",
+        "showReconnectNotification": false,
+        "notificationDisplayTime": "1",
+        "showDisconnectNotification": false,
+        "allowInstall": true
+    },
+    {
+        "id": "0e94453eb43f91ea",
+        "type": "ui-page",
+        "name": "Motorhome",
+        "ui": "563c3834aa95d21c",
+        "path": "/grace",
+        "icon": "rv-truck",
+        "layout": "grid",
+        "theme": "b4dc292b8e533b16",
+        "breakpoints": [
+            {
+                "name": "Default",
+                "px": "0",
+                "cols": "8"
+            },
+            {
+                "name": "Tablet",
+                "px": "576",
+                "cols": "16"
+            },
+            {
+                "name": "Small Desktop",
+                "px": "768",
+                "cols": "16"
+            },
+            {
+                "name": "Desktop",
+                "px": "1024",
+                "cols": "16"
+            }
+        ],
+        "order": 1,
+        "className": "",
+        "visible": "true",
+        "disabled": "true"
+    },
+    {
+        "id": "b4dc292b8e533b16",
+        "type": "ui-theme",
+        "name": "dark theme",
+        "colors": {
+            "surface": "#282828",
+            "primary": "#0094ce",
+            "bgPage": "#00374a",
+            "groupBg": "#171821",
+            "groupOutline": "#323344"
+        },
+        "sizes": {
+            "density": "default",
+            "pagePadding": "2px",
+            "groupGap": "6px",
+            "groupBorderRadius": "12px",
+            "widgetGap": "4px"
+        },
+        "info": "0094CE\n\n00374A\n\n171821"
+    }
+]
