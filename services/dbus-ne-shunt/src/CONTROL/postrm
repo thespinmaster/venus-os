@@ -3,13 +3,13 @@
 SERVICE_NAME=$(basename "${0%.*}") #get file name without path
 VE_SERVICE_MAPPING_NAME="teststarter"
 
-if false; then
+#if false; then
 
 BASE_INSTALL_FILE_PATH=${0%.*} # strip file extension (.postinst)
 INSTALL_HELPER_ACTION="usb-serial-helper.remove" #"detect_add" "add" "remove"
 INSTALL_HELPER_SCRIPT_FILE="${BASE_INSTALL_FILE_PATH}.install-helper" 
 SERIAL_STARTER_RULES_FILE="/etc/udev/rules.d/serial-starter.rules"
-DBUS_MESSAGE_PATH="com.victronenergy.packageManager /GuiEditStatus"
+DBUS_MESSAGE_PATH="" #"com.victronenergy.packageManager /GuiEditStatus"
 
 ################################################
 # Remove serial starter rule from serial-serter.rules
@@ -35,7 +35,7 @@ if grep -q "^${CONFIG}$" "${SERIAL_STARTER_CONFIG_FILE}"; then
 fi
 ################################################
 
-fi
+#fi
 
 
 ################################################

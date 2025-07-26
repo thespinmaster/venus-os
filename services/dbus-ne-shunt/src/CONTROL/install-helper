@@ -157,8 +157,6 @@ class _usb_serial_helper:
             if timeout_counter > 60: 
                 log("Timeout, exiting...")
                 return ""
-            
-
 
             update_msg = f"No new USB device detected, retrying{'.' * counter}  "
     

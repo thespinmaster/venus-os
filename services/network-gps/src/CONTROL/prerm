@@ -1,0 +1,34 @@
+#!/bin/sh
+set -e
+if [ -z "$D" ]; then
+
+  SERVICE_NAME=$(basename "${0%.*}") #get file name without path
+ 
+  # Stop services to avoid a reboot
+  svc -d /service/"${SERVICE_NAME}"-start
+  svc -d /service/"${SERVICE_NAME}"-udp-redirect
+  sleep 1
+  rm -R /service/"${SERVICE_NAME}"-start
+  rm -R /service/"${SERVICE_NAME}"-udp-redirect
+
+  # Remove conf file
+  rm -r /data/"${SERVICE_NAME}"
+
+  # Clear logs
+  rm -R /var/log/"${SERVICE_NAME}"-start
+  rm -R /var/log/"${SERVICE_NAME}"-udp-redirect
+
+  ################################################
+  # Removing ensure-installed from rc.local
+  ################################################
+  RC_LOCAL_FILE="/data/rc.local"
+  RC_LOCAL_ACTION="/data/${SERVICE_NAME}/ensure-installed"
+  if ! grep -q "^${RC_LOCAL_ACTION}$" "${RC_LOCAL_FILE}"; then
+    echo "Removing ${RC_LOCAL_ACTION} from ${RC_LOCAL_FILE}"
+    sed -i '/^'"${RC_LOCAL_ACTION}"'/d' "${RC_LOCAL_FILE}"
+  fi
+  ################################################
+
+  echo "${SERVICE_NAME}" removed
+
+fi

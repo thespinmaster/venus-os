@@ -1,0 +1,10 @@
+Package: network-gps
+Version: 1.0.0
+Description: Network GPS using NMEA
+Section: utilities
+Priority: optional
+Maintainer: thespinmaster@github.com
+License: MIT
+Architecture: all
+OE: network-gps
+Source: https://github.com/thespinmaster/venus-os-configuration/tree/main/feed/network-gps

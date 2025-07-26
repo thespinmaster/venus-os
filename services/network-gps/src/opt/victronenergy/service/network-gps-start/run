@@ -1,0 +1,9 @@
+#!/bin/sh
+echo "*** starting $(basename "$(dirname "$(realpath "$0")")") ***"
+exec 2>&1
+# shellcheck disable=SC1091
+. /data/etc/network-gps/network-gps.conf
+if [ -n "$NETWORK_GPS_NAME" ]; then
+  (sleep 15; dbus -y "com.victronenergy.gps.ve_$NETWORK_GPS_DEV" /ProductName SetValue "$NETWORK_GPS_NAME") &
+fi
+exec /opt/victronenergy/gps-dbus/gps_dbus -v -s "/dev/$NETWORK_GPS_DEV"
