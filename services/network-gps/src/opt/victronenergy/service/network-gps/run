@@ -1,8 +1,16 @@
 #!/bin/sh
 echo "*** starting $(basename "$(dirname "$(realpath "$0")")") ***"
 exec 2>&1
+
 # shellcheck disable=SC1091
 . /data/etc/network-gps/network-gps.conf
+
+# route gps from router to serial port
+if ! test -e /dev/$NETWORK_GPS_DEV; then
+    echo /dev/$NETWORK_GPS_DEV does not exist, starting socat.... 
+    /usr/bin/socat UDP4-RECV:$NETWORK_GPS_PORT pty,link=/dev/$NETWORK_GPS_DEV,raw,nonblock,echo=0,b$NETWORK_GPS_BAUD &
+fi
+
 if [ -n "$NETWORK_GPS_NAME" ]; then
   (sleep 15; dbus -y "com.victronenergy.gps.ve_$NETWORK_GPS_DEV" /ProductName SetValue "$NETWORK_GPS_NAME") &
 fi

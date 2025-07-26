@@ -16,8 +16,7 @@ EOF
   fi
 
   # Copy service files for svscan to detect it within seconds and avoid a reboot
-  cp -R /opt/victronenergy/service/network-gps-udp-redirect/ /service/
-  cp -R /opt/victronenergy/service/network-gps-start/ /service/
+  cp -R /opt/victronenergy/service/network-gps/ /service/
 
 
   ################################################

@@ -1,5 +1,0 @@
-#!/bin/sh
-echo "*** starting $(basename "$(dirname "$(realpath "$0")")") ***"
-# shellcheck disable=SC1091
-. /data/network-gps/network-gps.conf
-exec /usr/bin/socat -dd "udp4-recv:$NETWORK_GPS_PORT" "pty,link=/dev/$NETWORK_GPS_DEV,raw,nonblock,echo=0,b$NETWORK_GPS_BAUD" 2>&1
