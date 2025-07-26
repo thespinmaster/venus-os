@@ -84,15 +84,15 @@ class ne_shunt_service:
                 'ShowWaterPumpSwitch': [f'{settingsPath}/ShowWaterPumpSwitch', 1, 0, 1],
                 'ShowAuxSwitch': [f'{settingsPath}/ShowAuxSwitch', 1, 0, 1],
                 'FreshWaterTank_ClassAndVrmInstance' : [f'{settingsPath}_fresh_water_tank/ClassAndVrmInstance', 
-                                                    "{SERVICE_TYPE_TANK}:{DEFAULT_DEVICE_INSTANCE}", 0, 0],
+                                                    f"{dbus_constants.SERVICE_TYPE_TANK}:{dbus_constants.DEFAULT_DEVICE_INSTANCE}", 0, 0],
                 'GreyWasteTank_ClassAndVrmInstance' : [f'{settingsPath}_grey_waste_tank/ClassAndVrmInstance', 
-                                                    "{SERVICE_TYPE_TANK}:{DEFAULT_DEVICE_INSTANCE}", 0, 0],
+                                                    f"{dbus_constants.SERVICE_TYPE_TANK}:{dbus_constants.DEFAULT_DEVICE_INSTANCE}", 0, 0],
                 'GreyWasteTank2_ClassAndVrmInstance' : [f'{settingsPath}_grey_waste_tank_2/ClassAndVrmInstance', 
-                                                    "{SERVICE_TYPE_TANK}:{DEFAULT_DEVICE_INSTANCE}", 0, 0],
+                                                    f"{dbus_constants.SERVICE_TYPE_TANK}:{dbus_constants.DEFAULT_DEVICE_INSTANCE}", 0, 0],
                 'CabBattery_ClassAndVrmInstance' : [f'{settingsPath}_cab_battery/ClassAndVrmInstance', 
-                                                    "{SERVICE_TYPE_BATTERY}}:{DEFAULT_DEVICE_INSTANCE}", 0, 0],
+                                                    f"{dbus_constants.SERVICE_TYPE_BATTERY}:{dbus_constants.DEFAULT_DEVICE_INSTANCE}", 0, 0],
                 'Switches_ClassAndVrmInstance' : [f'{settingsPath}_switches/ClassAndVrmInstance', 
-                                                    "{SERVICE_TYPE_SWITCH}}:{DEFAULT_DEVICE_INSTANCE}", 0, 0]
+                                                    f"{dbus_constants.SERVICE_TYPE_SWITCH}:{dbus_constants.DEFAULT_DEVICE_INSTANCE}", 0, 0]
                 },
             eventCallback = self._handle_changed_setting)
     

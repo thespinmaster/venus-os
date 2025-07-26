@@ -44,7 +44,7 @@ class dbus_base_service(object):
         self._dbusservice = VeDbusService(serviceName, bus=dbusconnection(), register=False)
         self._paths = paths
         self._dbusservice
-        logging.debug("%s /DeviceInstance = %d" % (serviceName, deviceInstance))
+        logging.debug("%s /DeviceInstance = %d" % (serviceName, str(deviceInstance)))
 
         # Create the management objects, as specified in the ccgx dbus-api document
         
