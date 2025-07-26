@@ -3,18 +3,18 @@ import os
 import logging
 
 sys.path.append(os.path.join(os.path.dirname(__file__), 'ext'))
-sys.path.append(os.path.join(os.path.dirname(__file__), 'dbus'))
-sys.path.append(os.path.join(os.path.dirname(__file__), 'serial')) 
+sys.path.append(os.path.join(os.path.dirname(__file__), 'serial_service')) 
+sys.path.append(os.path.join(os.path.dirname(__file__), 'dbus_services'))
 
-from dbus.switch_service import switch_service
-from dbus.tank_service import tank_service
-from dbus.battery_service import battery_service
-from dbus.dbus_constants import dbus_constants
-from dbus.dbus_connection import dbusconnection
+from dbus_services.switch_service import switch_service
+from dbus_services.tank_service import tank_service
+from dbus_services.battery_service import battery_service
+from dbus_services.dbus_constants import dbus_constants
+from dbus_services.dbus_connection import dbusconnection
 from ext.settingsdevice import SettingsDevice  # available in the velib_python repository
 
-from serial.ne_shunt_serial_service import ne_shunt_serial_service
-from serial.ne_shunt_data import ne_shunt_data
+from serial_service.ne_shunt_serial_service import ne_shunt_serial_service
+from serial_service.ne_shunt_data import ne_shunt_data
 
 ############################################
 # manages the reading and writing of data
@@ -49,7 +49,7 @@ class ne_shunt_service:
             self._serialService = None
 
         if (self._serialService == None and len(self._services) > 0):
-            self._serialService = ne_shunt_rs485_SerialService(self._serialPort)
+            self._serialService = ne_shunt_serial_service(self._serialPort)
  
     ############################################
     # Occurs when the a device setting value is 

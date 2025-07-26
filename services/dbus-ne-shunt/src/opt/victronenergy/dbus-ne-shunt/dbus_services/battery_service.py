@@ -1,5 +1,7 @@
-import dbus_base_service
-import i
+#!/usr/bin/env python3
+
+from dbus_base_service import dbus_base_service
+import dbus_constants
 
 class battery_service(dbus_base_service):
 

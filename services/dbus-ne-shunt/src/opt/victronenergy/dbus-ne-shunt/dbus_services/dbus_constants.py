@@ -21,7 +21,7 @@ class dbus_constants:
  
     BASE_DBUS_NAME = "com.victronenergy"
 
-    DEFAULT_DEVICE_INSTANCE = 600
+    DEFAULT_DEVICE_INSTANCE = 812
     SERVICE_TYPE_TANK="tank"
     SERVICE_TYPE_SWITCH="switch"
     SERVICE_TYPE_BATTERY="battery"
