@@ -33,18 +33,18 @@ class dbus_base_service(object):
         else:
             logging.debug("No dbus service to unregister")
             
-    def _registerCore(self, port, serviceType, paths, deviceName = 0, onvalueChanged = None):
+    def _registerCore(self, port, serviceType, paths, deviceInstance, onvalueChanged = None):
         
         logging.debug("_registerCore in")
 
         portName = os.path.basename(port)
         serviceName = "{}.{}.{}_id_{}.{}".format(dbus_constants.BASE_DBUS_NAME,
-                                              serviceType, dbus_constants.PRODUCT_NAME, deviceinstance, portName)
+                                              serviceType, dbus_constants.PRODUCT_NAME, deviceInstance, portName)
         
         self._dbusservice = VeDbusService(serviceName, bus=dbusconnection(), register=False)
         self._paths = paths
         self._dbusservice
-        logging.debug("%s /DeviceInstance = %d" % (serviceName, deviceinstance))
+        logging.debug("%s /DeviceInstance = %d" % (serviceName, deviceInstance))
 
         # Create the management objects, as specified in the ccgx dbus-api document
         
@@ -52,7 +52,7 @@ class dbus_base_service(object):
         self._dbusservice.add_path('/Mgmt/ProcessVersion', 'Unkown version, and running on Python ' + platform.python_version())
         self._dbusservice.add_path('/Mgmt/Connection', portName)
 
-        self._dbusservice.add_path('/DeviceInstance', deviceinstance)
+        self._dbusservice.add_path('/DeviceInstance', deviceInstance)
         self._dbusservice.add_path('/ProductId', dbus_constants.PRODUCT_ID)
         self._dbusservice.add_path('/ProductName', dbus_constants.PRODUCT_NAME)
         self._dbusservice.add_path('/FirmwareVersion', dbus_constants.FIRMWARE_VERSION)
