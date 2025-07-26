@@ -110,7 +110,7 @@ class _usb_serial_helper:
             if (matches): matches += ', '
             matches += f'ENV{{{name}}}=="{value}"'
  
-        if (matches == None):
+        if (matches == ""):
             log("warning: No serial ID found for the device.")
             return False
 

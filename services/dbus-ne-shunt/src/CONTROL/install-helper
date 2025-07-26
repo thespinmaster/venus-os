@@ -101,7 +101,7 @@ class _usb_serial_helper:
         bus = parts[1]
         device = parts[3][:-1]  # Remove the trailing ':'
 
-        command = f"udevadm info --name=/dev/bus/usb/003/003 --query=property | grep \"ID_VENDOR=\\|ID_MODEL=\\|ID_SERIAL=\\|MAJOR=\""
+        command = f"udevadm info --name=/dev/bus/usb/{bus}/{device} --query=property | grep \"ID_VENDOR=\\|ID_MODEL=\\|ID_SERIAL=\\|MAJOR=\""
         usb_info_lines = os.popen(command).read().strip().splitlines()
         matches = ""
 
