@@ -3,7 +3,7 @@ echo "*** starting $(basename "$(dirname "$(realpath "$0")")") ***"
 exec 2>&1
 
 # shellcheck disable=SC1091
-. /data/etc/network-gps/network-gps.conf
+. /data/network-gps/network-gps.conf
 
 # route gps from router to serial port
 if ! test -e /dev/$NETWORK_GPS_DEV; then
