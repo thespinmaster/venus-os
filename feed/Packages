@@ -32,8 +32,8 @@ Version: 1.0.0
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: 39d04622d4e54367fb5e77aae169436b
-Size: 2670
+MD5Sum: 4915a77e185d225a48b783d85788b564
+Size: 2668
 Filename: network-gps_1.0.0_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feed/network-gps
 Description: Network GPS using NMEA
