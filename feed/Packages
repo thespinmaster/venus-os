@@ -4,8 +4,8 @@ Depends: python3
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: b57a57293ce34accbf66b1cb36192cac
-Size: 29748
+MD5Sum: 2e432c869347e579ec1bc4ff4da74ebd
+Size: 29742
 Filename: dbus-ne-shunt_1.0.2_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feed/dbus-ne-shunt
 Description: Adds support for NordElectronica shunt NE196/NE319 board to Venus-OS
@@ -18,10 +18,10 @@ Version: 1.0.0
 Section: utilities
 Architecture: all
 Maintainer: Lucien Denisey <ldenisey@gmail.com>
-MD5Sum: 5552f63cb1630979b91277cc4f71c31d
-Size: 16104
+MD5Sum: beea3c19676ff30e4d771d77bbf21ece
+Size: 16096
 Filename: dbus-relay-board_1.0.0_all.ipk
-Source: https://github.com/thespinmaster/venus-os-configuration/tree/main/feed/dbus-relay-board
+Source: https://github.com/thespinmaster/venus-os/tree/main/feed/dbus-relay-board
 Description: Add support to RS485, RS232 and TTL232 relay boards
 OE: dbus-relay-board
 License: MIT
@@ -32,10 +32,10 @@ Version: 1.0.0
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: 39ae59dbff842bbe829b170ea91d9194
-Size: 2656
+MD5Sum: bdb88d6172f4eb103bd9976583cc9adb
+Size: 2650
 Filename: network-gps_1.0.0_all.ipk
-Source: https://github.com/thespinmaster/venus-os-configuration/tree/main/feed/network-gps
+Source: https://github.com/thespinmaster/venus-os/tree/main/feed/network-gps
 Description: Network GPS using NMEA
 OE: network-gps
 License: MIT
@@ -47,8 +47,8 @@ Depends: python3
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: 95008f522df10f33dc5f6bdbbddbae73
-Size: 5056
+MD5Sum: 032fcc80f4edf144e10259e1f93b0d63
+Size: 5042
 Filename: test-install_1.0.4_all.ipk
 Source: https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feed/test-install
 Description: A simple app for testing install
@@ -62,10 +62,10 @@ Depends: python3
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: 0f6f9a0a5e1738063618c285ae746ccb
-Size: 6512
+MD5Sum: 04b2e7e34d43eadd7ca4ae6ee906eff1
+Size: 6498
 Filename: test-service_1.0.0_all.ipk
-Source: https://github.com/thespinmaster/venus-os-configuration/raw/refs/heads/main/feed/test-service
+Source: https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feed/test-service
 Description: A simple service for testing
 OE: einstine
 License: MIT
