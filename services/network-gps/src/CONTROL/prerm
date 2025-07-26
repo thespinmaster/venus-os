@@ -15,9 +15,14 @@ if [ -z "$D" ]; then
   rm -r /data/"${SERVICE_NAME}"
 
   # Clear logs
-  rm -R /var/log/"${SERVICE_NAME}"-start
-  rm -R /var/log/"${SERVICE_NAME}"-udp-redirect
+  if [ -f  /var/log/"${SERVICE_NAME}"-start ]; then
+    rm -R /var/log/"${SERVICE_NAME}"-start
+  fi
 
+  if [ -f  /var/log/"${SERVICE_NAME}"-udp-redirect ]; then
+    rm -R /var/log/"${SERVICE_NAME}"-udp-redirect
+  fi
+  
   ################################################
   # Removing ensure-installed from rc.local
   ################################################

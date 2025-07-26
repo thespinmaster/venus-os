@@ -4,8 +4,8 @@ Depends: python3
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: 2e432c869347e579ec1bc4ff4da74ebd
-Size: 29742
+MD5Sum: c229fea8f3d30853d649a90bb79c167b
+Size: 29746
 Filename: dbus-ne-shunt_1.0.2_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feed/dbus-ne-shunt
 Description: Adds support for NordElectronica shunt NE196/NE319 board to Venus-OS
@@ -18,8 +18,8 @@ Version: 1.0.0
 Section: utilities
 Architecture: all
 Maintainer: Lucien Denisey <ldenisey@gmail.com>
-MD5Sum: beea3c19676ff30e4d771d77bbf21ece
-Size: 16096
+MD5Sum: 3f5ea80e3f324aadf2d7a96de9b10fc2
+Size: 16100
 Filename: dbus-relay-board_1.0.0_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feed/dbus-relay-board
 Description: Add support to RS485, RS232 and TTL232 relay boards
@@ -32,8 +32,8 @@ Version: 1.0.0
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: bdb88d6172f4eb103bd9976583cc9adb
-Size: 2650
+MD5Sum: 39d04622d4e54367fb5e77aae169436b
+Size: 2670
 Filename: network-gps_1.0.0_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feed/network-gps
 Description: Network GPS using NMEA
@@ -47,8 +47,8 @@ Depends: python3
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: 032fcc80f4edf144e10259e1f93b0d63
-Size: 5042
+MD5Sum: cfaeb1879037f6651be41d5a9dbbb984
+Size: 5044
 Filename: test-install_1.0.4_all.ipk
 Source: https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feed/test-install
 Description: A simple app for testing install
@@ -62,7 +62,7 @@ Depends: python3
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: 04b2e7e34d43eadd7ca4ae6ee906eff1
+MD5Sum: 126cd23024e206c6b5c262e7b3233b59
 Size: 6498
 Filename: test-service_1.0.0_all.ipk
 Source: https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feed/test-service
