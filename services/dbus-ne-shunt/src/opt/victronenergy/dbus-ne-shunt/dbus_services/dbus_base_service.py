@@ -33,32 +33,35 @@ class dbus_base_service(object):
         else:
             logging.debug("No dbus service to unregister")
             
-    def _registerCore(self, port, serviceType, paths, deviceInstance, onValueChanged = None):
+    def _registerCore(self, port, classAndVrmInstance, paths, onValueChanged = None):
         
         logging.debug("_registerCore in")
 
-        portName = os.path.basename(port)
-        serviceName = "{}.{}.{}_id_{}.{}".format(dbus_constants.BASE_DBUS_NAME,
-                                              serviceType, dbus_constants.PRODUCT_NAME, deviceInstance, portName)
+        portName = os.path.basename(port) # convery from /dev/ttyxxx to ttyxxx
+        classAndVrmInstanceParts = classAndVrmInstance.split(':')
+        className = classAndVrmInstanceParts[0]
+        deviceInstance = int(classAndVrmInstanceParts[1]) #!IMPORTANT MUST BE AN INT
+
+        serviceName = "com.victronenergy.{}.{}_id_{}.{}".format(className, dbus_constants.PRODUCT_NAME, 
+                                                                deviceInstance, portName)
         
         self._dbusservice = VeDbusService(serviceName, bus=dbusconnection(), register=False)
         self._paths = paths
         self._dbusservice
-        logging.debug("%s /DeviceInstance = %d" % (serviceName, str(deviceInstance)))
+ 
+        logging.debug(f"{serviceName} /DeviceInstance = {classAndVrmInstance}")
 
         # Create the management objects, as specified in the ccgx dbus-api document
-        
-        self._dbusservice.add_path('/Mgmt/ProcessName', __file__)
-        self._dbusservice.add_path('/Mgmt/ProcessVersion', 'Unkown version, and running on Python ' + platform.python_version())
-        self._dbusservice.add_path('/Mgmt/Connection', portName)
-
-        self._dbusservice.add_path('/DeviceInstance', deviceInstance)
-        self._dbusservice.add_path('/ProductId', dbus_constants.PRODUCT_ID)
-        self._dbusservice.add_path('/ProductName', dbus_constants.PRODUCT_NAME)
-        self._dbusservice.add_path('/FirmwareVersion', dbus_constants.FIRMWARE_VERSION)
-        self._dbusservice.add_path('/HardwareVersion', dbus_constants.HARDWARE_VERSION)
-        self._dbusservice.add_path('/Connected', 1, writeable=True)
- 
+        self._dbusservice.add_mandatory_paths(__file__,
+            'Unknown version, and running on Python ' + platform.python_version(),
+            portName,
+            deviceInstance,
+            dbus_constants.PRODUCT_ID,
+            dbus_constants.PRODUCT_NAME,
+            dbus_constants.FIRMWARE_VERSION,
+            dbus_constants.HARDWARE_VERSION,
+            1)
+            
         for path, settings in self._paths.items():
             self._dbusservice.add_path(
                 path, 

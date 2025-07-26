@@ -13,7 +13,7 @@ class switch_service(dbus_base_service):
 
     OUTPUT_FUNCTION_MANUAL = 2
 
-    def __init__(self, name, port, switches, deviceInstance, onValueChanged):
+    def __init__(self, name, port, switches, classAndVrmInstance, onValueChanged):
 
         validTypesLatching = 1 << self.OUTPUT_TYPE_LATCHING
 
@@ -37,9 +37,8 @@ class switch_service(dbus_base_service):
 
         self._registerCore(
             port,
-            serviceType = dbus_constants.SERVICE_TYPE_SWITCH,
             paths = paths,
-            deviceInstance = deviceInstance,
+            classAndVrmInstance = classAndVrmInstance,
             onValueChanged = onValueChanged
         )
 

@@ -115,8 +115,9 @@ class _usb_serial_helper:
             return False
 
         usb_rule = f"# {self._service_name}\n"
-        usb_rule += f'ACTION=="add", {matches}'
-    
+        usb_rule += f'ACTION=="add", {matches}, ENV{{VE_SERVICE}}="{self._service_name}"'
+        
+        
         # save the rule to a file. this will then be used to add and uninstall the value
         with open(self._serial_starter_rule_file, 'w') as file:
             file.write(usb_rule)

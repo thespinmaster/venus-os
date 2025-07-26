@@ -2,25 +2,11 @@ class dbus_constants:
 
     PRODUCT_NAME = "ne_shunt"
 
-    #PRODUCT_CONNECTION = "ne-shunt service"
-  
-    #DEVICE_INSTANCE_FRESH_WATER = 200
-    #DEVICE_INSTANCE_WASTE_WATER = 201
-    #DEVICE_INSTANCE_WASTE_WATER2 = 202
-    
-    #DEVICE_INSTANCE_SWITCHES = 200
-
-    #DEVICE_INSTANCE_BATTERY1 = 8000
-    #DEVICE_INSTANCE_BATTERY2 = 8001
-
- 
     PRODUCT_ID = 0xC01A
     PRODUCT_VERSION = "0.01"
     FIRMWARE_VERSION = "0.01"
     HARDWARE_VERSION = "0.00"
  
-    BASE_DBUS_NAME = "com.victronenergy"
-
     DEFAULT_DEVICE_INSTANCE = 812
     SERVICE_TYPE_TANK="tank"
     SERVICE_TYPE_SWITCH="switch"
@@ -33,7 +19,5 @@ class dbus_constants:
 
     PATH_SETTING_INITIAL="initial"
     PATH_SETTING_WRITABLE="writable"
-
-    SETTINGS_PATH = "/Settings/Devices/" + PRODUCT_NAME
 
     

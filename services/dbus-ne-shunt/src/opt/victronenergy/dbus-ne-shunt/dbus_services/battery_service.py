@@ -5,18 +5,17 @@ from dbus_constants import dbus_constants
 
 class battery_service(dbus_base_service):
 
-    def __init__(self, name, port, deviceInstance, capacity):
+    def __init__(self, name, port, classAndVrmInstance, capacity):
 
         self._registerCore(
             port,
-            serviceType = dbus_constants.SERVICE_TYPE_BATTERY,
+            classAndVrmInstance,
             paths =  {
                 '/Voltage': {'initial': None,'writable': True},
                 '/CustomName': {'initial': name,'writable': True},
                 '/Soc': {'initial': None,'writable': True},
                 '/Capacity': {'initial': capacity,'writable': True},
-            },
-            deviceInstance = deviceInstance,
+            }
             )
     
     @staticmethod

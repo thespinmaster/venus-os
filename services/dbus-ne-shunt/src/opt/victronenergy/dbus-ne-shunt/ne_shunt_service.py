@@ -71,8 +71,9 @@ class ne_shunt_service:
         
         # unique path used to generate unique ClassAndVrmInstance value 
         # see https://github.com/victronenergy/localsettings#using-addsetting-to-allocate-a-vrm-device-instance
-        settingsPath = f'{dbus_constants.SETTINGS_PATH}_{self._serialPort}'
-
+        portName = os.path.basename(self._serialPort)
+        settingsPath = f'"/Settings/Devices/{dbus_constants.PRODUCT_NAME}_{portName}'
+        
         self._settings = SettingsDevice(
             bus = dbusconnection(),
             supportedSettings = {
@@ -95,7 +96,23 @@ class ne_shunt_service:
                                                     f"{dbus_constants.SERVICE_TYPE_SWITCH}:{dbus_constants.DEFAULT_DEVICE_INSTANCE}", 0, 0]
                 },
             eventCallback = self._handle_changed_setting)
-    
+
+        """
+        self._settings = SettingsDevice(
+            bus = dbusconnection(),
+            supportedSettings = {
+                'ShowFreshWaterTank': [f'{settingsPath}/ShowFreshWaterTank', 1, 0, 1],
+                'GreyWasteTank_ClassAndVrmInstance' : [f'{settingsPath}_grey_waste_tank/ClassAndVrmInstance', 
+                                                    f"{dbus_constants.SERVICE_TYPE_TANK}:{dbus_constants.DEFAULT_DEVICE_INSTANCE}", 0, 0],
+                'GreyWasteTank2_ClassAndVrmInstance' : [f'{settingsPath}_grey_waste_tank_2/ClassAndVrmInstance', 
+                                                    f"{dbus_constants.SERVICE_TYPE_TANK}:{dbus_constants.DEFAULT_DEVICE_INSTANCE}", 0, 0]
+                },
+            eventCallback = self._handle_changed_setting)
+        """
+
+        print("GreyWasteTank_ClassAndVrmInstance=" + self._settings['GreyWasteTank_ClassAndVrmInstance'])
+        print("GreyWasteTank2_ClassAndVrmInstance=" + self._settings['GreyWasteTank2_ClassAndVrmInstance'])
+
     ############################################
     # Occurs when a switch is toggled in the UI
     ############################################
@@ -196,13 +213,13 @@ class ne_shunt_service:
         if len(switches) != 0:
             logging.debug("_start_stop_switch_service: starting")
             
-            deviceInstance = self._settings['Switches_ClassAndVrmInstance']
+            classAndVrmInstance = self._settings['Switches_ClassAndVrmInstance']
             self._services["switches"] = switch_service(
                                             "Electrics", 
                                             self._serialPort, 
                                             switches,
-                                            deviceInstance,
-                                            onvaluechanged = self._dbus_switch_value_changed)
+                                            classAndVrmInstance,
+                                            onValueChanged = self._dbus_switch_value_changed)
     
     ############################################
     # Starts the dbus vehicle battery service
@@ -214,40 +231,43 @@ class ne_shunt_service:
         logging.debug("_start_vehicle_battery_service in")
         service = self._services.get("vehicle_battery", None)
         if (service == None):
-            deviceInstance = self._settings['CabBattery_ClassAndVrmInstance']
+            classAndVrmInstance = self._settings['CabBattery_ClassAndVrmInstance']
             self._services["vehicle_battery"] = battery_service("Vehicle Battery",
                                                         self._serialPort,
-                                                        deviceInstance,
+                                                        classAndVrmInstance,
                                                         capacity = None)
             
     ############################################
     # starts and stops all services 
     # note: only starts the vehicle battery service
     ############################################
-    def _start_stop_services(self, name = ""):
+    def _start_stop_services(self, name = "", newValue = None):
         if (name == "" or name.endswith("FreshWaterTank")):
-            deviceInstance = self._settings['FreshWaterTank_ClassAndVrmInstance']
+            classAndVrmInstance = self._settings['FreshWaterTank_ClassAndVrmInstance']
+ 
             self._start_stop_tank_service("FreshWaterTank", 
                                         createcallback=lambda: tank_service("Fresh Water", 
                                         self._serialPort,
                                         dbus_constants.FLUID_TYPE_FRESH_WATER, 
-                                        deviceInstance, 0.1))
+                                        classAndVrmInstance, 0.1))
             
         if (name == "" or name.endswith("GreyWasteTank")):
-            deviceInstance = self._settings['GreyWasteTank_ClassAndVrmInstance']
+            classAndVrmInstance = self._settings['GreyWasteTank_ClassAndVrmInstance']
+ 
             self._start_stop_tank_service("GreyWasteTank", 
                                         createcallback=lambda: tank_service("Grey Waste", 
                                         self._serialPort,
-                                        dbus_constants.FLUID_TYPE_WindASTE_WATER, 
-                                        deviceInstance, 0.1))
+                                        dbus_constants.FLUID_TYPE_WASTE_WATER,
+                                        classAndVrmInstance, 0.1))
         
         if (name == "" or name.endswith("GreyWasteTank2")):
-            deviceInstance = self._settings['GreyWasteTank2_ClassAndVrmInstance']
+            classAndVrmInstance = self._settings['GreyWasteTank2_ClassAndVrmInstance']
+ 
             self._start_stop_tank_service("GreyWasteTank2", 
                                         createcallback=lambda: tank_service("Grey Waste 2", 
                                         self._serialPort,
                                         dbus_constants.FLUID_TYPE_WASTE_WATER, 
-                                        deviceInstance,0.1))
+                                        classAndVrmInstance,0.1))
         
         if (name == "" or name.endswith("Switch")):
             self._start_stop_switch_service()
