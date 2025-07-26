@@ -1,5 +1,5 @@
 from dbus_base_service import dbus_base_service
-import dbus_constants
+from dbus_constants import dbus_constants
 
 class switch_service(dbus_base_service):
 
