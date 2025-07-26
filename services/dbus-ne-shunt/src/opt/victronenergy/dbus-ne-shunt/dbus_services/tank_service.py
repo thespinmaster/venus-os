@@ -4,7 +4,7 @@ from dbus_constants import dbus_constants
 class tank_service(dbus_base_service):
 
 
-    def __init__(self, name, port, fluidType, deviceName, capacity):
+    def __init__(self, name, port, fluidType, deviceInstance, capacity):
 
         self._registerCore(
             port,
@@ -15,5 +15,5 @@ class tank_service(dbus_base_service):
                 '/FluidType': {'initial': fluidType, 'writable': False},
                 '/Level': {'initial': 8, 'writable': True},
             },
-            deviceName = deviceName,
+            deviceInstance = deviceInstance,
             )

@@ -13,7 +13,7 @@ class switch_service(dbus_base_service):
 
     OUTPUT_FUNCTION_MANUAL = 2
 
-    def __init__(self, name, port, switches, deviceinstance, onvaluechanged):
+    def __init__(self, name, port, switches, deviceInstance, onValueChanged):
 
         validTypesLatching = 1 << self.OUTPUT_TYPE_LATCHING
 
@@ -39,8 +39,8 @@ class switch_service(dbus_base_service):
             port,
             serviceType = dbus_constants.SERVICE_TYPE_SWITCH,
             paths = paths,
-            deviceinstance = deviceinstance,
-            onvalueChanged = onvaluechanged
+            deviceInstance = deviceInstance,
+            onValueChanged = onValueChanged
         )
 
         def ShowUIControl(self, name):

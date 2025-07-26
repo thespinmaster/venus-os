@@ -5,7 +5,7 @@ from dbus_constants import dbus_constants
 
 class battery_service(dbus_base_service):
 
-    def __init__(self, name, port, deviceinstance, capacity):
+    def __init__(self, name, port, deviceInstance, capacity):
 
         self._registerCore(
             port,
@@ -16,7 +16,7 @@ class battery_service(dbus_base_service):
                 '/Soc': {'initial': None,'writable': True},
                 '/Capacity': {'initial': capacity,'writable': True},
             },
-            deviceinstance = deviceinstance,
+            deviceInstance = deviceInstance,
             )
     
     @staticmethod

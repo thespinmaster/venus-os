@@ -33,7 +33,7 @@ class dbus_base_service(object):
         else:
             logging.debug("No dbus service to unregister")
             
-    def _registerCore(self, port, serviceType, paths, deviceInstance, onvalueChanged = None):
+    def _registerCore(self, port, serviceType, paths, deviceInstance, onValueChanged = None):
         
         logging.debug("_registerCore in")
 
@@ -64,7 +64,7 @@ class dbus_base_service(object):
                 path, 
                 value = settings[dbus_constants.PATH_SETTING_INITIAL],
                 writeable = settings[dbus_constants.PATH_SETTING_WRITABLE], 
-                onchangecallback = onvalueChanged)
+                onchangecallback = onValueChanged)
         
         self._dbusservice.register()
         
