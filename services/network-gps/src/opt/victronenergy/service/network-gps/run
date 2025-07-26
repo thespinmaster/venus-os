@@ -2,16 +2,25 @@
 echo "*** starting $(basename "$(dirname "$(realpath "$0")")") ***"
 exec 2>&1
 
+
+# load the variables from the network-gps.conf
+# network-gps.conf is created in the 
 # shellcheck disable=SC1091
 . /data/network-gps/network-gps.conf
 
+# shellcheck disable=SC2086
+
 # route gps from router to serial port
-if ! test -e /dev/$NETWORK_GPS_DEV; then
-    echo /dev/$NETWORK_GPS_DEV does not exist, starting socat.... 
-    /usr/bin/socat UDP4-RECV:$NETWORK_GPS_PORT pty,link=/dev/$NETWORK_GPS_DEV,raw,nonblock,echo=0,b$NETWORK_GPS_BAUD &
+if ! test -e /dev/$NETWORK_GPS_DEVICE; then
+    echo /dev/$NETWORK_GPS_DEVICE does not exist, starting socat.... 
+    /usr/bin/socat UDP4-RECV:$NETWORK_GPS_PORT pty,link=/dev/$NETWORK_GPS_DEVICE,raw,nonblock,echo=0,b$NETWORK_GPS_BAUD &
 fi
 
+# add a friendly name to display in the venus os gps settings
 if [ -n "$NETWORK_GPS_NAME" ]; then
-  (sleep 15; dbus -y "com.victronenergy.gps.ve_$NETWORK_GPS_DEV" /ProductName SetValue "$NETWORK_GPS_NAME") &
+  (sleep 15; dbus -y "com.victronenergy.gps.ve_$NETWORK_GPS_DEVICE" /ProductName SetValue "$NETWORK_GPS_NAME") &
 fi
-exec /opt/victronenergy/gps-dbus/gps_dbus -v -s "/dev/$NETWORK_GPS_DEV"
+
+# start the gps dbus service
+# -s is serial port to use
+exec /opt/victronenergy/gps-dbus/gps_dbus -s "/dev/$NETWORK_GPS_DEVICE"

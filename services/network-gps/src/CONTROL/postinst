@@ -4,20 +4,18 @@ if [ -z "$D" ]; then
   
   SERVICE_NAME=$(basename "${0%.*}") #get file name without path
 
-  # Init configuration script if needed
+  # create the conf file
+  # used in the network-gps service
   CONF_FILE="/data/network-gps/network-gps.conf"
   if [ ! -f "$CONF_FILE" ]; then
     cat << EOF > "$CONF_FILE"
-NETWORK_GPS_DEV=ttyGPS   # Any tty* name, must be unique
-NETWORK_GPS_PORT=8500    # Any valid port number
-NETWORK_GPS_BAUD=4800    # 4800/9600/38400/115200
-NETWORK_GPS_NAME="GPS inet GLX 3000"      # Optional name, default is defined by Victron GPS service
+
 EOF
   fi
 
-  # Copy service files for svscan to detect it within seconds and avoid a reboot
+  # copy service.
+  # svscan will detect the new files, avoiding a reboot
   cp -R /opt/victronenergy/service/network-gps/ /service/
-
 
   ################################################
   # Adding ensure-installed to rc.local
