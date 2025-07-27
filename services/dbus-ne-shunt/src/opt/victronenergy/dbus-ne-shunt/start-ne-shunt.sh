@@ -15,4 +15,4 @@
 app=/opt/victronenergy/dbus-ne-shunt/main.py
 args="/dev/$tty"
 
-start -d -s $args
+start -s $args
