@@ -101,7 +101,7 @@ class _usb_serial_helper:
         bus = parts[1]
         device = parts[3][:-1]  # Remove the trailing ':'
 
-        command = f"udevadm info --name=/dev/bus/usb/{bus}/{device} --query=property | grep \"ID_VENDOR=\\|ID_MODEL=\\|ID_SERIAL=\\|MAJOR=\""
+        command = f"udevadm info --name=/dev/bus/usb/{bus}/{device} --query=property | grep \"ID_BUS=\\|ID_VENDOR=\\|ID_MODEL=\\|ID_SERIAL=\\|MAJOR=\""
         usb_info_lines = os.popen(command).read().strip().splitlines()
         matches = ""
 
@@ -115,7 +115,7 @@ class _usb_serial_helper:
             return False
 
         usb_rule = f"# {self._service_name}\n"
-        usb_rule += f'ACTION=="add", {matches}, ENV{{VE_SERVICE}}="{self._service_name}"'
+        usb_rule += f'ACTION=="add", {matches}, ENV{{VE_SERVICE}}="{self._serial_starter_config_mapping_name}"'
         
         
         # save the rule to a file. this will then be used to add and uninstall the value
@@ -142,8 +142,7 @@ class _usb_serial_helper:
             if len(after_usb_devices) == (len(before_usb_devices) + 1):
                 for line in after_usb_devices:
                     if line not in before_usb_devices:
-                        return line
-                            # for testing
+                        return line # for testing
             else:
                 before_usb_devices = after_usb_devices
                 if (timeout_counter == 4 and self._test_usb_id != None):
