@@ -62,7 +62,6 @@ class ne_shunt_data:
 
     @staticmethod
     def _get_pump_state(data):
-        logging.debug("_get_states: " + data)
         return 1 if (int(data, 16) & 4) else 0
     
     @staticmethod
@@ -74,7 +73,7 @@ class ne_shunt_data:
         
         encoded_voltage = int(data, 16)
         voltage = (encoded_voltage - 30) / 10
-        logging.debug("_get_battery_level: " + data + ", voltage = " + str(f"{voltage:.2f}"))
+        #logging.debug("_get_battery_level: " + data + ", voltage = " + str(f"{voltage:.2f}"))
         return f"{voltage:.2f}"
 
     def get_value(self, name):

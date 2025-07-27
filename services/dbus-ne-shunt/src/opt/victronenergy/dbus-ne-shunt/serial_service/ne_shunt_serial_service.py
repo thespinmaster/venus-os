@@ -16,7 +16,7 @@ class ne_shunt_serial_service:
     _aux = bytes( [0xff, 0x08, 0x00, 0xc0, 0xc7])        #FF0080C0C7  
  
     _allOff = bytes(  [0xff, 0x80, 0x00, 0xc0, 0x7f])    #FF8000007F
-
+ 
     def __init__(self, port_name):
         self.serial_port = serial.rs485.RS485(port=port_name, baudrate=self.SERIAL_BAUD_RATE,bytesize=8, parity="N", stopbits=1, timeout=1)
         self.serial_port.rs485_mode = serial.rs485.RS485Settings()
@@ -48,10 +48,22 @@ class ne_shunt_serial_service:
         time.sleep(0.1)
 
     def _send_data(self, data):
-        self._send_idle()     
+        self._send_idle()
         self.serial_port.write(data)
+        self.serial_port.reset_input_buffer()
         time.sleep(0.1)
 
+    """
+    Wrong output looks like:  (means that the rx and tx wires are around the wrong way)
+@40000000688640c71ac16f14 DEBUG    Timeout, read:01FEFE02FEBE3E0A0196EC0479F1FE828000FEFE02FEBE3E0A0196EC0479F1FE828001FEFE02FEBE3E0A0196EC0479F1FE828001FEFE02FEBE3E0A01
+@4000000068863f41015d059c DEBUG    _update out: no data returned
+
+    Correct output looks like:
+@400000006886430a02c680ac DEBUG    Success, read:FF000000FF00D00070FCFA009AA2FF0DA000001E
+@400000006886430a02d12b24 DEBUG    _update out: parsing new data for changes
+@400000006886430a02dac044 DEBUG    _get_states: D
+@400000006886430a02e3b53c DEBUG    _get_battery_level: 9A, voltage = 12.40
+    """
     def read_data(self):
 
         if not self.serial_port.is_open:
@@ -75,8 +87,11 @@ class ne_shunt_serial_service:
         buffer[:] = b'\x00' * BUFFER_LENGTH
         buffer_all[:] = b'\x00' * MAX_BYTES_READ
  
-        self.serial_port.reset_input_buffer()  
         #self._send_idle()
+        # Only reset the input buffer when absolutly nessasery
+        # currently this is only done after writing data
+        # This keeps the cpu % very low (under 1% otherwise can be as high as 7%)
+        #self.reset_input_buffer()
 
         while not checksum_match:
             #time.sleep(0.1)
@@ -100,7 +115,8 @@ class ne_shunt_serial_service:
 
                 if checksum_match and buffer[0] == 255 and buffer[14] == 255:
                     res = self.byte_array_to_string(buffer)
-                    logging.debug("Success, read:" + res)
+                    #logging.debug("Success, read:" + res)
+                    
                     return res
                 else:
                     buffer_index -= 1
@@ -114,6 +130,7 @@ class ne_shunt_serial_service:
         return ""
 
     def _write_data(self, data):
+        
         if self.serial_port.is_open:
             self.serial_port.write((data + '\n').encode())
         else:

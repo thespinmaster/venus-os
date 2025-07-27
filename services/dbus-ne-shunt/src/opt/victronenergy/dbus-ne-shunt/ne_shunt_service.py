@@ -27,7 +27,9 @@ class ne_shunt_service:
     _serialPort = None
     _inUpdate = False
     _settingsPath = None
-    
+    _lastData = None
+    _reset = False
+
     ############################################
     # constructor 
     # serial port is passed from the SerialStarter 
@@ -96,22 +98,6 @@ class ne_shunt_service:
                                                     f"{dbus_constants.SERVICE_TYPE_SWITCH}:{dbus_constants.DEFAULT_DEVICE_INSTANCE}", 0, 0]
                 },
             eventCallback = self._handle_changed_setting)
-
-        """
-        self._settings = SettingsDevice(
-            bus = dbusconnection(),
-            supportedSettings = {
-                'ShowFreshWaterTank': [f'{settingsPath}/ShowFreshWaterTank', 1, 0, 1],
-                'GreyWasteTank_ClassAndVrmInstance' : [f'{settingsPath}_grey_waste_tank/ClassAndVrmInstance', 
-                                                    f"{dbus_constants.SERVICE_TYPE_TANK}:{dbus_constants.DEFAULT_DEVICE_INSTANCE}", 0, 0],
-                'GreyWasteTank2_ClassAndVrmInstance' : [f'{settingsPath}_grey_waste_tank_2/ClassAndVrmInstance', 
-                                                    f"{dbus_constants.SERVICE_TYPE_TANK}:{dbus_constants.DEFAULT_DEVICE_INSTANCE}", 0, 0]
-                },
-            eventCallback = self._handle_changed_setting)
-        """
-
-        print("GreyWasteTank_ClassAndVrmInstance=" + self._settings['GreyWasteTank_ClassAndVrmInstance'])
-        print("GreyWasteTank2_ClassAndVrmInstance=" + self._settings['GreyWasteTank2_ClassAndVrmInstance'])
 
     ############################################
     # Occurs when a switch is toggled in the UI
@@ -299,12 +285,13 @@ class ne_shunt_service:
         if dbus_service:
             logging.debug(f"update_dbus_item set_value: {servicePath}/newValue = {newValue}")
             dbus_service.set_value(servicePath, newValue)
- 
+            
         else:
             logging.debug(f"update_dbus_item: serviceName = None ({serviceName})" )
         
         logging.debug("update_dbus_item out")
 
+    
     ############################################
     # reads the 485 serial data from from the
     # ne-shunt and passes any changed values
@@ -317,6 +304,7 @@ class ne_shunt_service:
         logging.debug("_update in")
  
         if (self._serialService == None):
+            logging.debug("_update out ss=None")
             return True
  
         data = self._serialService.read_data()
@@ -324,9 +312,19 @@ class ne_shunt_service:
             logging.debug("_update out: no data returned")
             return True
         
-        logging.debug("_update out: parsing new data for changes")
-        newData = ne_shunt_data(data)
+     
+        if (data == self._lastData):
+            logging.debug("not change exiting...")
+            return True
 
+        logging.debug("_update out: parsing new data for changes")
+       
+        #logging.debug(f"data: {data}\n_lastData:{self._lastData}")
+
+        self._lastData=data
+
+        newData = ne_shunt_data(data)
+        
         #copy curData so we can update _curData and we don't get
         # recursive updates from update_item
         curData = self._curData.clone() if self._curData else None
@@ -337,25 +335,24 @@ class ne_shunt_service:
             
             logging.debug(f"_update diff value: {key} = {value}")
 
-        match key:
-            case 'fresh_water_tank':
-                self.update_dbus_item("FreshWaterTank", "/Level", value)
-            case 'grey_waste_tank':
-                self.update_dbus_item("GreyWasteTank", "/Level", value)
-            case 'grey_waste_tank2':
-                self.update_dbus_item("GreyWasteTank2", "/Level", value)
-            case 'ExternalLights':
-                self.update_dbus_item("switches", "/SwitchableOutput/ExternalLights/State", value)
-            case 'InternalLights':
-                self.update_dbus_item("switches", "/SwitchableOutput/InternalLights/State", value)
-            case 'WaterPump':
-                self.update_dbus_item("switches", "/SwitchableOutput/WaterPump/State", value)
-            case 'Aux':
-                self.update_dbus_item("switches", "/SwitchableOutput/Aux/State", value)
-            case 'battery1':
-                self.update_dbus_item("vehicle_battery", "/Voltage", value)
-                self.update_dbus_item("vehicle_battery", "/Soc", battery_service.calcVehicleSoc(value))
-           
+            match key:
+                case 'fresh_water_tank':
+                    self.update_dbus_item("FreshWaterTank", "/Level", value)
+                case 'grey_waste_tank':
+                    self.update_dbus_item("GreyWasteTank", "/Level", value)
+                case 'grey_waste_tank2':
+                    self.update_dbus_item("GreyWasteTank2", "/Level", value)
+                case 'ExternalLights':
+                    self.update_dbus_item("switches", "/SwitchableOutput/ExternalLights/State", value)
+                case 'InternalLights':
+                    self.update_dbus_item("switches", "/SwitchableOutput/InternalLights/State", value)
+                case 'WaterPump':
+                    self.update_dbus_item("switches", "/SwitchableOutput/WaterPump/State", value)
+                case 'Aux':
+                    self.update_dbus_item("switches", "/SwitchableOutput/Aux/State", value)
+                case 'battery1':
+                    self.update_dbus_item("vehicle_battery", "/Voltage", value)
+                    self.update_dbus_item("vehicle_battery", "/Soc", battery_service.calcVehicleSoc(value))
+ 
         logging.debug("_update out")
-
         return True
