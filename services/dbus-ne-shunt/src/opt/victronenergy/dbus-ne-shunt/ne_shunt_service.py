@@ -72,7 +72,7 @@ class ne_shunt_service:
         # unique path used to generate unique ClassAndVrmInstance value 
         # see https://github.com/victronenergy/localsettings#using-addsetting-to-allocate-a-vrm-device-instance
         portName = os.path.basename(self._serialPort)
-        settingsPath = f'"/Settings/Devices/{dbus_constants.PRODUCT_NAME}_{portName}'
+        settingsPath = f'/Settings/Devices/{dbus_constants.PRODUCT_NAME}_{portName}'
         
         self._settings = SettingsDevice(
             bus = dbusconnection(),
