@@ -87,6 +87,7 @@ class _usb_serial_helper:
         # so when we need to do a re-install (after a firmware upgrade) we
         # can install silently.
         if (os.path.exists(self._serial_starter_rule_file)):
+            log(f"found existing serial-starter-rule: {self._serial_starter_rule_file}")
             return True
 
         new_device = self._detect_inserted_serial_usb_device()
