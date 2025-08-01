@@ -375,7 +375,10 @@ class ne_shunt_service:
                     self.update_dbus_item("switches", "/SwitchableOutput/Aux/State", value)
                 case 'cab_battery' | 'leisure_battery':
                     self.update_dbus_item(key, "/Voltage", value)
-                    self.update_dbus_item(key, "/Soc", battery_service.calcBatterySoc(value))
+                    dbus_service = self._services.get(key, None)
+                    if dbus_service:
+                        self.update_dbus_item(key, "/Soc", dbus_service.calcBatterySoc(value))
+                        
         logging.debug("_update out")
 
          #keep at end, helps dbus events from turning off values before we are populated
