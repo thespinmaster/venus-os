@@ -268,7 +268,7 @@ class ne_shunt_service:
         if (name == "" or name.endswith("FreshWaterTank")):
             classAndVrmInstance = self._settings['FreshWaterTank_ClassAndVrmInstance']
  
-            self._start_stop_tank_service("FreshWaterTank", 
+            self._start_stop_tank_service("fresh_wate_tank", 
                                         createcallback=lambda: tank_service("Fresh Water", 
                                         self._serialPort,
                                         dbus_constants.FLUID_TYPE_FRESH_WATER, 
@@ -277,7 +277,7 @@ class ne_shunt_service:
         if (name == "" or name.endswith("GreyWasteTank")):
             classAndVrmInstance = self._settings['GreyWasteTank_ClassAndVrmInstance']
  
-            self._start_stop_tank_service("GreyWasteTank", 
+            self._start_stop_tank_service("grey_waste_tank", 
                                         createcallback=lambda: tank_service("Grey Waste", 
                                         self._serialPort,
                                         dbus_constants.FLUID_TYPE_WASTE_WATER,
@@ -286,7 +286,7 @@ class ne_shunt_service:
         if (name == "" or name.endswith("GreyWasteTank2")):
             classAndVrmInstance = self._settings['GreyWasteTank2_ClassAndVrmInstance']
  
-            self._start_stop_tank_service("GreyWasteTank2", 
+            self._start_stop_tank_service("grey_waste_tank2", 
                                         createcallback=lambda: tank_service("Grey Waste 2", 
                                         self._serialPort,
                                         dbus_constants.FLUID_TYPE_WASTE_WATER, 

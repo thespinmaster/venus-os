@@ -18,8 +18,8 @@ class battery_service(dbus_base_service):
                 '/CustomName': {'initial': name,'writable': True},
                 '/Soc': {'initial': None,'writable': True},
                 '/Capacity': {'initial': capacity,'writable': True},
-                '/MinVoltage': {'initial': MinVoltage,'writable': True},
-                '/MaxVoltage': {'initial': MaxVoltage,'writable': True}
+                '/MinVoltage': {'initial': self.MinVoltage,'writable': True},
+                '/MaxVoltage': {'initial': self.MaxVoltage,'writable': True}
                 },
             onValueChanged = onValueChanged
             )
