@@ -6,10 +6,13 @@ if [ -z "$D" ]; then
   SERVICE_NAME=$(basename "${0%.*}") #get file name without path
   VE_SERVICE_MAPPING_NAME="teststarter"
 
-  # Stop services
-  svc -d /service/"${SERVICE_NAME}"
-  sleep 1
-  rm -R /service/"${SERVICE_NAME}"
+  # Stop service (service name can end with port name like <service>.ttyACM0
+  SERVICE_PATH=$(svstat "/service/${SERVICE_NAME}.tty*" | cut -f1 -d':')
+  if [ -n "${SERVICE_PATH}" ]; then
+    echo stopping service "${SERVICE_PATH}"
+    svc -d "${SERVICE_PATH}"
+    rm -R "${SERVICE_PATH}"
+  fi
 
   #if false; then
 
