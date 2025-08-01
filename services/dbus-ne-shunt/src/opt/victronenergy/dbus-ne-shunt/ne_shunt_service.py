@@ -353,10 +353,7 @@ class ne_shunt_service:
        
         #logging.debug(f"data: {data}\n_lastData:{self._lastData}")
 
-        self._lastData=data
-
         newData = ne_shunt_data(data)
-        
         #copy curData so we can update _curData and we don't get
         # recursive updates from update_item
         curData = self._curData.clone() if self._curData else None
@@ -383,4 +380,6 @@ class ne_shunt_service:
 
          #keep at end, helps dbus events from turning off values before we are populated
         self._curData = newData
+        self._lastData = data
+
         return True

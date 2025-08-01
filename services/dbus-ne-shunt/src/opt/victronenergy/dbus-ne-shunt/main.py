@@ -31,11 +31,11 @@ def main():
     nuss = ne_shunt_service(args.serial)
     nuss.initialize()
     
-    time.sleep(1)
+    time.sleep(2)
     GLib.timeout_add(1000, nuss._update)
 
     log.info('Connected to dbus, and switching over to GLib.MainLoop() (= event based)')
- 
+    
     mainloop = GLib.MainLoop()
     mainloop.run()
 
