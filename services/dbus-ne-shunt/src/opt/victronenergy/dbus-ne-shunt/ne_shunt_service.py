@@ -370,7 +370,7 @@ class ne_shunt_service:
             logging.debug(f"_update diff value: {key} = {value}")
 
             match key:
-                case 'fresh_water_tank', "grey_waste_tank",'grey_waste_tank2':
+                case 'fresh_water_tank' | "grey_waste_tank" |'grey_waste_tank2':
                     self.update_dbus_item(key, "/Level", value)
 
                 case 'external_lights':
@@ -381,7 +381,7 @@ class ne_shunt_service:
                     self.update_dbus_item("switches", "/SwitchableOutput/WaterPump/State", value)
                 case 'aux':
                     self.update_dbus_item("switches", "/SwitchableOutput/Aux/State", value)
-                case 'cab_battery', 'leisure_battery':
+                case 'cab_battery' | 'leisure_battery':
                     self.update_dbus_item(key, "/Voltage", value)
                     self.update_dbus_item(key, "/Soc", battery_service.calcBatterySoc(value))
         logging.debug("_update out")
