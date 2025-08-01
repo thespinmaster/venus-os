@@ -1,12 +1,12 @@
 Package: dbus-ne-shunt
-Version: 1.0.2
+Version: 1.0.3
 Depends: python3
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: 406eea0fb519427617344b7853362615
-Size: 63790
-Filename: dbus-ne-shunt_1.0.2_all.ipk
+MD5Sum: 8633cb2acc733cd94f39d1bf90ed8146
+Size: 63806
+Filename: dbus-ne-shunt_1.0.3_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feed/dbus-ne-shunt
 Description: Adds support for NordElectronica shunt NE196/NE319 board to Venus-OS
 OE: dbus-ne-shunt
@@ -18,8 +18,8 @@ Version: 1.0.0
 Section: utilities
 Architecture: all
 Maintainer: Lucien Denisey <ldenisey@gmail.com>
-MD5Sum: 3f5ea80e3f324aadf2d7a96de9b10fc2
-Size: 16100
+MD5Sum: a6334e182a2317337e1e574eb34fc7f4
+Size: 16098
 Filename: dbus-relay-board_1.0.0_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feed/dbus-relay-board
 Description: Add support to RS485, RS232 and TTL232 relay boards
@@ -32,8 +32,8 @@ Version: 1.0.0
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: aa7b8906d78e31e8cf613d2f7b6dd0ea
-Size: 2672
+MD5Sum: a984422f28bf34d458e036a17f130d57
+Size: 2670
 Filename: network-gps_1.0.0_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feed/network-gps
 Description: Network GPS using NMEA
@@ -47,8 +47,8 @@ Depends: python3
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: cfaeb1879037f6651be41d5a9dbbb984
-Size: 5044
+MD5Sum: c1e0bf5e8f2f48f1f700689d7aa78e10
+Size: 5056
 Filename: test-install_1.0.4_all.ipk
 Source: https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feed/test-install
 Description: A simple app for testing install
@@ -62,8 +62,8 @@ Depends: python3
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: 126cd23024e206c6b5c262e7b3233b59
-Size: 6498
+MD5Sum: cd503a7a10afcb4195f715a989150be4
+Size: 6478
 Filename: test-service_1.0.0_all.ipk
 Source: https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feed/test-service
 Description: A simple service for testing
