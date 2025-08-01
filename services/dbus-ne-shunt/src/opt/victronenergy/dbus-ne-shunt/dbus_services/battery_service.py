@@ -26,7 +26,7 @@ class battery_service(dbus_base_service):
     
 
     @staticmethod
-    def calcBatterySoc(self, value):
+    def calcBatterySoc(value):
         if (value == None | value <= 0):
             return 0
         #V_MAX = 12.89 # 100% charged
