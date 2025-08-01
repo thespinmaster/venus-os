@@ -370,9 +370,8 @@ class ne_shunt_service:
             logging.debug(f"_update diff value: {key} = {value}")
 
             match key:
-                case 'fresh_water_tank' | "grey_waste_tank" |'grey_waste_tank2':
+                case 'fresh_water_tank' | "grey_waste_tank" | 'grey_waste_tank2':
                     self.update_dbus_item(key, "/Level", value)
-
                 case 'external_lights':
                     self.update_dbus_item("switches", "/SwitchableOutput/ExternalLights/State", value)
                 case 'internal_lights':
