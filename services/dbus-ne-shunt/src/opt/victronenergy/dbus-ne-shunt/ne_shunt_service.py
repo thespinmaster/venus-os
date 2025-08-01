@@ -79,24 +79,20 @@ class ne_shunt_service:
         self._settings = SettingsDevice(
             bus = dbusconnection(),
             supportedSettings = {
-                'ShowFreshWaterTank': [f'{settingsPath}/ShowFreshWaterTank', 1, 0, 1],
-                'ShowGreyWasteTank': [f'{settingsPath}/ShowGreyWasteTank', 1, 0, 1],  # When empty, default path will be used.
-                'ShowGreyWasteTank2': [f'{settingsPath}/ShowGreyWasteTank2', 1, 0, 1],
-                'ShowInternalLightSwitch': [f'{settingsPath}/ShowInternalLightSwitch', 1, 0, 1],
-                'ShowExternalLightSwitch': [f'{settingsPath}/ShowExternalLightSwitch', 1, 0, 1],
-                'ShowWaterPumpSwitch': [f'{settingsPath}/ShowWaterPumpSwitch', 1, 0, 1],
-                'ShowAuxSwitch': [f'{settingsPath}/ShowAuxSwitch', 1, 0, 1],
-                'FreshWaterTank_ClassAndVrmInstance' : [f'{settingsPath}_fresh_water_tank/ClassAndVrmInstance', 
+                'show_fresh_water_tank': [f'{settingsPath}/ShowFreshWaterTank', 1, 0, 1],
+                'show_grey_waste_tank': [f'{settingsPath}/ShowGreyWasteTank', 1, 0, 1],  # When empty, default path will be used.
+                'show_grey_waste_tank2': [f'{settingsPath}/ShowGreyWasteTank2', 1, 0, 1],
+                'fresh_water_tank_class_and_vrm_instance' : [f'{settingsPath}_fresh_water_tank/ClassAndVrmInstance', 
                                                     f"{dbus_constants.SERVICE_TYPE_TANK}:{dbus_constants.DEFAULT_DEVICE_INSTANCE}", 0, 0],
-                'GreyWasteTank_ClassAndVrmInstance' : [f'{settingsPath}_grey_waste_tank/ClassAndVrmInstance', 
+                'grey_waste_tank_class_and_vrm_instance' : [f'{settingsPath}_grey_waste_tank/ClassAndVrmInstance', 
                                                     f"{dbus_constants.SERVICE_TYPE_TANK}:{dbus_constants.DEFAULT_DEVICE_INSTANCE}", 0, 0],
-                'GreyWasteTank2_ClassAndVrmInstance' : [f'{settingsPath}_grey_waste_tank_2/ClassAndVrmInstance', 
+                'grey_waste_tank2_class_and_vrm_instance' : [f'{settingsPath}_grey_waste_tank_2/ClassAndVrmInstance', 
                                                     f"{dbus_constants.SERVICE_TYPE_TANK}:{dbus_constants.DEFAULT_DEVICE_INSTANCE}", 0, 0],
-                'CabBattery_ClassAndVrmInstance' : [f'{settingsPath}_cab_battery/ClassAndVrmInstance', 
+                'cab_battery_class_and_vrm_instance' : [f'{settingsPath}_cab_battery/ClassAndVrmInstance', 
                                                     f"{dbus_constants.SERVICE_TYPE_BATTERY}:{dbus_constants.DEFAULT_DEVICE_INSTANCE}", 0, 0],
-                'LeisureBattery_ClassAndVrmInstance' : [f'{settingsPath}_leisure_battery/ClassAndVrmInstance', 
+                'leisure_battery_class_and_vrm_instance' : [f'{settingsPath}_leisure_battery/ClassAndVrmInstance', 
                                                     f"{dbus_constants.SERVICE_TYPE_BATTERY}:{dbus_constants.DEFAULT_DEVICE_INSTANCE}", 0, 0],
-                'Switches_ClassAndVrmInstance' : [f'{settingsPath}_switches/ClassAndVrmInstance', 
+                'switches_class_and_vrm_instance' : [f'{settingsPath}_switches/ClassAndVrmInstance', 
                                                     f"{dbus_constants.SERVICE_TYPE_SWITCH}:{dbus_constants.DEFAULT_DEVICE_INSTANCE}", 0, 0]
                 },
             eventCallback = self._handle_changed_setting)
@@ -175,7 +171,7 @@ class ne_shunt_service:
         logging.debug(f"_start_stop_tank_service: {name}")
         service = self._services.get(name, None)
         
-        if (self._settings['Show' + name] == 1):
+        if (self._settings['show_' + name] == 1):
             if (service is None):
                 logging.debug(f"_start_stop_tank_service: {name} creating")
                 service = createcallback()
@@ -225,7 +221,7 @@ class ne_shunt_service:
         if len(switches) != 0:
             logging.debug("_start_stop_switch_service: starting")
             
-            classAndVrmInstance = self._settings['Switches_ClassAndVrmInstance']
+            classAndVrmInstance = self._settings['switches_class_and_vrm_instance']
             self._services["switches"] = switch_service(
                                             "Electrics", 
                                             self._serialPort, 
@@ -245,7 +241,7 @@ class ne_shunt_service:
 
         service = self._services.get("cab_battery", None)
         if (service == None):
-            classAndVrmInstance = self._settings['CabBattery_ClassAndVrmInstance']
+            classAndVrmInstance = self._settings['cab_battery_class_and_vrm_instance']
             self._services["cab_battery"] = battery_service("Vehicle Battery",
                                                         self._serialPort,
                                                         classAndVrmInstance,
@@ -254,7 +250,7 @@ class ne_shunt_service:
 
         service = self._services.get("leisure_battery", None)
         if (service == None):
-            classAndVrmInstance = self._settings['LeisureBattery_ClassAndVrmInstance']
+            classAndVrmInstance = self._settings['leisure_battery_class_and_vrm_instance']
             self._services["leisure_battery"] = battery_service("Leisure Battery",
                                                         self._serialPort,
                                                         classAndVrmInstance,
@@ -264,18 +260,18 @@ class ne_shunt_service:
     # starts and stops all services 
     # note: only starts the vehicle battery service
     ############################################
-    def _start_stop_services(self, name = "", newValue = None):
-        if (name == "" or name.endswith("FreshWaterTank")):
-            classAndVrmInstance = self._settings['FreshWaterTank_ClassAndVrmInstance']
+    def _start_stop_services(self, dbusSettingName = "", newValue = None):
+        if (dbusSettingName == "" or dbusSettingName.endswith("FreshWaterTank")):
+            classAndVrmInstance = self._settings['fresh_water_tank_class_and_vrm_instance']
  
-            self._start_stop_tank_service("fresh_wate_tank", 
+            self._start_stop_tank_service("fresh_water_tank", 
                                         createcallback=lambda: tank_service("Fresh Water", 
                                         self._serialPort,
                                         dbus_constants.FLUID_TYPE_FRESH_WATER, 
                                         classAndVrmInstance, 0.1))
             
-        if (name == "" or name.endswith("GreyWasteTank")):
-            classAndVrmInstance = self._settings['GreyWasteTank_ClassAndVrmInstance']
+        if (dbusSettingName == "" or dbusSettingName.endswith("GreyWasteTank")):
+            classAndVrmInstance = self._settings['grey_waste_tank_class_and_vrm_instance']
  
             self._start_stop_tank_service("grey_waste_tank", 
                                         createcallback=lambda: tank_service("Grey Waste", 
@@ -283,8 +279,8 @@ class ne_shunt_service:
                                         dbus_constants.FLUID_TYPE_WASTE_WATER,
                                         classAndVrmInstance, 0.1))
         
-        if (name == "" or name.endswith("GreyWasteTank2")):
-            classAndVrmInstance = self._settings['GreyWasteTank2_ClassAndVrmInstance']
+        if (dbusSettingName == "" or dbusSettingName.endswith("GreyWasteTank2")):
+            classAndVrmInstance = self._settings['grey_waste_tank2_class_and_vrm_instance']
  
             self._start_stop_tank_service("grey_waste_tank2", 
                                         createcallback=lambda: tank_service("Grey Waste 2", 
@@ -292,10 +288,10 @@ class ne_shunt_service:
                                         dbus_constants.FLUID_TYPE_WASTE_WATER, 
                                         classAndVrmInstance,0.1))
         
-        if (name == "" or name.endswith("Switch")):
+        if (dbusSettingName == "" or dbusSettingName.endswith("Switch")):
             self._start_stop_switch_service()
 
-        if (name == ""):
+        if (dbusSettingName == ""):
             self._start_battery_services()
 
         # start stop the serial service as required.
