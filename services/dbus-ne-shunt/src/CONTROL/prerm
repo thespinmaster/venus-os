@@ -10,8 +10,8 @@ if [ -z "$D" ]; then
   SERVICE_PATH=$(svstat /service/* | grep "${SERVICE_NAME}.tty*" | cut -f1 -d':')
   if [ -n "${SERVICE_PATH}" ]; then
     echo stopping service "${SERVICE_PATH}"
-    svc -d "${SERVICE_PATH}"
-    rm -R "${SERVICE_PATH}"
+    svc -d "${SERVICE_PATH}" 2>/dev/null
+    rm -R "${SERVICE_PATH}" 2>/dev/null
   fi
 
   #if false; then
