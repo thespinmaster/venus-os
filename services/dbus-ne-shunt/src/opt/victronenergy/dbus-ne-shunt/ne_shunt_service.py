@@ -94,6 +94,8 @@ class ne_shunt_service:
                                                     f"{dbus_constants.SERVICE_TYPE_TANK}:{dbus_constants.DEFAULT_DEVICE_INSTANCE}", 0, 0],
                 'CabBattery_ClassAndVrmInstance' : [f'{settingsPath}_cab_battery/ClassAndVrmInstance', 
                                                     f"{dbus_constants.SERVICE_TYPE_BATTERY}:{dbus_constants.DEFAULT_DEVICE_INSTANCE}", 0, 0],
+                'LeisureBattery_ClassAndVrmInstance' : [f'{settingsPath}_leisure_battery/ClassAndVrmInstance', 
+                                                    f"{dbus_constants.SERVICE_TYPE_BATTERY}:{dbus_constants.DEFAULT_DEVICE_INSTANCE}", 0, 0],
                 'Switches_ClassAndVrmInstance' : [f'{settingsPath}_switches/ClassAndVrmInstance', 
                                                     f"{dbus_constants.SERVICE_TYPE_SWITCH}:{dbus_constants.DEFAULT_DEVICE_INSTANCE}", 0, 0]
                 },
@@ -109,16 +111,37 @@ class ne_shunt_service:
             return False
         
         if (path == '/SwitchableOutput/ExternalLights/State'):    
-            self._try_toggle_serial_switch_value("ExternalLights", newvalue)
+            self._try_toggle_serial_switch_value("external_lights", newvalue)
         elif (path == "/SwitchableOutput/InternalLights/State"):
-            self._try_toggle_serial_switch_value("InternalLights", newvalue)
+            self._try_toggle_serial_switch_value("internal_lights", newvalue)
         elif (path == "/SwitchableOutput/WaterPump/State" ):
-            self._try_toggle_serial_switch_value("WaterPump", newvalue)
+            self._try_toggle_serial_switch_value("water_pump", newvalue)
         elif (path == "/SwitchableOutput/Aux/State" ):
-            self._try_toggle_serial_switch_value("Aux", newvalue)
+            self._try_toggle_serial_switch_value("aux", newvalue)
 
         return True
     
+    ############################################
+    # Occurs when a battery value has chnaged the UI
+    ############################################
+    def _dbus_cab_battery_value_changed(self, path, newvalue):
+        return _dbus_Battery_value_changed("cab_battery", path, newvalue)
+
+    def _dbus_leisure_battery_value_changed(self, path, newvalue):
+        return _dbus_Battery_value_changed("leisure_battery", path, newvalue)
+
+    def _dbus_battery_value_changed(self,serviceName, path, newvalue):
+        logging.debug('dbus value changed, path: %s, newvalue: %s' % (path, newvalue))
+        
+        service = self._services.get(name, None)  
+        if (service == None):
+            return
+
+        if (path == '/MinVoltage'): 
+            service.MinVoltage = newvalue
+        elif (path == '/MaxVoltage'): 
+            service.MaxVoltage = newvalue
+
     ############################################
     # if the value recieved has changed it
     # sends the toggle switch serial message to
@@ -184,6 +207,9 @@ class ne_shunt_service:
 
 
         switches = []
+        
+        #if statements are not needed as Venus OS hides switches using ShowUIControl
+        
         #if (switches.ShowUIControl("InternalLights") == 1):
         switches.append("Internal Lights")
 
@@ -213,16 +239,27 @@ class ne_shunt_service:
     # but this is not likely needed in Victron
     # setup
     ############################################
-    def _start_vehicle_battery_service(self):
-        logging.debug("_start_vehicle_battery_service in")
-        service = self._services.get("vehicle_battery", None)
+    def _start_battery_services(self):
+
+        logging.debug("_start_battery_services in")
+
+        service = self._services.get("cab_battery", None)
         if (service == None):
             classAndVrmInstance = self._settings['CabBattery_ClassAndVrmInstance']
-            self._services["vehicle_battery"] = battery_service("Vehicle Battery",
+            self._services["cab_battery"] = battery_service("Vehicle Battery",
                                                         self._serialPort,
                                                         classAndVrmInstance,
-                                                        capacity = None)
-            
+                                                        capacity = None,
+                                                        onValueChanged = self._dbus_cab_battery_value_changed)
+
+        service = self._services.get("leisure_battery", None)
+        if (service == None):
+            classAndVrmInstance = self._settings['LeisureBattery_ClassAndVrmInstance']
+            self._services["leisure_battery"] = battery_service("Leisure Battery",
+                                                        self._serialPort,
+                                                        classAndVrmInstance,
+                                                        capacity = None,
+                                                        onValueChanged = self._dbus_leisure_battery_value_changed)
     ############################################
     # starts and stops all services 
     # note: only starts the vehicle battery service
@@ -258,8 +295,8 @@ class ne_shunt_service:
         if (name == "" or name.endswith("Switch")):
             self._start_stop_switch_service()
 
-        if (name == "" or name.endswith("")):
-            self._start_vehicle_battery_service()
+        if (name == ""):
+            self._start_battery_services()
 
         # start stop the serial service as required.
         self._start_stop_serial_service()
@@ -311,8 +348,7 @@ class ne_shunt_service:
         if not data:
             logging.debug("_update out: no data returned")
             return True
-        
-     
+   
         if (data == self._lastData):
             logging.debug("not change exiting...")
             return True
@@ -328,31 +364,28 @@ class ne_shunt_service:
         #copy curData so we can update _curData and we don't get
         # recursive updates from update_item
         curData = self._curData.clone() if self._curData else None
- 
-        self._curData = newData
 
         for key, value in newData.diff(curData):
             
             logging.debug(f"_update diff value: {key} = {value}")
 
             match key:
-                case 'fresh_water_tank':
-                    self.update_dbus_item("FreshWaterTank", "/Level", value)
-                case 'grey_waste_tank':
-                    self.update_dbus_item("GreyWasteTank", "/Level", value)
-                case 'grey_waste_tank2':
-                    self.update_dbus_item("GreyWasteTank2", "/Level", value)
-                case 'ExternalLights':
+                case 'fresh_water_tank', "grey_waste_tank",'grey_waste_tank2':
+                    self.update_dbus_item(key, "/Level", value)
+
+                case 'external_lights':
                     self.update_dbus_item("switches", "/SwitchableOutput/ExternalLights/State", value)
-                case 'InternalLights':
+                case 'internal_lights':
                     self.update_dbus_item("switches", "/SwitchableOutput/InternalLights/State", value)
-                case 'WaterPump':
+                case 'water_pump':
                     self.update_dbus_item("switches", "/SwitchableOutput/WaterPump/State", value)
-                case 'Aux':
+                case 'aux':
                     self.update_dbus_item("switches", "/SwitchableOutput/Aux/State", value)
-                case 'battery1':
-                    self.update_dbus_item("vehicle_battery", "/Voltage", value)
-                    self.update_dbus_item("vehicle_battery", "/Soc", battery_service.calcVehicleSoc(value))
- 
+                case 'cab_battery', 'leisure_battery':
+                    self.update_dbus_item(key, "/Voltage", value)
+                    self.update_dbus_item(key, "/Soc", battery_service.calcBatterySoc(value))
         logging.debug("_update out")
+
+         #keep at end, helps dbus events from turning off values before we are populated
+        self._curData = newData
         return True

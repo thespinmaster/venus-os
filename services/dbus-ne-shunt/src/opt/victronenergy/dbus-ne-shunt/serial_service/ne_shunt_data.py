@@ -5,8 +5,8 @@ class ne_shunt_data:
 
     KEYS = [
         "fresh_water_tank", "grey_waste_tank", "grey_waste_tank2",
-        "InternalLights", "ExternalLights", "Aux", "WaterPump",
-        "battery1", "battery2"
+        "internal_lights", "external_lights", "aux", "water_pump",
+        "cab_battery", "leisure_battery"
     ]
 
     def clone(self): 
@@ -35,12 +35,12 @@ class ne_shunt_data:
                 "fresh_water_tank": self._get_tank_level(rawData[11:12]),
                 "grey_waste_tank": self._get_tank_level(rawData[13:14]),
                 "grey_waste_tank2": self._get_tank_level(rawData[15:16]),
-                "InternalLights": self._get_indoor_light_state(rawData[31:32]),
-                "ExternalLights": self._get_outdoor_light_state(rawData[31:32]),
-                "WaterPump": self._get_pump_state(rawData[31:32]),
-                "Aux": self._get_aux_state(rawData[31:32]),
-                "battery1": self._get_battery_level(rawData[24:26]),
-                "battery2": self._get_battery_level(rawData[26:28]),
+                "internal_lights": self._get_indoor_light_state(rawData[31:32]),
+                "external_lights": self._get_outdoor_light_state(rawData[31:32]),
+                "water_pump": self._get_pump_state(rawData[31:32]),
+                "aux": self._get_aux_state(rawData[31:32]),
+                "cab_battery": self._get_battery_level(rawData[24:26]),
+                "leisure_battery": self._get_battery_level(rawData[26:28]),
             }
 
     @staticmethod
