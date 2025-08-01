@@ -1,12 +1,12 @@
 Package: dbus-ne-shunt
-Version: 1.0.3
+Version: 1.0.4
 Depends: python3
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: 6d70e97429c8d57dbfb43d29e0054000
-Size: 64102
-Filename: dbus-ne-shunt_1.0.3_all.ipk
+MD5Sum: af6da0959fb36458a32137e60107a015
+Size: 64110
+Filename: dbus-ne-shunt_1.0.4_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feed/dbus-ne-shunt
 Description: Adds support for NordElectronica shunt NE196/NE319 board to Venus-OS
 OE: dbus-ne-shunt
