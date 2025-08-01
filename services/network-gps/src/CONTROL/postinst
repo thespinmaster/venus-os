@@ -4,18 +4,9 @@ if [ -z "$D" ]; then
   
   SERVICE_NAME=$(basename "${0%.*}") #get file name without path
 
-  # create the conf file
-  # used in the network-gps service
-  CONF_FILE="/data/network-gps/network-gps.conf"
-  if [ ! -f "$CONF_FILE" ]; then
-    cat << EOF > "$CONF_FILE"
-
-EOF
-  fi
-
   # copy service.
   # svscan will detect the new files, avoiding a reboot
-  cp -R /opt/victronenergy/service/network-gps/ /service/
+  cp -R "/opt/victronenergy/service/${SERVICE_NAME}/" /service/
 
   ################################################
   # Adding ensure-installed to rc.local

@@ -24,9 +24,8 @@ class battery_service(dbus_base_service):
             onValueChanged = onValueChanged
             )
     
-
-    @staticmethod
-    def calcBatterySoc(value):
+ 
+    def calcBatterySoc(self, value):
         if (value == None):
             return 0
         #V_MAX = 12.89 # 100% charged
@@ -34,7 +33,7 @@ class battery_service(dbus_base_service):
         V_RANGE = 1.26 # (V_MAX - V_MIN)
         #soc = (float(value) - V_MIN) / (V_MAX - V_MIN)
  
-        soc = ((float(value) - V_MIN) / (MaxVoltage - MinVoltage)) * 100
+        soc = ((float(value) - V_MIN) / (self.MaxVoltage - self.MinVoltage)) * 100
         
         return soc
         

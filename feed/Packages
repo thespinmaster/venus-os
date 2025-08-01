@@ -4,8 +4,8 @@ Depends: python3
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: dc361ed31cf1e46f0393141651a0104e
-Size: 64204
+MD5Sum: bd766802e5420156569645594d62aaaa
+Size: 64200
 Filename: dbus-ne-shunt_1.0.8_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feed/dbus-ne-shunt
 Description: Adds support for NordElectronica shunt NE196/NE319 board to Venus-OS
@@ -32,8 +32,8 @@ Version: 1.0.0
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: a984422f28bf34d458e036a17f130d57
-Size: 2670
+MD5Sum: cc1fd32697777eee7fc6b4b5c0c65bc2
+Size: 2604
 Filename: network-gps_1.0.0_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feed/network-gps
 Description: Network GPS using NMEA
