@@ -76,6 +76,7 @@ class _usb_serial_helper:
                 exit(0)
             else:
                 log(f"Warning: Could not remove rule from {self._serial_starter_rules_file}. Please manualy update")
+                exit(0) # this is not an error
 
         exit(1)
     
@@ -191,7 +192,7 @@ class _usb_serial_helper:
             return False
 
         if not os.path.exists(self._serial_starter_rule_file):
-            log(f"Error: {self._serial_starter_rule_file} does not exist.")
+            log(f"Warning: {self._serial_starter_rule_file} does not exist.")
             return False
 
         return True
