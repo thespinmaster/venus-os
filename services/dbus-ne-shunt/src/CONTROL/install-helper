@@ -339,11 +339,11 @@ class _usb_serial_helper:
 
     def _remove_tty_name_file(self):
 
-        serialStarterNameFile = _get_serial_starter_tty_filename()
+        serialStarterNameFile = self._get_serial_starter_tty_filename()
 
         if not os.path.exists(serialStarterNameFile):
             log(f"Warning: Could not remove tty name file '{serialStarterNameFile}'")
-            return;
+            return
 
         os.remove(serialStarterNameFile)
  
