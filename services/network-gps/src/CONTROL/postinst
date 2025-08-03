@@ -6,7 +6,7 @@ if [ -z "$D" ]; then
 
   # copy service, svscan will detect the new files & avoid a reboot
   cp -R "/opt/victronenergy/service/${SERVICE_NAME}/" /service/
-
+  
   ################################################
   # Adding ensure-installed to rc.local
   ################################################

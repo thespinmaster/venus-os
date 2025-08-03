@@ -1,16 +1,21 @@
 #!/bin/bash
 
+# exit on error
+set -e
+
 #TEST_USB_ID="1a86:55d3"
 
 SERVICE_NAME=$(basename "${0%.*}") #get file name without path
 VE_SERVICE_MAPPING_NAME="neshunt"
-
-#if false; then
-
-################################################
-# Add serial starter rule to serial-serter.rules
-################################################
-
+ 
+##############################################################
+# Install-helper. Prompts and detects usb serial devices
+# Creates /data/dbus-ne-shunt/serial-starter.rule file
+# Creates /data/dbus-ne-shunt/serial-starter.devname file
+# Adds serial-starter.rule content to serial-serter.rules file
+# When 'ensure-installed' script is run from rcS.local it uses 
+# the files to automatically re-install after a firmware update.
+##############################################################
 INSTALL_HELPER_ACTION="usb-serial-helper.detect_add" #"detect_add" "add" "remove" 
 INSTALL_HELPER_SCRIPT_FILE="${0%.*}.install-helper" # strip file extension (.postinst)
 SERIAL_STARTER_RULES_FILE="/etc/udev/rules.d/serial-starter.rules"
@@ -24,7 +29,7 @@ python "${INSTALL_HELPER_SCRIPT_FILE}"\
     "${DBUS_MESSAGE_PATH}"
     #"${TEST_USB_ID}"
 
-#fi
+################################################
 
 ################################################
 # Add service mapping to serial starter conf file
@@ -37,9 +42,7 @@ if ! grep -q "^${CONFIG}$" "${SERIAL_STARTER_CONFIG_FILE}"; then
   sed -i '1s/^/'"${CONFIG}"'\n/' $SERIAL_STARTER_CONFIG_FILE
 fi
 ################################################
-
-#fi
-
+ 
 ################################################
 # Adding ensure-installed to rc.local
 ################################################
@@ -49,6 +52,18 @@ if ! grep -q "^${RC_LOCAL_ACTION}$" "${RC_LOCAL_FILE}"; then
   echo "adding ${RC_LOCAL_ACTION} to ${RC_LOCAL_FILE}"
   echo "${RC_LOCAL_ACTION}" >> "${RC_LOCAL_FILE}"
   chmod +x "${RC_LOCAL_FILE}"
+fi
+################################################
+
+################################################
+# Add a file (ttyACME) to /dev/serial-starter/
+# this file is picked up by the serial-starter
+# and starts the service
+################################################
+TTY_FILE=/dev/"${SERVICE_NAME}"/serial-starter.devname
+if [ -z "${TTY_FILE}" ]; then
+ TTY=$(<"${TTY_FILE}")
+ touch /dev/serial-starter/"${TTY}"
 fi
 ################################################
 
