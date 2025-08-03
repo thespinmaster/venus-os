@@ -212,12 +212,20 @@ class _usb_serial_helper:
         log(progress_header_msg)
         log("Waiting for USB device to be connected...")
     
-        before_usb_devices = os.popen("lsusb").read().strip().splitlines() 
+        before_usb_devices = os.popen("lsusb").read().splitlines() 
+        with open("/home/admin/dev/projects/venus-os/lsusb.before", 'r') as file:
+            before_usb_devices = file.read().splitlines()
+
         while True:
             # Wait for the device to be connected 
             time.sleep(1)
-            after_usb_devices = os.popen("lsusb").read().strip().splitlines() 
-    
+
+            #note: don't use strip as compare can fail if whitespace is at the end
+            after_usb_devices = os.popen("lsusb").read().splitlines()
+
+            with open("/home/admin/dev/projects/venus-os/lsusb.after", 'r') as file:
+                after_usb_devices = file.read().splitlines()
+
             if len(after_usb_devices) == (len(before_usb_devices) + 1):
                 for line in after_usb_devices:
                     if line not in before_usb_devices:

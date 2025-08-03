@@ -1,0 +1,7 @@
+Bus 001 Device 001: ID 1d6b:0002 Linux 6.12.23-venus-5 musb-hcd MUSB HDRC host driver
+Bus 001 Device 002: ID 0bda:d723 Realtek 802.11n WLAN Adapter
+Bus 002 Device 001: ID 1d6b:0002 Linux 6.12.23-venus-5 ehci_hcd EHCI Host Controller
+Bus 003 Device 001: ID 1d6b:0001 Linux 6.12.23-venus-5 ohci_hcd Generic Platform OHCI controller
+Bus 003 Device 017: ID 0eef:0005 WaveShare WS170120
+Bus 004 Device 001: ID 1d6b:0002 Linux 6.12.23-venus-5 ehci_hcd EHCI Host Controller
+Bus 004 Device 002: ID 0424:2422  
