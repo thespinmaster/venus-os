@@ -91,6 +91,7 @@ class _usb_serial_helper:
  
         pathWithoutExtension, extension = os.path.splitext(__file__)
         if __debug__:
+            print("debugging")
             # we're degugging in the ide. store file outside of ipk
             folder = os.path.dirname(__file__)
             self._serial_starter_rule_file = os.path.abspath(os.path.join(folder,"../../serial-starter.debugger.rule"))
