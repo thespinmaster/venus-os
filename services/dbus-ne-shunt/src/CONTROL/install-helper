@@ -53,7 +53,9 @@ import sys
 from argparse import ArgumentParser
 
 _dbus_message_path = None
- 
+
+DEBUG = 'TERM_PROGRAM' in os.environ.keys() and os.environ['TERM_PROGRAM'] == 'vscode'
+
 class _usb_serial_helper:
 
     SERIAL_STARTER_RULES_TEXT_MATCH='RUN+="/opt/victronenergy/serial-starter/cleanup.sh %k"'
@@ -90,8 +92,8 @@ class _usb_serial_helper:
         #to               //usr/lib/opkg/info/test-service.serial-starter.rule
  
         pathWithoutExtension, extension = os.path.splitext(__file__)
-        if __debug__:
-            print("debugging")
+        if DEBUG:
+            print("In Debugger")
             # we're degugging in the ide. store file outside of ipk
             folder = os.path.dirname(__file__)
             self._serial_starter_rule_file = os.path.abspath(os.path.join(folder,"../../serial-starter.debugger.rule"))
@@ -348,7 +350,6 @@ class _usb_serial_helper:
 
         os.remove(serialStarterNameFile)
  
-
 def log(msg, dbusMsg = None, end='\n'):
 
     if _dbus_message_path:
@@ -362,7 +363,7 @@ def log(msg, dbusMsg = None, end='\n'):
     print(msg, end=end)
  
 if __name__ == "__main__":
-
+ 
     print(sys.argv)
     actions = sys.argv[1].split('.')
     match actions[0]:
