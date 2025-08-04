@@ -4,7 +4,7 @@ Depends: python3
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: db042ffc05fe148cc9d59e998eb8dda5
+MD5Sum: 16a96cd19a3b7aef4980175309c1593e
 Size: 65894
 Filename: dbus-ne-shunt_1.0.16_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feed/dbus-ne-shunt

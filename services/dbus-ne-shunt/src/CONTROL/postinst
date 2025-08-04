@@ -60,8 +60,8 @@ fi
 # this file is picked up by the serial-starter
 # and starts the service
 ################################################
-TTY_FILE=/dev/"${SERVICE_NAME}"/serial-starter.devname
-if [ -z "${TTY_FILE}" ]; then
+TTY_FILE=/data/"${SERVICE_NAME}"/serial-starter.devname
+if [ -f "${TTY_FILE}" ]; then
  TTY=$(<"${TTY_FILE}")
  touch /dev/serial-starter/"${TTY}"
 fi
