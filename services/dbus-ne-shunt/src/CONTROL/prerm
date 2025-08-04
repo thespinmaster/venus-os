@@ -12,15 +12,15 @@ if [ -z "$D" ]; then
   # the full service name i.e. dbus-ne-shunt.ttyACM0
   ################################################
   TTY_FILE=/data/"${SERVICE_NAME}"/serial-starter.devname
-  if [ -z "${TTY_FILE}" ]; then
-    FULL_SERVICE_NAME=${SERVICE_NAME}.$(<"${TTY_FILE}")
-    if test -f "${FULL_SERVICE_NAME}"; then
+  if [ -f "${TTY_FILE}" ]; then
+    FULL_SERVICE_NAME=/service/${SERVICE_NAME}.$(<"${TTY_FILE}")
+    if [ -d "${FULL_SERVICE_NAME}" ]; then
       echo "stopping service ${FULL_SERVICE_NAME}"
       svc -d "${FULL_SERVICE_NAME}" 2>/dev/null
       sleep 3 # secs
       rm -R "${FULL_SERVICE_NAME}" 2>/dev/null
     else
-      echo "not found ${FULL_SERVICE_NAME}"
+      echo "not found service ${FULL_SERVICE_NAME}"
     fi
   else
     echo "not found ${TTY_FILE}"
