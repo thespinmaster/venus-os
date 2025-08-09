@@ -1,0 +1,48 @@
+#!/bin/bash
+
+clean_output() {
+    echo cleaning output folder
+    rm -rf "/home/admin/dev/projects/venus-os/services/dbus-ne-shunt/output/"*
+}
+
+ 
+pass_or_fail() {
+    
+    if [[ $2 == true ]]; then
+        echo -e "\033[32mPASSED\033[00m: $1"
+    else
+        echo  -e "\033[31mFAILED\033[00m: $1"
+        if [[ $EXIT_ON_FAILED_TEST == true ]]; then
+            exit 1
+        fi
+    fi
+}
+
+test_file_exists() {
+    local result
+    [[ -f "${1}" ]] && result=true || result=false
+    pass_or_fail "${2}" $result
+}
+test_file_does_not_exist() {
+    local result
+    [[ -f "${1}" ]] && result=false || result=true
+    pass_or_fail "${2}" $result
+}
+
+test_values_match() {
+    local result
+    [[ "${1}" == "${2}" ]] &&  result=true || result=false
+    pass_or_fail "${3}" $result
+}
+
+test_value_is_not_empty() {
+    local result
+    [[ -n "${1}" ]] &&  result=true || result=false
+    pass_or_fail "${2}" $result
+}
+
+test_value_is_empty() {
+    local result
+    [[ -z "${1}" ]] &&  result=true || result=false
+    pass_or_fail "${2}" $result
+}

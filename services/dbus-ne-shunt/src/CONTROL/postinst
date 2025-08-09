@@ -3,11 +3,10 @@
 # exit on error
 set -e
 
-#TEST_USB_ID="1a86:55d3"
+# note shellcheck requires +xn arguments
+# shellcheck source=./install-helper
+source "${0%.*}".install-helper
 
-SERVICE_NAME=$(basename "${0%.*}") #get file name without path
-VE_SERVICE_MAPPING_NAME="neshunt"
- 
 ##############################################################
 # Install-helper. Prompts and detects usb serial devices
 # Creates /data/dbus-ne-shunt/serial-starter.rule file
@@ -16,55 +15,23 @@ VE_SERVICE_MAPPING_NAME="neshunt"
 # When 'ensure-installed' script is run from rcS.local it uses 
 # the files to automatically re-install after a firmware update.
 ##############################################################
-INSTALL_HELPER_ACTION="usb-serial-helper.detect_add" #"detect_add" "add" "remove" 
-INSTALL_HELPER_SCRIPT_FILE="${0%.*}.install-helper" # strip file extension (.postinst)
-SERIAL_STARTER_RULES_FILE="/etc/udev/rules.d/serial-starter.rules"
+
+SERVICE_NAME=$(basename "${0%.*}") #get file name without path
+VE_SERVICE_MAPPING_NAME="neshunt"
+TTY_FILE="/data/${SERVICE_NAME}/serial-starter.devname"
+SERIAL_STARTER_RULE_FILE="/data/${SERVICE_NAME}/serial-starter.rule"
 DBUS_MESSAGE_PATH="" #"com.victronenergy.packageManager /GuiEditStatus"
+#TEST_USB_ID="1a86:55d3"
 
-python "${INSTALL_HELPER_SCRIPT_FILE}"\
-    "${INSTALL_HELPER_ACTION}"\
-    "${SERIAL_STARTER_RULES_FILE}"\
-    "${SERVICE_NAME}"\
-    "${VE_SERVICE_MAPPING_NAME}"\
-    "${DBUS_MESSAGE_PATH}"
-    #"${TEST_USB_ID}"
+init_default_path_variables
 
-################################################
+install_usb_serial_device
 
-################################################
-# Add service mapping to serial starter conf file
-################################################
-SERIAL_STARTER_CONFIG_FILE='/etc/venus/serial-starter.conf'
-CONFIG="service ${VE_SERVICE_MAPPING_NAME}"$'\t\t'"${SERVICE_NAME}"
-  
-if ! grep -q "^${CONFIG}$" "${SERIAL_STARTER_CONFIG_FILE}"; then
-  echo "adding service mapping config from ${SERIAL_STARTER_CONFIG_FILE}"
-  sed -i '1s/^/'"${CONFIG}"'\n/' $SERIAL_STARTER_CONFIG_FILE
-fi
-################################################
+add_ve_service_config_file_mapping
  
-################################################
-# Adding ensure-installed to rc.local
-################################################
-RC_LOCAL_FILE="/data/rc.local"
-RC_LOCAL_ACTION="/data/${SERVICE_NAME}/ensure-installed"
-if ! grep -q "^${RC_LOCAL_ACTION}$" "${RC_LOCAL_FILE}"; then
-  echo "adding ${RC_LOCAL_ACTION} to ${RC_LOCAL_FILE}"
-  echo "${RC_LOCAL_ACTION}" >> "${RC_LOCAL_FILE}"
-  chmod +x "${RC_LOCAL_FILE}"
-fi
-################################################
+add_ensure_installed_script_to_rc_local
 
-################################################
-# Add a file (ttyACME) to /dev/serial-starter/
-# this file is picked up by the serial-starter
-# and starts the service
-################################################
-TTY_FILE=/data/"${SERVICE_NAME}"/serial-starter.devname
-if [ -f "${TTY_FILE}" ]; then
- TTY=$(<"${TTY_FILE}")
- touch /dev/serial-starter/"${TTY}"
-fi
-################################################
+start_service
 
 echo "${SERVICE_NAME} installed"
+

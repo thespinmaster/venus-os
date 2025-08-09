@@ -1,15 +1,6 @@
 ACTION=="add", SUBSYSTEM=="tty", SUBSYSTEMS=="platform|usb-serial", SYMLINK+="serial-starter/%k"
 ACTION=="remove", SUBSYSTEM=="tty", SUBSYSTEMS=="platform|usb-serial", RUN+="/opt/victronenergy/serial-starter/cleanup.sh %k"
 
-# dbus-ne-shunt-service
-ACTION=="add", ENV{MAJOR}=="189", ENV{MINOR}=="272", ENV{ID_MODEL}=="USB_Serial", ENV{ID_SERIAL}=="1a86_USB_Serial", ENV{ID_VENDOR}=="1a86"
-
-# dbus-ne-shunt-service
-ACTION=="add", ENV{MAJOR}=="189", ENV{MINOR}=="272", ENV{ID_MODEL}=="USB_Serial", ENV{ID_SERIAL}=="1a86_USB_Serial", ENV{ID_VENDOR}=="1a86"
-
-# test-service
-ACTION=="add", ENV{MAJOR}=="189", ENV{MINOR}=="272", ENV{ID_MODEL}=="USB_Serial", ENV{ID_SERIAL}=="1a86_USB_Serial", ENV{ID_VENDOR}=="1a86"
- 
 # The VE USB RS485 has a FT232R, but that chip can also rs232 etc, so also check default
 ACTION=="add", ENV{ID_BUS}=="usb", ENV{ID_MODEL}=="FT232R_USB_UART",            ENV{VE_SERVICE}="rs485:default"
 # Older versions have specific id_model so that is rs485 for sure
@@ -29,7 +20,3 @@ ACTION=="add", ENV{ID_BUS}=="usb", ENV{ID_MODEL}=="VE_Direct_cable",            
 ACTION=="add", ENV{ID_BUS}=="usb", ENV{ID_MODEL}=="FT232EX",                    ENV{VE_SERVICE}="vedirect:default"
 
 ACTION=="add", ENV{ID_BUS}=="usb", ENV{ID_MODEL}=="MK3-USB_Interface",          ENV{VE_SERVICE}="mkx"
-
-# MY RS485-SERIAL-DEVICE
-ACTION=="add", ENV{ID_BUS}=="usb", ENV{ID_VENDOR_ID}=="1a86", ENV{ID_MODEL_ID}=="55d3", ENV{VE_SERVICE}="neshunt"
-

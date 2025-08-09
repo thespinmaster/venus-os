@@ -1,73 +1,29 @@
 #!/bin/bash
+
 set -e
+
+# note shellcheck requires +xn arguments
+# shellcheck source=./install-helper
+source "${0%.*}".install-helper
 
 if [ -z "$D" ]; then
 
   SERVICE_NAME=$(basename "${0%.*}") #get file name without path
-
-  ################################################
-  # Stop the service
-  # Reads the tty name from the serial-starter.devname
-  # file and combines it with the SERVICE_NAME to make
-  # the full service name i.e. dbus-ne-shunt.ttyACM0
-  ################################################
-  TTY_FILE=/data/"${SERVICE_NAME}"/serial-starter.devname
-  if [ -f "${TTY_FILE}" ]; then
-    FULL_SERVICE_NAME=/service/${SERVICE_NAME}.$(<"${TTY_FILE}")
-    if [ -d "${FULL_SERVICE_NAME}" ]; then
-      echo "stopping service ${FULL_SERVICE_NAME}"
-      svc -d "${FULL_SERVICE_NAME}" 2>/dev/null
-      sleep 3 # secs
-      rm -R "${FULL_SERVICE_NAME}" 2>/dev/null
-    else
-      echo "not found service ${FULL_SERVICE_NAME}"
-    fi
-  else
-    echo "not found ${TTY_FILE}"
-  fi
-
-  ################################################
-
-  ################################################
-  # Remove serial starter rule from serial-serter.rules
-  ################################################
-  BASE_INSTALL_FILE_PATH=${0%.*} # strip file extension (.postinst)
-  INSTALL_HELPER_ACTION="usb-serial-helper.remove" #"detect_add" "add" "remove"
-  INSTALL_HELPER_SCRIPT_FILE="${BASE_INSTALL_FILE_PATH}.install-helper" 
-  SERIAL_STARTER_RULES_FILE="/etc/udev/rules.d/serial-starter.rules"
+  VE_SERVICE_MAPPING_NAME="neshunt"
+  TTY_FILE="/data/${SERVICE_NAME}/serial-starter.devname"
+  SERIAL_STARTER_RULE_FILE="/data/${SERVICE_NAME}/serial-starter.rule"
   DBUS_MESSAGE_PATH="" #"com.victronenergy.packageManager /GuiEditStatus"
+  #TEST_USB_ID="1a86:55d3"
 
-  python "${INSTALL_HELPER_SCRIPT_FILE}"\
-      "${INSTALL_HELPER_ACTION}"\
-      "${SERIAL_STARTER_RULES_FILE}"\
-      "${SERVICE_NAME}"\
-      "${VE_SERVICE_MAPPING_NAME}"\
-      "${DBUS_MESSAGE_PATH}"
-  
-  ################################################
-  
-  ################################################
-  # Remove service mapping in serial starter conf
-  ################################################
-  SERIAL_STARTER_CONFIG_FILE='/etc/venus/serial-starter.conf'
-  CONFIG="service ${VE_SERVICE_MAPPING_NAME}"$'\t\t'"${SERVICE_NAME}"
-  
-  if grep -q "^${CONFIG}$" "${SERIAL_STARTER_CONFIG_FILE}"; then
-    echo "removing service mapping config from ${SERIAL_STARTER_CONFIG_FILE}"
-    sed -i '/^'"${CONFIG}"'/d' $SERIAL_STARTER_CONFIG_FILE
-  fi
-  ################################################
+  init_default_path_variables
 
-  ################################################
-  # Removing ensure-installed from rc.local
-  ################################################
-  RC_LOCAL_FILE="/data/rc.local"
-  RC_LOCAL_ACTION="/data/${SERVICE_NAME}/ensure-installed"
-  if ! grep -q "^${RC_LOCAL_ACTION}$" "${RC_LOCAL_FILE}"; then
-    echo "Removing ${RC_LOCAL_ACTION} from ${RC_LOCAL_FILE}"
-    sed -i '/^'"${RC_LOCAL_ACTION}"'/d' "${RC_LOCAL_FILE}"
-  fi
-  ################################################
+  stop_and_remove_service
+
+  remove_usb_serial_device
+
+  remove_ve_service_config_file_mapping
+
+  remove_ensure_installed_script_from_rc_local
 
   echo "${SERVICE_NAME}" removed
 

@@ -1,0 +1,379 @@
+#!/usr/bin/python3 -u
+_VERSION = "1.0.1"
+
+###################################################################################
+# A helper class for detecting and addusbing a serial device
+# called durin installation from the opkg installer (CONTROL/postinst/prerm)
+
+# ### Installing ###
+# The script prompts the user to insert the serial usb device, so we can
+# automatically detect the usb device and get teh correct bus and device id's
+# and from that its tty name.
+# the output from this class is are 2 files:
+# \data\dbus-ne-shunt\serial-starter.rule
+#   this file contains the information that gets added to the '/etc/udev/rules.d/serial-starter.rules' file
+# \data\dbus-ne-shunt\serial-starter.name
+#   this file contains the tty name of the device i.e. ttyACM0
+# These 2 files contain enough information for the serial-starter to do its job and for us
+# to start and stop the service.
+# To get the serial-starter to automatically start the service, a file named
+# ttyXXXX needs copying to the /dev/serial-starter/ folder. the serial-starter service will
+# detect this file and  query the udevadm and start the service, without the need to reboot
+
+# ### firmware uodates ####
+# After a firmware update the service is no longer installed.
+# Our 2 files are still availible under the /data folder as 
+# this folder is not effected by firmware updates.
+# If ensure-installed is setup (see postinst) to run from /data/rS.local then
+# the service will automatically be downloaded and restored using the data in data/dbus-ne-shunt.
+
+# ### Removing ###
+# When uninstalling the two files serial-starter.rules & serial-starter.name are also removed
+# See the 'prerm' file for the script code for calling the class.
+
+# ### Notes ###
+# The sausage machine looks like this
+# The serial-starter.rules file contains the rules for which usb device is mapped to which service
+# ENV{VE_SERVICE} conatins the mapping name of the service.
+# The VE_SERVICE variable gets mapped to the actual service folder name
+# The file '/etc/venus/serial-starter.conf' contains this mapping 
+# VE_SERVICE        SERVICE_FOLDER_NAME
+# Example
+# neshunt           dbus-ne-shunt
+# From this mapping the serial-starter service looks for the 'dbus-ne-shunt' folder 
+# under /opt/victronenergy/service-templates/ and calls the run script file.
+# The run script file then calls /opt/victronenergy/dbus-ne-shunt/start-dbus-ne-shunt.sh 
+# Note the serial-starter also does some other tasks as well.
+# see /opt/victronenergy/serial-starter/serial-starter.sh code for more details
+###################################################################################
+
+import os
+import time
+import sys
+from argparse import ArgumentParser
+
+_dbus_message_path = None
+
+DEBUG = 'TERM_PROGRAM' in os.environ.keys() and os.environ['TERM_PROGRAM'] == 'vscode'
+
+class _usb_serial_helper:
+
+    SERIAL_STARTER_RULES_TEXT_MATCH='RUN+="/opt/victronenergy/serial-starter/cleanup.sh %k"'
+
+    _serial_starter_rules_file=None
+    _serial_starter_rule_file=None
+    _service_name=None
+    _serial_starter_config_mapping_name=None
+    _test_usb_id=None
+
+    def parseArgs(self):
+        
+        print("parse ARGS:" + str(len(sys.argv)))
+
+        if len(sys.argv) >= 5:
+
+            self._serial_starter_rules_file = sys.argv[2]
+            self._service_name = sys.argv[3]
+            self._serial_starter_config_mapping_name = sys.argv[4]
+            if len(sys.argv) >= 6:
+                global _dbusMessagePath 
+                _dbusMessagePath = sys.argv[5]
+
+            if len(sys.argv) >= 7: 
+                self._test_usb_id = sys.argv[6]
+                print("_test_usb_id=" + self._test_usb_id)
+            
+        else:
+            log("Error invalid arguments passed. Requires:\narg 1 (string): The path to the serial-starter.rules file\narg 2 (string): The path to store the rule to be added to or removed from the serial-starter.rules file.\narg 3 (string): The ve service environment name.\narg 4 (string) The dbus path to optionaly send messages to. Can be an empty string if not using dbus")
+            exit(1)
+
+        
+        #change path from //usr/lib/opkg/info/test-service.install-helper
+        #to               //usr/lib/opkg/info/test-service.serial-starter.rule
+ 
+        pathWithoutExtension, extension = os.path.splitext(__file__)
+        if DEBUG:
+            print("In Debugger")
+            # we're degugging in the ide. store file outside of ipk
+            folder = os.path.dirname(__file__)
+            self._serial_starter_rule_file = os.path.abspath(os.path.join(folder,"../../serial-starter.debugger.rule"))
+        else:
+            self._serial_starter_rule_file = f"/data/{self._service_name}/serial-starter.rule"
+
+        log("_serial_starter_rule_file:" + self._serial_starter_rules_file)
+
+    # Initiates the action to perform
+    # Available actions are detect, detect_add, add, remove
+    # TODO: consider simplifying to just add & remove?
+    def executeAction(self, action):
+ 
+        if (action == "detect" or action == "detect_add"): 
+
+            if (not self._setup_usb_serial_device()):
+                log(f"Usb device not found. Please manualy update {self._serial_starter_rule_file}")
+                exit(1) 
+
+        if (action == "add" or action == "detect_add" ):
+
+            if self._add_rule_to_serial_starter_rules_file():
+                exit(0)
+            else:
+                log(f"Cound not update {self._serial_starter_rules_file}. Please manualy update")
+                
+        elif (action == "remove" ):
+
+            self._remove_rule_from_serial_starter_rules_file()
+            self._remove_tty_name_file()
+
+            exit(0)
+
+        exit(1)
+
+    # Creates teh required files and/or prompts the user to insert the usb serial device
+    def _setup_usb_serial_device(self):
+ 
+        # Check if rule file (/data/<service-name>/serial-starter.rule) exists
+        # When a re-install happens (firmware upgrade) we can install silently.
+        tty = self._create_tty_file()
+        if (tty is None or tty ==""):
+            return False
+ 
+        return self._create_serial_starter_rule(tty)
+ 
+    # Create the serial starter name file '/data/dbus-ne-shunt/serial-starter.name' file
+    #   This file contains the tty name (ttyACM0) used to start and stop the service.
+    def _create_tty_file(self):
+ 
+        serialStarterNameFile = self._get_serial_starter_tty_filename()
+
+        if (os.path.exists(serialStarterNameFile)):
+            log(f"found existing serial-starter.devname: {serialStarterNameFile}")
+            with open(serialStarterNameFile, 'r') as file:
+                return file.read().strip()
+  
+        usb_device = self._detect_inserted_serial_usb_device()
+        if (usb_device is None):
+            log("No new USB device found.")
+            return None
+
+        log(f"Found new USB device: {usb_device}")
+        
+        # Extract the bus and device number from the line
+        parts = usb_device.split()
+        bus = parts[1]
+        device = parts[3][:-1]  # Remove the trailing ':'
+
+        # convert bus and device name into its tty name
+        # messy but works
+        command = f"udevadm info --query=path --name=/dev/bus/usb/{bus}/{device} | xargs -I% find \"/sys%\" -name 'device' | xargs dirname | xargs basename"
+        tty = os.popen(command).read().strip()
+
+        with open(serialStarterNameFile, 'w') as file:
+            file.write(tty)
+
+        return tty
+
+    # Create the serial starter rule file '/data/dbus-ne-shunt/serial-starter.rule' file
+    #   This file contains the rule to be added to the '/etc/udev/rules.d/serial-starter.rules' file
+    def _create_serial_starter_rule(self, tty):
+ 
+        if (os.path.exists(self._serial_starter_rule_file)):
+            log(f"found existing serial-starter.rule: {self._serial_starter_rule_file}")
+            return True
+
+        command = f"udevadm info --name=/dev/{tty} --query=property | grep \"ID_BUS=\\|ID_VENDOR=\\|ID_MODEL=\\|ID_SERIAL=\""
+        usb_info_lines = os.popen(command).read().strip().splitlines()
+        matches = ""
+
+        for line in usb_info_lines:
+            name, value = line.strip().split("=",1)
+            if (matches): matches += ', '
+            matches += f'ENV{{{name}}}=="{value}"'
+ 
+        if (matches == ""):
+            log("warning: No serial ID found for the device.")
+            return False
+
+        usb_rule = f"# {self._service_name}\n"
+        usb_rule += f'ACTION=="add", {matches}, ENV{{VE_SERVICE}}="{self._serial_starter_config_mapping_name}"'
+
+        # save the rule to a file. this will then be used to add and uninstall the value
+        with open(self._serial_starter_rule_file, 'w') as file:
+            file.write(usb_rule)
+
+        return True
+
+    def _detect_inserted_serial_usb_device(self):
+    
+        counter = 0
+        timeout_counter = 0
+            
+        progress_header_msg = "Please connect the serial device (or remove and reconnect it) to the USB port."
+        log(progress_header_msg)
+        log("Waiting for USB device to be connected...")
+    
+        before_usb_devices = os.popen("lsusb").read().splitlines() 
+ 
+        while True:
+            # Wait for the device to be connected 
+            time.sleep(1)
+
+            #note: don't use strip as compare can fail if whitespace is at the end
+            after_usb_devices = os.popen("lsusb").read().splitlines()
+ 
+            if len(after_usb_devices) == (len(before_usb_devices) + 1):
+                for line in after_usb_devices:
+                    if line not in before_usb_devices:
+                        return line # for testing
+            else:
+                before_usb_devices = after_usb_devices
+                if (timeout_counter == 4 and self._test_usb_id != None):
+                    for line in after_usb_devices:
+                        if (self._test_usb_id in line):
+                            return line 
+
+            counter += 1
+            if counter > 3: counter = 1
+
+            timeout_counter += 1
+            if timeout_counter > 60: 
+                log("Timeout, exiting...")
+                return ""
+
+            update_msg = f"No new USB device detected, retrying{'.' * counter}  "
+    
+            log(update_msg, f"{progress_header_msg}\n{update_msg}", end='\r') #end just for terminal output
+
+    def _remove_string_with_newline_variants(self, source, string_to_remove):
+
+        source_len = len(source)
+        source = source.replace("\n" + string_to_remove + "\n", "")
+
+        if (len(source) < source_len):
+            return source
+        source = source.replace("\n" + string_to_remove, "")
+        if (len(source) < source_len):
+            return source
+        source = source.replace(string_to_remove + "\n", "")
+        if (len(source) < source_len):
+            return source
+        source = source.replace(string_to_remove, "")
+        if (len(source) < source_len):
+            return source
+        
+        return source
+
+    def _do_serial_starter_rule_files_exist(self):
+        
+        if not os.path.exists(self._serial_starter_rules_file):
+            log(f"Error: {self._serial_starter_rules_file} does not exist.")
+            return False
+
+        if not os.path.exists(self._serial_starter_rule_file):
+            log(f"Warning: {self._serial_starter_rule_file} does not exist.")
+            return False
+
+        return True
+
+    def _add_rule_to_serial_starter_rules_file(self):
+    
+        if (not self._do_serial_starter_rule_files_exist()):
+            return False
+            
+        with open(self._serial_starter_rules_file, 'r') as file:
+            rules = file.readlines()
+
+        with open(self._serial_starter_rule_file, 'r') as file:
+            rule = file.read()
+
+        # Check if the rule already exists (for multi-line, check if all lines are present in order)
+        rule_lines = [line.rstrip('\n') for line in rule.splitlines() if line.strip()]
+        rules_str = ''.join([line.rstrip('\n') for line in rules])
+    
+        # Check if the rule already exists
+        for line in rules:
+            if rule in line:
+                log("Rule already exists in the file.")
+                return True
+
+        # Add the new rule before the placeholder
+        log("Adding new rule to serial starter rules file...")
+        found = False
+    
+        for i, line in enumerate(rules):
+            line = line.strip()
+            if line.endswith(self.SERIAL_STARTER_RULES_TEXT_MATCH):
+                rules.insert(i+1, "\n" + rule + "\n")
+                found = True
+                break
+    
+        if not found:
+            return False
+        
+        with open(self._serial_starter_rules_file, 'w') as file:
+            file.writelines(rules)
+
+        log("Rule added successfully.")
+        return True
+ 
+    def _remove_rule_from_serial_starter_rules_file(self):
+
+        if (not self._do_serial_starter_rule_files_exist()):
+            log(f"Warning: Could not remove rule from {self._serial_starter_rules_file}. Please manualy update")
+            return
+            
+        with open(self._serial_starter_rules_file, 'r') as file:
+            rules = file.read()
+
+        with open(self._serial_starter_rule_file, 'r') as file:
+            rule = file.read()
+
+        rules_len = len(rules)  
+        rules = self._remove_string_with_newline_variants(rules, rule)
+        if (len(rules) < rules_len):
+            with open(self._serial_starter_rules_file, 'w') as file:
+                file.write(rules)
+                log(f"successfully removed rule from {self._serial_starter_rules_file}")
+        else:
+            log(f"warning rule not removed rule from {self._serial_starter_rules_file}")
+        
+        os.remove(self._serial_starter_rule_file)
+
+    def _get_serial_starter_tty_filename(self):
+        pathWithoutExtension, extension = os.path.splitext(self._serial_starter_rule_file)
+        return pathWithoutExtension + ".devname"
+
+    def _remove_tty_name_file(self):
+
+        serialStarterNameFile = self._get_serial_starter_tty_filename()
+
+        if not os.path.exists(serialStarterNameFile):
+            log(f"Warning: Could not remove tty name file '{serialStarterNameFile}'")
+            return
+
+        os.remove(serialStarterNameFile)
+ 
+def log(msg, dbusMsg = None, end='\n'):
+
+    if _dbus_message_path:
+        if dbusMsg is None:
+            dbusMsg = msg
+
+        command = f"dbus-send --system --print-reply --dest={_dbus_message_path} com.victronenergy.BusItem.SetValue variant:string:{dbusMsg}"
+
+        os.popen(command).read()
+
+    print(msg, end=end)
+ 
+if __name__ == "__main__":
+ 
+    print(sys.argv)
+    actions = sys.argv[1].split('.')
+    match actions[0]:
+        case "usb-serial-helper":
+            usbsh = _usb_serial_helper()
+            usbsh.parseArgs()
+            usbsh.executeAction(actions[1])
+        case "":
+            pass
+

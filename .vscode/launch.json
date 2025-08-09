@@ -16,6 +16,15 @@
             "neshunt", 
             "",
             "1a86:7523"]
+        },
+        {
+            "type": "bashdb",
+            "request": "launch",
+            "name": "Bash-Debug (simplest configuration)",
+            "cwd": "${fileDirname}",
+            "program": "${file}",
+            "showDebugOutput": true,
+            "terminalKind": "integrated"
         }
     ]
 }

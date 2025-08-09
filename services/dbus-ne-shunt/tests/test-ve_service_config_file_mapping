@@ -1,0 +1,66 @@
+#!/bin/bash
+
+clear
+set -e
+
+#remove_usb_serial_device
+#add_ve_service_config_file_mapping
+#remove_ve_service_config_file_mapping
+#add_ensure_installed_script_to_rc_local
+#remove_ensure_installed_script_from_rc_local
+#start_service
+#stop_and_remove_service
+
+fake_opk_install_filepath=/usr/lib/opkg/info/dbus-ne-shunt.postinst
+BASH_ARGV0="$fake_opk_install_filepath"
+
+init_variables() {
+    PROJECT_DIR=/home/admin/dev/projects/venus-os/services/dbus-ne-shunt
+ 
+    SERVICE_NAME=$(basename "${0%.*}") #get file name without path
+    VE_SERVICE_MAPPING_NAME="neshunt"
+    SERIAL_STARTER_CONFIG_FILE="$PROJECT_DIR/output/serial-starter.conf"
+ 
+}
+ 
+clean_output() {
+    echo cleaning output folder
+    rm -rf "/home/admin/dev/projects/venus-os/services/dbus-ne-shunt/output/"*
+}
+
+setup_assets() {
+    echo copying test assets
+    cp "$PROJECT_DIR/assets/serial-starter.conf" "$PROJECT_DIR/output/"
+}
+
+clean_output
+init_variables
+setup_assets
+
+source "$PROJECT_DIR/src/CONTROL/install-helper"
+source "./test-helpers"
+
+echo "##################################"
+echo "calling add_ve_service_config_file_mapping"
+add_ve_service_config_file_mapping
+echo "##################################"
+
+echo "doing tests"
+echo "##################################"
+
+test_file_exists $SERIAL_STARTER_CONFIG_FILE "serial-starter.conf exists"
+
+match="service $VE_SERVICE_MAPPING_NAME"$'\t\t'"$SERVICE_NAME"
+test_values_match "$match" "$(grep "$match" $SERIAL_STARTER_CONFIG_FILE)" "serial-starter.conf mapping matches"
+
+echo "##################################"
+echo "calling remove_ve_service_config_file_mapping"
+remove_ve_service_config_file_mapping
+echo "##################################"
+ 
+test_file_exists $SERIAL_STARTER_CONFIG_FILE "serial-starter.conf exists"
+
+match="service $VE_SERVICE_MAPPING_NAME"$'\t\t'"$SERVICE_NAME"
+test_value_is_empty "$(grep "$match" $SERIAL_STARTER_CONFIG_FILE)" "serial-starter.conf mapping removed"
+
+

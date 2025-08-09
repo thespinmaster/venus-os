@@ -1,0 +1,110 @@
+#!/bin/bash
+
+clear
+set -e
+
+EXIT_ON_FAILED_TEST=true
+
+fake_opk_install_filepath=/usr/lib/opkg/info/dbus-ne-shunt.postinst
+BASH_ARGV0="$fake_opk_install_filepath"
+
+init_variables() {
+    PROJECT_DIR=/home/admin/dev/projects/venus-os/services/dbus-ne-shunt
+
+    SERVICE_NAME=$(basename "${0%.*}") #get file name without path
+    VE_SERVICE_MAPPING_NAME="neshunt"
+    TTY_FILE="$PROJECT_DIR/output/serial-starter.devname"
+    SERIAL_STARTER_RULE_FILE="$PROJECT_DIR/output/serial-starter.rule"
+    DBUS_MESSAGE_PATH="" #"com.victronenergy.packageManager /GuiEditStatus"
+    TEST_USB_ID="1a86:7523"
+    
+    SERIAL_STARTER_RULES_FILE="$PROJECT_DIR/output/serial-starter.rules"
+    SERIAL_STARTER_CONFIG_FILE="$PROJECT_DIR/output/serial-starter.conf"
+    RC_LOCAL_FILE="$PROJECT_DIR/output/rc.local"
+
+    EXPECTED_TTY="ttyUSB0"
+}
+ 
+clean_output() {
+    echo cleaning output folder
+    rm -rf "/home/admin/dev/projects/venus-os/services/dbus-ne-shunt/output/"*
+}
+
+setup_assets() {
+    echo copying test assets
+    #cp "${p}/assets/serial-starter.conf" "${p}/output/"
+    cp "$PROJECT_DIR/assets/serial-starter.rules" "$PROJECT_DIR/output/"
+    #cp "${p}/assets/rc.local" "${p}/output/"
+}
+
+#clean_output
+init_variables
+
+#
+#source "$PROJECT_DIR/src/CONTROL/install-helper"
+#source "./test-helpers"
+#test
+#exit 0
+#
+
+setup_assets
+
+source "$PROJECT_DIR/src/CONTROL/install-helper"
+source "./test-helpers"
+
+echo "##################################"
+echo "calling install_usb_serial_device"
+install_usb_serial_device
+echo "##################################"
+
+echo "testing install"
+echo "###########################################"
+
+result=
+
+test_file_exists "../output/serial-starter.devname" "serial-starter.devname exists"
+ 
+test_values_match "$EXPECTED_TTY" "$(cat '../output/serial-starter.devname')" "serial-starter.devname equals ttyUSB0"
+ 
+test_file_exists "../output/serial-starter.rule" "serial-starter.rule exists"
+
+match="# dbus-ne-shunt"
+test_values_match "$(grep "$match"  "../output/serial-starter.rules")" "$match" "serial-starter.rule comment removed"
+
+match="neshunt"
+test_value_is_not_empty "$(grep "$match"  "../output/serial-starter.rules")" "serial-starter.rule removed"
+
+echo "###########################################"
+echo "testing re-install"
+echo "###########################################"
+echo "calling install_usb_serial_device"
+install_usb_serial_device
+
+test_values_match "$(get_USED_TTY_FILE)" 1 "used serial-starter.devname file"
+
+test_values_match "$(get_USED_SERIAL_STARTER_RULE_FILE)" 1 "used serial-starter.rule file"
+
+match="# dbus-ne-shunt"
+test_values_match "$(grep "$match"  "../output/serial-starter.rules")" "$match" "serial-starter.rule comment removed"
+
+match="neshunt"
+test_value_is_not_empty "$(grep "$match"  "../output/serial-starter.rules")" "serial-starter.rule removed"
+
+echo "###########################################"
+echo "testing un-install"
+echo "###########################################"
+echo "calling remove_usb_serial_device"
+
+#resolve why serial-starter.rules not removed
+remove_usb_serial_device
+
+test_file_does_not_exist "../output/serial-starter.rule" "serial-starter.rule removed"
+
+test_file_does_not_exist "../output/serial-starter.devname" "serial-starter.devname removed"
+
+match="# dbus-ne-shunt"
+test_value_is_empty "$(grep "$match"  "../output/serial-starter.rules")" "rule comment removed from serial-starter.rules"
+
+match="ne-shunt"
+test_value_is_empty "$(grep "$match"  "../output/serial-starter.rules")" "rule removed from serial-starter.rules"
+
