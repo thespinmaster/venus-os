@@ -274,7 +274,7 @@ add_ve_service_config_file_mapping() {
     config="service $VE_SERVICE_MAPPING_NAME"$'\t\t'"$SERVICE_NAME"
     
     if ! grep -q "^$config$" "$SERIAL_STARTER_CONFIG_FILE"; then
-        echo "adding service mapping config from $SERIAL_STARTER_CONFIG_FILE"
+        _log "adding service mapping config from $SERIAL_STARTER_CONFIG_FILE"
         sed -i '1s/^/'"${config}"'\n/' "$SERIAL_STARTER_CONFIG_FILE"
     fi
 }
@@ -284,7 +284,7 @@ remove_ve_service_config_file_mapping() {
     config="service $VE_SERVICE_MAPPING_NAME"$'\t\t'"$SERVICE_NAME"
   
     if grep -q "^$config$" "$SERIAL_STARTER_CONFIG_FILE"; then
-        echo "removing service mapping config from $SERIAL_STARTER_CONFIG_FILE"
+        _log "removing service mapping config from $SERIAL_STARTER_CONFIG_FILE"
         sed -i '/^'"$config"'/d' "$SERIAL_STARTER_CONFIG_FILE"
     fi
 }
@@ -298,7 +298,7 @@ add_ensure_installed_script_to_rc_local() {
     rc_local_script="/data/$SERVICE_NAME/ensure-installed"
 
     if ! grep -q "^$rc_local_script$" "$RC_LOCAL_FILE"; then
-        echo "adding $rc_local_script} to $RC_LOCAL_FILE"
+        _log "adding $rc_local_script} to $RC_LOCAL_FILE"
         echo "$rc_local_script" >> "$RC_LOCAL_FILE"
         chmod +x "$RC_LOCAL_FILE"
     fi
@@ -324,10 +324,10 @@ start_service() {
     if [ -f "$TTY_FILE" ]; then
         
         #tty=$(<"$TTY_FILE")
-        echo "starting service /service/$SERVICE_NAME.$TTY"
+        _log "starting service /service/$SERVICE_NAME.$TTY"
         touch "/dev/serial-starter/$TTY"
     else
-        echo "warning: cannot start service $SERVICE_NAME - $TTY_FILE file not found" 
+        _log "warning: cannot start service $SERVICE_NAME - $TTY_FILE file not found" 
     fi
 }
 
@@ -344,14 +344,14 @@ stop_and_remove_service() {
     local full_service_name
     full_service_name=/service/"$SERVICE_NAME".$(<"$TTY_FILE")
     if [ -d "$full_service_name" ]; then
-      echo "stopping service $full_service_name"
+      _log "stopping service $full_service_name"
       svc -d "$full_service_name" 2>/dev/null
       sleep 3 # secs
       rm -R "$full_service_name" 2>/dev/null
     else
-      echo "not found service $full_service_name"
+      _log "not found service $full_service_name"
     fi
   else
-    echo "not found $TTY_FILE"
+    _log "not found $TTY_FILE"
   fi
 }
