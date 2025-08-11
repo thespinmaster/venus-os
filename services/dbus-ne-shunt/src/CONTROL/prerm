@@ -2,12 +2,17 @@
 
 set -e
 
-# note shellcheck requires +xn arguments
-# shellcheck source=./install-helper
-source "${0%.*}".install-helper
-
 if [ -z "$D" ]; then
 
+  # remove extension .prerm from /var/lib/dpkg/info/dbus-ne-shunt.prerm
+  # and add "install-helper"
+  # note shellcheck requires +xn arguments
+  # shellcheck source=./install-helper
+  source "${0%.*}".install-helper
+
+  # get service name from path by removing the extenion prerm from 
+  # /path/dbus-ne-shunt.prerm
+  # and using just returning the basename not the full path.
   SERVICE_NAME=$(basename "${0%.*}") #get file name without path
   VE_SERVICE_MAPPING_NAME="neshunt"
   TTY_FILE="/data/${SERVICE_NAME}/serial-starter.devname"

@@ -11,6 +11,7 @@ source "${0%.*}".install-helper
 # Install-helper. Prompts and detects usb serial devices
 # Creates /data/dbus-ne-shunt/serial-starter.rule file
 # Creates /data/dbus-ne-shunt/serial-starter.devname file
+# containing device name (ttyACM0, used to start and stop the service) 
 # Adds serial-starter.rule content to serial-serter.rules file
 # When 'ensure-installed' script is run from rcS.local it uses 
 # the files to automatically re-install after a firmware update.

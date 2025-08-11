@@ -151,6 +151,7 @@ _create_tty_file() {
 
 _create_serial_starter_rule() {
  
+    # shellcheck disable=SC2153
     if [[ -f "$SERIAL_STARTER_RULE_FILE" ]]; then
         _log "found existing serial-starter.rule: $SERIAL_STARTER_RULE_FILE"
         USED_SERIAL_STARTER_RULE_FILE=1
