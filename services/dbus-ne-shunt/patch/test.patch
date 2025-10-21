@@ -1,0 +1,26 @@
+@find
+		MbSubMenu {
+			description: "Debug"
+			subpage: Component { PageDebug {} }
+			showAccessLevel: User.AccessService
+		}
+====
+@insertbefore
+
+        MbSubMenu {
+			description: qsTr("Ne-shunt")
+			subpage: Component {
+				PageSettingsFirmware {
+					title: qsTr("Ne-shunt")
+				}
+			}
+        }
+
+====
+@remove
+		MbSubMenu {
+			description: "Debug"
+			subpage: Component { PageDebug {} }
+			showAccessLevel: User.AccessService
+		}
+====
