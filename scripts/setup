@@ -17,5 +17,5 @@ mkdir -p /data/dev/scripts
 
 ensure_feed
 
-opkg mount_nfs_cifs
+opkg install mount_nfs_cifs
 
