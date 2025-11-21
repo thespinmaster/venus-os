@@ -1,6 +1,7 @@
 import sys
 import os
 import logging
+from typing import Optional
 
 sys.path.append(os.path.join(os.path.dirname(__file__), 'ext'))
 sys.path.append(os.path.join(os.path.dirname(__file__), 'serial_service')) 
@@ -22,12 +23,12 @@ from serial_service.ne_shunt_data import ne_shunt_data
 ############################################
 class ne_shunt_service:
 
-    _serialService = None
-    _curData = None
-    _serialPort = None
+    _serialService : Optional[ne_shunt_serial_service] = None
+    _curData : ne_shunt_data
+    _serialPort : str
     _inUpdate = False
     _settingsPath = None
-    _lastData = None
+    _lastData : str
     _reset = False
 
     ############################################
@@ -121,15 +122,15 @@ class ne_shunt_service:
     # Occurs when a battery value has chnaged the UI
     ############################################
     def _dbus_cab_battery_value_changed(self, path, newvalue):
-        return _dbus_Battery_value_changed("cab_battery", path, newvalue)
+        return self._dbus_battery_value_changed("cab_battery", path, newvalue)
 
     def _dbus_leisure_battery_value_changed(self, path, newvalue):
-        return _dbus_Battery_value_changed("leisure_battery", path, newvalue)
+        return self._dbus_battery_value_changed("leisure_battery", path, newvalue)
 
     def _dbus_battery_value_changed(self,serviceName, path, newvalue):
         logging.debug('dbus value changed, path: %s, newvalue: %s' % (path, newvalue))
         
-        service = self._services.get(name, None)  
+        service = self._services.get(serviceName, None)  
         if (service == None):
             return
 
@@ -146,6 +147,10 @@ class ne_shunt_service:
     def _try_toggle_serial_switch_value(self, name, newvalue):
 
         try:
+            if (self._serialService == None or self._curData == None):
+                logging.debug('_try_toggle_serial_switch_value: serial service or curData is None')
+                return False
+            
             if not (newvalue == 1 or newvalue == 0):
                 logging.debug('_try_toggle_serial_switch_value: invalid value. value must be 0 or 1 for ' + name)
                 return False
@@ -170,7 +175,7 @@ class ne_shunt_service:
     def _start_stop_tank_service(self, name, createcallback):
         logging.debug(f"_start_stop_tank_service: {name}")
         service = self._services.get(name, None)
-        
+   
         if (self._settings['show_' + name] == 1):
             if (service is None):
                 logging.debug(f"_start_stop_tank_service: {name} creating")
@@ -346,7 +351,7 @@ class ne_shunt_service:
             return True
    
         if (data == self._lastData):
-            logging.debug("not change exiting...")
+            logging.debug("no change exiting...")
             return True
 
         logging.debug("_update out: parsing new data for changes")

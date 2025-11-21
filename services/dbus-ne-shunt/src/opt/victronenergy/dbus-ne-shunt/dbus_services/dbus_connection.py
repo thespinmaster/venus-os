@@ -1,17 +1,17 @@
-import sys
+
 import os
-import dbus
+from dbus import bus
 
 # our own packages
-sys.path.insert(1, os.path.join(os.path.dirname(__file__), '../../ext/velib_python'))
+#sys.path.insert(1, os.path.join(os.path.dirname(__file__), '../../ext/velib_python'))
 
-class SystemBus(dbus.bus.BusConnection):
+class SystemBus(bus.BusConnection):
     def __new__(cls):
-        return dbus.bus.BusConnection.__new__(cls, dbus.bus.BusConnection.TYPE_SYSTEM)
+        return bus.BusConnection.__new__(cls, bus.BusConnection.TYPE_SYSTEM)
  
-class SessionBus(dbus.bus.BusConnection):
+class SessionBus(bus.BusConnection):
     def __new__(cls):
-        return dbus.bus.BusConnection.__new__(cls, dbus.bus.BusConnection.TYPE_SESSION)
+        return bus.BusConnection.__new__(cls, bus.BusConnection.TYPE_SESSION)
  
 def dbusconnection():
     return SessionBus() if 'DBUS_SESSION_BUS_ADDRESS' in os.environ else SystemBus()

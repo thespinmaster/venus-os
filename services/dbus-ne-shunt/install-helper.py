@@ -2,7 +2,7 @@
 _VERSION = "1.0.1"
 
 ###################################################################################
-# A helper class for detecting and addusbing a serial device
+# A helper class for detecting and adding a usb serial device
 # called durin installation from the opkg installer (CONTROL/postinst/prerm)
 
 # ### Installing ###

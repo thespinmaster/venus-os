@@ -5,7 +5,7 @@ class tank_service(dbus_base_service):
 
 
     def __init__(self, name, port, fluidType, classAndVrmInstance, capacity):
-
+        
         self._registerCore(
             port,
             paths =  {

@@ -20,7 +20,9 @@ from dbus_connection import dbusconnection
 from ext.vedbus import VeDbusService
 
 class dbus_base_service(object):
- 
+    
+    _dbusservice = None
+
     # Create the mandatory objects
     def unregister(self):
         """
@@ -32,18 +34,19 @@ class dbus_base_service(object):
             logging.debug("Unregistered %s" % (self._dbusservice))
         else:
             logging.debug("No dbus service to unregister")
-            
+    
+          
     def _registerCore(self, port, classAndVrmInstance, paths, onValueChanged = None):
         
         logging.debug("_registerCore in")
 
-        portName = os.path.basename(port) # convery from /dev/ttyxxx to ttyxxx
+        portName = os.path.basename(port) # convert from /dev/ttyxxx to ttyxxx
         classAndVrmInstanceParts = classAndVrmInstance.split(':')
         className = classAndVrmInstanceParts[0]
         deviceInstance = int(classAndVrmInstanceParts[1]) #!IMPORTANT MUST BE AN INT
 
-        serviceName = "com.victronenergy.{}.{}_id_{}.{}".format(className, dbus_constants.PRODUCT_NAME, 
-                                                                deviceInstance, portName)
+        serviceName = "com.victronenergy.{}.{}_id_{}.{}".format(
+            className, dbus_constants.PRODUCT_NAME, deviceInstance, portName)
 
         self._dbusservice = VeDbusService(serviceName, bus=dbusconnection(), register=False)
   
@@ -79,6 +82,9 @@ class dbus_base_service(object):
         """
         Get the value of a path.
         """
+        if (self._dbusservice == None):
+            return None
+        
         with self._dbusservice as s:
             return s[path]
     
@@ -87,6 +93,9 @@ class dbus_base_service(object):
         """
         Set the value of a path.
         """
+        if (self._dbusservice == None):
+            return False
+    
         with self._dbusservice as s:
             s[path] = value
             logging.debug("Set %s to %s" % (path, value))

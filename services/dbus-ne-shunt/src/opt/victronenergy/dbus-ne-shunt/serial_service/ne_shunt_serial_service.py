@@ -54,7 +54,7 @@ class ne_shunt_serial_service:
         time.sleep(0.1)
 
     """
-    Wrong output looks like:  (means that the rx and tx wires are around the wrong way)
+    Wrong output looks like:  (usualy means that the rx and tx wires are around the wrong way)
 @40000000688640c71ac16f14 DEBUG    Timeout, read:01FEFE02FEBE3E0A0196EC0479F1FE828000FEFE02FEBE3E0A0196EC0479F1FE828001FEFE02FEBE3E0A0196EC0479F1FE828001FEFE02FEBE3E0A01
 @4000000068863f41015d059c DEBUG    _update out: no data returned
 
@@ -64,7 +64,7 @@ class ne_shunt_serial_service:
 @400000006886430a02dac044 DEBUG    _get_states: D
 @400000006886430a02e3b53c DEBUG    _get_battery_level: 9A, voltage = 12.40
     """
-    def read_data(self):
+    def read_data(self) -> str:
 
         if not self.serial_port.is_open:
             logging.debug("opening serial port") 

@@ -1,9 +1,9 @@
-.PHONY : ./services/network-gps ./services/dbus-relay-board ./services/dbus-ne-shunt ./services/test-service ./services/test-install ./feed/package all
+.PHONY : ./services/network-gps ./services/dbus-relay-board ./services/dbus-ne-shunt ./services/test-service ./services/test-install ./utils/mount-nfs-cifs ./feed/package all
 
 none:
 	@echo "building none... specify the ipk folder to build"
 
-all: network-gps-build dbus-relay-board-build dbus-ne-shunt-build test-service-build test-install-build package
+all: network-gps-build dbus-relay-board-build dbus-ne-shunt-build test-service-build test-install-build package mount-nfs-cifs
 	@echo "building all targets"
 
 network-gps: network-gps-build package
@@ -30,6 +30,11 @@ dbus-relay-board: dbus-relay-board-build package
 dbus-relay-board-build:
 	@echo "building dbus-relay-board"
 	cd ./feed && opkg-build -o root -g root ../services/dbus-relay-board/src ./
+
+mount-nfs-cifs: mount-nfs-cifs-build package
+mount-nfs-cifs-build:
+	@echo "building mount-nfs-cifs"
+	cd ./feed && opkg-build -o root -g root ../utils/mount-nfs-cifs ./
 
 package:
 	@echo "building package index"
