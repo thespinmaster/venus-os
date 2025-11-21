@@ -32,8 +32,8 @@ Version: 1.0.0
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: b8b62fc4d69b797f6fbc06fc8ccea5ce
-Size: 56754
+MD5Sum: 0036bca7825a878efb8e020d6a800928
+Size: 56752
 Filename: mount-nfs-cifs_1.0.0_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feed/mount-nfs-cifs
 Description: Adds support for nfs and cifs shares to Venus OS
