@@ -35,7 +35,7 @@ mount-nfs-cifs: mount-nfs-cifs-build package
 mount-nfs-cifs-build:
 	@echo "building mount-nfs-cifs"
 	cd ./feed && opkg-build -o root -g root ../utils/mount-nfs-cifs ./
-
+ 
 package:
 	@echo "building package index"
 	cd ./feed && opkg-make-index ./ -p Packages
