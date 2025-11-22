@@ -28,13 +28,13 @@ License: MIT
 Priority: optional
 
 Package: mount-nfs-cifs
-Version: 1.0.0
+Version: 1.0.1
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: f2e2513f8a18a65d1202db97e27b73fb
-Size: 63992
-Filename: mount-nfs-cifs_1.0.0_all.ipk
+MD5Sum: 172d7c280b7e8e4f6236d7f074618b96
+Size: 56720
+Filename: mount-nfs-cifs_1.0.1_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feed/mount-nfs-cifs
 Description: Adds support for nfs and cifs shares to Venus OS
 OE: mount-nfs-cifs

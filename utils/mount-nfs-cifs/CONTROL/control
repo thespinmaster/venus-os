@@ -1,5 +1,5 @@
 Package: mount-nfs-cifs
-Version: 1.0.0
+Version: 1.0.1
 Description: Adds support for nfs and cifs shares to Venus OS
 Section: utilities
 Priority: optional
