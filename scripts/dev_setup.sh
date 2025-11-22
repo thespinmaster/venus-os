@@ -1,5 +1,14 @@
 #!/bin/bash
 
+if [[ -z ${1} ]]; then
+  echo "Server IP address or host name not passed"
+  exit
+fi
+
+DEV_SERVER_IP=${1}
+
+echo ${DEV_SERVER_IP}
+
 # exit on error
 set -e
 
