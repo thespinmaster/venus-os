@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# exit on error
+set -e
+
+LIB_FOLDER=/lib
+NEW_FILE=${LIB_FOLDER}/libcap-ng.so.0.0.0
+LNK_FILE=${LIB_FOLDER}/libcap-ng.so.0
+TMP_FOLDER=/tmp/mount-nfs-cifs
+TMP_FILE=${TMP_FOLDER}/libcap-ng.so.0.0.0
+
+if [[ -f ${NEW_FILE} ]]; then
+  echo "backing up existing file ${NEW_FILE} to ${NEW_FILE}.bak"
+  mv ${NEW_FILE} ${NEW_FILE}.bak
+fi
+
+echo "copying ${TMP_FILE} to ${NEW_FILE}"
+cp ${TMP_FILE} ${NEW_FILE}
+chmod +x ${NEW_FILE}
+
+if [[ ! -L ${LNK_FILE} ]]; then
+    echo "Creating missing symbolic link ${LNK_FILE} --> ${NEW_FILE}"
+    ln -s ${NEW_FILE} ${LNK_FILE}
+fi
+
+echo "cleaning up"
+rm -r ${TMP_FOLDER}
+
+echo "successfully installed mount-nfs-cifs"
+

@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# exit on error
+set -e
+
+NEW_FILE=/lib-tmp/libcap-ng.so.0.0.0
+
+if [[ -f $NEW_FILE.bak ]]; then
+  echo "restoring $NEW_FILE.bak to $NEW_FILE"
+  mv $NEW_FILE.bak $NEW_FILE
+fi
+
+echo "successfully removed mount-nfs-cifs"
+
