@@ -52,7 +52,18 @@ echo "Link rc.local from scripts folder to data folder"
 
 ln -s /data/dev/projects/venus-os/scripts/rc.local /data/rc.local
 
-echo "mount -t cifs //${DEV_SERVER_IP}/dev /mnt/storage/dev" >> /data/ensure_mounts.sh
+echo "creating /data/ensure_mounts.sh file"
+echo "
+# if mountpoint returns anything else but 0 then re-mount (-q=quiet)
+mountpoint -q /mnt/storage/dev
+if [[ $? -ne 0 ]]; then
+  mount -t cifs //${DEV_SERVER_IP}/dev /mnt/storage/dev
+fi
+" >> /data/ensure_mounts.sh
+
 chmod +x /data/ensure_mounts.sh
 
-/data/rc.local
+echo "setting up bash aliases"
+/data/dev/projects/venus-os/scripts/ensure_bash_alias.sh
+
+echo "dev environment setup completed successfully" 
