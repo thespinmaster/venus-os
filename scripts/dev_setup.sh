@@ -23,11 +23,11 @@ echo "resizing file system"
 echo "ensuring spinmaster feed"
 ensure_feed
 
-echo "replace busybox"
+echo "replacing busybox"
 opkg install packagegroup-replace-busybox
 
-echo "install python (full)"
-opkg install python
+echo "installing python (full)"
+opkg install python3
 
 echo "installing support for mounting network shares"
 opkg install mount-nfs-cifs
@@ -42,6 +42,8 @@ ln -s /mnt/storage/dev /data/dev
 echo "Link rc.local from scripts folder to data folder"
 
 ln -s /data/dev/projects/venus-os/scripts/rc.local /data/rc.local
+
+echo "mount -t cifs //${DEV_SERVER_IP}/dev /mnt/storage/dev" >> /data/ensure_mounts.sh
+chmod +x /data/ensure_mounts.sh
+
 /data/rc.local
-
-

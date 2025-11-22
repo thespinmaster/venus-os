@@ -1,6 +1,10 @@
+#!/bin/bash
 
 SCRIPTS_PATH=/data/dev/projects/venus-os/scripts
 
 ${SCRIPTS_PATH}/ensure_bash_alias.sh
 ${SCRIPTS_PATH}/ensure_feed.sh
 
+if [[ -f /data/ensure_mounts.sh ]]; then
+  /data/ensure_mounts.sh
+fi
