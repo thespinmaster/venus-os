@@ -6,6 +6,7 @@ set -e
 # note shellcheck requires +xn arguments
 # shellcheck source=./install-helper
 source "${0%.*}".install-helper
+source /data/opkg-auto-installer/opkg-common.sh
 
 ##############################################################
 # Install-helper. Prompts and detects usb serial devices

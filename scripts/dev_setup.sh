@@ -31,6 +31,7 @@ echo "resizing file system"
 
 echo "ensuring spinmaster feed"
 ensure_feed
+opkg update
 
 echo "replacing busybox"
 opkg install packagegroup-replace-busybox
@@ -43,21 +44,32 @@ opkg install mount-nfs-cifs
 
 echo "mount dev share and link to /data/dev"
 
+if [[ ! -f /data/credentials ]]; then
+  echo "creating /data/credentials file"
+  echo "username=
+password=
+" >> /data/credentials
+fi
+
 mkdir -p /mnt/storage/dev
-mount -t cifs //${DEV_SERVER_IP}/dev /mnt/storage/dev
+mount -t cifs //"${DEV_SERVER_IP}"/dev /mnt/storage/dev
 ln -s /mnt/storage/dev /data/dev
 
 # now we have access to /data/dev we can easily use our other scripts from /dev/scripts
 echo "Link rc.local from scripts folder to data folder"
 
-ln -s /data/dev/projects/venus-os/scripts/rc.local /data/rc.local
+cp /data/dev/projects/venus-os/scripts/rc.local /data/rc.local
 
 echo "creating /data/ensure_mounts.sh file"
 echo "
 # if mountpoint returns anything else but 0 then re-mount (-q=quiet)
 mountpoint -q /mnt/storage/dev
-if [[ $? -ne 0 ]]; then
-  mount -t cifs //${DEV_SERVER_IP}/dev /mnt/storage/dev
+RETVAL=$?
+if [[ ${RETVAL} -ne 0 ]]; then
+  # dont use mount if credentials file does not exist
+  if [[ -f /data/credentials ]]
+    mount -t cifs -o credentials=data/credentials //${DEV_SERVER_IP}/dev /mnt/storage/dev
+  fi
 fi
 " >> /data/ensure_mounts.sh
 
