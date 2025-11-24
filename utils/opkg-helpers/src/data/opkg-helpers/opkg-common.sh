@@ -150,8 +150,8 @@ remove_package_name_from_custom_packages_file() {
 
 if [[ ${1} == "ensure_installed" ]]; then
   ensure_installed
-else if [[ ${1} == "postinst" ]]; then
+elif [[ ${1} == "postinst" ]]; then
   add_package_name_to_custom_packages_file ${2}
-else if [[ ${1} == "postrm" ]]; then
+elif [[ ${1} == "postrm" ]]; then
   remove_package_name_from_custom_packages_file ${2}
 fi
