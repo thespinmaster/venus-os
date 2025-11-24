@@ -1,5 +1,6 @@
 #!/bin/bash
 
+VERSION="2.0.0"
 
 ###################################################################################
 # A helper class for detecting and addusbing a serial device
@@ -48,17 +49,11 @@
 ###################################################################################
 
 # shellcheck disable=SC2034
-VERSION="2.0.0"
 
+SERIAL_STARTER_RULES_FILE="/etc/udev/rules.d/serial-starter.rules"
+SERIAL_STARTER_CONFIG_FILE="/etc/venus/serial-starter.conf"
 SERIAL_STARTER_RULES_TEXT_MATCH='RUN+="/opt/victronenergy/serial-starter/cleanup.sh %k"'
 
-init_default_path_variables() {
-    SERIAL_STARTER_RULES_FILE="/etc/udev/rules.d/serial-starter.rules"
-    SERIAL_STARTER_CONFIG_FILE="/etc/venus/serial-starter.conf"
-    RC_LOCAL_FILE="/data/rc.local"
-}
-
- 
 _log() {
     local msg="$1"
     local dbusMsg="$2"
@@ -290,31 +285,6 @@ remove_ve_service_config_file_mapping() {
     fi
 }
 
-################################################
-# Adding ensure-installed to rc.local
-################################################
-add_ensure_installed_script_to_rc_local() {
-  
-    local rc_local_script
-    rc_local_script="/data/$SERVICE_NAME/ensure-installed"
-
-    if ! grep -q "^$rc_local_script$" "$RC_LOCAL_FILE"; then
-        _log "adding $rc_local_script} to $RC_LOCAL_FILE"
-        echo "$rc_local_script" >> "$RC_LOCAL_FILE"
-        chmod +x "$RC_LOCAL_FILE"
-    fi
-}
-
-remove_ensure_installed_script_from_rc_local() {
-    
-    local rc_local_script
-    rc_local_script="/data/$SERVICE_NAME/ensure-installed"
-
-    if ! grep -q "^$rc_local_script$" "$RC_LOCAL_FILE"; then
-        echo "Removing $rc_local_script from $RC_LOCAL_FILE"
-        sed -i '/^'"$rc_local_script"'/d' "$RC_LOCAL_FILE"
-    fi
-}
 ################################################
 # Add a file (ttyACME) to /dev/serial-starter/
 # this file is picked up by the serial-starter

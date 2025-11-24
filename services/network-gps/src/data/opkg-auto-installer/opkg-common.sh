@@ -1,1 +1,0 @@
-./scripts/opkg-common.sh

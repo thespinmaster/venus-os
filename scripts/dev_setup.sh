@@ -58,7 +58,7 @@ ln -s /mnt/storage/dev /data/dev
 # now we have access to /data/dev we can easily use our other scripts from /dev/scripts
 echo "Link rc.local from scripts folder to data folder"
 
-cp /data/dev/projects/venus-os/scripts/rc.local /data/rc.local
+cp /data/dev/projects/venus-os/scripts/dev-rc.local /data/rc.local
 
 echo "creating /data/ensure_mounts.sh file"
 echo "

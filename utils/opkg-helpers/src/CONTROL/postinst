@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# exit on error
+set -e
+
+# note shellcheck requires +xn arguments
+# shellcheck source=./install-helper
+PACKAGENAME=$(basename "${0%.*}") #get file name without path
+source /data/${PACKAGENAME}/opkg-common.sh
+
+add_opkg_auto_installer_to_rc_local
+
+echo "${PACKAGENAME} installed"
+

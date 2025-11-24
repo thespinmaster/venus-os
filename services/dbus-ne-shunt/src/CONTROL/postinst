@@ -5,8 +5,9 @@ set -e
 
 # note shellcheck requires +xn arguments
 # shellcheck source=./install-helper
-source "${0%.*}".install-helper
-source /data/opkg-auto-installer/opkg-common.sh
+#source "${0%.*}".install-helper
+source /data/opkg-helpers/install-helper.sh
+source /data/opkg-helpers/opkg-common.sh
 
 ##############################################################
 # Install-helper. Prompts and detects usb serial devices
@@ -25,13 +26,11 @@ SERIAL_STARTER_RULE_FILE="/data/${SERVICE_NAME}/serial-starter.rule"
 DBUS_MESSAGE_PATH="" #"com.victronenergy.packageManager /GuiEditStatus"
 #TEST_USB_ID="1a86:55d3"
 
-init_default_path_variables
-
 install_usb_serial_device
 
 add_ve_service_config_file_mapping
  
-add_ensure_installed_script_to_rc_local
+add_opkg_auto_install_script_to_rc_local
 
 start_service
 

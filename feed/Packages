@@ -1,12 +1,12 @@
 Package: dbus-ne-shunt
-Version: 1.0.18
+Version: 1.0.19
 Depends: python3
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: 42f2cf90fb648bc14cd0b5d9282e2b42
-Size: 64446
-Filename: dbus-ne-shunt_1.0.18_all.ipk
+MD5Sum: b3143269c5dc41bb2cebe9456d01d260
+Size: 60794
+Filename: dbus-ne-shunt_1.0.19_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feed/dbus-ne-shunt
 Description: Adds support for NordElectronica shunt NE196/NE319 board to Venus-OS
 OE: dbus-ne-shunt
@@ -18,7 +18,7 @@ Version: 1.0.0
 Section: utilities
 Architecture: all
 Maintainer: Lucien Denisey <ldenisey@gmail.com>
-MD5Sum: a6334e182a2317337e1e574eb34fc7f4
+MD5Sum: fb26590d217f372dd267757e4fe58ff7
 Size: 16098
 Filename: dbus-relay-board_1.0.0_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feed/dbus-relay-board
@@ -32,8 +32,8 @@ Version: 1.0.1
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: 1042391b470635ef6d76eadabf82d78f
-Size: 64502
+MD5Sum: b4b53269e35e4e8f473d6f5bf1320027
+Size: 64500
 Filename: mount-nfs-cifs_1.0.1_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feed/mount-nfs-cifs
 Description: Adds support for nfs and cifs shares to Venus OS
@@ -46,8 +46,8 @@ Version: 1.0.0
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: 94f6c861c7e57166e73c1826404be449
-Size: 2604
+MD5Sum: 839291fef084a61a33255c927c7f75df
+Size: 1912
 Filename: network-gps_1.0.0_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feed/network-gps
 Description: Network GPS using NMEA
@@ -57,12 +57,12 @@ Priority: optional
 
 Package: test-install
 Version: 1.0.4
-Depends: python3
+Depends: opkg-helpers
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: a4619e636009f4f23dfedecedd4ed5a3
-Size: 5054
+MD5Sum: 71d54d1423159ab66824d9601060302e
+Size: 954
 Filename: test-install_1.0.4_all.ipk
 Source: https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feed/test-install
 Description: A simple app for testing install
@@ -76,8 +76,8 @@ Depends: python3
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: cd503a7a10afcb4195f715a989150be4
-Size: 6478
+MD5Sum: 341ebfa96a8b3541848e0eca9f3cdf23
+Size: 3050
 Filename: test-service_1.0.0_all.ipk
 Source: https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feed/test-service
 Description: A simple service for testing

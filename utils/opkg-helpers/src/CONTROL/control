@@ -1,0 +1,10 @@
+Package: opkg-helpers
+Version: 1.0.0
+Description: Adds helper scripts for installing opkg packages on the Venus OS
+Section: utilities
+Priority: optional
+Maintainer: thespinmaster@github.com
+License: MIT
+Architecture: all
+OE: opkg-helpers
+Source: https://github.com/thespinmaster/venus-os/tree/main/feed/opkg-helpers

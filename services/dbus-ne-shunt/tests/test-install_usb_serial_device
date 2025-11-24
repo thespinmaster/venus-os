@@ -38,7 +38,6 @@ setup_assets() {
 }
 
 #clean_output
-init_variables
 
 #
 #source "$PROJECT_DIR/src/CONTROL/install-helper"
@@ -51,6 +50,8 @@ setup_assets
 
 source "$PROJECT_DIR/src/CONTROL/install-helper"
 source "./test-helpers"
+
+init_variables
 
 echo "##################################"
 echo "calling install_usb_serial_device"

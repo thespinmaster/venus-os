@@ -1,11 +1,11 @@
 #!/bin/bash
 
 RC_LOCAL_FILE=/data/rc.local
-OPKG_AUTO_INSTALLER_PATH=/data/opkg-auto-installer
-OPKG_CUSTOM_PACKAGES_FILE=${OPKG_AUTO_INSTALLER_PATH}/custom-packages
-OPKG_COMMON_SCRIPT_FILE=${OPKG_AUTO_INSTALLER_PATH}/opkg-common.sh
+OPKG_HELPERS_PATH=/data/opkg-helpers
+OPKG_CUSTOM_PACKAGES_FILE=${OPKG_HELPERS_PATH}/custom-packages
+OPKG_COMMON_SCRIPT_FILE=${OPKG_HELPERS_PATH}/opkg-common.sh
 
-LOG=${OPKG_AUTO_INSTALLER_PATH}/log
+LOG=${OPKG_HELPERS_PATH}/log
 IS_FS_READONLY=
 
 expand_root_fs() {
@@ -103,7 +103,7 @@ ensure_installed() {
 
 }
 
-ensure_opkg_auto_installer_in_rc_local() {
+add_opkg_auto_installer_to_rc_local() {
   
   if ! grep -q "^# opkg-auto-installer (do not edit)$" "${RC_LOCAL_FILE}" ; then
     echo "adding opkg-auto-installer script to ${RC_LOCAL_FILE}" >> "${LOG}"
@@ -121,7 +121,7 @@ fi
 
 }
 
-add_package_name() {
+add_package_name_to_custom_packages_file() {
 
   local PACKAGE_NAME
   PACKAGE_NAME="${1}"
@@ -135,7 +135,7 @@ add_package_name() {
 
 }
 
-remove_package_name() {
+remove_package_name_from_custom_packages_file() {
   local PACKAGE_NAME
   PACKAGE_NAME="${1}"
 
@@ -150,4 +150,8 @@ remove_package_name() {
 
 if [[ ${1} == "ensure_installed" ]]; then
   ensure_installed
+else if [[ ${1} == "postinst" ]]; then
+  add_package_name_to_custom_packages_file ${2}
+else if [[ ${1} == "postrm" ]]; then
+  remove_package_name_from_custom_packages_file ${2}
 fi

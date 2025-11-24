@@ -3,7 +3,7 @@
 # exit on error
 set -e
 
-NEW_FILE=/lib-tmp/libcap-ng.so.0.0.0
+NEW_FILE=/lib/libcap-ng.so.0.0.0
 
 if [[ -f $NEW_FILE.bak ]]; then
   echo "restoring $NEW_FILE.bak to $NEW_FILE"

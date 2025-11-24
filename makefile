@@ -3,7 +3,7 @@
 none:
 	@echo "building none... specify the ipk folder to build"
 
-all: network-gps-build dbus-relay-board-build dbus-ne-shunt-build test-service-build test-install-build package mount-nfs-cifs
+all: network-gps-build dbus-ne-shunt-build test-service-build test-install-build package mount-nfs-cifs-build opkg-helpers-build
 	@echo "building all targets"
 
 network-gps: network-gps-build package
@@ -34,8 +34,13 @@ dbus-relay-board-build:
 mount-nfs-cifs: mount-nfs-cifs-build package
 mount-nfs-cifs-build:
 	@echo "building mount-nfs-cifs"
-	cd ./feed && opkg-build -o root -g root ../utils/mount-nfs-cifs ./
+	cd ./feed && opkg-build -o root -g root ../utils/mount-nfs-cifs/src ./
  
+opkg-helpers: opkg-helpers-build package
+opkg-helpers-build:
+	@echo "building opkg-helpers"
+	cd ./feed && opkg-build -o root -g root ../utils/opkg-helpers/src ./
+
 package:
 	@echo "building package index"
 	cd ./feed && opkg-make-index ./ -p Packages
