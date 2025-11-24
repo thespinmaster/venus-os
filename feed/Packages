@@ -56,13 +56,13 @@ License: MIT
 Priority: optional
 
 Package: opkg-helpers
-Version: 1.0.0
+Version: 1.0.1
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: 734d42443633f8ca4ac2c9677297885f
-Size: 5800
-Filename: opkg-helpers_1.0.0_all.ipk
+MD5Sum: 475ef75ae77f06e34f1d5be01004aeff
+Size: 5398
+Filename: opkg-helpers_1.0.1_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feed/opkg-helpers
 Description: Adds helper scripts for installing opkg packages on the Venus OS
 OE: einstine
