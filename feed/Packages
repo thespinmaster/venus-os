@@ -61,7 +61,7 @@ Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
 MD5Sum: d7317d6e1ef66c0d537d4b67d1b519d0
-Size: 5806
+Size: 5804
 Filename: opkg-helpers_1.0.0_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feed/opkg-helpers
 Description: Adds helper scripts for installing opkg packages on the Venus OS
