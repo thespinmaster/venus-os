@@ -6,5 +6,5 @@ Priority: optional
 Maintainer: thespinmaster@github.com
 License: MIT
 Architecture: all
-OE: opkg-helpers
+OE: einstine
 Source: https://github.com/thespinmaster/venus-os/tree/main/feed/opkg-helpers
