@@ -8,4 +8,4 @@ License: MIT
 Architecture: all
 OE: mount-nfs-cifs
 Source: https://github.com/thespinmaster/venus-os/tree/main/feed/mount-nfs-cifs
-Depends opkg-helpers
+Depends: opkg-helpers
