@@ -1,6 +1,7 @@
 #!/bin/bash
 
 SERVER_UP=
+MOUNT_POINT_CONF_FILE=/data/mount-nfs-cifs/mountpoints.conf
 
 function wait_for_server() {
 
@@ -28,7 +29,7 @@ function wait_for_server() {
 
 function mount_servers() {
   
-  if [[ ! -f mountpoints.conf ]]; then
+  if [[ ! -f ${MOUNT_POINT_CONF_FILE} ]]; then
     echo "missing mountpoint.conf file"
     return  
   fi
