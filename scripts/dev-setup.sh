@@ -44,6 +44,8 @@ if [[ -n ${DEV_SERVER_IP} ]]; then
 
   mkdir -p /mnt/storage/dev
   echo "mount -t cifs -o user=$MOUNT_USER_NAME,pass=$MOUNT_PASSWORD //${DEV_SERVER_IP}/dev /mnt/storage/dev" >> /data/mount-nfs-cifs/mountpoints.conf
+  /mnt/mount-nfs-cifs/ensure-mountpoints.sh
+
   ln -s /mnt/storage/dev /data/dev
 fi
 
