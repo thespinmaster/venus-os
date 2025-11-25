@@ -4,8 +4,8 @@ Depends: python3
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: 09c955afb9a49c0817a95ce5d9750a4b
-Size: 60792
+MD5Sum: ca44d8c54d08546218ae236d759667b7
+Size: 60802
 Filename: dbus-ne-shunt_1.0.19_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feed/dbus-ne-shunt
 Description: Adds support for NordElectronica shunt NE196/NE319 board to Venus-OS
@@ -32,8 +32,8 @@ Version: 1.0.1
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: 0d0311ffb110bf02744e5ea2b5fdd228
-Size: 65560
+MD5Sum: 3c39a3b796b6e9f30b437397863f4d16
+Size: 65562
 Filename: mount-nfs-cifs_1.0.1_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feed/mount-nfs-cifs
 Description: Adds support for nfs and cifs shares to Venus OS
@@ -46,8 +46,8 @@ Version: 1.0.0
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: 09848eb0c1aefef48d7be4dba27bb7f7
-Size: 1970
+MD5Sum: 88d5c88d272b923f923a2e9f2b8de664
+Size: 1978
 Filename: network-gps_1.0.0_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feed/network-gps
 Description: Network GPS using NMEA
@@ -60,8 +60,8 @@ Version: 1.0.1
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: 7c71bcb470ffb7a912e3c5a578fb8708
-Size: 5600
+MD5Sum: 7d15c792dc24ea741a5e60ddfe9b9e75
+Size: 6504
 Filename: opkg-helpers_1.0.1_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feed/opkg-helpers
 Description: Adds helper scripts for installing opkg packages on the Venus OS
@@ -75,8 +75,8 @@ Depends: opkg-helpers
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: a79d716df9c2fc0d39ce5a171c6102ac
-Size: 974
+MD5Sum: 11f4fcdf58b9ee1139ea8182ce2df82e
+Size: 970
 Filename: test-install_1.0.4_all.ipk
 Source: https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feed/test-install
 Description: A simple app for testing install
@@ -90,8 +90,8 @@ Depends: python3
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: 70ea7564a578f213b2e2baa708781ce0
-Size: 3106
+MD5Sum: 949348ce4ee3a84c02711685470912f6
+Size: 3108
 Filename: test-service_1.0.0_all.ipk
 Source: https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feed/test-service
 Description: A simple service for testing

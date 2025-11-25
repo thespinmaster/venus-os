@@ -1,10 +1,5 @@
 #!/bin/bash
 
-if [[ -z ${1} ]]; then
-  echo "Server IP address or host name not passed"
-  exit
-fi
- 
 # exit on error
 set -e
 
