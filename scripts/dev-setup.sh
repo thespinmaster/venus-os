@@ -47,8 +47,6 @@ if [[ -n ${DEV_SERVER_IP} ]]; then
   ln -s /mnt/storage/dev /data/dev
 fi
 
-cp /data/dev/projects/venus-os/scripts/dev-rc.local /data/rc.local
-
 echo "setting up bash aliases"
 echo "/data/dev/projects/venus-os/scripts/ensure-bash-alias.sh" >> ${RC_LOCAL_FILE}
 /data/dev/projects/venus-os/scripts/ensure-bash-alias.sh
