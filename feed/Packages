@@ -1,11 +1,11 @@
 Package: dbus-ne-shunt
 Version: 1.0.19
-Depends: python3
+Depends: opkg-helpers, python3
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: ca44d8c54d08546218ae236d759667b7
-Size: 60802
+MD5Sum: 8593f9779e9ff06b6afb084d11ae6c6f
+Size: 60806
 Filename: dbus-ne-shunt_1.0.19_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feed/dbus-ne-shunt
 Description: Adds support for NordElectronica shunt NE196/NE319 board to Venus-OS
@@ -32,8 +32,8 @@ Version: 1.0.1
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: 3c39a3b796b6e9f30b437397863f4d16
-Size: 65562
+MD5Sum: 071046141be8c8c983f8181426be2c81
+Size: 65554
 Filename: mount-nfs-cifs_1.0.1_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feed/mount-nfs-cifs
 Description: Adds support for nfs and cifs shares to Venus OS
@@ -43,11 +43,12 @@ Priority: optional
 
 Package: network-gps
 Version: 1.0.0
+Depends: opkg-helpers
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: 88d5c88d272b923f923a2e9f2b8de664
-Size: 1978
+MD5Sum: 650f78d1cac80aad30fc64eafe0dfa24
+Size: 1984
 Filename: network-gps_1.0.0_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feed/network-gps
 Description: Network GPS using NMEA
@@ -60,7 +61,7 @@ Version: 1.0.1
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: 7d15c792dc24ea741a5e60ddfe9b9e75
+MD5Sum: d4eba9c9861ec3cb1682e174cec3c895
 Size: 6504
 Filename: opkg-helpers_1.0.1_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feed/opkg-helpers
@@ -75,8 +76,8 @@ Depends: opkg-helpers
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: 11f4fcdf58b9ee1139ea8182ce2df82e
-Size: 970
+MD5Sum: f451cf7ac3f9bfebc3d6747992405faf
+Size: 972
 Filename: test-install_1.0.4_all.ipk
 Source: https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feed/test-install
 Description: A simple app for testing install
@@ -86,12 +87,12 @@ Priority: optional
 
 Package: test-service
 Version: 1.0.0
-Depends: python3
+Depends: opkg-helpers, python3
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: 949348ce4ee3a84c02711685470912f6
-Size: 3108
+MD5Sum: 4d50201efd86ad9fcb29ae320f903165
+Size: 3112
 Filename: test-service_1.0.0_all.ipk
 Source: https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feed/test-service
 Description: A simple service for testing
