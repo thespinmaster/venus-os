@@ -66,7 +66,7 @@ function mount_servers() {
 
   done < mountpoints.conf  
   
-  if [[ ${MOUNT_FOUND} == true ]]; then
+  if [[ ${MOUNT_FOUND} = true ]]; then
     echo "no mount points found in mountpoints.conf"
   fi
 

@@ -40,9 +40,9 @@ read -p "Enter hostname or IP address for dev share: " DEV_SERVER_IP
 echo "mount dev share and link //${DEV_SERVER_IP}/dev to /data/dev"
 
 if [[ -n ${DEV_SERVER_IP} ]]; then
-  read -p "Enter username for dev share: " MOUNT_USER_NAME
-  read -p "Enter password for dev share: " MOUNT_PASSWORD
-
+  read -p  "Enter username for dev share: " MOUNT_USER_NAME
+  read -ps "Enter password for dev share:" MOUNT_PASSWORD
+  echo
   mkdir -p /mnt/storage/dev
   if grep -Fq "$MOUNT_COMMAND" ${MOUNT_POINT_CONF_FILE}; then
     echo "mount already added"
@@ -50,8 +50,8 @@ if [[ -n ${DEV_SERVER_IP} ]]; then
     echo "mount -t cifs -o user=$MOUNT_USER_NAME,pass=$MOUNT_PASSWORD //${DEV_SERVER_IP}/dev /mnt/storage/dev" >> /data/mount-nfs-cifs/mountpoints.conf
   fi
 
-  /mnt/mount-nfs-cifs/ensure-mountpoints.sh
-
+  /data/mount-nfs-cifs/ensure-mountpoints.sh
+ 
   ln -s /mnt/storage/dev /data/dev
 fi
 
