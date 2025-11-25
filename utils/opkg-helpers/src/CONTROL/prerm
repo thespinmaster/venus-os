@@ -1,2 +1,15 @@
 #!/bin/bash
 
+# note shellcheck requires +xn arguments
+# shellcheck source=./install-helper
+PACKAGENAME=$(basename "${0%.*}") #get file name without path
+OPKG_COMMON=/data/${PACKAGENAME}/opkg-common.sh
+source "${OPKG_COMMON}"
+
+SCRIPT="
+# ${PACKAGENAME} (do not edit)
+noup \"${OPKG_COMMON} ensure_installed\" &> /dev/null &
+"
+remove_script_from_rc_local "${SCRIPT}"
+
+echo "successfully removed ${PACKAGENAME}"

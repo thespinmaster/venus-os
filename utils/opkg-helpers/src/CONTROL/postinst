@@ -6,9 +6,14 @@ set -e
 # note shellcheck requires +xn arguments
 # shellcheck source=./install-helper
 PACKAGENAME=$(basename "${0%.*}") #get file name without path
-source /data/${PACKAGENAME}/opkg-common.sh
+OPKG_COMMON=/data/${PACKAGENAME}/opkg-common.sh
+source "${OPKG_COMMON}"
 
-add_opkg_auto_installer_to_rc_local
+SCRIPT="
+# ${PACKAGENAME} (do not edit)
+noup \"${OPKG_COMMON} ensure_installed\" &> /dev/null &
+"
+add_script_to_rc_local "${SCRIPT}"
 
-echo "${PACKAGENAME} installed"
+echo "successfully installed ${PACKAGENAME}"
 

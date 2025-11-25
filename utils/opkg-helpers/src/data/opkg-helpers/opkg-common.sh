@@ -8,6 +8,10 @@ OPKG_COMMON_SCRIPT_FILE=${OPKG_HELPERS_PATH}/opkg-common.sh
 LOG=${OPKG_HELPERS_PATH}/log
 IS_FS_READONLY=
 
+log() {
+  echo "`date +%y/%m/%d_%H:%M:%S`:: `${1}`" >> "${LOG}"
+}
+
 expand_root_fs() {
   # Expand rootfs and make it writable
   /opt/victronenergy/swupdate-scripts/resize2fs.sh
@@ -23,23 +27,24 @@ is_root_fs_readonly() {
 }
 
 mount_root_fs_readwrite() {
-  echo "mounting fs as read write" >> "${LOG}"
+  log "mounting fs as read write"
   mount -o remount,rw /
 }
 
 mount_root_fs_readonly() {
-  echo "mounting fs as readonly" >> "${LOG}"
+  log "mounting fs as readonly"
   mount -o remount,ro /
 }
 
 ensure_feed() {
   FEED_CONFIG_FILE="/etc/opkg/thespinmaster.conf"
   if [ ! -f $FEED_CONFIG_FILE ]; then
-    echo "adding opkg feed" >> "${LOG}"
+    log "adding opkg feed"
     FEED_URL="https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feed"
-    echo "src/gz thespinmaster ${FEED_URL}" > "${FEED_CONFIG_FILE}" 
+    log "src/gz thespinmaster ${FEED_URL}"
   fi
 }
+
 
 try_install_package() {
   
@@ -48,7 +53,7 @@ try_install_package() {
   PACKAGE_NAME="${1}"
   
   if [[ -z "${PACKAGE_NAME}" ]]; then
-    echo "package name not supplied"
+    log "package name not supplied"
     return 1
   fi
 
@@ -58,7 +63,7 @@ try_install_package() {
   
   # if already installed then exit
   if [[ -n "${INSTALLED}" ]]; then
-    echo "Already Installed ${PACKAGE_NAME}, exiting" >> "${LOG}"
+    log "Already Installed ${PACKAGE_NAME}, exiting"
     return 0
   fi
     
@@ -66,7 +71,7 @@ try_install_package() {
     # make sure the file system is writeable
 
     is_root_fs_readonly
-    echo "fs is readonly:${IS_FS_READONLY}" >> "${LOG}"
+    log "fs is readonly:${IS_FS_READONLY}"
 
     if [ "${IS_FS_READONLY}" = true ]; then
       mount_root_fs_readwrite
@@ -75,19 +80,21 @@ try_install_package() {
     # ensure are feed is added to opkg
     # and update opkg
     ensure_feed
-    opkg update >> "${LOG}"
+    opkg update
   fi
+  
+  IS_FS_READONLY=
 
-  echo "Installing... ${PACKAGE_NAME}" >> "${LOG}"
+  log "Installing... ${PACKAGE_NAME}"  
 
-  opkg install "${PACKAGE_NAME}" >> "${LOG}"
+  opkg install "${PACKAGE_NAME}"
 
 }
 
 ensure_installed() {
   
-  if [[ -f ${LOG} ]]; then
-    rm ${LOG}
+  if [[ -f "${LOG}" ]]; then
+    rm "${LOG}"
   fi  
   
   while IFS= read -r line
@@ -95,7 +102,7 @@ ensure_installed() {
     if [[ ! -z "$line" ]]; then
       try_install_package "$line" 
     fi
-  done < ${OPKG_CUSTOM_PACKAGES_FILE}
+  done < "${OPKG_CUSTOM_PACKAGES_FILE}"
 
   if [ "${IS_FS_READONLY}" = true ]; then
     mount_root_fs_readonly
@@ -103,10 +110,36 @@ ensure_installed() {
 
 }
 
+add_script_to_rc_local() {
+
+  SCRIPT=${1}
+
+  if ! grep -q "^${SCRIPT}$" "${RC_LOCAL_FILE}" ; then
+    log "adding custom script to ${RC_LOCAL_FILE}"
+    
+    echo "${SCRIPT}" >> "${RC_LOCAL_FILE}"
+  
+  else
+    log "custom script already added"
+  fi
+}
+
+remove_script_from_rc_local() {
+
+  SCRIPT=${1}
+
+  if grep -q "^${SCRIPT}$" "${RC_LOCAL_FILE}" ; then
+    log "removing custom script from ${RC_LOCAL_FILE}"
+    
+    sed "/^${SCRIPT}/d" "${RC_LOCAL_FILE}"  
+  fi
+
+}
+
 add_opkg_auto_installer_to_rc_local() {
   
   if ! grep -q "^# opkg-auto-installer (do not edit)$" "${RC_LOCAL_FILE}" ; then
-    echo "adding opkg-auto-installer script to ${RC_LOCAL_FILE}" >> "${LOG}"
+    log "adding opkg-auto-installer script to ${RC_LOCAL_FILE}"
     
     echo "
 # opkg-auto-installer (do not edit)
@@ -116,7 +149,7 @@ fi
 " >> "${RC_LOCAL_FILE}"
   
   else
-    echo "opkg-auto-installer script already added" >> "${LOG}"
+    log "opkg-auto-installer script already added"
   fi
 
 }
@@ -126,11 +159,11 @@ add_package_name_to_custom_packages_file() {
   local PACKAGE_NAME
   PACKAGE_NAME="${1}"
 
-  if ! grep -q "^$PACKAGE_NAME$" "$OPKG_CUSTOM_PACKAGES_FILE" ; then
-    echo "adding ${PACKAGE_NAME} to ${OPKG_CUSTOM_PACKAGES_FILE}" >> "${LOG}"
+  if ! grep -q "^${PACKAGE_NAME}$" "${OPKG_CUSTOM_PACKAGES_FILE}" ; then
+    log "adding ${PACKAGE_NAME} to ${OPKG_CUSTOM_PACKAGES_FILE}"
     echo "${PACKAGE_NAME}" >> "${OPKG_CUSTOM_PACKAGES_FILE}"
   else
-    echo "package '${PACKAGE_NAME}' already added" >> "${LOG}"
+    log "package '${PACKAGE_NAME}' already added"
   fi
 
 }
@@ -140,10 +173,10 @@ remove_package_name_from_custom_packages_file() {
   PACKAGE_NAME="${1}"
 
   if grep -q "^${PACKAGE_NAME}$" "${OPKG_CUSTOM_PACKAGES_FILE}" ; then
-    echo "Removing ${PACKAGE_NAME} from ${OPKG_CUSTOM_PACKAGES_FILE}" >> "${LOG}"
+    log "Removing ${PACKAGE_NAME} from ${OPKG_CUSTOM_PACKAGES_FILE}"
     sed -i "/^$PACKAGE_NAME$/d" "${OPKG_CUSTOM_PACKAGES_FILE}"
   else
-    echo "package '${PACKAGE_NAME}' not found" >> "${LOG}"
+    log "package '${PACKAGE_NAME}' not found"
   fi
 
 }
@@ -154,4 +187,6 @@ elif [[ ${1} == "postinst" ]]; then
   add_package_name_to_custom_packages_file ${2}
 elif [[ ${1} == "postrm" ]]; then
   remove_package_name_from_custom_packages_file ${2}
+elif [[ -n ${1} ]]; then
+  log "invalid argument passed to opkg-common.sh"
 fi

@@ -3,6 +3,7 @@
 # exit on error
 set -e
 
+PACKAGENAME=$(basename "${0%.*}") #get file name without path
 NEW_FILE=/lib/libcap-ng.so.0.0.0
 
 if [[ -f $NEW_FILE.bak ]]; then
@@ -10,5 +11,13 @@ if [[ -f $NEW_FILE.bak ]]; then
   mv $NEW_FILE.bak $NEW_FILE
 fi
 
-echo "successfully removed mount-nfs-cifs"
+source /data/opkg-helpers/opkg-common.sh
+
+SCRIPT="
+# ${PACKAGENAME} (do not edit)
+/data/mount-nfs-cifs/ensure_mountpoints.sh
+"
+remove_script_from_rc_local "${SCRIPT}"
+
+echo "successfully removed ${PACKAGENAME}"
 

@@ -26,7 +26,14 @@ fi
 echo "cleaning up"
 rm -r ${TMP_FOLDER}
 
+PACKAGENAME=$(basename "${0%.*}") #get file name without path
+source /data/opkg-helpers/opkg-common.sh
 
+SCRIPT="
+# ${PACKAGENAME} (do not edit)
+/data/mount-nfs-cifs/ensure_mountpoints.sh
+"
+add_script_to_rc_local "${SCRIPT}"
 
-echo "successfully installed mount-nfs-cifs"
+echo "successfully installed ${PACKAGENAME}"
 
