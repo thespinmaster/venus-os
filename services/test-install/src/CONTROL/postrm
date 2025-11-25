@@ -1,10 +1,10 @@
 #!/bin/bash
 
 #source /data/opkg-helpers/install-helper.sh
-#source /data/opkg-helpers/opkg-common.sh
+source /data/opkg-helpers/opkg-common.sh
 
 PACKAGE_NAME=$(basename "${0%.*}") #get file name without path
 
-/data/opkg-helpers/opkg-common.sh "postrm" "${PACKAGE_NAME}"
+remove_package_name_from_custom_packages_file "${PACKAGE_NAME}"
 
 echo "${PACKAGE_NAME} removed"

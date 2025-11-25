@@ -2,6 +2,8 @@
 set -e
 if [ -z "$D" ]; then
   
+  source /data/opkg-helpers/opkg-common.sh
+
   SERVICE_NAME=$(basename "${0%.*}") #get file name without path
 
   # copy service, svscan will detect the new files & avoid a reboot
@@ -19,5 +21,7 @@ if [ -z "$D" ]; then
   fi
   ################################################
 
+  add_package_name_to_custom_packages_file "${SERVICE_NAME}"
+  
   echo "${SERVICE_NAME} installed"
 fi

@@ -30,7 +30,7 @@ install_usb_serial_device
 
 add_ve_service_config_file_mapping
  
-add_opkg_auto_install_script_to_rc_local
+add_package_name_to_custom_packages_file "${SERVICE_NAME}"
 
 start_service
 

@@ -28,7 +28,7 @@ if [ -z "$D" ]; then
 
   remove_ve_service_config_file_mapping
 
-  remove_ensure_installed_script_from_rc_local
+  remove_package_name_from_custom_packages_file "${SERVICE_NAME}"
 
   echo "${SERVICE_NAME}" removed
 

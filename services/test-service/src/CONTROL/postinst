@@ -2,6 +2,8 @@
 
 TEST_USB_ID="1a86:55d3"
 
+source /data/opkg-helpers/opkg-common.sh
+
 echo "postinst location:${0}" #//usr/lib/opkg/info/test-service.postinst
  
 BASE_INSTALL_FILE_PATH=${0%.*} # strip file extension (.postinst)
@@ -48,5 +50,7 @@ RCS_LOCAL_ACTION="/data/${SERVICE_NAME}/ensure-installed"
 if ! grep -q "^${RCS_LOCAL_ACTION}$" "${RCS_LOCAL_FILE}"; then
     echo "${RCS_LOCAL_ACTION}" >> "${RCS_LOCAL_FILE}"
 fi
+
+add_package_name_to_custom_packages_file "${SERVICE_NAME}"
 
 echo "${SERVICE_NAME} installed"

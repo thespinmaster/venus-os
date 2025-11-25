@@ -3,6 +3,10 @@
 # exit on error
 set -e
 
+source /data/opkg-helpers/opkg-common.sh
+
+PACKAGENAME=$(basename "${0%.*}") #get file name without path
+
 LIB_FOLDER=/lib
 NEW_FILE=${LIB_FOLDER}/libcap-ng.so.0.0.0
 LNK_FILE=${LIB_FOLDER}/libcap-ng.so.0
@@ -26,14 +30,13 @@ fi
 echo "cleaning up"
 rm -r ${TMP_FOLDER}
 
-PACKAGENAME=$(basename "${0%.*}") #get file name without path
-source /data/opkg-helpers/opkg-common.sh
-
 SCRIPT="
 # ${PACKAGENAME} (do not edit)
 /data/mount-nfs-cifs/ensure_mountpoints.sh
 "
 add_script_to_rc_local "${SCRIPT}"
+
+add_package_name_to_custom_packages_file "${PACKAGENAME}"
 
 echo "successfully installed ${PACKAGENAME}"
 

@@ -1,6 +1,8 @@
 #!/bin/sh
 set -e
 if [ -z "$D" ]; then
+  
+  source /data/opkg-helpers/opkg-common.sh
 
   SERVICE_NAME=$(basename "${0%.*}") #get file name without path
  
@@ -24,6 +26,8 @@ if [ -z "$D" ]; then
     echo "Removing ${RC_LOCAL_ACTION} from ${RC_LOCAL_FILE}"
     sed -i '/^'"${RC_LOCAL_ACTION}"'/d' "${RC_LOCAL_FILE}"
   fi
+
+  remove_package_name_from_custom_packages_file "${SERVICE_NAME}"
 
   echo "${SERVICE_NAME}" removed
 

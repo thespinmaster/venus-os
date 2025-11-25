@@ -2,6 +2,8 @@
 
 echo "postrm location:${0}"
 
+source /data/opkg-helpers/opkg-common.sh
+
 BASE_INSTALL_FILE_PATH=${0%.*} # strip file extension (.postinst)
 echo "BASE_INSTALL_FILE_PATH:${BASE_INSTALL_FILE_PATH}" #remove the extension from the filename
 
@@ -38,4 +40,8 @@ if grep -q "^${CONFIG}$" "${SERIAL_STARTER_CONFIG_FILE}"; then
  sed -i '/^'"${CONFIG}"'/d' $SERIAL_STARTER_CONFIG_FILE
 fi
 
+remove_package_name_from_custom_packages_file "${SERVICE_NAME}"
+
 echo "${SERVICE_NAME}" removed
+
+
