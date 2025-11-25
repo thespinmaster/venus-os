@@ -3,6 +3,8 @@
 # exit on error
 set -e
 
+${RC_LOCAL_FILE} = /data/rc.local
+
 ensure_feed() {
   FEED_CONFIG_FILE="/etc/opkg/thespinmaster.conf"
   #FEED_CONFIG_FILE="./opkg_feeds/thespinmaster.conf"
@@ -48,6 +50,7 @@ fi
 cp /data/dev/projects/venus-os/scripts/dev-rc.local /data/rc.local
 
 echo "setting up bash aliases"
+echo "/data/dev/projects/venus-os/scripts/ensure-bash-alias.sh" >> ${RC_LOCAL_FILE}
 /data/dev/projects/venus-os/scripts/ensure-bash-alias.sh
 
 echo "dev environment setup completed successfully" 

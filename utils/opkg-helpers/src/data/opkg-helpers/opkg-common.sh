@@ -2,7 +2,7 @@
 
 RC_LOCAL_FILE=/data/rc.local
 OPKG_HELPERS_PATH=/data/opkg-helpers
-OPKG_CUSTOM_PACKAGES_FILE=./custom-packages
+OPKG_CUSTOM_PACKAGES_FILE=${OPKG_HELPERS_PATH}/custom-packages
 OPKG_COMMON_SCRIPT_FILE=${OPKG_HELPERS_PATH}/opkg-common.sh
 
 LOG=${OPKG_HELPERS_PATH}/log
@@ -116,6 +116,11 @@ add_script_to_rc_local() {
     return
   fi
 
+  if [[ ! -f ${RC_LOCAL_FILE} ]]; then
+    echo "#!/bin/bash" >> ${RC_LOCAL_FILE}
+    chmod +x ${RC_LOCAL_FILE}
+  fi
+
   if grep -Fq "${1}" ${RC_LOCAL_FILE}; then
     log "custom script already added" 
   else
@@ -129,6 +134,10 @@ add_script_to_rc_local() {
 remove_script_from_rc_local() {
   
   if [[ -z "${1}" ]]; then
+    return
+  fi
+
+  if [[ ! -f ${RC_LOCAL_FILE} ]]; then
     return
   fi
 
