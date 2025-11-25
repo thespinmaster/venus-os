@@ -187,10 +187,6 @@ remove_package_name_from_custom_packages_file() {
 
 if [[ ${1} == "ensure_installed" ]]; then
   ensure_installed
-elif [[ ${1} == "postinst" ]]; then
-  add_package_name_to_custom_packages_file ${2}
-elif [[ ${1} == "postrm" ]]; then
-  remove_package_name_from_custom_packages_file ${2}
 elif [[ -n ${1} ]]; then
   log "invalid argument passed to opkg-common.sh"
 fi
