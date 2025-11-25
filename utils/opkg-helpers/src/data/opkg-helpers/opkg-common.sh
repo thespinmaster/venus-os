@@ -91,6 +91,12 @@ try_install_package() {
 
 }
 
+ensure_rc_local() {
+  if [[ ! -f ${RC_LOCAL_FILE} ]]; then
+    echo "#!/bin/bash" >> ${RC_LOCAL_FILE}
+    chmod +x ${RC_LOCAL_FILE}
+  fi
+}
 ensure_installed() {
   
   if [[ -f "${LOG}" ]]; then
@@ -115,6 +121,8 @@ add_script_to_rc_local() {
   if [[ -z "${1}" ]]; then
     return
   fi
+  
+  ensure_rc_local
 
   if [[ ! -f ${RC_LOCAL_FILE} ]]; then
     echo "#!/bin/bash" >> ${RC_LOCAL_FILE}
