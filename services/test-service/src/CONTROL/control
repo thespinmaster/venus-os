@@ -8,4 +8,4 @@ License: MIT
 Architecture: all
 OE: einstine
 Source: https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feed/test-service
-Depends: python3
+Depends: opkg-helpers, python3
