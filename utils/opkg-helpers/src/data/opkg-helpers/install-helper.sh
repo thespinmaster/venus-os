@@ -129,7 +129,10 @@ _create_tty_file() {
     fi
  
     local usb_device
-    usb_device=$(_detect_inserted_serial_usb_device)
+ 
+    log "Plug in (or re-plugin) the usb device now...timeout in ${TIMEOUT} seconds"
+
+    usb_device=$(./get-usb-port.sh --silent )
     [[ -z "$usb_device" ]] && _log "No new USB device found." && echo "" && return
     
     _log "Found new USB device: $usb_device"

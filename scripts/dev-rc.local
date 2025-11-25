@@ -1,16 +1,6 @@
 #!/bin/bash
 
-if [[ -f /data/ensure_mounts.sh ]]; then
-  echo "ensure mounts"
-  /data/ensure_mounts.sh
-fi
-
 SCRIPTS_PATH=/data/dev/projects/venus-os/scripts
 
 ${SCRIPTS_PATH}/ensure_bash_alias.sh
-${SCRIPTS_PATH}/ensure_feed.sh
 
-# opkg-auto-installer (do not edit)
-if [[ -f /data/ensure_custom_packages.sh ]]; then
-  noup "/data/opkg-auto-installer/opkg-common.sh ensure_installed" &> /data/ensure_custom_packages.log &
-fi

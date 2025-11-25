@@ -16,7 +16,7 @@ fi
 
 SCRIPT="
 # ${PACKAGENAME} (do not edit)
-/data/mount-nfs-cifs/ensure_mountpoints.sh
+/data/mount-nfs-cifs/ensure-mountpoints.sh
 "
 remove_script_from_rc_local "${SCRIPT}"
 
