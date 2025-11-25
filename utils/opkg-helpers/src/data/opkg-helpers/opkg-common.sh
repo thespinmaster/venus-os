@@ -2,14 +2,14 @@
 
 RC_LOCAL_FILE=/data/rc.local
 OPKG_HELPERS_PATH=/data/opkg-helpers
-OPKG_CUSTOM_PACKAGES_FILE=${OPKG_HELPERS_PATH}/custom-packages
+OPKG_CUSTOM_PACKAGES_FILE=./custom-packages
 OPKG_COMMON_SCRIPT_FILE=${OPKG_HELPERS_PATH}/opkg-common.sh
 
 LOG=${OPKG_HELPERS_PATH}/log
 IS_FS_READONLY=
 
 log() {
-  echo "`date +%y/%m/%d_%H:%M:%S`:: `${1}`" >> "${LOG}"
+  echo "`date +%y/%m/%d_%H:%M:%S`:: ${1}" >> "${LOG}"
 }
 
 expand_root_fs() {
@@ -111,45 +111,32 @@ ensure_installed() {
 }
 
 add_script_to_rc_local() {
+  
+  if [[ -z "${1}" ]]; then
+    return
+  fi
 
-  SCRIPT=${1}
-
-  if ! grep -q "^${SCRIPT}$" "${RC_LOCAL_FILE}" ; then
+  if grep -Fq "${1}" ${RC_LOCAL_FILE}; then
+    log "custom script already added" 
+  else
     log "adding custom script to ${RC_LOCAL_FILE}"
     
-    echo "${SCRIPT}" >> "${RC_LOCAL_FILE}"
-  
-  else
-    log "custom script already added"
+    echo "${1}" >> "${RC_LOCAL_FILE}"
   fi
+
 }
 
 remove_script_from_rc_local() {
-
-  SCRIPT=${1}
-
-  if grep -q "^${SCRIPT}$" "${RC_LOCAL_FILE}" ; then
-    log "removing custom script from ${RC_LOCAL_FILE}"
-    
-    sed "/^${SCRIPT}/d" "${RC_LOCAL_FILE}"  
+  
+  if [[ -z "${1}" ]]; then
+    return
   fi
 
-}
-
-add_opkg_auto_installer_to_rc_local() {
-  
-  if ! grep -q "^# opkg-auto-installer (do not edit)$" "${RC_LOCAL_FILE}" ; then
-    log "adding opkg-auto-installer script to ${RC_LOCAL_FILE}"
-    
-    echo "
-# opkg-auto-installer (do not edit)
-if [[ -f \"${OPKG_CUSTOM_PACKAGES_FILE}\" ]]; then
-  noup \"${OPKG_COMMON_SCRIPT_FILE} ensure_installed\" &> /dev/null &
-fi
-" >> "${RC_LOCAL_FILE}"
-  
-  else
-    log "opkg-auto-installer script already added"
+  if grep -Fq "${1}" ${RC_LOCAL_FILE}; then
+    log "removing custom script from ${RC_LOCAL_FILE}"  
+    # muti-line file replace
+    # may need different delimiter than |
+    perl -i -0pe "s|\Q${1}\E||se" $RC_LOCAL_FILE 
   fi
 
 }
