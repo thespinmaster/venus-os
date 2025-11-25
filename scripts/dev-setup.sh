@@ -3,7 +3,7 @@
 # exit on error
 set -e
 
-${RC_LOCAL_FILE} = /data/rc.local
+RC_LOCAL_FILE=/data/rc.local
 
 ensure_feed() {
   FEED_CONFIG_FILE="/etc/opkg/thespinmaster.conf"
