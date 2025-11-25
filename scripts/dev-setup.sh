@@ -4,11 +4,7 @@ if [[ -z ${1} ]]; then
   echo "Server IP address or host name not passed"
   exit
 fi
-
-DEV_SERVER_IP=${1}
-
-echo ${DEV_SERVER_IP}
-
+ 
 # exit on error
 set -e
 
@@ -42,14 +38,17 @@ opkg install python3
 echo "installing support for mounting network shares"
 opkg install mount-nfs-cifs
 
+read -p "Enter hostname or IP address for dev share: " DEV_SERVER_IP
 echo "mount dev share and link //${DEV_SERVER_IP}/dev to /data/dev"
 
-read -p "Enter username for dev share: " MOUNT_USER_NAME
-read -p "Enter password for dev share: " MOUNT_PASSWORD
+if [[ -n ${DEV_SERVER_IP} ]]; then
+  read -p "Enter username for dev share: " MOUNT_USER_NAME
+  read -p "Enter password for dev share: " MOUNT_PASSWORD
 
-mkdir -p /mnt/storage/dev
-echo "mount -t cifs -o user=$MOUNT_USER_NAME,pass=$MOUNT_PASSWORD //${DEV_SERVER_IP}/dev /mnt/storage/dev" >> /data/mount-nfs-cifs/mountpoints.conf
-ln -s /mnt/storage/dev /data/dev
+  mkdir -p /mnt/storage/dev
+  echo "mount -t cifs -o user=$MOUNT_USER_NAME,pass=$MOUNT_PASSWORD //${DEV_SERVER_IP}/dev /mnt/storage/dev" >> /data/mount-nfs-cifs/mountpoints.conf
+  ln -s /mnt/storage/dev /data/dev
+fi
 
 cp /data/dev/projects/venus-os/scripts/dev-rc.local /data/rc.local
 
