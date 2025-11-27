@@ -78,7 +78,7 @@ mount_server() {
   # store return value in RETVAL return true on error 
   # else if set -e is used we will exit
   mountpoint -q "${MOUNT_POINT}" && RETVAL=0 || { RETVAL=$?; true; }
-               
+
   if [[ ${RETVAL} -ne 0 ]]; then
     echo "not mounted...mounting"
     SERVER_UP=
