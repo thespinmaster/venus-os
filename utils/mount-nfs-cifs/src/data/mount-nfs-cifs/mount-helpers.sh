@@ -75,10 +75,10 @@ mount_server() {
   fi
 
   # if mountpoint returns anything else but 0 then re-mount (-q=quiet)
-  # return true on error else if set -e is used we will exit
-  mountpoint -q "${MOUNT_POINT}" || true
-  RETVAL=$? # always place into variable
-                              
+  # store return value in RETVAL return true on error 
+  # else if set -e is used we will exit
+  mountpoint -q "${MOUNT_POINT}" && RETVAL=0 || { RETVAL=$?; true; }
+               
   if [[ ${RETVAL} -ne 0 ]]; then
     echo "not mounted...mounting"
     SERVER_UP=
@@ -86,8 +86,8 @@ mount_server() {
     if [[ ${SERVER_UP} == true ]]; then
       echo "mounting... ${SERVER_PATH} to ${MOUNT_POINT}"
       eval ${MOUNT_COMMAND}
-      mountpoint -q ${MOUNT_POINT} || true
-      if [[ $? -eq 0 ]]; then
+      mountpoint -q "${MOUNT_POINT}" && RETVAL=0 || { RETVAL=$?; true; }
+      if [[ ${RETVAL} -eq 0 ]]; then
         echo "mount point succeeded"
       else
         echo "mount point failed"
