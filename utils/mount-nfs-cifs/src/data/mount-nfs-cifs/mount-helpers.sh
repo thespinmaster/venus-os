@@ -172,7 +172,7 @@ if any arguments are missing (-s,-t,-u,-p) the values are prompted for.
     return
   fi
 
-  if [[ -d "${TARGET}" ]]; then
+  if [[ ! -d "${TARGET}" ]]; then
     mkdir -p "${TARGET}"
   fi
 
@@ -182,7 +182,7 @@ if any arguments are missing (-s,-t,-u,-p) the values are prompted for.
 
   MOUNT_COMMAND="mount -t cifs -o user=${USERNAME},pass=${PASSWORD} ${OPTIONS} ${SOURCE} ${TARGET}" 
   if grep -Fq "${MOUNT_COMMAND}" "${MOUNT_POINT_CONF_FILE}"; then
-    echo "mount already added"
+    echo "mount already added to mountpoints.conf"
   else
     echo "${MOUNT_COMMAND}" >> "${MOUNT_POINT_CONF_FILE}"
   fi
