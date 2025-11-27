@@ -76,8 +76,9 @@ mount_server() {
 
   #if mountpoint returns anything else but 0 then re-mount (-q=quiet)
   mountpoint -q "${MOUNT_POINT}"
-    
-  if [[ $? -ne 0 ]]; then
+  RETVAL=$? # always place into variable
+                              
+  if [[ ${RETVAL} -ne 0 ]]; then
     echo "not mounted...mounting"
     SERVER_UP=
     wait_for_server "${SERVER}"
