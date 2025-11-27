@@ -1,7 +1,7 @@
 #!/bin/bash
 
 SERVER_UP=
-MOUNT_POINT_CONF_FILE=$(dirname "$0")/mountpoints.conf
+MOUNT_POINT_CONF_FILE=$(realpath mountpoints.conf)
 
 wait_for_server() {
 
@@ -54,7 +54,7 @@ mount_all() {
       MOUNT_COMAMND=
     fi
 
-  done < mountpoints.conf  
+  done < "${MOUNT_POINT_CONF_FILE}"
   
   if [[ ${MOUNT_FOUND} = true ]]; then
     echo "no mount points found in mountpoints.conf"
