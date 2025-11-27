@@ -4,8 +4,7 @@
 set -e
 
 RC_LOCAL_FILE=/data/rc.local
-MOUNT_POINT_CONF_FILE=/data/mount-nfs-cifs/mountpoints.conf
-
+ 
 ensure_feed() {
   FEED_CONFIG_FILE="/etc/opkg/thespinmaster.conf"
   #FEED_CONFIG_FILE="./opkg_feeds/thespinmaster.conf"
@@ -36,25 +35,14 @@ opkg install python3
 echo "installing support for mounting network shares"
 opkg install mount-nfs-cifs
 
-read -p "Enter hostname or IP address for dev share: " DEV_SERVER_IP
-echo "mount dev share and link //${DEV_SERVER_IP}/dev to /data/dev"
+. /data/mount-nfs-cifs/mount-helpers.sh
 
-if [[ -n ${DEV_SERVER_IP} ]]; then
-  read -p  "Enter username for dev share: " MOUNT_USER_NAME
-  read -ps "Enter password for dev share:" MOUNT_PASSWORD
-  echo
-  mkdir -p /mnt/storage/dev
-  if grep -Fq "$MOUNT_COMMAND" ${MOUNT_POINT_CONF_FILE}; then
-    echo "mount already added"
-  else
-    echo "mount -t cifs -o user=$MOUNT_USER_NAME,pass=$MOUNT_PASSWORD //${DEV_SERVER_IP}/dev /mnt/storage/dev" >> /data/mount-nfs-cifs/mountpoints.conf
-  fi
-
-  /data/mount-nfs-cifs/ensure-mountpoints.sh
- 
+#  ServerIP-Host/Path,MountPoint,UserName,Password,LinkPoint
+#          ^              ^         ^         ^        ^
+mount_cifs "" "/mnt/storage/dev" "admin_user" ""
+if [[ ! -f /data/dev]]; then
   ln -s /mnt/storage/dev /data/dev
 fi
-
 echo "setting up bash aliases"
 echo "/data/dev/projects/venus-os/scripts/ensure-bash-alias.sh" >> ${RC_LOCAL_FILE}
 /data/dev/projects/venus-os/scripts/ensure-bash-alias.sh

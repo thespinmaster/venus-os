@@ -32,7 +32,7 @@ rm -r ${TMP_FOLDER}
 
 SCRIPT="
 # ${PACKAGENAME} (do not edit)
-/data/mount-nfs-cifs/ensure-mountpoints.sh
+/data/mount-nfs-cifs/mount-helpers.sh \"mount_all\"
 "
 add_script_to_rc_local "${SCRIPT}"
 

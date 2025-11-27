@@ -3,7 +3,8 @@
 none:
 	@echo "building none... specify the ipk folder to build"
 
-all: network-gps-build dbus-ne-shunt-build test-service-build test-install-build package mount-nfs-cifs-build opkg-helpers-build
+#MAKE SURE package is the last item
+all: network-gps-build dbus-ne-shunt-build test-service-build test-install-build mount-nfs-cifs-build opkg-helpers-build package
 	@echo "building all targets"
 
 network-gps: network-gps-build package
