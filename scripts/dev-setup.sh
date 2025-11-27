@@ -35,16 +35,23 @@ opkg install python3
 echo "installing support for mounting network shares"
 opkg install mount-nfs-cifs
 
-. /data/mount-nfs-cifs/mount-helpers.sh
+# () keeps . (source) to within bounds
+(
+  . /data/mount-nfs-cifs/mount-helpers.sh
 
-#source, username and password will be prompted for
-mount_cifs --target="/mnt/storage/dev"
+  #source, username and password will be prompted for
+  mount_cifs --target="/mnt/storage/dev"
+)
+
 if [[ ! -L "/data/dev" ]]; then
   ln -s "/mnt/storage/dev" "/data/dev"
 fi
 
 echo "setting up bash aliases"
-echo "/data/dev/projects/venus-os/scripts/ensure-bash-alias.sh" >> ${RC_LOCAL_FILE}
-/data/dev/projects/venus-os/scripts/ensure-bash-alias.sh
+(
+  . /data/opkg-helpers/opkg-common.sh
+  add_script_to_rc_local "/data/dev/projects/venus-os/scripts/ensure-bash-alias.sh"
+  /data/dev/projects/venus-os/scripts/ensure-bash-alias.sh
+)
 
 echo "dev environment setup completed successfully" 
