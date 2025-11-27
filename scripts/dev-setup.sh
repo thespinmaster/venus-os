@@ -39,8 +39,8 @@ opkg install mount-nfs-cifs
 
 #source, username and password will be prompted for
 mount_cifs --target="/mnt/storage/dev"
-if [[ ! -f /data/dev]]; then
-  ln -s /mnt/storage/dev /data/dev
+if [[ ! -f "/data/dev"]]; then
+  ln -s "/mnt/storage/dev" "/data/dev"
 fi
 
 echo "setting up bash aliases"
