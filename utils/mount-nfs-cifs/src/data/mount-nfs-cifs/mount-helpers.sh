@@ -186,7 +186,7 @@ if any arguments are missing (-s,-t,-u,-p) the values are prompted for.
   else
     echo "${MOUNT_COMMAND}"
     #echo "${MOUNT_COMMAND}" >> "${MOUNT_POINT_CONF_FILE}"
-    #mount_server "${MOUNT_COMMAND}"
+    mount_server "${MOUNT_COMMAND}"
   fi
   
 }

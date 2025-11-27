@@ -37,12 +37,12 @@ opkg install mount-nfs-cifs
 
 . /data/mount-nfs-cifs/mount-helpers.sh
 
-#  ServerIP-Host/Path,MountPoint,UserName,Password,LinkPoint
-#          ^              ^         ^         ^        ^
-mount_cifs "" "/mnt/storage/dev" "admin_user" ""
+#source, username and password will be prompted for
+mount_cifs --target="/mnt/storage/dev"
 if [[ ! -f /data/dev]]; then
   ln -s /mnt/storage/dev /data/dev
 fi
+
 echo "setting up bash aliases"
 echo "/data/dev/projects/venus-os/scripts/ensure-bash-alias.sh" >> ${RC_LOCAL_FILE}
 /data/dev/projects/venus-os/scripts/ensure-bash-alias.sh
