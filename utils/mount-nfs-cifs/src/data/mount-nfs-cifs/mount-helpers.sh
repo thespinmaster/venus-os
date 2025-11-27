@@ -67,7 +67,7 @@ mount_server() {
   MOUNT_COMMAND="${1}"
   SERVER=$(grep -o -P '(?<= //).*?(?=/)' <<< "${MOUNT_COMMAND}")
   SERVER_PATH=$(grep -o -P '(?<= //).*?(?= )' <<< "${MOUNT_COMMAND}")
-  MOUNT_POINT="${MOUNT_COMMAND##*}"
+  MOUNT_POINT="${MOUNT_COMMAND##* }"
 
   if [[ -z "${SERVER}" ]] || [[ -z "${SERVER_PATH}" ]] || [[ -z "${MOUNT_POINT}" ]]; then
     echo "mount_server: invaid args"
@@ -184,11 +184,9 @@ if any arguments are missing (-s,-t,-u,-p) the values are prompted for.
   if grep -Fq "${MOUNT_COMMAND}" "${MOUNT_POINT_CONF_FILE}"; then
     echo "mount already added"
   else
-    echo "${MOUNT_COMMAND}"
-    #echo "${MOUNT_COMMAND}" >> "${MOUNT_POINT_CONF_FILE}"
-    mount_server "${MOUNT_COMMAND}"
+    echo "${MOUNT_COMMAND}" >> "${MOUNT_POINT_CONF_FILE}"
   fi
-  
+  mount_server "${MOUNT_COMMAND}"
 }
 
 if [[ "${1}" == "mount_all" ]]; then
