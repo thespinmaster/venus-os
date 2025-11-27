@@ -26,9 +26,9 @@ Installs Python (full version)
 Sets up rc.local
 
 ```
-wget https://raw.githubusercontent.com/thespinmaster/venus-os/refs/heads/main/scripts/dev-setup.sh -O /tmp/dev-setup.sh
-chmod +x /tmp/dev-setup.sh
-/tmp/dev-setup.sh
+wget https://raw.githubusercontent.com/thespinmaster/venus-os/refs/heads/main/scripts/dev-setup.sh -O /data/dev-setup.sh
+chmod +x /data/dev-setup.sh
+/data/dev-setup.sh
 
 ```
 
