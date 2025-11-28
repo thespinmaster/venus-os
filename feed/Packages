@@ -62,7 +62,7 @@ Version: 1.0.1
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: 9de8a2d78ba444cb1281a131e0f57a2e
+MD5Sum: 732f17803a3fc86e1d7468890f98643c
 Size: 6892
 Filename: opkg-helpers_1.0.1_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feed/opkg-helpers

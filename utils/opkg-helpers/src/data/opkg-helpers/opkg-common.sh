@@ -130,7 +130,7 @@ add_script_to_rc_local() {
     ' "${RC_LOCAL_FILE}" && { FOUND=1; } || { FOUND=; true; }
 
   if [[ ! ${FOUND} ]]; then 
-    "adding custom script to ${RC_LOCAL_FILE}"
+    echo "adding custom script to ${RC_LOCAL_FILE}"
     echo "${1}" >> "${RC_LOCAL_FILE}"
   else  
     echo "custom script already added" 
