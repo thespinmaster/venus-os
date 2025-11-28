@@ -154,7 +154,7 @@ add_script_to_rc_local() {
   
   ensure_rc_local
   
-  . ./string-helpers.sh
+  . /data/opkg-helpers/string-helpers.sh
   local FOUND=
   FOUND=$(awk_contains_multiline_string "$SEARCH_PATTERN" <<< "$FILE_CONTENTS")
 
@@ -173,7 +173,7 @@ remove_script_from_rc_local() {
     return
   fi
 
-  . ./string-helpers.sh
+  . /data/opkg-helpers/string-helpers.sh
   echo "removing custom script from ${RC_LOCAL_FILE}"
   # reads from ${RC_LOCAL_FILE} removes ${1} and saves back to ${RC_LOCAL_FILE}
   awk_remove_multiline_string "$SEARCH_PATTERN" ${RC_LOCAL_FILE} > ${RC_LOCAL_FILE}
