@@ -27,21 +27,23 @@ is_root_fs_readonly() {
 }
 
 mount_root_fs_readwrite() {
-  log "mounting fs as read write"
+  echo "mounting fs as read write"
   mount -o remount,rw /
 }
 
 mount_root_fs_readonly() {
-  log "mounting fs as readonly"
+  echo "mounting fs as readonly"
   mount -o remount,ro /
 }
 
 ensure_feed() {
   FEED_CONFIG_FILE="/etc/opkg/thespinmaster.conf"
-  if [ ! -f $FEED_CONFIG_FILE ]; then
-    log "adding opkg feed"
+  if [ ! -f "${FEED_CONFIG_FILE}" ]; then
+    echo "adding opkg feed"
     FEED_URL="https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feed"
-    log "src/gz thespinmaster ${FEED_URL}"
+    echo "${FEED_URL}" >> "${FEED_CONFIG_FILE}"
+  else
+    echo "found opkg feed ${FEED_CONFIG_FILE}"
   fi
 }
 
@@ -53,7 +55,7 @@ try_install_package() {
   PACKAGE_NAME="${1}"
   
   if [[ -z "${PACKAGE_NAME}" ]]; then
-    log "package name not supplied"
+    echo "package name not supplied"
     return 1
   fi
 
@@ -63,7 +65,7 @@ try_install_package() {
   
   # if already installed then exit
   if [[ -n "${INSTALLED}" ]]; then
-    log "Already Installed ${PACKAGE_NAME}, exiting"
+    echo "Already Installed ${PACKAGE_NAME}, exiting"
     return 0
   fi
     
@@ -71,21 +73,17 @@ try_install_package() {
     # make sure the file system is writeable
 
     is_root_fs_readonly
-    log "fs is readonly:${IS_FS_READONLY}"
+    echo "fs is readonly:${IS_FS_READONLY}"
 
     if [ "${IS_FS_READONLY}" = true ]; then
       mount_root_fs_readwrite
     fi
-    
-    # ensure are feed is added to opkg
-    # and update opkg
-    ensure_feed
-    opkg update
+  
   fi
   
   IS_FS_READONLY=
 
-  log "Installing... ${PACKAGE_NAME}"  
+  echo "Installing... ${PACKAGE_NAME}"  
 
   opkg install "${PACKAGE_NAME}"
 
@@ -103,6 +101,10 @@ ensure_installed() {
     rm "${LOG}"
   fi  
   
+  # ensure custom feed is added and upto date
+  ensure_feed
+  opkg update
+
   while IFS= read -r line
   do 
     if [[ ! -z "$line" ]]; then
@@ -179,10 +181,10 @@ add_package_name_to_custom_packages_file() {
   PACKAGE_NAME="${1}"
 
   if ! grep -q "^${PACKAGE_NAME}$" "${OPKG_CUSTOM_PACKAGES_FILE}" ; then
-    log "adding ${PACKAGE_NAME} to ${OPKG_CUSTOM_PACKAGES_FILE}"
+    echo "adding ${PACKAGE_NAME} to ${OPKG_CUSTOM_PACKAGES_FILE}"
     echo "${PACKAGE_NAME}" >> "${OPKG_CUSTOM_PACKAGES_FILE}"
   else
-    log "package '${PACKAGE_NAME}' already added"
+    echo "package '${PACKAGE_NAME}' already added"
   fi
 
 }
@@ -192,10 +194,10 @@ remove_package_name_from_custom_packages_file() {
   PACKAGE_NAME="${1}"
 
   if grep -q "^${PACKAGE_NAME}$" "${OPKG_CUSTOM_PACKAGES_FILE}" ; then
-    log "Removing ${PACKAGE_NAME} from ${OPKG_CUSTOM_PACKAGES_FILE}"
+    echo "Removing ${PACKAGE_NAME} from ${OPKG_CUSTOM_PACKAGES_FILE}"
     sed -i "/^$PACKAGE_NAME$/d" "${OPKG_CUSTOM_PACKAGES_FILE}"
   else
-    log "package '${PACKAGE_NAME}' not found"
+    echo "package '${PACKAGE_NAME}' not found"
   fi
 
 }
@@ -203,5 +205,5 @@ remove_package_name_from_custom_packages_file() {
 if [[ ${1} == "ensure_installed" ]]; then
   ensure_installed
 elif [[ -n ${1} ]]; then
-  log "invalid argument passed to opkg-common.sh"
+  echo "invalid argument passed to opkg-common.sh"
 fi
