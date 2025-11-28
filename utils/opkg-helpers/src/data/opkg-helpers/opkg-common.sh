@@ -126,8 +126,8 @@ add_script_to_rc_local() {
   
   # multi-line search
   # Unbelievable that this has to be soooo complex for a basic search!!!
-  perl -0777 -nE "exit 1 if not /\Q${1}T\E/" <<< "${RC_LOCAL_FILE}" \ 
-    && { FOUND=1; } || { FOUND=; true; }
+  perl -0777 -nE 'exit 1 if not /\Q"${1}"T\E/
+    ' "${RC_LOCAL_FILE}" && { FOUND=1; } || { FOUND=; true; }
 
   if [[ ! ${FOUND} ]]; then 
     "adding custom script to ${RC_LOCAL_FILE}"
@@ -168,7 +168,7 @@ remove_script_from_rc_local() {
     # may need different delimiter than |
     # Use Perl for substitution
     # The delimiters for s/// are changed to '|' to avoid conflicts with '/'
-    perl -0777 -nE 's|\Q'"${1}"'\E||s;' $RC_LOCAL_FILE
+    perl -0777 -nE 's|\Q'"${1}"'\E||s;' "${RC_LOCAL_FILE}"
   #fi
 
 }
