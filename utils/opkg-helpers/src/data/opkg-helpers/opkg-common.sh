@@ -118,6 +118,34 @@ ensure_installed() {
 
 }
 
+##############################################################
+### An awk funtion to do simple multi-line string replacements
+### strings can contain any special characters
+### NO REGEX just simple exact matches
+### 
+##############################################################
+awk_string_replace() {
+
+  awk -v pattern="$1" '
+    BEGIN {RS = ""; ORS = "";}
+
+    {
+        content = $0;
+        match_pos = index(content, pattern);
+        
+        if (match_pos > 0) {
+            # Rebuild the string: part before the match + part after the match
+            len_pattern = length(pattern);
+            new_content = substr(content, 1, match_pos - 1);
+            new_content = new_content substr(content, match_pos + len_pattern);
+            print new_content;
+        } else {
+            print content; # No match, print original content
+        }
+    }
+' filename
+}
+
 add_script_to_rc_local() {
   
   if [[ -z "${1}" ]]; then
@@ -126,53 +154,30 @@ add_script_to_rc_local() {
   
   ensure_rc_local
   
-  # multi-line search
-  # Unbelievable that this has to be soooo complex for a basic search!!!
-  perl -0777 -nE 'exit 1 if not /\Q"${1}"\E/
-    ' "${RC_LOCAL_FILE}" && { FOUND=1; } || { FOUND=; true; }
+  . ./string-helpers.sh
+  local FOUND=
+  FOUND=$(awk_contains_multiline_string "$SEARCH_PATTERN" <<< "$FILE_CONTENTS")
 
-  if [[ ! ${FOUND} ]]; then 
+  if [[ ! $FOUND ]]; then
     echo "adding custom script to ${RC_LOCAL_FILE}"
     echo "${1}" >> "${RC_LOCAL_FILE}"
-  else  
-    echo "custom script already added" 
+  else
+    echo "custom script already added"
   fi
-  
-  # alternative for reference
-  # awk -v pattern="$TEST" '
-  #     BEGIN {RS = ""; found = 0}
-  #     index($0, pattern) {
-  #         print "Match found in file: " FILENAME > "/dev/stderr" # Print message to stderr
-  #         found = 1
-  #         exit 0 # Exit successfully right away
-  #     }
-  #     END {
-  #         if (!found) exit 1 # If the script ends without a match, exit with status 1
-  #     } ' ${RC_LOCAL_FILE}
  
 }
 
 remove_script_from_rc_local() {
   
-  if [[ -z "${1}" ]]; then
+  if [[ -z "${1}" ]] || [[ ! -f ${RC_LOCAL_FILE} ]]; then
     return
   fi
 
-  if [[ ! -f ${RC_LOCAL_FILE} ]]; then
-    return
-  fi
-
-  #perl -0777 -nE "exit 1 if not /\Q${1}\E/" <<< "${RC_LOCAL_FILE}" \ 
-  #  && { FOUND=1; } || { FOUND=; true; }
-
-    echo "removing custom script from ${RC_LOCAL_FILE}"  
-    # muti-line file replace
-    # may need different delimiter than |
-    # Use Perl for substitution
-    # The delimiters for s/// are changed to '|' to avoid conflicts with '/'
-    perl -0777 -nE 's|\Q'"${1}"'\E||s;' "${RC_LOCAL_FILE}"
-  #fi
-
+  . ./string-helpers.sh
+  echo "removing custom script from ${RC_LOCAL_FILE}"
+  # reads from ${RC_LOCAL_FILE} removes ${1} and saves back to ${RC_LOCAL_FILE}
+  awk_remove_multiline_string "$SEARCH_PATTERN" ${RC_LOCAL_FILE} > ${RC_LOCAL_FILE}
+ 
 }
 
 add_package_name_to_custom_packages_file() {
