@@ -126,7 +126,7 @@ add_script_to_rc_local() {
   
   # multi-line search
   # Unbelievable that this has to be soooo complex for a basic search!!!
-  perl -0777 -nE 'exit 1 if not /\Q"${1}"T\E/
+  perl -0777 -nE 'exit 1 if not /\Q"${1}"\E/
     ' "${RC_LOCAL_FILE}" && { FOUND=1; } || { FOUND=; true; }
 
   if [[ ! ${FOUND} ]]; then 
@@ -160,7 +160,7 @@ remove_script_from_rc_local() {
     return
   fi
 
-  #perl -0777 -nE "exit 1 if not /\Q${1}T\E/" <<< "${RC_LOCAL_FILE}" \ 
+  #perl -0777 -nE "exit 1 if not /\Q${1}\E/" <<< "${RC_LOCAL_FILE}" \ 
   #  && { FOUND=1; } || { FOUND=; true; }
 
     echo "removing custom script from ${RC_LOCAL_FILE}"  
