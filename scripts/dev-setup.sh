@@ -16,7 +16,6 @@ ensure_feed() {
   FEED_URL="https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feed"
   echo "src/gz thespinmaster ${FEED_URL}" > "${FEED_CONFIG_FILE}"
 
-  opkg update
 }
 
 echo "resizing file system"
