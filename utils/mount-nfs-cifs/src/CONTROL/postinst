@@ -32,8 +32,8 @@ rm -r ${TMP_FOLDER}
 
 SCRIPT="
 # ${PACKAGENAME} (do not edit)
-/data/mount-nfs-cifs/mount-helpers.sh \"mount_all\"
-"
+/data/mount-nfs-cifs/mount-helpers.sh \"mount_all\""
+
 add_script_to_rc_local "${SCRIPT}"
 
 add_package_name_to_custom_packages_file "${PACKAGENAME}"
