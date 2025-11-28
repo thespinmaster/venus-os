@@ -123,20 +123,31 @@ add_script_to_rc_local() {
   fi
   
   ensure_rc_local
+  
+  # multi-line search
+  # Unbelievable that this has to be soooo complex for a basic search!!!
+  perl -0777 -nE "exit 1 if not /\Q${1}T\E/" <<< "${RC_LOCAL_FILE}" \ 
+    && { FOUND=1; } || { FOUND=; true; }
 
-  if [[ ! -f ${RC_LOCAL_FILE} ]]; then
-    echo "#!/bin/bash" >> ${RC_LOCAL_FILE}
-    chmod +x ${RC_LOCAL_FILE}
-  fi
-
-  if grep -Fq "${1}" ${RC_LOCAL_FILE}; then
-    log "custom script already added" 
-  else
-    log "adding custom script to ${RC_LOCAL_FILE}"
-    
+  if [[ ! ${FOUND} ]]; then 
+    "adding custom script to ${RC_LOCAL_FILE}"
     echo "${1}" >> "${RC_LOCAL_FILE}"
+  else  
+    echo "custom script already added" 
   fi
-
+  
+  # alternative for reference
+  # awk -v pattern="$TEST" '
+  #     BEGIN {RS = ""; found = 0}
+  #     index($0, pattern) {
+  #         print "Match found in file: " FILENAME > "/dev/stderr" # Print message to stderr
+  #         found = 1
+  #         exit 0 # Exit successfully right away
+  #     }
+  #     END {
+  #         if (!found) exit 1 # If the script ends without a match, exit with status 1
+  #     } ' ${RC_LOCAL_FILE}
+ 
 }
 
 remove_script_from_rc_local() {
@@ -149,12 +160,16 @@ remove_script_from_rc_local() {
     return
   fi
 
-  if grep -Fq "${1}" ${RC_LOCAL_FILE}; then
-    log "removing custom script from ${RC_LOCAL_FILE}"  
+  #perl -0777 -nE "exit 1 if not /\Q${1}T\E/" <<< "${RC_LOCAL_FILE}" \ 
+  #  && { FOUND=1; } || { FOUND=; true; }
+
+    echo "removing custom script from ${RC_LOCAL_FILE}"  
     # muti-line file replace
     # may need different delimiter than |
-    perl -i -0pe "s|\Q${1}\E||se" $RC_LOCAL_FILE 
-  fi
+    # Use Perl for substitution
+    # The delimiters for s/// are changed to '|' to avoid conflicts with '/'
+    perl -0777 -nE 's|\Q'"${1}"'\E||s;' $RC_LOCAL_FILE
+  #fi
 
 }
 
