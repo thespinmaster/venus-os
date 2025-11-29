@@ -44,7 +44,7 @@ echo
 echo "Running contains function on variable contents..."
 
 # Call the function and capture its output into a new result variable
-FOUND=$(awk_contains_multiline_string "$SEARCH_PATTERN" <<< "$FILE_CONTENTS")
+FOUND=$(multiline_string_match "$SEARCH_PATTERN" <<< "$FILE_CONTENTS")
 
 if [[ $FOUND ]]; then
   echo "found"
@@ -56,7 +56,7 @@ echo
 echo "Running removal function on file contents..."
 
 # Call the function and capture its output into a new result variable
-RESULT=$(awk_remove_multiline_string "$SEARCH_PATTERN" "$FILE_NAME")
+RESULT=$(multiline_string_match "$SEARCH_PATTERN" < "$FILE_NAME")
 
 # Print the result
 echo "--- Modified Content ---"
@@ -66,7 +66,7 @@ echo "--------------------------"
 echo "Running removal function on variable contents..."
 
 # Call the function and capture its output into a new result variable
-RESULT=$(awk_remove_multiline_string "$SEARCH_PATTERN" <<< "$FILE_CONTENTS")
+RESULT=$(multiline_string_match "$SEARCH_PATTERN" <<< "$FILE_CONTENTS")
 
 # Print the result
 echo "--- Modified Content ---"
@@ -74,7 +74,7 @@ echo "$RESULT"
 echo "--------------------------"
 
 echo "Running removal function on file contents and saving to file"
-awk_remove_multiline_string "$SEARCH_PATTERN" <<< "$FILE_CONTENTS" > "$FILE_NAME.new"
+multiline_string_match "$SEARCH_PATTERN" <<< "$FILE_CONTENTS" > "$FILE_NAME.new"
 echo "--- Modified Content (reading from $FILE_NAME.new) ---"
 echo "$(<$FILE_NAME.new)"
 echo "--------------------------"
@@ -85,7 +85,7 @@ echo "NO MATCH TESTS"
 echo "Running contains function on variable contents..."
 
 # Call the function and capture its output into a new result variable
-FOUND=$(awk_contains_multiline_string "$SEARCH_PATTERN" <<< "$FILE_CONTENTS_NOMATCH")
+FOUND=$(multiline_string_match "$SEARCH_PATTERN" <<< "$FILE_CONTENTS_NOMATCH")
 
 if [[ $FOUND ]]; then
   echo "found"
@@ -97,7 +97,7 @@ echo
 echo "Running removal function on file contents..."
 
 # Call the function and capture its output into a new result variable
-RESULT=$(awk_remove_multiline_string "$SEARCH_PATTERN" "$FILE_NAME_NOMATCH")
+RESULT=$(multiline_string_match "$SEARCH_PATTERN" < "$FILE_NAME_NOMATCH")
 
 # Print the result
 echo "--- Modified Content ---"

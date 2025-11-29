@@ -1,7 +1,7 @@
 #!/bin/bash
 
 SERVER_UP=
-MOUNT_POINT_CONF_FILE=$(realpath mountpoints.conf)
+readonly MOUNT_POINT_CONF_FILE=$(realpath mountpoints.conf)
 
 wait_for_server() {
 

@@ -1,11 +1,11 @@
 #!/bin/bash
 
-RC_LOCAL_FILE=/data/rc.local
-OPKG_HELPERS_PATH=/data/opkg-helpers
-OPKG_CUSTOM_PACKAGES_FILE=${OPKG_HELPERS_PATH}/custom-packages
-OPKG_COMMON_SCRIPT_FILE=${OPKG_HELPERS_PATH}/opkg-common.sh
+readonly RC_LOCAL_FILE=/data/rc.local
+readonly OPKG_HELPERS_PATH=/data/opkg-helpers
+readonly OPKG_CUSTOM_PACKAGES_FILE=${OPKG_HELPERS_PATH}/custom-packages
+readonly OPKG_COMMON_SCRIPT_FILE=${OPKG_HELPERS_PATH}/opkg-common.sh
 
-LOG=${OPKG_HELPERS_PATH}/log
+readonly LOG=${OPKG_HELPERS_PATH}/log
 IS_FS_READONLY=
 
 log() {
@@ -91,7 +91,7 @@ try_install_package() {
 
 ensure_rc_local() {
   if [[ ! -f ${RC_LOCAL_FILE} ]]; then
-    echo "#!/bin/bash" >> ${RC_LOCAL_FILE}
+    echo "#!/bin/bash" > ${RC_LOCAL_FILE}
     chmod +x ${RC_LOCAL_FILE}
   fi
 }
@@ -118,34 +118,6 @@ ensure_installed() {
 
 }
 
-##############################################################
-### An awk funtion to do simple multi-line string replacements
-### strings can contain any special characters
-### NO REGEX just simple exact matches
-### 
-##############################################################
-awk_string_replace() {
-
-  awk -v pattern="$1" '
-    BEGIN {RS = ""; ORS = "";}
-
-    {
-        content = $0;
-        match_pos = index(content, pattern);
-        
-        if (match_pos > 0) {
-            # Rebuild the string: part before the match + part after the match
-            len_pattern = length(pattern);
-            new_content = substr(content, 1, match_pos - 1);
-            new_content = new_content substr(content, match_pos + len_pattern);
-            print new_content;
-        } else {
-            print content; # No match, print original content
-        }
-    }
-' filename
-}
-
 add_script_to_rc_local() {
   
   if [[ -z "${1}" ]]; then
@@ -156,7 +128,7 @@ add_script_to_rc_local() {
   
   . /data/opkg-helpers/string-helpers.sh
   local FOUND=
-  FOUND=$(awk_contains_multiline_string "$SEARCH_PATTERN" <<< "$FILE_CONTENTS")
+  FOUND=$(multiline_string_match "${1}" --find-only --break-on-first < "${RC_LOCAL_FILE}")
 
   if [[ ! $FOUND ]]; then
     echo "adding custom script to ${RC_LOCAL_FILE}"
@@ -172,11 +144,11 @@ remove_script_from_rc_local() {
   if [[ -z "${1}" ]] || [[ ! -f ${RC_LOCAL_FILE} ]]; then
     return
   fi
-
+ 
   . /data/opkg-helpers/string-helpers.sh
   echo "removing custom script from ${RC_LOCAL_FILE}"
   # reads from ${RC_LOCAL_FILE} removes ${1} and saves back to ${RC_LOCAL_FILE}
-  awk_remove_multiline_string "$SEARCH_PATTERN" ${RC_LOCAL_FILE} > ${RC_LOCAL_FILE}
+  multiline_string_match "${1}" --trim-lines << "${RC_LOCAL_FILE}" > "${RC_LOCAL_FILE}"
  
 }
 

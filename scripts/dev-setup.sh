@@ -2,8 +2,6 @@
 
 # exit on error
 set -e
-
-RC_LOCAL_FILE=/data/rc.local
  
 ensure_feed() {
   FEED_CONFIG_FILE="/etc/opkg/thespinmaster.conf"
@@ -30,6 +28,9 @@ opkg install packagegroup-replace-busybox
 
 echo "installing python (full)"
 opkg install python3
+
+echo "installing additional packages"
+opkg install libatomic1
 
 echo "installing support for mounting network shares"
 opkg install mount-nfs-cifs
