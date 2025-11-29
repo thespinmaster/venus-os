@@ -2,6 +2,8 @@
 
 VERSION="2.0.0"
 
+# TODO update to use get-usb-port.sh
+
 ###################################################################################
 # A helper class for detecting and addusbing a serial device
 # called durin installation from the opkg installer (CONTROL/postinst/prerm)

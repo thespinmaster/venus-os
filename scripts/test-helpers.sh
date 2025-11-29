@@ -1,10 +1,4 @@
 #!/bin/bash
-
-clean_output() {
-    echo cleaning output folder
-    rm -rf "/home/admin/dev/projects/venus-os/services/dbus-ne-shunt/output/"*
-}
-
  
 pass_or_fail() {
     

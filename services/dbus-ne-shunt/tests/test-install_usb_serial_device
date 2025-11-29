@@ -48,8 +48,9 @@ setup_assets() {
 
 setup_assets
 
+#TODO install-helper location
 source "$PROJECT_DIR/src/CONTROL/install-helper"
-source "./test-helpers"
+source "./test-helpers.sh"
 
 init_variables
 

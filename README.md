@@ -23,7 +23,8 @@ Installs mount-nfs-cifs package for mounting nfs and cfs shares
 Mounts the dev server
 Installs package to replace BusyBox (so we can remote debug using VS Code)
 Installs Python (full version)
-Sets up rc.local
+Installs libatomic1
+Sets up rc.local and alias files
 
 ```
 wget https://raw.githubusercontent.com/thespinmaster/venus-os/refs/heads/main/scripts/dev-setup.sh -O /data/dev-setup.sh

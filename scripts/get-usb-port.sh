@@ -2,7 +2,6 @@
 while [ $# -gt 0 ]; do
   case "$1" in
     --silent*|-s*)
-      #if [[ "$1" != *=* ]]; then shift; fi # Value is next arg if no `=`
       SILENT="TRUE"
       ;;
     --timeout*|-t*)
@@ -57,7 +56,9 @@ fi
 # finaly call basename to return just the folder name "ttyUSB0" or similar
 ##############################################################################
 
-TTY=$(echo "$(timeout ${TIMEOUT} udevadm monitor --subsystem-match=tty -u | grep -P '(?=^UDEV .*\[[0-9]*\.[0-9]*\] add )')" | xargs -d "\n" -i sh -c 'f="{}"; basename "${f::-5}" ' 2>/dev/null)
+TTY=$(echo "$(timeout ${TIMEOUT} udevadm monitor --subsystem-match=tty -u | \
+              grep -P '(?=^UDEV .*\[[0-9]*\.[0-9]*\] add )')" | \
+              xargs -d "\n" -i sh -c 'f="{}"; basename "${f::-5}" ' 2>/dev/null)
 
 if [[ -z "$TTY" ]]; then
   if [[ -z "$SILENT" ]]; then

@@ -37,8 +37,9 @@ clean_output
 init_variables
 setup_assets
 
+#TODO install-helper location
 source "$PROJECT_DIR/src/CONTROL/install-helper"
-source "./test-helpers"
+source "./test-helpers.sh"
 
 echo "##################################"
 echo "calling add_ve_service_config_file_mapping"

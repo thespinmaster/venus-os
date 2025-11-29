@@ -23,6 +23,7 @@ echo "ensuring spinmaster feed"
 ensure_feed
 opkg update
 
+#TODO manualy add these packages to the /data/opkg-helpers/custom-packages.conf file
 echo "replacing busybox"
 opkg install packagegroup-replace-busybox
 

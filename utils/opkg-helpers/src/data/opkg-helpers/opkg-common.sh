@@ -1,10 +1,10 @@
 #!/bin/bash
 
+#TODO review readonly....need to change locations for testing?
 readonly RC_LOCAL_FILE=/data/rc.local
 readonly OPKG_HELPERS_PATH=/data/opkg-helpers
-readonly OPKG_CUSTOM_PACKAGES_FILE=${OPKG_HELPERS_PATH}/custom-packages
+readonly OPKG_CUSTOM_PACKAGES_FILE=${OPKG_HELPERS_PATH}/custom-packages.conf
 readonly OPKG_COMMON_SCRIPT_FILE=${OPKG_HELPERS_PATH}/opkg-common.sh
-
 readonly LOG=${OPKG_HELPERS_PATH}/log
 IS_FS_READONLY=
 
@@ -107,7 +107,11 @@ ensure_installed() {
 
   while IFS= read -r line
   do 
-    if [[ ! -z "$line" ]]; then
+    # ignore comments
+    if [[ -z grep '^[[:blank:]]*[^[:blank:]#;]' ]]; then
+      continue
+    fi
+    if [[ -n "$line" ]]; then
       try_install_package "$line" 
     fi
   done < "${OPKG_CUSTOM_PACKAGES_FILE}"

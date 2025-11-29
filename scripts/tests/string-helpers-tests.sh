@@ -2,7 +2,9 @@
 
 # set -e
 
-source ./string-helpers.sh
+#TODO finish string-helpers-tests (test arguments)
+
+source ../string-helpers.sh
 
 # 1. Define the multi-line string to REMOVE
 IFS='' read -r -d '' SEARCH_PATTERN <<'EOF'

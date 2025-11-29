@@ -5,7 +5,7 @@ set -e
 
 # note shellcheck requires +xn arguments
 # shellcheck source=./install-helper
-PACKAGENAME=$(basename "${0%.*}") #get file name without path
+PACKAGENAME=opkg-helpers
 OPKG_COMMON=/data/${PACKAGENAME}/opkg-common.sh
 source "${OPKG_COMMON}"
 

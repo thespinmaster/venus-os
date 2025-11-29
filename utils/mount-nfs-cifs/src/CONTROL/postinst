@@ -5,7 +5,7 @@ set -e
 
 source /data/opkg-helpers/opkg-common.sh
 
-PACKAGENAME=$(basename "${0%.*}") #get file name without path
+PACKAGENAME=mount-nfs-cifs
 
 LIB_FOLDER=/lib
 NEW_FILE=${LIB_FOLDER}/libcap-ng.so.0.0.0
