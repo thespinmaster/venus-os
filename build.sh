@@ -1,4 +1,9 @@
 
-make all
-git commit -am "updated installer"
+read -p "comment:" COMMENT
+
+if [[ -z "${COMMENT}" ]]; then
+  COMMENT="updated installer"
+fi
+
+git commit -am "${COMMENT}"
 sudo git push
