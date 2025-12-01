@@ -141,20 +141,20 @@ add_script_to_rc_local() {
   else
     echo "custom script already added"
   fi
- 
+
 }
 
 remove_script_from_rc_local() {
-  
+
   if [[ -z "${1}" ]] || [[ ! -f ${RC_LOCAL_FILE} ]]; then
     return
   fi
- 
+
   . /data/opkg-helpers/string-helpers.sh
   echo "removing custom script from ${RC_LOCAL_FILE}"
   # reads from ${RC_LOCAL_FILE} removes ${1} and saves back to ${RC_LOCAL_FILE}
-  multiline_string_match "${1}" --trim-lines << "${RC_LOCAL_FILE}" > "${RC_LOCAL_FILE}"
- 
+  multiline_string_match "${1}" --trim-lines << ${RC_LOCAL_FILE} > ${RC_LOCAL_FILE}
+
 }
 
 add_package_name_to_custom_packages_file() {
@@ -166,7 +166,7 @@ add_package_name_to_custom_packages_file() {
     echo "adding ${PACKAGE_NAME} to ${OPKG_CUSTOM_PACKAGES_FILE}"
     echo "${PACKAGE_NAME}" >> "${OPKG_CUSTOM_PACKAGES_FILE}"
   else
-    echo "package '${PACKAGE_NAME}' already added"
+    echo "package ${PACKAGE_NAME} already added"
   fi
 
 }
