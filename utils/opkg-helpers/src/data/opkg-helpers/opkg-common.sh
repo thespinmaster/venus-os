@@ -108,7 +108,7 @@ ensure_installed() {
   while IFS= read -r line
   do 
     # ignore comments
-    if [[ -z grep '^[[:blank:]]*[^[:blank:]#;]' ]]; then
+    if [[ -z grep '^[[:blank:]]*[^[:blank:]#;]' <<< "${line}"  ]]; then
       continue
     fi
     if [[ -n "$line" ]]; then
