@@ -14,4 +14,4 @@ fi
 
 make $build
 git commit -am "${COMMENT}"
-sudo git push
+git push
