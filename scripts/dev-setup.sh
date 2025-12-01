@@ -48,11 +48,14 @@ if [[ ! -L "/data/dev" ]]; then
   ln -s "/mnt/storage/dev" "/data/dev"
 fi
 
-echo "setting up bash aliases"
+echo "setting up environment (bash aliases, nanorc config)"
 (
   . /data/opkg-helpers/opkg-common.sh
-  add_script_to_rc_local "/data/dev/projects/venus-os/scripts/ensure-bash-alias.sh"
-  /data/dev/projects/venus-os/scripts/ensure-bash-alias.sh
+  add_script_to_rc_local "
+    # setup enviroment (do not edit)
+    /data/dev/projects/venus-os/scripts/setup-environment.sh"
+    # execute script
+    /data/dev/projects/venus-os/scripts/setup-environment.sh
 )
 
 echo "dev environment setup completed successfully" 

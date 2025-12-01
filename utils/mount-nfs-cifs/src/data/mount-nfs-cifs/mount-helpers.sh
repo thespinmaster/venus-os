@@ -7,7 +7,7 @@ wait_for_server() {
 
   echo "waiting for Server ${1}..."
   i=0
-  
+
   while ! timeout .2 ping -c 1 -n "${1}" &> /dev/null
   do
     i=$((i+1))
@@ -28,10 +28,10 @@ wait_for_server() {
 }
 
 mount_all() {
-  
+
   if [[ ! -f ${MOUNT_POINT_CONF_FILE} ]]; then
     echo "missing mountpoint.conf file"
-    return  
+    return
   fi
 
   local MOUNT_COMMAND
@@ -43,7 +43,7 @@ mount_all() {
     if [[ "${line}" == "#*" ]] || [[ -z "${line}" ]]; then
       continue
     fi
-    
+
     MOUNT_COMMAND="${line}"
 
     echo "calling mount_server: $SERVER, $SERVER_PATH, $MOUNT_POINT"
@@ -55,7 +55,7 @@ mount_all() {
     fi
 
   done < "${MOUNT_POINT_CONF_FILE}"
-  
+
   if [[ ${MOUNT_FOUND} = true ]]; then
     echo "no mount points found in mountpoints.conf"
   fi
@@ -75,7 +75,7 @@ mount_server() {
   fi
 
   # if mountpoint returns anything else but 0 then re-mount (-q=quiet)
-  # store return value in RETVAL return true on error 
+  # store return value in RETVAL return true on error
   # else if set -e is used we will exit
   mountpoint -q "${MOUNT_POINT}" && RETVAL=0 || { RETVAL=$?; true; }
 
@@ -93,12 +93,12 @@ mount_server() {
         echo "mount point failed"
       fi
     fi
- 
+
   else
     echo "mount point already exists"
   fi
 }
- 
+
 mount_cifs() {
 
   local SOURCE=
@@ -125,17 +125,17 @@ mount_cifs() {
         PASSWORD="${1#*=}"
         ;;
       --help|-h)
-        HELP="Creates a cifs mount point and stores the settings to the 
+        HELP="Creates a cifs mount point and stores the settings to the
 mountpoints.conf file. The mount_all function is called from
 rc.local (at startup) and reads the mountpoints.conf file to mount
-the stored mountpoints. 
-      
+the stored mountpoints.
+
 if any arguments are missing (-s,-t,-u,-p) the values are prompted for.
 
   Version 1.0
-    
-  Arguments:  
-    --source | -s : The source of the mountpoint. i.e. //192.168.2.1/data or //hostname/data 
+
+  Arguments:
+    --source | -s : The source of the mountpoint. i.e. //192.168.2.1/data or //hostname/data
     --target | -t : The local target for the mountpoint. i.e. /mnt/data
     --username | -u: The user name to access the source.
     --password | -p : The password used to access the source.
@@ -151,7 +151,7 @@ if any arguments are missing (-s,-t,-u,-p) the values are prompted for.
     esac
     shift
   done
- 
+
   if [[ -z "${SOURCE}" ]]; then
     read -p "Enter server ip/host address and path: " SOURCE
   fi
@@ -168,7 +168,7 @@ if any arguments are missing (-s,-t,-u,-p) the values are prompted for.
     read -s -p "Enter password for share: " PASSWORD
     echo
   fi
-  
+
   if [[ -z "${SOURCE}" ]] || [[ -z "${TARGET}" ]]; then
     echo "exiting..."
     return
@@ -182,7 +182,7 @@ if any arguments are missing (-s,-t,-u,-p) the values are prompted for.
     SOURCE="//${SOURCE}"
   fi
 
-  MOUNT_COMMAND="mount -t cifs -o user=${USERNAME},pass=${PASSWORD} ${OPTIONS} ${SOURCE} ${TARGET}" 
+  MOUNT_COMMAND="mount -t cifs -o user=${USERNAME},pass=${PASSWORD} ${OPTIONS} ${SOURCE} ${TARGET}"
   if grep -Fq "${MOUNT_COMMAND}" "${MOUNT_POINT_CONF_FILE}"; then
     echo "mount already added to mountpoints.conf"
   else
@@ -197,5 +197,4 @@ elif [[ "${1}" == "mount_cifs" ]]; then
   shift
   mount_cifs "$@"
 fi
-
 

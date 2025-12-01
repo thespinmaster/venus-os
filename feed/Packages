@@ -4,8 +4,8 @@ Depends: opkg-helpers, python3
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: 2850c827b394ed8a5d831d0d4185dcc9
-Size: 60808
+MD5Sum: 377b0f04097dce18f2e0fb9d4f2b5ac5
+Size: 60804
 Filename: dbus-ne-shunt_1.0.19_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feed/dbus-ne-shunt
 Description: Adds support for NordElectronica shunt NE196/NE319 board to Venus-OS
@@ -33,8 +33,8 @@ Depends: opkg-helpers
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: c24878e273d6941c7cfdc968873e29ed
-Size: 66378
+MD5Sum: 05786d603472a90974aeab15b1592e0e
+Size: 66356
 Filename: mount-nfs-cifs_1.0.1_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feed/mount-nfs-cifs
 Description: Adds support for nfs and cifs shares to Venus OS
@@ -48,7 +48,7 @@ Depends: opkg-helpers
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: d90fd2f7f39692107eee13476f7cea24
+MD5Sum: 852e83c4cdd2f1d4aa2ba7b1bc890f4b
 Size: 1978
 Filename: network-gps_1.0.0_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feed/network-gps
@@ -62,7 +62,7 @@ Version: 1.0.1
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: 86a050c9e4176e78944edaad20e34c5b
+MD5Sum: 17f7d9cfea3516a372f1559421e00634
 Size: 7552
 Filename: opkg-helpers_1.0.1_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feed/opkg-helpers
@@ -77,8 +77,8 @@ Depends: opkg-helpers
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: 4feb243ec0af34443f277e0a89e357f7
-Size: 972
+MD5Sum: b34c371f267458462a035f0e0d221915
+Size: 970
 Filename: test-install_1.0.4_all.ipk
 Source: https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feed/test-install
 Description: A simple app for testing install
@@ -92,7 +92,7 @@ Depends: opkg-helpers, python3
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: 103f0a8d8b90488d541f30b6610f5c35
+MD5Sum: 3dbd60e14c74781d446674ad559914e5
 Size: 3110
 Filename: test-service_1.0.0_all.ipk
 Source: https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feed/test-service
