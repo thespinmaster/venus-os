@@ -153,7 +153,7 @@ remove_script_from_rc_local() {
   . /data/opkg-helpers/string-helpers.sh
   echo "removing custom script from ${RC_LOCAL_FILE}"
   # reads from ${RC_LOCAL_FILE} removes ${1} and saves back to ${RC_LOCAL_FILE}
-  multiline_string_match "${1}" --trim-lines << ${RC_LOCAL_FILE} > ${RC_LOCAL_FILE}
+  multiline_string_match "${1}" --trim-lines < "${RC_LOCAL_FILE}" > "${RC_LOCAL_FILE}"
 
 }
 
