@@ -7,7 +7,7 @@ OPKG_COMMON=/data/${PACKAGENAME}/opkg-common.sh
 source "${OPKG_COMMON}"
 
 SCRIPT="# ${PACKAGENAME} (do not edit)
-noup \"${OPKG_COMMON} ensure_installed\" &> /dev/null &"
+${OPKG_COMMON} \"ensure_installed\""
 
 remove_script_from_rc_local "${SCRIPT}"
 

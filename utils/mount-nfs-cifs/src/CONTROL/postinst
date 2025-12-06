@@ -7,9 +7,8 @@ source /data/opkg-helpers/opkg-common.sh
 
 PACKAGENAME=mount-nfs-cifs
 
-LIB_FOLDER=/lib
-NEW_FILE=${LIB_FOLDER}/libcap-ng.so.0.0.0
-LNK_FILE=${LIB_FOLDER}/libcap-ng.so.0
+NEW_FILE=/lib/libcap-ng.so.0.0.0
+LNK_FILE=/lib/libcap-ng.so.0
 TMP_FOLDER=/tmp/mount-nfs-cifs
 TMP_FILE=${TMP_FOLDER}/libcap-ng.so.0.0.0
 
@@ -22,10 +21,9 @@ echo "copying ${TMP_FILE} to ${NEW_FILE}"
 cp ${TMP_FILE} ${NEW_FILE}
 chmod +x ${NEW_FILE}
 
-if [[ ! -L ${LNK_FILE} ]]; then
-    echo "Creating missing symbolic link ${LNK_FILE} --> ${NEW_FILE}"
-    ln -s ${NEW_FILE} ${LNK_FILE}
-fi
+unlink ${LNK_FILE}
+echo "Creating missing symbolic link ${LNK_FILE} --> ${NEW_FILE}"
+ln -s ${NEW_FILE} ${LNK_FILE}
 
 echo "cleaning up"
 rm -r ${TMP_FOLDER}

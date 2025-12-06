@@ -102,19 +102,26 @@ ensure_installed() {
   fi  
   
   # ensure custom feed is added and upto date
-  ensure_feed
-  opkg update
 
+  INIT=
   while IFS= read -r line
   do 
     # ignore comments
     if [[ -z $(grep '^[[:blank:]]*[^[:blank:]#]' <<< "${line}" ) ]]; then
       continue
     fi
-
-    if [[ -n "$line" ]]; then
-      try_install_package "$line" 
+	
+    if [[ -n "{$line}" ]]; then
+		if [[ -z $(opkg list-installed "${line}") ]]; then
+			if [[ ! ${INIT} ]]; then
+			    INIT=true
+                ensure_feed
+                opkg update
+			fi
+			try_install_package "$line"
+        fi
     fi
+	
   done < "${OPKG_CUSTOM_PACKAGES_FILE}"
 
   if [ "${IS_FS_READONLY}" = true ]; then

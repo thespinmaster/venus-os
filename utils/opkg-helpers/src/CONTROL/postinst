@@ -11,7 +11,7 @@ source "${OPKG_COMMON}"
 
 SCRIPT="
 # ${PACKAGENAME} (do not edit)
-noup \"${OPKG_COMMON} ensure_installed\" &> /dev/null &"
+${OPKG_COMMON} \"ensure_installed\""
 
 add_script_to_rc_local "${SCRIPT}"
 
