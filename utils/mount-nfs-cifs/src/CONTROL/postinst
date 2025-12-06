@@ -21,6 +21,7 @@ echo "copying ${TMP_FILE} to ${NEW_FILE}"
 cp ${TMP_FILE} ${NEW_FILE}
 chmod +x ${NEW_FILE}
 
+echo "unlinking"
 unlink ${LNK_FILE} 2>/dev/null
 
 echo "Creating missing symbolic link ${LNK_FILE} --> ${NEW_FILE}"
