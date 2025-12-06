@@ -1,9 +1,9 @@
 
 
-if [[ -n "$1" ]]; then
+if [[ -z "${1}" ]]; then
   build=all
 else
- build="$1"
+ build="${1}"
 fi
 
 read -p "comment:" COMMENT
