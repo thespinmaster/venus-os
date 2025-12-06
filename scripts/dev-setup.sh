@@ -52,8 +52,9 @@ echo "setting up environment (bash aliases, nanorc config)"
 (
   . /data/opkg-helpers/opkg-common.sh
   add_script_to_rc_local "
-    # setup enviroment (do not edit)
-    /data/dev/projects/venus-os/scripts/setup-environment.sh"
+# setup enviroment (do not edit)
+/data/dev/projects/venus-os/scripts/setup-environment.sh"
+    
     # execute script
     /data/dev/projects/venus-os/scripts/setup-environment.sh
 )

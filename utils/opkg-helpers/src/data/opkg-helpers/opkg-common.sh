@@ -112,14 +112,14 @@ ensure_installed() {
     fi
 	
     if [[ -n "{$line}" ]]; then
-		if [[ -z $(opkg list-installed "${line}") ]]; then
-			if [[ ! ${INIT} ]]; then
-			    INIT=true
-                ensure_feed
-                opkg update
-			fi
-			try_install_package "$line"
+      if [[ -z $(opkg list-installed "${line}") ]]; then
+        if [[ ! ${INIT} ]]; then
+          INIT=true
+          ensure_feed
+          opkg update
         fi
+        try_install_package "$line"
+      fi
     fi
 	
   done < "${OPKG_CUSTOM_PACKAGES_FILE}"
@@ -159,8 +159,13 @@ remove_script_from_rc_local() {
 
   . /data/opkg-helpers/string-helpers.sh
   echo "removing custom script from ${RC_LOCAL_FILE}"
+
   # reads from ${RC_LOCAL_FILE} removes ${1} and saves back to ${RC_LOCAL_FILE}
-  multiline_string_match "${1}" --trim-lines < "${RC_LOCAL_FILE}" > "${RC_LOCAL_FILE}"
+  # multiline_string_match "${1}" --trim-lines < "${RC_LOCAL_FILE}" > "${RC_LOCAL_FILE}"
+
+  out=$(multiline_string_match "${1}" --trim-lines < "${RC_LOCAL_FILE}") && \
+        echo "$out" > "${RC_LOCAL_FILE}"
+
 
 }
 

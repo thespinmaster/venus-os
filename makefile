@@ -43,7 +43,7 @@ opkg-helpers-build:
 	cd ./feed && opkg-build -o root -g root ../utils/opkg-helpers/src ./
 
 package:
-	@echo "building package index"
+	echo "building package index"
 	cd ./feed && opkg-make-index ./ -p Packages
 
 

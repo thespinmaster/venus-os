@@ -28,7 +28,7 @@ multiline_string_match() {
   declare -i match_start=-1;  declare -i found=0
   declare -i opt_break_on_first=0; declare -i opt_find_only=0
   declare -i opt_trim_lines=0
-  readonly newline=$'\n'
+  newline=$'\n'
   output=
 
 # process args
@@ -40,7 +40,7 @@ while [ $# -gt 0 ]; do
     --find-only*|-f*)
       opt_find_only=1
       ;;
-    --opt-trim-lines*|-t*)
+    --trim-lines*|-t*)
       opt_trim_lines=1
       ;;
     --help|-h)
@@ -62,7 +62,7 @@ while [ $# -gt 0 ]; do
       exit 0
       ;;
     *)
-      >&2 printf "Error: Invalid argument\n"
+      >&2 printf "string-helpers.sh :Error: Invalid argument\n"
       exit 1
       ;;
   esac
