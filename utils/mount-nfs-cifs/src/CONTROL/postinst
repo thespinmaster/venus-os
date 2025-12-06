@@ -22,7 +22,7 @@ cp ${TMP_FILE} ${NEW_FILE}
 chmod +x ${NEW_FILE}
 
 echo "unlinking"
-unlink ${LNK_FILE} 2>/dev/null
+unlink ${LNK_FILE} 2>/dev/null || true
 
 echo "Creating missing symbolic link ${LNK_FILE} --> ${NEW_FILE}"
 ln -s ${NEW_FILE} ${LNK_FILE}
