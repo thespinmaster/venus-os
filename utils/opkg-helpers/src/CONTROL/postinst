@@ -15,5 +15,7 @@ ${OPKG_COMMON} \"ensure_installed\""
 
 add_script_to_rc_local "${SCRIPT}"
 
+add_package_name_to_custom_packages_file "${PACKAGENAME}"
+
 echo "successfully installed ${PACKAGENAME}"
 

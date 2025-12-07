@@ -11,4 +11,6 @@ ${OPKG_COMMON} \"ensure_installed\""
 
 remove_script_from_rc_local "${SCRIPT}"
 
+remove_package_name_from_custom_packages_file "${PACKAGENAME}"
+
 echo "successfully removed ${PACKAGENAME}"

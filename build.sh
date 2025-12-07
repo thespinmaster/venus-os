@@ -2,8 +2,8 @@
 
 if [[ -z "${1}" ]]; then
   build=all
-else
- build="${1}"
+elif [[ "${1}" != "-" ]]; then
+  build="${1}"
 fi
 
 read -p "comment:" COMMENT
@@ -12,6 +12,9 @@ if [[ -z "${COMMENT}" ]]; then
   COMMENT="updated installer"
 fi
 
-make $build
+if [[ -n "${}" ]]; then
+  make $build
+fi
+
 git commit -am "${COMMENT}"
 git push
