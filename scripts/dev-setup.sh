@@ -41,11 +41,12 @@ opkg install mount-nfs-cifs
   . /data/mount-nfs-cifs/mount-helpers.sh
 
   #source, username and password will be prompted for
-  mount_cifs --target="/mnt/storage/dev"
+  # store mnt under /data and not /mnt as mnt may be readonly 
+  mount_cifs --target="/data/mnt/storage/dev"
 )
 
 if [[ ! -L "/data/dev" ]]; then
-  ln -s "/mnt/storage/dev" "/data/dev"
+  ln -s "/data/mnt/storage/dev" "/data/dev"
 fi
 
 echo "setting up environment (bash aliases, nanorc config)"
