@@ -117,7 +117,7 @@ mount_server() {
 }
 
 mount_cifs() {
-exit
+
   local SOURCE=
   local TARGET=
   local USERNAME=
