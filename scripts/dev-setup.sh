@@ -51,11 +51,11 @@ opkg install mount-shares
 
   #source, username and password will be prompted for
   # store mnt under /data and not /mnt as mnt may be readonly 
-  mount_cifs --target="/data/mnt/storage/dev"
+  mount_cifs --target="/data/mnt/dev"
 )
 
 if [[ ! -L "/data/dev" ]]; then
-  ln -s "/data/mnt/storage/dev" "/data/dev"
+  ln -s "/data/mnt/dev" "/data/dev"
 fi
 
 echo "setting up environment (bash aliases, nanorc config)"

@@ -12,8 +12,11 @@ shopt -s extglob
 
 # find and execute all script files in alpha-numeric order
 for f in $(find ./+([0-9]) -type f | sort -V); do
+  log "***************************"
   log "execuing... $f"
   "$f" || true
+  log "***************************"
+  log " "
 done
 
 unset OPKGH_LOG_FILE

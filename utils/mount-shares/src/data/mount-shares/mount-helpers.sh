@@ -21,7 +21,7 @@ mount_shares() {
   local MOUNT_FOUND
 
   while IFS= read -r line; do
-    [[ -n $line ]] && log "line=${line}"
+    #[[ -n $line ]] && log "line=${line}"
 
     if [[ "${line}" == "#*" ]] || [[ -z "${line}" ]]; then
       continue
@@ -29,9 +29,9 @@ mount_shares() {
 
     MOUNT_COMMAND="${line}"
 
-    log "calling mount_server: $MOUNT_COMMAND"
 
     if [[ -n "${MOUNT_COMMAND}" ]]; then
+      log "calling mount_server"
       MOUNT_FOUND=true
       mount_server "$MOUNT_COMMAND"
       MOUNT_COMAMND=
@@ -59,7 +59,7 @@ mount_server() {
   # extract string between '//' and ' ' to return IP '192.169.60.20/data/abc' or 'hostname/data/abc'
   SERVER_PATH=$(sed 's|.* //||; s| .*||' <<< "$MOUNT_COMMAND")
   
-  # extract string after last space to get mount path '/data/dev' or other
+  # extract string after last space to get mount path e.g. '/data/dev'
   MOUNT_POINT="${MOUNT_COMMAND##* }"
 
   if [[ -z "${SERVER}" ]] || [[ -z "${SERVER_PATH}" ]] || [[ -z "${MOUNT_POINT}" ]]; then
