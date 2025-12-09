@@ -272,7 +272,7 @@ if [[ ${1} == "ensure_installed" ]]; then
 fi
 
 ensure_rc_local_d_folder() {
-  PATH=/data/opkg-helpers/rc.local.d/"${1}"
-  mkdir -p "${PATH}"
-  echo "${PATH}"
+  FOLDER_PATH=/data/opkg-helpers/rc.local.d/"${1}"
+  mkdir -p "${FOLDER_PATH}"
+  echo "${FOLDER_PATH}"
 }
