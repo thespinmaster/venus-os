@@ -93,7 +93,7 @@ mount_server() {
           mkdir -p "${MOUNT_POINT}"
         fi
       else
-        log "mountpoint folder already exists; ${MOUNT_POINT}"
+        log "mountpoint folder already exists... ${MOUNT_POINT}"
       fi
       
       if [[ ! ${DRY_RUN} ]]; then 

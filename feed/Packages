@@ -33,8 +33,8 @@ Depends: opkg-helpers
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: abb8176fefb3c27242252bca140b2bf6
-Size: 66644
+MD5Sum: ec651f232cdde45560cb8b366c8ac9ab
+Size: 66638
 Filename: mount-nfs-cifs_1.0.1_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feed/mount-nfs-cifs
 Description: Adds support for nfs and cifs shares to Venus OS
@@ -62,8 +62,8 @@ Version: 1.0.1
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: 3158bdf99db3a2c281b94080688727f2
-Size: 5280
+MD5Sum: e637c1af53353cb6453122b7e94be055
+Size: 8270
 Filename: opkg-helpers_1.0.1_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feed/opkg-helpers
 Description: Adds helper scripts for installing opkg packages on the Venus OS
