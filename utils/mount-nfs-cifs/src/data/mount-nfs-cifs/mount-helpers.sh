@@ -4,7 +4,7 @@
 
 DRY_RUN=
 
-readonly MOUNT_POINT_CONF_FILE=$(dirname $(realpath "${0}"))/mountpoints.conf
+readonly MOUNT_POINT_CONF_FILE=~/mountpoints.conf
 
 mount_all() {
 
