@@ -1,0 +1,11 @@
+Package: mount-shares
+Version: 1.0.1
+Description: Adds support for nfs and cifs shares to Venus OS
+Section: utilities
+Priority: optional
+Maintainer: thespinmaster@github.com
+License: MIT
+Architecture: all
+OE: mount-shares
+Source: https://github.com/thespinmaster/venus-os/tree/main/feed/mount-shares
+Depends: opkg-helpers
