@@ -35,9 +35,12 @@ set_indent() {
   fi
 }
 
+init_logging() {
+  echo "*** `date +%y/%m/%d_%H:%M:%S` ***" > "${1}"
+  echo "${1}"
+}
 
 
 if [[ "${1}" == "init_logging" ]]; then
-  echo "*** `date +%y/%m/%d_%H:%M:%S` ***" > "${2}"
-  echo "${2}"
+  echo "${init_logging "${2}"}"
 fi

@@ -6,12 +6,12 @@ set -e
 # note shellcheck requires +xn arguments
 # shellcheck source=./install-helper
 PACKAGENAME=opkg-helpers
-OPKG_COMMON=/data/${PACKAGENAME}/opkg-common.sh
-source "${OPKG_COMMON}"
+. "${OPKG_COMMON}"
 
 SCRIPT="
 # ${PACKAGENAME} (do not edit)
-${OPKG_COMMON} \"ensure_installed\""
+/data/${PACKAGENAME}/rc.local.d/startup.sh
+"
 
 add_script_to_rc_local "${SCRIPT}"
 

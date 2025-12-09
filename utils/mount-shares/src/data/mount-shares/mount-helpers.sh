@@ -6,9 +6,9 @@ DRY_RUN=
 
 readonly MOUNT_POINT_CONF_FILE=~/mountpoints.conf
 
-mount_all() {
+mount_shares() {
 
-  log "mount-all"
+  log "mount_shares"
   
   if [[ ! -f ${MOUNT_POINT_CONF_FILE} ]]; then
     log "missing mountpoint.conf file"
@@ -44,7 +44,7 @@ mount_all() {
   fi
   
   pop_log_indent
-  log "mount_all done"
+  log "mount_shares done"
 }
 
 mount_server() {
@@ -215,14 +215,14 @@ if any arguments are missing (-s,-t,-u,-p) the values are prompted for.
   mount_server "${MOUNT_COMMAND}"
 }
 
-if [[ "${1}" == "mount_all" ]]; then
+if [[ "${1}" == "mount_shares" ]]; then
 
   if [[ ${2} == "--dry-run" ]]; then
     DRY_RUN=1
     log "*** DRY RUN ***"
   fi
 
-  mount_all
+  mount_shares
 
 elif [[ "${1}" == "mount_cifs" ]]; then
   shift

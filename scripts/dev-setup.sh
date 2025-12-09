@@ -54,17 +54,22 @@ opkg install mount-shares
   mount_cifs --target="/data/mnt/storage/dev"
 )
 
-# if [[ ! -L "/data/dev" ]]; then
+if [[ ! -L "/data/dev" ]]; then
   ln -s "/data/mnt/storage/dev" "/data/dev"
 fi
 
 echo "setting up environment (bash aliases, nanorc config)"
 (
   . /data/opkg-helpers/opkg-common.sh
-  add_script_to_rc_local "
+  # priority 3 to execute after mount-shares
+  PATH=$(ensure_rc_local_d_folder "3")
+  
+  echo "#!/bin/bash
+  
 # setup enviroment (do not edit)
-/data/dev/projects/venus-os/scripts/setup-environment.sh"
-    
+/data/dev/projects/venus-os/scripts/setup-environment.sh 
+" < "${PATH}/setup-environment.sh"
+
     # execute script
     /data/dev/projects/venus-os/scripts/setup-environment.sh
 )
