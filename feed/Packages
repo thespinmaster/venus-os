@@ -42,6 +42,21 @@ OE: mount-nfs-cifs
 License: MIT
 Priority: optional
 
+Package: mount-shares
+Version: 1.0.1
+Depends: opkg-helpers
+Section: utilities
+Architecture: all
+Maintainer: thespinmaster@github.com
+MD5Sum: 2ad15bd1fa3c30004ea56bff5614cad6
+Size: 66526
+Filename: mount-shares_1.0.1_all.ipk
+Source: https://github.com/thespinmaster/venus-os/tree/main/feed/mount-shares
+Description: Adds support for nfs and cifs shares to Venus OS
+OE: mount-shares
+License: MIT
+Priority: optional
+
 Package: network-gps
 Version: 1.0.0
 Depends: opkg-helpers
@@ -62,8 +77,8 @@ Version: 1.0.1
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: 257762f33d854fc9b84d1e8af02158a4
-Size: 8356
+MD5Sum: 45c090d281f63b5a0d9197c1cb3b4571
+Size: 8358
 Filename: opkg-helpers_1.0.1_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feed/opkg-helpers
 Description: Adds helper scripts for installing opkg packages on the Venus OS

@@ -4,8 +4,8 @@
 set -e
  
 ensure_feed() {
+
   FEED_CONFIG_FILE="/etc/opkg/thespinmaster.conf"
-  #FEED_CONFIG_FILE="./opkg_feeds/thespinmaster.conf"
   if [ -f $FEED_CONFIG_FILE ]; then
     echo "removing existing feed file"
     rm $FEED_CONFIG_FILE
@@ -16,8 +16,17 @@ ensure_feed() {
 
 }
 
-echo "resizing file system"
+echo "configuring file system"
+mount -o remount,ro /
 /opt/victronenergy/swupdate-scripts/resize2fs.sh
+
+# make /data the default folder for connecting via sftp
+# find 'Subsystem       sftp    /usr/libexec/sftp-server'
+# and add '-d /data' to the end
+sed 's#Subsystem\s*sftp\s*/usr/libexec/sftp-server#Subsystem       sftp    /usr/libexec/sftp-server -d /data#' /etc/ssh/sshd_config
+
+# make data the default folder when logging in via ssh 
+cat "cd /data" >> "~/.profile"
 
 echo "ensuring spinmaster feed"
 ensure_feed
@@ -34,7 +43,7 @@ echo "installing additional packages"
 opkg install libatomic1
 
 echo "installing support for mounting network shares"
-opkg install mount-nfs-cifs
+opkg install mount-shares
 
 # () keeps . (source) to within bounds
 (

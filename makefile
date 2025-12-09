@@ -1,10 +1,10 @@
-.PHONY : ./services/network-gps ./services/dbus-relay-board ./services/dbus-ne-shunt ./services/test-service ./services/test-install ./utils/mount-nfs-cifs ./feed/package all
+.PHONY : ./services/network-gps ./services/dbus-relay-board ./services/dbus-ne-shunt ./services/test-service ./services/test-install ./utils/mount-shares ./feed/package all
 
 none:
 	@echo "building none... specify the ipk folder to build"
 
 #MAKE SURE package is the last item
-all: network-gps-build dbus-ne-shunt-build test-service-build test-install-build mount-nfs-cifs-build opkg-helpers-build package
+all: network-gps-build dbus-ne-shunt-build test-service-build test-install-build mount-shares-build opkg-helpers-build package
 	@echo "building all targets"
 
 network-gps: network-gps-build package
@@ -32,11 +32,11 @@ dbus-relay-board-build:
 	@echo "building dbus-relay-board"
 	cd ./feed && opkg-build -o root -g root ../services/dbus-relay-board/src ./
 
-mount-nfs-cifs: mount-nfs-cifs-build package
-mount-nfs-cifs-build:
-	@echo "building mount-nfs-cifs"
-	cd ./feed && opkg-build -o root -g root ../utils/mount-nfs-cifs/src ./
- 
+mount-shares: mount-shares-build package
+mount-shares-build:
+	@echo "building mount-shares"
+	cd ./feed && opkg-build -o root -g root ../utils/mount-shares/src ./
+
 opkg-helpers: opkg-helpers-build package
 opkg-helpers-build:
 	@echo "building opkg-helpers"
