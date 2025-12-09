@@ -27,29 +27,14 @@ OE: dbus-relay-board
 License: MIT
 Priority: optional
 
-Package: mount-nfs-cifs
-Version: 1.0.1
-Depends: opkg-helpers
-Section: utilities
-Architecture: all
-Maintainer: thespinmaster@github.com
-MD5Sum: 5d836f0a7099a3f295b09338ee9e84cf
-Size: 66608
-Filename: mount-nfs-cifs_1.0.1_all.ipk
-Source: https://github.com/thespinmaster/venus-os/tree/main/feed/mount-nfs-cifs
-Description: Adds support for nfs and cifs shares to Venus OS
-OE: mount-nfs-cifs
-License: MIT
-Priority: optional
-
 Package: mount-shares
 Version: 1.0.1
 Depends: opkg-helpers
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: 2ad15bd1fa3c30004ea56bff5614cad6
-Size: 66526
+MD5Sum: d4e29dfa86805a02f950ab375c0a81da
+Size: 66514
 Filename: mount-shares_1.0.1_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feed/mount-shares
 Description: Adds support for nfs and cifs shares to Venus OS
