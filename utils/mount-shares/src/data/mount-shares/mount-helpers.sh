@@ -49,7 +49,7 @@ mount_shares() {
 
 mount_server() {
 
-  echo "mount_server"
+  log "mount_server"
 
   MOUNT_COMMAND="${1}"
 
