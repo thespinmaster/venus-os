@@ -4,7 +4,7 @@
 
 DRY_RUN=
 
-readonly MOUNT_POINT_CONF_FILE=~/mountpoints.conf
+readonly MOUNT_POINT_CONF_FILE=/data/mnt/mountpoints.conf
 
 mount_shares() {
 
@@ -207,6 +207,7 @@ if any arguments are missing (-s,-t,-u,-p) the values are prompted for.
   else
     log "added mount to mountpoints.conf"
     if [[ ! ${DRY_RUN} ]]; then
+	  mkdir -p "$(basename "${MOUNT_POINT_CONF_FILE}")"
       echo "${MOUNT_COMMAND}" >> "${MOUNT_POINT_CONF_FILE}"
     fi
   fi
