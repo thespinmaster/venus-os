@@ -81,8 +81,7 @@ mount_server() {
 
       log "server ${SERVER} is up"
       log "mounting... ${SERVER_PATH} to ${MOUNT_POINT}"
-      
-      
+
       if [[ ! -d "${MOUNT_POINT}" ]]; then
         log "creating mountpoint folder... ${MOUNT_POINT}"
         if [[ ! ${DRY_RUN} ]]; then
@@ -92,7 +91,7 @@ mount_server() {
         log "mountpoint folder already exists... ${MOUNT_POINT}"
       fi
       
-      if [[ ! ${DRY_RUN} ]]; then 
+      if [[ ! ${DRY_RUN} ]]; then
         eval "${MOUNT_COMMAND}"
       fi
 

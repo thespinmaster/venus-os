@@ -9,8 +9,8 @@ fi
 read -p "comment [updated installer]: " COMMENT
 COMMENT=${COMMENT:-'updated installer'}
 
-if [[ -n "${}" ]]; then
-  make $build
+if [[ -n "${build}" ]]; then
+  make "${build}"
 fi
 
 git add .

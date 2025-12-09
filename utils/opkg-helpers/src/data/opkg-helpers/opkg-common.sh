@@ -134,8 +134,6 @@ ensure_installed() {
   
   push_log_indent
 
-  INIT_FS_IS_READONLY_VALUE=${FS_IS_READONLY}
-  
   while IFS= read -r line
   do 
     # ignore comments and empty lines
@@ -150,7 +148,7 @@ ensure_installed() {
   
   restore_previous_fs_access "${INIT_FS_IS_READONLY}"
 
-  log "FS_IS_READONLY=${FS_IS_READONLY} 'value should be empty'"
+  #log "FS_IS_READONLY=${FS_IS_READONLY} 'value should be empty'"
 
   pop_log_indent
 
