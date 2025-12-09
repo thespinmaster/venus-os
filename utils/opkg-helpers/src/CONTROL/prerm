@@ -1,9 +1,7 @@
 #!/bin/bash
 
-# note shellcheck requires +xn arguments
-# shellcheck source=./install-helper
 PACKAGENAME=opkg-helpers
-source "${OPKG_COMMON}"
+source "/data/${PACKAGENAME}/opkg-common.sh"
 
 SCRIPT="# ${PACKAGENAME} (do not edit)
 /data/${PACKAGENAME}/rc.local.d/startup.sh"

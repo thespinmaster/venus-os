@@ -3,10 +3,8 @@
 # exit on error
 set -e
 
-# note shellcheck requires +xn arguments
-# shellcheck source=./install-helper
 PACKAGENAME=opkg-helpers
-. "${OPKG_COMMON}"
+. "/data/${PACKAGENAME}"/opkg-common.sh
 
 SCRIPT="
 # ${PACKAGENAME} (do not edit)

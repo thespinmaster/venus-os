@@ -6,11 +6,8 @@ elif [[ "${1}" != "-" ]]; then
   build="${1}"
 fi
 
-read -p "comment:" COMMENT
-
-if [[ -z "${COMMENT}" ]]; then
-  COMMENT="updated installer"
-fi
+read -p "comment [updated installer]: " COMMENT
+COMMENT=${COMMENT:-'updated installer'}
 
 if [[ -n "${}" ]]; then
   make $build
