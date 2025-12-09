@@ -16,5 +16,6 @@ if [[ -n "${}" ]]; then
   make $build
 fi
 
+git add
 git commit -am "${COMMENT}"
 git push

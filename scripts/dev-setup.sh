@@ -47,14 +47,14 @@ opkg install mount-shares
 
 # () keeps . (source) to within bounds
 (
-  . /data/mount-nfs-cifs/mount-helpers.sh
+  . /data/mount-shares/mount-helpers.sh
 
   #source, username and password will be prompted for
   # store mnt under /data and not /mnt as mnt may be readonly 
   mount_cifs --target="/data/mnt/storage/dev"
 )
 
-if [[ ! -L "/data/dev" ]]; then
+# if [[ ! -L "/data/dev" ]]; then
   ln -s "/data/mnt/storage/dev" "/data/dev"
 fi
 
