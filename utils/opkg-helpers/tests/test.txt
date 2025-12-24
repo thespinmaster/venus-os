@@ -1,0 +1,10 @@
+blabla
+blabla
+foo
+here
+is the
+text
+to keep between the 2 patterns
+bar
+blabla
+blabla

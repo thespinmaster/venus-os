@@ -1,0 +1,11 @@
+#!/bin/bash
+# ensures the alias file exists
+# called from /data/rc.local and setup
+
+local alias_file=/etc/profile.d/my-alias.sh
+if [ ! -L "${alias_file}" ]; then
+  echo "creating /data/dev/projects/venus-os/scripts/my-alias.sh link"
+  ln -s /data/dev/projects/venus-os/scripts/my-alias.sh "${alias_file}"
+  echo "reloading bash"
+  bash -l
+fi

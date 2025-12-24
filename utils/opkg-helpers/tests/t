@@ -1,0 +1,16 @@
+#!/bin/bash
+
+. /home/admin/dev/projects/venus-os/scripts/conf-helpers
+
+value=$(cat<<EOF
+# dummy_service
+ACTION=="add", ENV{ID_SERIAL}=="FTDI_FT232R_USB_UART_B0001AJ7", ENV{ID_SERIAL_SHORT}=="B0001AJ7", ENV{VE_SERVICE}="ve_dummy_service"
+EOF
+)
+
+key="MYVALUE"
+
+file=./output/test.conf
+value='aaa="bbb"'
+sed -i 's|^'${key}'=.*|'${key}'=\''${value}'\'|' "${file}"
+

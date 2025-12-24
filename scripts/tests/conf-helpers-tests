@@ -1,0 +1,19 @@
+#!/bin/bash
+
+. ~/dev/projects/venus-os/scripts/test-helpers
+ # shellcheck source=/dev/null
+. ~/dev/projects/venus-os/scripts/conf-helpers
+
+reset_assets() {
+    rm -fr ./output/*
+    cp -r ./assets/* ./output/
+}
+
+reset_assets
+
+test_file_exists "./output/test1.conf" "test1.conf should exist"
+(
+    source "./output/test1.conf"
+    test_equal "$VAR1" "''" "VAR1 should be reset to empty string"
+    test_equal "$VAR2" "''" "VAR2 should be reset to empty string"
+)

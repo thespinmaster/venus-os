@@ -1,0 +1,279 @@
+#!/bin/bash
+
+#TODO review readonly....need to change locations for testing?
+readonly rc_local_file=/data/rc.local
+readonly opkg_helpers_path=/data/opkg-helpers
+readonly opkg_custom_packages_file=${opkg_helpers_path}/custom-packages.conf
+readonly opkg_common_file=${opkg_helpers_path}/opkg-common.sh
+#readonly LOG=${opkg_helpers_path}/log
+
+is_fs_readonly=
+init_opkg_helpers=
+dry_run=
+
+. $(dirname ${BASH_SOURCE[0]})/log-helpers.sh
+
+expand_root_fs() {
+  # Expand rootfs and make it writable
+  log "expanding root fs"
+  if [ ! $dry_run ]; then
+    /opt/victronenergy/swupdate-scripts/resize2fs.sh
+  fi
+}
+
+mount_root_fs_readwrite() {
+  log "mounting fs as read write"
+  if [ ! $dry_run ]; then
+    mount -o remount,rw /
+  fi
+}
+
+mount_root_fs_readonly() {
+  log "mounting fs as readonly"
+
+  if [ ! $dry_run ]; then
+    mount -o remount,ro /
+  fi
+
+}
+
+# pass initial state of is_fs_readonly
+# if initial state is empty but is_fs_readonly now
+# has a value then we restore back to readonly.
+restore_previous_fs_access() {
+
+#  if [[ -z "${1}" ]]; then
+
+    log "restoring previous fs state"
+
+    if [[ "${is_fs_readonly}" = 1 ]]; then
+      mount_root_fs_readonly
+    else
+      log "previous state was readwrite; nothing to restore"
+    fi
+    is_fs_readonly=
+#  fi
+
+}
+
+ensure_feed() {
+
+  log "adding opkg feed"
+
+  feed_config_file="/etc/opkg/thespinmaster.conf"
+  feed_url="https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feed"
+  feed_content="src/gz thespinmaster ${feed_content}"
+
+  if [ ! $dry_run ]; then
+    echo "${feed_content}" > "${feed_config_file}"
+  else
+    log "feed content:\"${feed_content} > ${feed_config_file}\""
+  fi
+
+}
+
+ensure_rc_local() {
+  log "ensure_rc_local"
+  if [[ ! -f "${rc_local_file}" ]]; then
+    log "rc.local does not exist; creating..."
+    if [[ ! $dry_run ]]; then
+      log "#!/bin/bash" > "${rc_local_file}"
+      chmod +x "${rc_local_file}"
+    fi
+  fi
+}
+
+init_root_fs_for_writing() {
+
+  log "init_root_fs_for_writing"
+
+  if [[ -z "${is_fs_readonly}" ]]; then
+
+    # make sure the file system is writeable
+    v=$(grep "[[:space:]]ro[[:space:],]" /proc/mounts)
+    if [ -z "${v}" ] ; then
+      is_fs_readonly=0
+    else
+      is_fs_readonly=1
+    fi
+
+    ###########
+    is_fs_readonly=1
+
+    if [ "${is_fs_readonly}" = 1 ]; then
+      mount_root_fs_readwrite
+    fi
+
+    log "fs is readonly:${is_fs_readonly}"
+
+  else
+    log "is_fs_readonly already initialized"
+  fi
+
+}
+
+init_opkg() {
+
+  if [[ -z "${init_opkg_helpers}" ]]; then
+    log "init_opkg: initializing"
+
+    ensure_feed
+    if [ ! $dry_run ]; then
+      opkg update
+    fi
+
+    init_opkg_helpers=1
+  else
+    log "init_opkg: already initialzed"
+  fi
+
+}
+
+ensure_installed() {
+
+  log "ensure_installed"
+
+  push_log_indent
+
+  while IFS= read -r line
+  do
+    # ignore comments and empty lines
+    if [[ -z $(grep '^[[:blank:]]*[^[:blank:]#]' <<< "${line}" ) ]] || \
+       [[ -z "${line}" ]]; then
+      continue
+    fi
+
+    try_install_package "${line}"
+
+  done < "${opkg_custom_packages_file}"
+
+  restore_previous_fs_access
+
+  #log "is_fs_readonly=${is_fs_readonly} 'value should be empty'"
+
+  pop_log_indent
+
+  log "ensure_installed: done"
+}
+
+try_install_package() {
+
+  log "try_install_package"
+
+  package_name="${1}"
+
+  if [[ -z "${package_name}" ]]; then
+    log "package name not supplied"
+    return 1
+  fi
+
+  # see if the ipk is installed
+  # list-installed only returns an exact match
+  installed=$(opkg list-installed "${package_name}")
+
+  # if already installed then exit
+  if [[ -n "${installed}" ]]; then
+    log "Already Installed ${package_name}, exiting"
+    return 0
+  fi
+
+  init_root_fs_for_writing
+  init_opkg
+
+  log "Installing... ${package_name}"
+  if [ ! $dry_run ]; then
+    opkg install "${package_name}"
+  fi
+}
+
+add_script_to_rc_local() {
+
+  if [[ -z "${1}" ]]; then
+    log "no script supplied; exiting..."
+    return
+  fi
+
+  ensure_rc_local
+
+  . /data/opkg-helpers/string-helpers.sh
+  local FOUND=
+  FOUND=$(multiline_string_match "${1}" --find-only --break-on-first < "${rc_local_file}")
+
+  if [[ ! $FOUND ]]; then
+    log "adding custom script to ${rc_local_file}"
+    if [ ! $dry_run ]; then
+      log "${1}" >> "${rc_local_file}"
+    fi
+  else
+    log "custom script already added"
+  fi
+
+}
+
+remove_script_from_rc_local() {
+
+  if [[ -z "${1}" ]] || [[ ! -f ${rc_local_file} ]]; then
+    log "no script supplied; exiting..."
+    return
+  fi
+
+  . /data/opkg-helpers/string-helpers.sh
+  log "removing custom script from ${rc_local_file}"
+
+  # reads from ${rc_local_file} removes ${1} and saves back to ${rc_local_file}
+  # multiline_string_match "${1}" --trim-lines < "${rc_local_file}" > "${rc_local_file}"
+
+  if [ ! $dry_run ]; then
+    out=$(multiline_string_match "${1}" --trim-lines < "${rc_local_file}") && \
+        log "$out" > "${rc_local_file}"
+  fi
+
+}
+
+add_package_name_to_custom_packages_file() {
+
+  local package_name
+  package_name="${1}"
+
+  if ! grep -q "^${package_name}$" "${opkg_custom_packages_file}" ; then
+    log "adding ${package_name} to ${opkg_custom_packages_file}"
+    if [ ! $dry_run ]; then
+      echo "${package_name}" >> "${opkg_custom_packages_file}"
+    fi
+  else
+    log "package ${package_name} already added"
+  fi
+
+}
+
+remove_package_name_from_custom_packages_file() {
+  local package_name
+  package_name="${1}"
+
+  if grep -q "^${package_name}$" "${opkg_custom_packages_file}" ; then
+    log "Removing ${package_name} from ${opkg_custom_packages_file}"
+    if [ ! $dry_run ]; then
+      sed -i "/^$package_name/d" "${opkg_custom_packages_file}"
+    fi
+  else
+    log "package '${package_name}' not found"
+  fi
+
+}
+
+if [[ ${1} == "ensure_installed" ]]; then
+
+  if [[ ${2} == "--dry-run" ]]; then
+    dry_run=1
+    log "*** DRY RUN ***"
+  fi
+
+  ensure_installed
+
+fi
+
+ensure_rc_local_d_folder() {
+  folder_path=/data/opkg-helpers/rc.local.d/"${1}"
+  mkdir -p "${folder_path}"
+  echo "${folder_path}"
+}

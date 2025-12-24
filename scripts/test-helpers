@@ -1,0 +1,107 @@
+#!/bin/bash
+
+EXIT_ON_FAILED_TEST=
+
+test_if_subshell_failed_exit() {
+  [[ $? != 0 ]] && exit
+}
+
+_pass_or_fail() {
+  local result=$1
+  local comment="${@: -1}"
+
+  shift # remove result
+  set -- "${@:1:$(($#-1))}" # remove last argument (comment)"
+
+  [[ -n "${comment}" ]] && {
+    [[ $# > 0 ]] && comment="${comment//#1/\'${1}\'}"
+    [[ $# > 1 ]] && comment="${comment//#2/\'${2}\'}"
+  }
+
+  if [[ $result == true ]]; then
+    echo -e "\033[32mPASSED\033[00m: $comment"
+  else
+    local lineNo="${BASH_LINENO[1]}"
+    echo -e "\033[31;1mFAILED (line:$lineNo)\033[00m: \e[9m$comment\e[0m"
+
+    for (( i=1; i <= "$#"; i++ )); do echo -e "  arg${i}:${!i}"; done
+    [[ $EXIT_ON_FAILED_TEST  ]] && exit 1
+  fi
+}
+
+_check_test_args_valid() {
+  if [[ (( $1 < $2 )) ]]; then
+    echo -e "\033[31mFAILED\033[00m: Invalid Test Args"
+    exit 1
+  fi
+}
+
+test_file_exists() {
+  local result=false
+  _check_test_args_valid #$ 2
+  [[ -f "${1}" ]] && result=true
+  _pass_or_fail $result "$@"
+}
+
+test_file_does_not_exist() {
+  local result=false
+  _check_test_args_valid #$ 2
+  [[ -f "${1}" ]] || result=true
+  _pass_or_fail $result "$@"
+}
+test_directory_exists() {
+  local result=false
+  _check_test_args_valid #$ 2
+  [[ -d "${1}" ]] && result=true
+  _pass_or_fail $result "$@"
+}
+test_directory_does_not_exist() {
+  local result=false
+  _check_test_args_valid #$ 2
+  [[ -d "${1}" ]] || result=true
+  _pass_or_fail $result "$@"
+}
+
+test_values_match() {
+  local result=false
+  [[ "${1}" == "${2}" ]] && result=true
+  _pass_or_fail $result "$@"
+}
+
+test_value_is_not_empty() {
+  local result=false
+  [[ -n "${1}" ]] &&  result=true
+  _pass_or_fail $result "$@"
+}
+
+test_value_is_empty() {
+  local result=false
+  [[ -z "${1}" ]] && result=true
+  _pass_or_fail $result "$@"
+}
+
+test_exitcode() {
+  local result=false
+ _check_test_args_valid #$ 2
+  (( ${1}==${2} )) && result=true
+  _pass_or_fail $result "$@"
+}
+
+test_file_contains() {
+  local result=false
+  _check_test_args_valid #$ 3
+
+  file="${1}"
+  match="${2}"
+  # don't try to match if match string is empty
+  [[ -n "${match}" ]] && [[ "$(<${file})" = *"${match}"* ]] && result=true
+
+  _pass_or_fail $result "$@"
+}
+
+test_file_does_not_contain() {
+  local result=false
+  _check_test_args_valid #$ 3
+  grep -q "${2}" "${1}" || result=true
+  _pass_or_fail $result "$@"
+}

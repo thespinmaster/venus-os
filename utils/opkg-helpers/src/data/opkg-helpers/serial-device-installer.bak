@@ -1,0 +1,450 @@
+#!/bin/bash
+
+VERSION="2.0.0"
+
+# TODO update to use get-usb-port.sh
+
+###################################################################################
+# A helper class for detecting and addusbing a serial device
+# called durin installation from the opkg installer (CONTROL/postinst/prerm)
+
+# ### Installing ###
+# The script prompts the user to insert the serial usb device, so we can
+# automatically detect the usb device and get teh correct bus and device id's
+# and from that its tty name.
+# the output from this class is are 2 files:
+# \data\dbus-ne-shunt\serial-starter.rule
+#   this file contains the information that gets added to the '/etc/udev/rules.d/serial-starter.rules' file
+# \data\dbus-ne-shunt\serial-starter-port
+#   this file contains the tty name of the device i.e. ttyACM0
+# These 2 files contain enough information for the serial-starter to do its job and for us
+# to start and stop the service.
+# To get the serial-starter to automatically start the service, a file named
+# ttyXXXX needs copying to the /dev/serial-starter/ folder. the serial-starter service will
+# detect this file and query the udevadm and start the service, without the need to reboot
+
+# ### firmware uodates ####
+# After a firmware update the service is no longer installed.
+# Our 2 files are still availible under the /data folder as
+# this folder is not effected by firmware updates.
+# If ensure-installed is setup (see postinst) to run from /data/rS.local then
+# the service will automatically be downloaded and restored using the data in data/dbus-ne-shunt.
+
+# ### Removing ###
+# When uninstalling the two files serial-starter.rules & serial-starter.name are also removed
+# See the 'prerm' file for the script code for calling the class.
+
+# ### Notes ###
+# The sausage machine looks like this
+# The serial-starter.rules file contains the rules for which usb device is mapped to which service
+# ENV{VE_SERVICE} conatins the mapping name of the service.
+# The VE_SERVICE variable gets mapped to the actual service folder name
+# The file '/etc/venus/serial-starter.conf' contains this mapping
+# VE_SERVICE        SERVICE_FOLDER_NAME
+# Example
+# neshunt           dbus-ne-shunt
+# From this mapping the serial-starter service looks for the 'dbus-ne-shunt' folder
+# under /opt/victronenergy/service-templates/ and calls the run script file.
+# The run script file then calls /opt/victronenergy/dbus-ne-shunt/start-dbus-ne-shunt.sh
+# Note the serial-starter also does some other tasks as well.
+# see /opt/victronenergy/serial-starter/serial-starter.sh code for more details
+###################################################################################
+
+#Depends conf-helpers
+echo "ss"
+#[[ -f $(dirname ${BASH_SOURCE[0]})"/conf-helpers" ]] || echo "yyyy"
+#echo $(dirname ${BASH_SOURCE[0]})"/conf-helpers
+. "$(dirname ${BASH_SOURCE[0]})"/conf-helpers"
+echo "aa"
+
+# returns all the default variables
+_defaults() {
+echo "AAAA"
+cat <<EOF
+# REQUIRED: The name of the service
+SERVICE_NAME="${SERVICE_NAME}"
+# The ve_service name used in the serial-starter-rules file
+# and mapped in the serial-starter.conf file
+SERVICE_MAPPING_NAME="{SERVICE_MAPPING_NAME}"
+
+# All the values below are optional
+# and are
+# The tty port name used to get
+TTY=
+# The rule added to the serial-starter-rules file
+SERIAL_STARTER_RULE=
+
+# The path services are copied to
+SERVICE_PATH="/service"
+# The path used by the serial-starter to monitor for new tty services
+SERIAL_STARTER_START_SERVICE_PATH="/dev/serial-starter"
+# the file that contains the mapping from the ve_service to the actual service
+SERIAL_STARTER_CONFIG_FILE="/etc/venus/serial-starter.conf"
+# The search string used to match the entry in the serial-starter.conf file
+SERIAL_STARTER_CONFIG_TEXT_MATCH="^service ${SERVICE_MAPPING_NAME}[[:blank:]]*${SERVICE_NAME}"
+# The string to match before we insert our rule
+SERIAL_STARTER_RULES_TEXT_MATCH='RUN+="/opt/victronenergy/serial-starter/cleanup.sh %k"'
+# The properties to query for when creating the serrial starter rule
+UDEVADM_PROPS='ID_BUS,ID_VENDOR,ID_MODEL,ID_SERIAL'
+
+#use udevadm --monitor to detect a new usb device
+# otherwise uses lsusb
+USE_UDEVADM_MONITOR=1
+
+EOF
+
+}
+
+###################################
+# Loads the variables from the
+# passed conf file.
+# If the file does not exist
+# a new conf file is created using
+# defaults
+###################################
+load_from_conf_file() {
+
+  log_trace
+  conf_file="${1}"
+
+  [[ -f "${conf_file}" ]] || {
+
+    [[ -z "${SERVICE_NAME}" ]] && { log_error "ERROR: SERVICE_NAME not set"; return 1; }
+    [[ -z "${SERVICE_MAPPING_NAME}" ]] && SERVICE_MAPPING_NAME="ve_${SERVICE_NAME}"
+
+    log "conf file does not exist, creating default file."
+    _defaults >> "${conf_file}"
+  }
+
+  #conf_load_all "${conf_file}"
+  return $?
+}
+
+###################################
+# Saves any changed variables to the
+# passed conf file.
+# If the file does not exist
+# a new conf file is created using
+# defaults and is then updated
+###################################
+save_to_conf_file() {
+
+  log_trace
+
+  [[ -z "${SERVICE_NAME}" ]] && { log_error "ERROR: SERVICE_NAME not set"; return 1; }
+
+  [[ -f "${1}" ]] || {
+     log "conf file does not exist, creating default file."
+     _defaults >> "${1}"
+  }
+
+  #conf_save_all
+}
+
+_detect_inserted_serial_usb_device() {
+
+    log_trace
+
+    local counter=0
+    local timeout_counter=0
+    local progress_header_msg="Please connect the serial device (or remove and reconnect it) to the USB port."
+    local before_usb_devices
+
+    before_usb_devices=$(lsusb)
+
+    echo "${progress_header_msg}"
+    echo "Waiting for USB device to be connected..."
+
+    while true; do
+        sleep 1
+        local after_usb_devices
+        after_usb_devices=$(lsusb)
+        local before_count after_count
+
+        before_count=$(echo "$before_usb_devices" | wc -l)
+        after_count=$(echo "$after_usb_devices" | wc -l)
+        if [[ $after_count -eq $((before_count + 1)) ]]; then
+            local new_device
+            new_device=$(comm -13 <(echo "$before_usb_devices") <(echo "$after_usb_devices"))
+            echo "$new_device"
+            return
+        else
+            before_usb_devices="$after_usb_devices"
+            if [[ $timeout_counter -eq 4 && -n "$TEST_USB_ID" ]]; then
+                local test_line
+                test_line=$(echo "$after_usb_devices" | grep "$TEST_USB_ID")
+                if [[ -n "$test_line" ]]; then
+                    echo "$test_line"
+                    return
+                fi
+            fi
+        fi
+        counter=$((counter + 1))
+        [[ $counter -gt 3 ]] && counter=1
+        timeout_counter=$((timeout_counter + 1))
+        if [[ $timeout_counter -gt ${USB_TIMEOUT} ]]; then
+            echo "Timeout, exiting..."
+            return
+        fi
+        echo -n "No new USB device detected, retrying$(printf '.%.0s' $(seq 1 $counter))  " true
+    done
+}
+
+_create_serial_starter_rule() {
+
+    log_trace
+
+    if [[ -n "${SERIAL_STARTER_RULE}" ]]; then
+        log_info "found existing serial-starter.rule: ${SERIAL_STARTER_RULE}"
+        USED_SERIAL_STARTER_RULE=1
+        return 0
+    fi
+
+    [[ -z "${SERVICE_NAME}" ]] && { log_error "ERROR: SERVICE_NAME not set"; return 1; }
+    [[ -z "${SERVICE_MAPPING_NAME}" ]] && { log_error "ERROR: SERVICE_MAPPING_NAME not set"; return 1; }
+    [[ -z "${TTY}" ]] && { log_error "ERROR: TTY not set"; return 1; }
+    [[ -z "${UDEVADM_PROPS}" ]] && { log_error "ERROR: UDEVADM_PROPS not set"; return 1; }
+
+    local usb_info_lines matches usb_rule name value 
+    props_to_grep="${UDEVADM_PROPS}//,/=/|}"
+
+    usb_info_lines=$(udevadm info --name="/dev/${TTY}" --query=property | grep "${props_to_grep}")
+    matches=""
+    while IFS= read -r line; do
+        name="${line%%=*}"
+        value="${line#*=}"
+        [[ -n "$matches" ]] && matches+=", "
+        matches+="ENV{${name}}==\"${value}\""
+    done <<< "${usb_info_lines}"
+
+    if [[ -z "${matches}" ]]; then
+        log_info "WARNING: No serial ID found for the device."
+        return 1
+    fi
+
+    SERIAL_STARTER_RULE="# ${SERVICE_NAME}\nACTION==\"add\", $matches, ENV{VE_SERVICE}=\"${SERVICE_MAPPING_NAME}\""
+    return 0
+}
+
+_add_rule_to_serial_starter_rules_file() {
+
+    log_trace
+
+    [[ "${SERIAL_STARTER_RULE}" ]] || { log_error "ERROR: SERIAL_STARTER_RULE not set"; return 1; }
+    [[ -f "${SERIAL_STARTER_RULES_FILE}" ]] || { log_error "ERROR: SERIAL_STARTER_RULES_FILE does not exist"; return 1; }
+
+    if grep -qF "${SERIAL_STARTER_RULE}" "${SERIAL_STARTER_RULES_FILE}"; then
+        log "Rule already exists in the file."
+        return 0
+    fi
+
+    [[ -z "${SERIAL_STARTER_RULES_TEXT_MATCH}" ]] && { log_error "ERROR: SERIAL_STARTER_RULES_TEXT_MATCH not set"; return 1; }
+
+    log "Adding new rule to serial starter rules file..."
+    log "after line ending:${SERIAL_STARTER_RULES_TEXT_MATCH}"
+
+    local new_rules found=
+    while IFS= read -r line; do
+        new_rules+="$line\n"
+        [[ $found ]] && continue
+        if [[ "$line" = *"${SERIAL_STARTER_RULES_TEXT_MATCH}" ]]; then
+            new_rules+="$rule\n"
+            found=1
+        fi
+    done < "${SERIAL_STARTER_RULES_FILE}"
+
+    [[ $found ]] || { log "WARNING: rule not found"; return 1; }
+
+    echo -e "${new_rules}" > "${SERIAL_STARTER_RULES_FILE}"
+    log "Rule added successfully."
+return 0
+}
+
+_remove_string_with_newline_variants() {
+    local source="${1}"
+    local string_to_remove="${2}"
+    source=${source/"\n${string_to_remove}\n"/}
+    source=${source/"\n${string_to_remove}"/}
+    source=${source/"\n${string_to_remove}\n/"}
+    source=${source/"${string_to_remove}"/}
+    echo "${source}"
+}
+
+_remove_rule_from_serial_starter_rules_file() {
+
+    log_trace
+
+    [[ "${SERIAL_STARTER_RULE}" ]] || { log_error "SERIAL_STARTER_RULE not set, nothing to do"; return 0; }
+    [[ -f "${SERIAL_STARTER_RULES_FILE}" ]] || { log_error "ERROR: SERIAL_STARTER_RULES_FILE does not exist"; return 0; }
+
+    local rules=$(cat "${SERIAL_STARTER_RULES_FILE}")
+    local new_rules=$(_remove_string_with_newline_variants "$rules" "${SERIAL_STARTER_RULE}")
+    if [[ "${new_rules}" != "${rules}" ]]; then
+        echo -e "${new_rules}" > "${SERIAL_STARTER_RULES_FILE}"
+        log "successfully removed rule from ${SERIAL_STARTER_RULES_FILE}"
+    fi
+
+    SERIAL_STARTER_RULE=
+return 0
+}
+
+_get_tty_port() {
+    log_trace
+
+    log "Plug in (or re-plugin) the usb device now...timeout in ${USB_TIMEOUT} seconds"
+
+    # always reset if getting a new TTY
+    SERIAL_STARTER_RULE=
+
+    if [[ ${USE_UDEVADM_MONITOR} ]]; then
+      local get_usb_port="$(dirname ${BASH_SOURCE[0]})/get-usb-port"
+      TTY=$("${get_usb_port}" --silent --timeout ${USB_TIMEOUT})
+    else
+      _detect_inserted_serial_usb_device
+    fi
+
+    [[ -z "${TTY}" ]] && { log "No new USB device found."; return 1; }
+
+    log "Found new USB device: ${TTY}"
+
+return 0
+}
+
+################################################
+# Installs a usb serial device
+# 1) TTY variable contains the port name (ttyUSB0 etc)
+#    If TTY is not set it prompts the user to insert 
+#     the usb device. and then retrieves the tty port name.
+# 2) TTY variable is used to query udevadm and
+#    create a SERIAL_STARTER_RULE
+# 3) The SERIAL_STARTER_RULE is then added to the
+#    serial-starter.rules file (SERIAL_STARTER_RULES_FILE)
+# 4) The serial-starter.rule with (ENV(VE_SERVICE)=xxx)
+#    then mapped to the actual service name in the
+#    serial-starter.conf (SERIAL_STARTER_CONF_FILE) file.
+# After this the service can be started using the
+# start_service method
+################################################
+install_usb_serial_device() {
+
+    log_trace
+
+    log "Installing USB serial device..."
+
+    [[ -z "${SERVICE_NAME}" ]] && { log_error "ERROR: service name must not set"; return 1; }
+    [[ -z "${SERVICE_MAPPING_NAME}" ]] && { log_error "ERROR: ve service mapping name not set"; return 1; }
+    [[ -z "${TTY}" ]] && _get_tty_port || return 1
+
+    _create_serial_starter_rule || return 1
+
+    _add_rule_to_serial_starter_rules_file || { log "Could not update ${SERIAL_STARTER_RULES_FILE}."; return 1; }
+
+    _add_ve_service_config_file_mapping
+
+    return 0
+}
+
+################################################
+# Removes the rule added to the serial-starter.rules file
+# Removes the service mapping from the serial-starter.conf file
+# Sets TTY & SERIAL_STARTER_RULE variables to empty
+################################################
+remove_usb_serial_device() {
+
+    log_trace
+
+    _validate
+
+    _remove_rule_from_serial_starter_rules_file
+
+    _remove_ve_service_config_file_mapping
+
+    TTY=
+    SERIAL_STARTER_RULE=
+
+}
+
+################################################
+# Add service mapping to serial starter conf file
+################################################
+_add_ve_service_config_file_mapping() {
+
+    log_trace
+
+    local spaces_len=$(( 26 - 18 + "${SERVICE_MAPPING_NAME}" )) #18=26 - 8 (26 is mapping offset - 'service ' str len
+    (( $spaces_len < 1)) && spaces_len=1
+    local spaces=$(head -c $spaces_len </dev/zero | tr '\0' ' ')
+    local config="service ${SERVICE_MAPPING_NAME}${spaces}${SERVICE_NAME}"
+
+    if ! grep -q "${SERIAL_STARTER_CONFIG_TEXT_MATCH}" "${SERIAL_STARTER_CONFIG_FILE}"; then
+        log "adding service mapping config from ${SERIAL_STARTER_CONFIG_FILE}"
+        sed -i '1s/^/'"${config}"'\n/' "${SERIAL_STARTER_CONFIG_FILE}"
+    else
+       log "mapping already exists"
+    fi
+
+}
+
+_remove_ve_service_config_file_mapping() {
+
+    log_trace
+
+    local config=$(grep "${SERIAL_STARTER_CONFIG_TEXT_MATCH}" "${SERIAL_STARTER_CONFIG_FILE}")
+
+    if [[ "${config}" ]]; then
+        log "removing service mapping config from ${SERIAL_STARTER_CONFIG_FILE}"
+        sed -i '/^'"${config}"'/d' "${SERIAL_STARTER_CONFIG_FILE}"
+    fi
+}
+
+################################################
+# Add a file (ttyACME) to /dev/serial-starter/
+# this file is picked up by the serial-starter
+# and starts the service.
+# Requires variables:
+# TTY, SERVICE_NAME, SERIAL_STARTER_START_SERVICE_PATH
+################################################
+start_service() {
+
+    log_trace
+
+    [[ -n "${TTY}" ]] && { log_error "ERROR: TTY not set"; return 1; }
+    [[ -n "${SERIAL_STARTER_START_SERVICE_PATH}" ]] && { log_error "ERROR: SERIAL_STARTER_START_SERVICE_PATH not set"; return 1; }
+    [[ -n "${SERVICE_NAME}" ]] && { log_error "ERROR: SERVICE_NAME not set"; return 1; }
+
+    log "starting service ${SERIAL_STARTER_START_SERVICE_PATH}/${SERVICE_NAME}.${TTY}"
+    touch "${SERIAL_STARTER_START_SERVICE_PATH}/${TTY}"
+
+}
+
+#########################################
+# Stops the service using the serial port
+# removes the directory /SERVICE_PATH/SERVICE_NAME.TTY
+# Requires variables:
+# TTY, SERVICE_PATH, SERVICE_NAME
+#########################################
+stop_and_remove_service() {
+
+  ################################################
+  # Stop the service
+  # Reads the tty name from the serial-starter.devname
+  # file and combines it with the SERVICE_NAME to make
+  # the full service name i.e. dbus-ne-shunt.ttyACM0
+  ################################################
+  log_trace
+
+  [[ -n "${TTY}" ]] && { log_error "ERROR: TTY not set"; return 1; }
+  [[ -n "${SERVICE_PATH}" ]] && { log_error "ERROR: SERVICE_PATH not set"; return 1; }
+  [[ -n "${SERVICE_NAME}" ]] && { log_error "ERROR: SERVICE_NAME not set"; return 1; }
+
+  local full_service_path="${SERVICE_PATH}/${SERVICE_NAME}.${TTY}"
+  log_trace "full_service_path=${full_service_path}"
+  if [ -d "${full_service_path}" ]; then
+    log "stopping service ${full_service_path}"
+    svc -d "${full_service_path}" 2>/dev/null
+    sleep 3 # secs
+    rm -R "${full_service_path}" 2>/dev/null
+  else
+    log "WARNING: could not find service: ${full_service_path}"
+  fi
+}

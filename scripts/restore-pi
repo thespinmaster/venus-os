@@ -1,0 +1,124 @@
+#!/bin/bash
+
+# use echo $(<./restore-pi.log) to get progress updates
+
+images_path=/mnt/storage/images
+
+if [[ -n "${1}" ]]; then
+  if [[ ! -f "${1}" ]]; then
+    echo "Could not find file \'${1}\'; exiting..."
+    exit
+  fi
+
+  image_filename="${1}"
+
+  if [[ -n "${2}" ]]; then
+
+    # final check that we have an device path
+    if [[ $(lsblk -dnpo name | grep "^${2}$") ]]; then
+      disk="${2}"
+
+      gunzip -c "${image_filename}" | \
+           sudo dd of="${disk}" iflag=fullblock bs=2M status=progress
+
+      echo "completed" >> "${0%.*}".log
+      exit
+    else
+      echo "invalid device path:${2}; exiting..."
+      exit
+    fi
+  fi
+
+else
+
+  # use nullglob in case there are no matching files
+  shopt -s nullglob
+
+  # create an array with all the filer/dir inside ~/myDir
+  PS3='Select image to restore (or CTRL-C to cancel): '
+
+  # allow the user to choose a file
+  select image_filename in ${images_path}/*.img.gz
+  do
+    # no file selected, loop again
+    if [[ -z "${image_filename}" ]]; then
+      echo "'$REPLY' is not a valid number"
+      continue
+    fi
+    echo
+    echo "'${image_filename}' image file selected"
+    # exit the loop
+    break
+  done
+fi
+
+if [[ -z "${image_filename}" ]]; then
+  echo "no image file found; exiting..."
+  exit
+fi
+
+
+# -e 11 (exclude CDROM drives")
+
+echo
+if [[ -z $(lsblk -e 11 -o rm | grep " 1") ]]; then
+   echo "no removable disks found; exiting..."
+   exit
+fi
+
+echo "=Disks==========================================================="
+echo "$(lsblk -e 11 -o name,size,type,tran,model,rm)" #| grep " 1$" | sed 's![^ ]*$!!')
+echo "================================================================="
+
+  # create an array with all the filer/dir inside ~/myDir
+  PS3='Select the device to restore the image to (or type exit to cancel): '
+
+  # Choose the disk to restore to.
+  # grep "1 disk$" is filtering only the removable disks. the 1 is the removable column.
+  # -n=no headers,-d=no partitions, o= xxx,xxx=columns to return'
+  # cut trims the end of the string so only the device path is displayed
+  select disk in $(lsblk -p -ndo name,rm,type | grep "1 disk$" | cut -d ' ' -f 1)
+  do
+    # complain if no file was selected, and loop to ask again
+    if [[ -z "${disk}" ]]; then
+      echo "${REPLY} is not a valid number"
+      continue
+    fi
+
+    # now we can use the selected file
+    echo "\'${disk}\' selected"
+
+    # it'll ask for another unless we leave the loop
+    break
+  done
+
+echo
+echo "Restoring image ${image_filename} to disk ${disk}"
+read -p "Do you want to proceed? (y/n) " confirm
+
+case "${confirm}" in
+	y ) echo;;
+	n ) echo exiting...;
+          exit;;
+	* ) echo invalid response;
+          continue;;
+esac
+
+# dummy sudo ls (ls could be any call) to elevate
+# permissions before the nohup call
+sudo ls 1>/dev/null 2>/dev/null
+touch "${0%.*}".log
+
+# here we use nohup so that the process works in the background and
+# can logout of ssh terminals.
+# we call this script again with the args we have set
+# this is so that nohup names the process with the name of this script
+# so its easy to find and kill if required.
+echo
+echo "CTRL-C to exit progress. The restore will continue in the background."
+echo "use tail -f ${0%.*}.log to get progress updates."
+echo
+nohup "${0}" "${image_filename}" "${disk}" > "${0%.*}".log &
+
+sleep 1
+tail -f "${0%.*}".log

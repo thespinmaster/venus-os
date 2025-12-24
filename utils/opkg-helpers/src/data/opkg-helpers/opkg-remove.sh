@@ -1,6 +1,0 @@
-mount -o remount,rw /
-
-opkg remove "${1}"
-
-mount -o remount,ro /
-

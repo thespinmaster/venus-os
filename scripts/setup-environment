@@ -1,0 +1,25 @@
+#!/bin/bash
+# sets up any custom environment settings
+# called from /data/rc.local and dev-setup
+
+####################################################
+reload_bash=
+alias_file=/etc/profile.d/my-alias.sh
+if [ ! -L "${alias_file}" ]; then
+  echo "creating ${alias_file} symbolic link"
+  ln -s /data/dev/projects/venus-os/scripts/my-alias.sh "${alias_file}"
+  echo "reloading bash"
+  reload_bash=1
+fi
+
+nanorc_file=/etc/nanorc
+if [[ "$(readlink "${NANORV_FILE}")" != "/data/dev/projects/venus-os/scripts/nanorc" ]]; then
+  echo "creating ${nanorc_file} symbolic link"
+  rm -f "${nanorc_file}"
+  ln -s /data/dev/projects/venus-os/scripts/nanorc "${nanorc_file}"
+fi
+
+# Keep at the end of the script
+if [[ reload_bash ]]; then
+  bash -l
+fi
