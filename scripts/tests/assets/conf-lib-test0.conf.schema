@@ -1,0 +1,2 @@
+STR1     | string        | required | hello
+STR2     | string        |          | ${STR1} world

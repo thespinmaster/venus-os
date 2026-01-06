@@ -1,0 +1,57 @@
+#!/bin/bash
+ 
+this_path="$(dirname "${BASH_SOURCE[0]}")"
+
+declare comment=
+
+if [[ -z "${1}" ]]; then
+  build="all"
+elif [[ "${1}" == "-c" ]]; then
+  comment="${2}"
+  shift 2
+fi
+
+declare -a build_items=()
+ 
+pushd "${this_path}/../feed" || exit 1
+ 
+if [[ "$build" == "all" ]]; then
+  build_items=("network-gps" "dbus-ne-shunt" "test-service" 
+  "test-install" "dbus-relay-board" "mount-shares" "opkg-helpers")
+elif [[ "$build" == "package" ]]; then
+  build_items=("package")
+else
+  build_items=("${@}")
+fi
+
+build_feed_package() {
+  pushd "${this_path}/../feed" || exit 1
+  opkg-make-index ./ -p Packages
+  popd || exit 1
+}
+
+build_package() {
+  name="${1}"
+  echo "building ${name}"
+
+  path_name="services"
+  case ${1} in
+    "mount-shares") path_name="utils";;
+    "opkg-helpers") path_name="utils";;
+  esac
+
+  opkg-build -o root -g root "../${path_name}/${name}/src" ./
+  popd || exit 1
+}
+ 
+for pkg in "${build_items[@]}"; do
+  build_package "$pkg"
+done
+
+build_feed_package
+
+if [[ -n "$comment" ]]; then
+  git add .
+  git commit -am "${comment}"
+  git push
+fi

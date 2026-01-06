@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 VERSION="2.0.0"
 
@@ -332,8 +332,9 @@ _get_tty_port() {
     SERIAL_STARTER_RULE=
 
     if [[ ${USE_UDEVADM_MONITOR} ]]; then
-      local get_usb_port="$(dirname ${BASH_SOURCE[0]})/get-usb-port"
-      TTY=$("${get_usb_port}" --silent --timeout ${USB_TIMEOUT})
+      local get_usb_port
+      get_usb_port="$(dirname "${BASH_SOURCE[0]}")/get-usb-port"
+      TTY=$("${get_usb_port}" --silent --timeout "${USB_TIMEOUT}")
     else
       _detect_inserted_serial_usb_device
     fi

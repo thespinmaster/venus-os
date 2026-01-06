@@ -1,0 +1,101 @@
+#!/usr/bin/env bash
+
+# VERSION 1.0
+
+# usage
+# export OPKGH_LOG_FILE=$(/data/opkg-helpers/log-helpers.sh "init_logging" "/data/rc.local.log")
+
+INDENT=
+# shellcheck disable=SC2034
+declare -r LOGGER=1
+# shellcheck disable=SC2034
+declare -r LOGLEVEL_NONE=0
+declare -r LOGLEVEL_ERROR=1
+declare -r LOGLEVEL_MINIMAL=2
+declare -r LOGLEVEL_INFO=3
+declare -r LOGLEVEL_TRACE=4
+declare LOGLEVEL=$LOGLEVEL_INFO
+ # source must contain a method called CUSTOM_LOGGING_FUNC
+declare USE_CUSTOM_LOGGING_FUNC=
+declare LOG_DATE_TIME=1
+declare LOG_FUNC_NAME=1
+declare LOG_SOURCE_NAME=1
+
+log_trace() { log "${1}" $LOGLEVEL_TRACE 2; }
+log_info() { log "${1}" $LOGLEVEL_INFO 2; }
+log_error() { log "${1}" $LOGLEVEL_ERROR 2; }
+
+log() {
+
+  #use "${@: -1}" to get the last arg incase args 1 is empty
+  # [[ (( $#>1 )) ]] && [[ (($LOGLEVEL < "${2:=$LOGLEVEL_MINIMAL}")) ]] && return 0
+  if (( $#>1 )); then
+    # shellcheck disable=SC2071
+    [[ (( $LOGLEVEL < $2)) ]] && return 0
+  else
+    # shellcheck disable=SC2071
+    [[ (( $LOGLEVEL < $LOGLEVEL_MINIMAL)) ]] && return 0
+  fi
+
+  # shellcheck disable=SC2071
+  [[ (( $# > 2 )) ]] && func_offset=$3 || func_offset=1
+  [[ (( $LOGLEVEL = LOGLEVEL_NONE )) ]] && return 0
+
+  if [[ $USE_CUSTOM_LOGGING_FUNC ]]; then
+    #define func in string so it does not error bash parses
+    custfunc="CUSTOM_LOGGING_FUNC"
+    ${custfunc} "$@"
+    local r=$?
+    (( r != 0 )) && return $?
+  fi
+
+  if (( LOGLEVEL > LOGLEVEL_INFO )); then
+    local prefix=""
+
+    [[ $LOG_DATE_TIME ]] && prefix="$(date +%y/%m/%d_%H:%M:%S)::"
+    [[ $LOG_SOURCE_NAME ]] && prefix+="${BASH_SOURCE[func_offset]##*/}::"
+    [[ $LOG_FUNC_NAME ]] && prefix+="${FUNCNAME[func_offset]}::"
+
+    [[ -z $1 ]] && [[ -n $prefix ]] && prefix=${prefix::-2} # remove :: from end
+  else
+    # don't log null lines
+    [[ -z $1 ]] && return 0
+  fi
+
+  if [[ -f "${OPKGH_LOG_FILE}" ]]; then
+    echo "${INDENT}${prefix}${1}" >> "${OPKGH_LOG_FILE}"
+  else
+    echo "${INDENT}${prefix}${1}" >&2
+  fi
+
+return 0
+}
+
+log_pop_indent() {
+  __log_set_indent $((${#INDENT}-2))
+}
+
+log_push_indent() {
+  __log_set_indent $((${#INDENT}+2))
+}
+
+__log_set_indent() {
+
+  INDENT_LEN=${1}
+  INDENT=
+
+  if [[ INDENT_LEN -gt 0 ]]; then
+    for((i=0; i<INDENT_LEN; i++)); do
+      INDENT="${INDENT} "
+    done
+  fi
+}
+
+init_logging() {
+  echo "*** $(date +%y/%m/%d_%H:%M:%S) ***" > "${1}"
+}
+
+if [[ "${1}" == "init_logging" ]]; then
+  echo "init_logging ${2}"
+  echo "${2}"
+fi

@@ -1,0 +1,310 @@
+#!/usr/bin/env bash
+# shellcheck disable=SC2329,SC2030,SC2031,SC2317 
+
+# SC2031/31 : subshell var modifications
+# SC2329 : code not executed
+# SC2317 : code unreadable
+
+#set -e
+
+this_path="$(dirname "${BASH_SOURCE[0]}")"
+
+. $this_path/../libs/test-lib
+. $this_path/../libs/string-lib
+ 
+########################################
+# Test config
+#EXIT_ON_FAILED_TEST=1
+TEST_INDENT="   "
+########################################
+
+########################################
+# test data
+########################################
+
+TEST_STRING="one
+two
+three
+two
+four"
+
+SEARCH_TEXT="two"
+ 
+ ########################################
+RESULT=
+_d=
+
+#test strings match when they don't have a final line feed char
+test_remove1() {
+
+  test_not_eq "${TEST_STRING: -1}" $'\n' "--TEST_STRING string does not end in newline"
+
+  set_var RESULT < <(send_var "$TEST_STRING" | 
+            string_lib_literal_helper "$SEARCH_TEXT")
+  expected_RESULT="one
+three
+four"
+  test_eq "$expected_RESULT" "$RESULT" "Removed all literal matches"
+}
+
+########################################
+#test strings match when they have a final line feed char
+test_remove2() {
+ 
+  TEST_STRING+=$'\n'
+  test_eq "${TEST_STRING: -1}" $'\n' "--TEST_STRING string should end with a newline"
+  set_var RESULT < <(send_var "$TEST_STRING" | 
+            string_lib_literal_helper "$SEARCH_TEXT")
+  expected_RESULT="one
+three
+four
+"
+  test_eq "$expected_RESULT" "$RESULT" "Removed all literal matches"
+}
+
+########################################
+#test --break-on-first only first matched string is removed
+test_break_on_first1() {
+ 
+  test_not_eq "${TEST_STRING: -1}" $'\n' "--TEST_STRING string does not end in newline"
+  set_var RESULT < <(send_var "$TEST_STRING" | 
+            string_lib_literal_helper --break-on-first "$SEARCH_TEXT")
+  expected_RESULT="one
+three
+two
+four"
+  test_eq "$expected_RESULT" "$RESULT" "Removed only first match"
+}
+
+########################################
+#test --break-on-first only first matched string is removed
+test_break_on_first2() {
+ 
+  TEST_STRING=${TEST_STRING/two/$'\n'two$'\n'}
+  test_not_eq "${TEST_STRING: -1}" $'\n' "--TEST_STRING string does not end in newline"
+  set_var RESULT < <(send_var "$TEST_STRING" | 
+            string_lib_literal_helper --break-on-first "$SEARCH_TEXT")
+  expected_RESULT="one
+
+
+three
+two
+four"
+  test_eq "$expected_RESULT" "$RESULT" "Removed only first match preserving newlines"
+}
+
+########################################
+#test --trim-lines trims surrounding newlines
+test_trimLines1() {
+  
+  TEST_STRING=${TEST_STRING/two/$'\n'two$'\n'}
+  test_not_eq "${TEST_STRING: -1}" $'\n' "--TEST_STRING string does not end in newline"
+  set_var RESULT < <(send_var "$TEST_STRING" | 
+            string_lib_literal_helper --trim-lines "$SEARCH_TEXT")
+  expected_RESULT="one
+three
+four"
+  make_debug_str "$RESULT" _d
+  _d2=; make_debug_str "$TEST_STRING" _d2
+  test_eq "$expected_RESULT" "$RESULT" "Strings match; trimed newlines"
+}
+
+########################################
+#test --trim-lines, does NOT match correctly
+test_trimLines2() {
+ 
+  # This test returns the origional string because the 
+  # lines with 'two' contain whitespace (tabs & spaces)
+  # --ignore-white-space is needed for a correct match
+  TEST_STRING=${TEST_STRING//two/$'\n\t' two$'\n'} # add extra new lines
+  TEST_STRING=${TEST_STRING/three/$'\t'three$'\t\t'} # add extra tabs
+  test_not_eq "${TEST_STRING: -1}" $'\n' "--TEST_STRING string does not end in newline"
+  set_var RESULT < <(send_var "$TEST_STRING" | 
+            string_lib_literal_helper --trim-lines "$SEARCH_TEXT")
+   expected_RESULT="one
+three
+four"
+ 
+  test_eq "$TEST_STRING" "$RESULT" "Match not found; returned origional string"
+}
+
+########################################
+#test --trim-lines; --ignore-white-space; does match correctly
+test_trim_lines_ignore_white_space() {
+ 
+  # This test returns
+  # lines with 'two' contain whitespace (tabs & spaces)
+  # --ignore-white-space is needed for a correct match
+  TEST_STRING=${TEST_STRING//two/$'\n\t' two$'\n'} # add extra new lines
+  TEST_STRING=${TEST_STRING/three/$'\t'three$'\t\t'} # add extra tabs
+  
+  test_not_eq "${TEST_STRING: -1}" $'\n' "--TEST_STRING string does not end in newline"
+  set_var RESULT < <(send_var "$TEST_STRING" | 
+    string_lib_literal_helper --trim-lines --ignore-white-space "$SEARCH_TEXT")
+    expected_RESULT=$'one
+\tthree
+four'
+
+  test_eq "$expected_RESULT" "$RESULT" "Match found"
+
+}
+
+########################################
+# literal match with replacement
+test_literal_match_with_replacement() {
+
+  set_var RESULT < <(
+    send_var "$TEST_STRING" |
+    string_lib_literal_helper "$SEARCH_TEXT" --replacement-text "REPLACED"
+  )
+
+  expected_RESULT="one
+REPLACED
+three
+REPLACED
+four"
+  _d2=; make_debug_str "$expected_RESULT" _d2
+  _d3=; make_debug_str "$RESULT" _d3
+  test_eq "$expected_RESULT" "$RESULT" "replaces literal matches with text"
+}
+
+########################################
+# break on first match
+test_break_on_first() {
+  set_var RESULT < <(
+    send_var "$TEST_STRING" |
+    string_lib_literal_helper "$SEARCH_TEXT" --break-on-first
+  )
+
+  expected_RESULT="one
+three
+two
+four"
+
+  test_eq "$expected_RESULT" "$RESULT" "breaks on first literal match"
+}
+
+########################################
+# find-only; return count number of matches
+test_find() {
+  set_var RESULT < <(
+    send_var "$TEST_STRING" |
+    string_lib_literal_helper "$SEARCH_TEXT" --find-only
+  )
+
+  expected_RESULT="2"
+
+  test_eq "$expected_RESULT" "$RESULT" "find-only returns literal match count"
+}
+
+########################################
+# find-only + break-on-first
+test_find_and_break() {
+  set_var RESULT < <(
+    send_var "$TEST_STRING" |
+    string_lib_literal_helper "$SEARCH_TEXT" --find-only --break-on-first
+  )
+
+  expected_RESULT="1"
+
+  test_eq "$expected_RESULT" "$RESULT" "find-only + break-on-first returns 1"
+}
+
+########################################
+# trim-lines around removed string
+test_trim_lines() {
+TEST_STRING_TRIM="
+alpha
+
+two
+
+beta
+"
+  set_var RESULT < <(
+    send_var "$TEST_STRING_TRIM" |
+    string_lib_literal_helper "two" --trim-lines
+  )
+
+  expected_RESULT="
+alpha
+beta
+"
+
+  test_eq "$expected_RESULT" "$RESULT" "trim-lines removes surrounding blank lines"
+}
+
+########################################
+# test no matches returns the origional string
+test_no_matches() {
+  set_var RESULT < <(
+    send_var "$TEST_STRING" |
+    string_lib_literal_helper "nomatch"
+  )
+
+  expected_RESULT="$TEST_STRING"
+
+  test_eq "$expected_RESULT" "$RESULT" "no literal matches returns input unchanged"
+}
+
+########################################
+# empty input returns empty output
+test_empty_input() {
+  set_var RESULT < <(
+    send_var "" |
+    string_lib_literal_helper "$SEARCH_TEXT"
+  )
+
+  expected_RESULT=""
+
+  test_eq "$expected_RESULT" "$RESULT" "empty input returns empty output"
+}
+
+########################################
+# test we only match literal strings (not regex)
+test_literal_non_regex() {
+TEST_STRING_REGEX="a.b
+axb
+a*b"
+
+  set_var RESULT < <(
+    send_var "$TEST_STRING_REGEX" |
+    string_lib_literal_helper "a.b"
+  )
+
+  expected_RESULT="axb
+a*b"
+
+  test_eq "$expected_RESULT" "$RESULT" "search text is treated literally"
+}
+
+########################################
+#test replace string with special characters
+test_special_characters() {
+
+  TEST_STRING="one
+two \"hell#*&()|o\"
+three
+four"
+  SEARCH_TEXT="two \"hell#*&()|o\""
+  set_var RESULT < <(send_var "$TEST_STRING" | 
+            string_lib_literal_helper "$SEARCH_TEXT")
+  expected_RESULT="one
+three
+four"
+  test_eq "$expected_RESULT" "$RESULT" "Removed all literal matches"
+}
+ 
+########################################
+# shellcheck disable=SC2128
+if [[ "${0}" == "$BASH_SOURCE" ]]; then
+  # only run if call called from this script
+  # ${0} is *always* this file
+
+  test_runner_all "${BASH_SOURCE[0]}"
+  exit
+
+  #tests=(test_literal_match_with_replacement); test_comments=("single test" "single test 2")
+  #test_runner tests test_comments
+fi
+
+ 

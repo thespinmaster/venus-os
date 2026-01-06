@@ -1,0 +1,115 @@
+#!/usr/bin/env bash
+
+# The Bash shell script executes a command with a time-out.
+# Upon time-out expiration SIGTERM (15) is sent to the process. If the signal
+# is blocked, then the subsequent SIGKILL (9) terminates it.
+#
+# Based on the Bash documentation example.
+
+scriptName="${0##*/}"
+
+opt_timeout=10 # Timeout.
+opt_interval=1 # Interval between checks if the process is still alive.
+opt_delay=0.5  # Delay between posting the SIGTERM signal and destroying the process by SIGKILL.
+
+exitcode=127 #timed out exit code
+ 
+if [[ "${BASH_SOURCE[0]}" != "${0}" ]]; then
+    echo "Error: timeout should not be sourced, execute directly!" >&2
+    exit 1
+fi
+
+printHelp() {
+    cat <<EOF
+Synopsis
+    $scriptName [-t timeout] [-i interval] [-d delay] command
+    Execute a command with a time-out.
+    Upon time-out expiration SIGTERM (15) is sent to the process. If SIGTERM
+    signal is blocked, then the subsequent SIGKILL (9) terminates it.
+
+    [-t|--timeout] (optional)
+        Number of seconds to wait for command completion.
+        Default value: 10 seconds.
+
+    [-i|--interval] (optional)
+        Interval between checks if the process is still alive.
+        Positive integer, default value: 1 seconds.
+
+    [-d|--delay] (optional)
+        Delay between posting the SIGTERM signal and destroying the
+        process by SIGKILL. Default value: 1 seconds.
+
+As of today, Bash does not support floating point arithmetic (sleep does),
+therefore all delay/time values must be integers.
+EOF
+}
+
+# process args
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --timeout*|-t*) shift; opt_timeout=$1 ;;
+    --interval*|-i*) shift; opt_interval=$1 ;;
+    --delay*|-d*) shift; opt_delay=$1 ;;
+    --help|-h) printHelp ;exit 0 ;;
+    -*)>&2 printf "Error: Invalid argument\n"; exit 1;;
+    *) break;;
+  esac
+  shift
+done
+
+# $# should be at least 1 (the command to execute), however it may be strictly
+# greater than 1 if the command itself has options.
+if (($# == 0 || opt_interval <= 0)); then
+  printHelp
+  exit 1
+fi
+
+# function to ensure *all* child proccesses get killed
+# including sleep processes
+# shellcheck disable=SC2329,SC2317
+cleanup() {
+local pids=()
+
+  get_all_processes() {
+    pids+=("$1")
+    for pid in $(pgrep --parent "$1"); do get_all_processes "$pid"; done
+  }
+
+  get_all_processes "$BASHPID"
+  unset "pids[0]" #remove $BASHPID
+
+  for pid in "${pids[@]}"; do kill -s SIGTERM "$pid" 2>/dev/null ;done
+  sleep "$opt_delay"
+
+  for pid in "${pids[@]}"; do kill -0 "$pid" 2>/dev/null && kill -s SIGKILL "$pid"; done
+  #echo "cleanup done"
+}
+
+# execute the code in an inner process so that if we time out,
+# we kill the outer process and we eat the `Terminated` message
+# kill -0 PID validates the PID but does not KILL returns 0
+# (process exists or 1 (process does not exist)
+wrapper() {
+(
+   pid=$BASHPID
+   #echo "pid:$pid"
+   trap cleanup EXIT
+
+   (
+     t=$opt_timeout
+     while ((t>0)); do
+       #echo "t:$t"
+       sleep 1; kill -0 $pid 2>/dev/null || exit 0; ((t-=opt_interval))
+     done
+     kill -s SIGTERM $pid 2>/dev/null
+    ) &
+
+    "$@"
+    exit $?
+) 
+exitcode=$?
+}
+
+wrapper "$@" 2>/dev/null
+
+exit $exitcode

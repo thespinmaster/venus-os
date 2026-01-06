@@ -1,0 +1,587 @@
+#!/usr/bin/env bash
+#
+# Example usage:
+#
+#   source conf_lib.sh
+#   load_vars_with_schema example.vars || exit 1
+#   echo "PORT=$PORT"
+#
+# Provides:
+#   - conf_lint        (--fix --json --strict --style)
+#   - load_vars        (safe, multiline, escaped)
+#   - load_schema
+#   - load_vars_with_schema
+#
+
+#set -o nounset
+#set -o pipefail
+
+# ============================================================
+# Schema state
+# ============================================================
+declare -A CONF_LIB_SCHEMA_TYPE=()
+declare -A CONF_LIB_SCHEMA_DEFAULTS=()
+declare -A CONF_LIB_SCHEMA_FLAGS=()
+declare -A CONF_LIB_SCHEMA_VARIABLES=()
+CONF_SCHEMA_FLAG_REQUIRED=0x1
+CONF_SCHEMA_FLAG_SECRET=0x2
+CONF_SCHEMA_FLAG_READONLY=0x4
+  
+# ============================================================
+# Internal cleanup
+# ============================================================
+_conf_lib_schema_reset() {
+  CONF_LIB_SCHEMA_TYPE=()
+  CONF_LIB_SCHEMA_DEFAULTS=()
+  CONF_LIB_SCHEMA_FLAGS=()
+  CONF_LIB_SCHEMA_VARIABLES=()
+}
+
+#######################################
+# Internal helpers
+#######################################
+
+__conf_lib_valid_var() { [[ "$1" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]; }
+__conf_lib_is_upper()  { [[ "$1" =~ ^[A-Z_][A-Z0-9_]*$ ]]; }
+__conf_lib_ends_with_unescaped_quote() { [[ "$1" =~ (^|[^\\])\"$ ]]; }
+__conf_lib_has_invalid_escape() { [[ "$1" =~ \\[^\"\\] ]]; }
+__conf_lib_unescape() {
+  local s="$1"
+
+  # First unescape escaped quotes
+  s="${s//\\\"/\"}"
+
+  # Then unescape escaped backslashes
+  s="${s//\\\\/\\}"
+
+  printf '%s' "$s"
+}
+# ============================================================
+# Mask secret values for output
+_mask_secret() {
+  local key="$1"
+  (( CONF_LIB_SCHEMA_FLAGS[$key] & CONF_LIB_SCHEMA_FLAG_REQUIRED )) && \
+      printf '*****' || printf '%s' "${!key:-}"
+}
+ 
+
+#######################################
+# Validate a value against a schema type.
+#
+# Supported types:
+#   string
+#   int
+#   bool
+#   enum:a,b,c
+#
+# Arguments:
+#   $1 - Value to validate
+#   $2 - Type definition
+#
+# Returns:
+#   0 - Value is valid
+#   1 - Value is invalid
+#######################################
+conf_lib_schema_validate_value() {
+  local value="$1" type="$2"
+
+  case "$type" in
+    string) return 0 ;;
+    int)    [[ "$value" =~ ^-?[0-9]+$ ]] ;;
+    bool)   [[ "$value" == "true" || "$value" == "false" ]] ;;
+    enum:*)
+      local opts="${type#enum:}"
+      IFS=',' read -ra allowed <<< "$opts"
+      for v in "${allowed[@]}"; do
+        [[ "$value" == "$v" ]] && return 0
+      done
+      return 1
+      ;;
+    *) return 1 ;;
+  esac
+}
+
+#######################################
+# Load a schema definition file that
+# describes allowed config variables,
+# their types, defaults, and requirements.
+#
+# Schema format:
+#   KEY | TYPE | FLAGS | DEFAULT
+#
+# Arguments:
+#   $1 - Path to schema file
+#
+# Populates global associative arrays:
+#   CONF_SCHEMA_TYPE
+#   CONF_SCHEMA_DEFAULT
+#   CONF_SCHEMA_FLAGS
+#   CONF_LIB_SCHEMA_VARIABLES
+#
+# Returns:
+#   0 - Success
+#   1 - Invalid schema file
+#
+# Side effects:
+#   - Initializes/overwrites schema globals
+#######################################
+conf_lib_load_schema() {
+  local schema_file="$1"
+ 
+  local line key type def flags lineno=0
+
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    ((lineno++))
+    line="${line%%#*}"
+    [[ -z "${line//[[:space:]]/}" ]] && continue
+
+    IFS='|' read -r key type flags def <<< "$line"
+
+    key="${key//[[:space:]]/}"
+    type="${type//[[:space:]]/}"
+    def="${def#"${def%%[![:space:]]*}"}"
+    def="${def%"${def##*[![:space:]]}"}"
+    flags="${flags#"${flags%%[![:space:]]*}"}"
+    flags="${flags%"${flags##*[![:space:]]}"}"
+
+    __conf_lib_valid_var "$key" || {
+      echo "$schema_file:$lineno invalid variable '$key'" >&2
+      return 1
+    }
+    CONF_LIB_SCHEMA_VARIABLES["$name"]=1
+    CONF_LIB_SCHEMA_TYPE["$key"]="$type"
+    [[ -n "$def" ]] && CONF_LIB_SCHEMA_DEFAULT["$key"]="$def"
+
+    flags=0
+    local -i flags=0
+ 
+    [[ "$flags" =~ required ]] && (( flags |= CONF_SCHEMA_FLAG_REQUIRED ))
+    [[ "$flags" =~ secret ]] && (( flags |= CONF_SCHEMA_FLAG_SECRET ))
+    [[ "$flags" =~ readonly ]] && (( flags |= CONF_SCHEMA_FLAG_READONLY ))
+    CONF_LIB_SCHEMA_FLAGS["$key"]=flags
+
+  done < "$schema_file"
+
+  return 0
+}
+
+#######################################
+# Lint a configuration file for syntax,
+# style, and structural errors.
+#
+# Supports:
+#   --fix    : Auto-fix trivial issues (trailing whitespace)
+#   --strict : Enforce strict parsing rules
+#   --style  : Enforce style rules (UPPERCASE public vars)
+#   --json   : Emit machine-readable JSON output
+#
+# Arguments:
+#   $1 - Path to config file
+#   $@ - Optional flags (--fix, --strict, --style, --json)
+#
+# Returns:
+#   0 - No issues
+#   1 - Warnings only
+#   2 - Errors found
+#
+# Side effects:
+#   - May rewrite the config file if --fix is used
+#   - Writes diagnostics to stderr or stdout (JSON mode)
+#######################################
+conf_lib_lint() {
+  local file="$1"; shift
+  local fix=0 strict=0 json=0 style=0
+
+  while [[ "${1:-}" ]]; do
+    case "$1" in
+      --fix)    fix=1 ;;
+      --strict) strict=1 ;;
+      --json)   json=1 ;;
+      --style)  style=1 ;;
+    esac
+    shift
+  done
+
+  [[ -f "$file" ]] || { echo "schema file not found" >&2; return 2; }
+
+  local line lineno=0
+  local in_multiline=0 in_heredoc=0 heredoc_tag=""
+  declare -A seen=()
+  local errors=0 warnings=0
+  local messages=()
+  local fixed=""
+
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    ((lineno++))
+
+    # auto-fix trailing whitespace
+    if (( fix )); then
+      fixed+="${line%"${line##*[![:space:]]}"}"$'\n'
+    fi
+
+    [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
+
+    if (( in_multiline )); then
+      __conf_lib_ends_with_unescaped_quote "$line" && in_multiline=0
+      continue
+    fi
+
+    if (( in_heredoc )); then
+      [[ "$line" == "$heredoc_tag" ]] && in_heredoc=0
+      continue
+    fi
+
+    # quoted assignment
+    if [[ "$line" =~ ^([A-Za-z_][A-Za-z0-9_]*)=\" ]]; then
+      local key="${BASH_REMATCH[1]}"
+
+      (( strict )) && __conf_lib_has_invalid_escape "$line" && {
+        messages+=("$file:$lineno ERROR invalid escape sequence")
+        ((errors++))
+      }
+
+      (( style )) && ! __conf_lib_is_upper "$key" && {
+        messages+=("$file:$lineno WARNING '$key' should be uppercase")
+        ((warnings++))
+      }
+
+      (( seen["$key"]++ )) && {
+        messages+=("$file:$lineno WARNING duplicate '$key'")
+        ((warnings++))
+      }
+
+      if (( strict )) && __conf_lib_ends_with_unescaped_quote "$line" &&
+         [[ "$line" =~ \"[[:space:]]+[^#[:space:]] ]]; then
+        messages+=("$file:$lineno ERROR trailing garbage after closing quote")
+        ((errors++))
+      fi
+
+      __conf_lib_ends_with_unescaped_quote "$line" || in_multiline=1
+      continue
+    fi
+
+    # heredoc
+    if [[ "$line" =~ ^([A-Za-z_][A-Za-z0-9_]*)\<\<([A-Za-z0-9_]+)$ ]]; then
+      heredoc_tag="${BASH_REMATCH[2]}"
+      in_heredoc=1
+      continue
+    fi
+
+    #[[ "$line" == *"="* ]] && {
+    #  messages+=("$file:$lineno ERROR malformed assignment")
+    #  ((errors++))
+    #}
+  done < "$file"
+
+  (( in_multiline )) && messages+=("$file:$lineno ERROR unterminated quoted value")
+  (( in_heredoc )) && messages+=("$file:$lineno ERROR unterminated heredoc")
+
+  (( fix )) && printf '%s' "$fixed" > "$file"
+
+  if (( json )); then
+    printf '{ "errors": %d, "warnings": %d, "messages": [' "$errors" "$warnings"
+    local first=1
+    for m in "${messages[@]}"; do
+      (( first )) || printf ','
+      first=0
+      printf '"%s"' "$m"
+    done
+    printf '] }\n'
+  else
+    printf '%s\n' "${messages[@]}" >&2
+  fi
+
+  (( errors > 0 )) && return 2
+  (( warnings > 0 )) && return 1
+  return 0
+}
+
+#######################################
+# Safely load variables from a config file
+# into the current shell environment.
+#
+# Features:
+#   - No `source` or `eval`
+#   - Supports multiline quoted values
+#   - Supports heredocs
+#   - Handles escaped double quotes
+#
+# Automatically runs `conf_lint` in
+# --strict and --style mode before loading.
+#
+# Arguments:
+#   $1 - Path to config file
+#
+# Returns:
+#   0 - Success
+#   1 - Linting or parsing failure
+#
+# Side effects:
+#   - Sets shell variables in the caller's scope
+#######################################
+conf_lib_load() {
+  __conf_lib_cleanup_globals
+  __conf_lib_load "$1" || return 1
+return 0
+}
+
+__conf_lib_load() {
+
+  local file="$1"
+  local using_schema=${2:-}
+ 
+  conf_lib_lint "$file" --strict --style || return 1
+ 
+  local line key value buffer="" heredoc_tag=""
+  local in_multiline=0 in_heredoc=0
+
+  check_key_exists_in_schema() {
+    if [[ $using_schema ]] && [[ ! "${CONF_LIB_SCHEMA_TYPE[$1]+aaa}" ]]; then
+      echo "Key not found in schema '$1'" >&2
+      return 1
+    fi
+  return 0
+  }
+  addkey_and_value() {
+    local value="$2"
+    # if the value is readonly always use the value from the schema
+    (( CONF_LIB_SCHEMA_FLAGS[$key] & CONF_LIB_SCHEMA_FLAG_READONLY )) && {
+      value="{CONF_LIB_SCHEMA_DEFAULT[$key]}"
+    }
+    printf -v "$1" '%s' "$value"
+  }
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
+
+    if (( in_multiline )); then
+      if __conf_lib_ends_with_unescaped_quote "$line"; then
+
+        buffer+="${line%\"}"
+        buffer="$(__conf_lib_unescape "$buffer")"
+        addkey_and_value "$key" "$buffer"
+        buffer=""; in_multiline=0
+      else
+        buffer+="$line"$'\n'
+      fi
+      continue
+    fi
+
+    if (( in_heredoc )); then
+      if [[ "$line" == "$heredoc_tag" ]]; then
+        buffer="${buffer%$'\n'}" # trim trailing newline
+
+        addkey_and_value "$key" "$buffer"
+        buffer=""; in_heredoc=0
+      else
+        buffer+="$line"$'\n'
+      fi
+      continue
+    fi
+    
+    if [[ "$line" =~ ^([A-Za-z_][A-Za-z0-9_]*)=\"(.*)$ ]]; then
+      key="${BASH_REMATCH[1]}"
+      value="${BASH_REMATCH[2]}"
+      check_key_exists_in_schema "$key" || return 1
+ 
+      if __conf_lib_ends_with_unescaped_quote "$line"; then
+        value="${value%\"}"
+        value="${value//\\\"/\"}"
+        addkey_and_value "$key" "$value"
+      else
+        buffer="$value"$'\n'
+        in_multiline=1
+      fi
+      continue
+    fi
+
+    if [[ "$line" =~ ^([A-Za-z_][A-Za-z0-9_]*)\<\<([A-Za-z0-9_]+)$ ]]; then
+      key="${BASH_REMATCH[1]}"
+      heredoc_tag="${BASH_REMATCH[2]}"
+      check_key_exists_in_schema "$key" || return 1
+      buffer=""
+      in_heredoc=1
+    fi
+  done < "$file"
+
+return 0
+}
+
+ 
+
+#######################################
+# Load a config file with optional schema
+# enforcement.
+#
+# Behavior:
+#   - Automatically loads <config>.schema
+#     if it exists
+#   - Applies default values
+#   - Enforces required variables
+#   - Validates values against types
+#
+# Internally calls:
+#   - load_schema (if schema exists)
+#   - load_vars
+#
+# Arguments:
+#   $1 - Path to config file
+#
+# Returns:
+#   0 - Success
+#   1 - Scheme Load Errors
+#   2 - Load Errors
+#   3 - Scheme Validation Errors
+# Side effects:
+#   - Sets shell variables in the caller's scope
+#######################################
+conf_lib_load_with_schema() {
+  local config="$1"
+  local schema="${config}.schema"
+  
+  __conf_lib_cleanup_globals
+  local -i retVal=0
+
+  if [[ -f "$schema" ]]; then
+    conf_lib_load_schema "$schema" || retVal=1
+    
+    if (( retVal == 0 )); then
+      if [[ -f $config ]]; then
+        __conf_lib_load "$config" "1" || retVal=2 # 1=using_schema
+      fi
+    fi
+
+    (( retVal != 0 )) && {
+      __conf_lib_cleanup_globals
+      return $retVal
+    }
+ 
+  fi
+ 
+  local key type #errors=0
+
+  for key in "${!CONF_LIB_SCHEMA_DEFAULT[@]}"; do
+    [[ -z "${!key+x}" ]] && printf -v "$key" '%s' "${CONF_LIB_SCHEMA_DEFAULT[$key]}"
+  done
+  ddd
+  for key in "${!CONF_LIB_SCHEMA_TYPE[@]}"; do
+    type="${CONF_LIB_SCHEMA_TYPE[$key]}"
+
+    if [[ -z "${!key+x}" ]]; then
+      (( CONF_LIB_SCHEMA_FLAGS[$key] & CONF_LIB_SCHEMA_FLAG_REQUIRED )) && {
+        echo "Missing required '$key'" >&2
+        (( retVal < 20 )) && retVal=21
+        #((errors++))
+      }
+      continue
+    fi
+
+    conf_lib_schema_validate_value "${!key}" "$type" || {
+      echo "Invalid value for '$key' (expected $type)" >&2
+      retVal=11
+      #((errors++))
+    }
+  done
+
+  # retVals between 10 and 20 are errors
+  # retVals over 20 are warnings
+  # retVals errors take preference over warnings
+
+  __conf_lib_cleanup_globals
+
+  return $retVal
+}
+
+#######################################
+# Update config file with current shell values
+# Escapes double quotes and backslashes
+#######################################
+conf_lib_save() {
+  local var_file="$1"
+  local dry_run="$2"
+
+  [[ -f "$var_file" ]] || {
+    echo "Error: config file not found: $var_file" >&2
+    return 1
+  }
+
+  local tmp="${var_file}.tmp"
+  local line key indent heredoc_tag
+  local in_multiline=0
+  local in_heredoc=0
+ 
+  escape() {
+    local s="$1"
+    s="${s//\\/\\\\}"
+    s="${s//\"/\\\"}"
+    printf '%s' "$s"
+  }
+
+  [[ "$dry_run" != "--dry-run" ]] && 
+    cp "$var_file" "${var_file}.bak"> "$tmp"
+ 
+  while IFS= read -r line || [[ -n "$line" ]]; do
+
+    if (( in_heredoc )); then
+      [[ "$line" == "$heredoc_tag" ]] && in_heredoc=0
+      continue
+    fi
+
+    if (( in_multiline )); then
+      [[ "$line" == *'"' ]] && in_multiline=0
+      continue
+    fi
+
+    if [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]]; then
+      printf '%s\n' "$line" >> "$tmp"
+      continue
+    fi
+
+    if [[ "$line" =~ ^([[:space:]]*)([A-Za-z_][A-Za-z0-9_]*)\<\<([A-Za-z0-9_]+)$ ]]; then
+      indent="${BASH_REMATCH[1]}"
+      key="${BASH_REMATCH[2]}"
+      heredoc_tag="${BASH_REMATCH[3]}"
+
+      if [[ -n "${!key+x}" ]]; then
+        local value=${!key}
+        (( CONF_LIB_SCHEMA_FLAGS[$key] & CONF_LIB_SCHEMA_FLAG_READONLY )) && {
+          value=${CONF_LIB_SCHEMA_DEFAULTS["$key"]}; }
+ 
+        printf '%s%s<<%s\n%s\n%s\n' "$indent" "$key" "$heredoc_tag" \
+                  "$(escape "$value")" "$heredoc_tag" >> "$tmp"
+
+ 
+        in_heredoc=1
+        continue
+      fi
+    fi
+
+    if [[ "$line" =~ ^([[:space:]]*)([A-Za-z_][A-Za-z0-9_]*)=\" ]]; then
+      indent="${BASH_REMATCH[1]}"
+      key="${BASH_REMATCH[2]}"
+
+      if [[ -n "${!key+x}" ]]; then
+        printf '%s%s="%s"\n' "$indent" "$key" "$(escape "${!key}")" >> "$tmp"
+    
+        [[ "$line" != *'"' ]] && in_multiline=1
+        continue
+      fi
+    fi
+
+    printf '%s\n' "$line" >> "$tmp"
+  done < "$var_file"
+  
+  for k in "${!CONF_LIB_SCHEMA_VARIABLES[@]}"; do
+    if [[ -z "${!k:-}" && -n "${CONF_LIB_SCHEMA_DEFAULTS[$k]:-}" ]]; then
+      printf -v "$k" '%s' "${CONF_LIB_SCHEMA_DEFAULTS[$k]}"
+    fi
+  done
+ 
+ 
+
+  if ! conf_lib_lint "$tmp"; then
+    [[ "$dry_run" == "--dry-run" ]] && diff -u "$var_file" "$tmp" || mv "$tmp" "$var_file"
+  else
+    rm -f "$tmp"
+    return 1
+  fi
+}

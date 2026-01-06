@@ -1,0 +1,6 @@
+Here is some introductory text.
+This is a test string
+with. $p€c!@l characters
+and multiple lines.
+More text follows the match.
+

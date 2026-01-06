@@ -1,0 +1,9 @@
+PORT       | int           | required | 8080
+HOST       | string        | required | localhost
+DEBUG      | bool          |          | false
+MODE       | enum:dev,prod |          | dev     
+MESSAGE    | string        |          |
+BANNER     | string        |          |
+TESTVALUE1 | string        |          | test value1 default value
+TESTVALUE2 | string        |          | test value2 default value
+TESTVALUE3 | int           |          | 

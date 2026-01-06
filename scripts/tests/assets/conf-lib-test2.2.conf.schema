@@ -1,0 +1,6 @@
+PORT     | int           | required | bad_default_not_int
+HOST     | string        | required | localhost 
+DEBUG    | bool          |          | false
+MODE     | enum:dev,prod |          | dev     
+MESSAGE  | string        |          |
+BANNER   | string        |          |

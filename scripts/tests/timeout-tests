@@ -1,0 +1,90 @@
+#!/usr/bin/env bash
+
+set -o nounset
+
+this_path="$(dirname "${BASH_SOURCE[0]}")"
+
+. "$this_path/libs/test-lib"
+ 
+#testing#############################
+# shellcheck disable=SC2034
+EXIT_ON_FAILED_TEST=1
+# shellcheck disable=SC2034
+TEST_INDENT="   "
+
+ext_source="$this_path/assets/timeout-sleep"
+ext_func="do_sleep"
+
+_test_processes_closed() {
+  local r
+  r="$(pgrep -fl timeout-sleep)" #ensure everything is closed
+  test_empty "$r" "${1}all proccess closed"
+}
+
+# test timeout of 7 and sleep of 2 and exit code equals 0
+test_timeout_exe_less_than_timeout() {
+  local -i time_out=8
+  local -a ext_func_args=(2 "" 0) # sleep time | msg | exitcode
+  SECONDS=0
+
+  "$this_path/../libs/timeout" --timeout $time_out "$ext_source" "$ext_func" "${ext_func_args[@]}"
+  test_exitcode 0
+
+  local secs=$SECONDS
+ 
+  #allow a litte leeway as we are working with seconds
+  test_between $secs 2 4 "Sleep 3; Timeout 8; Exec $secs"
+
+  _test_processes_closed ""
+
+}
+
+# test timeout works when the action takes too long 
+test_timeout_with_long_action() {
+  local -i time_out=1
+  local -a ext_func_args=(6 "" 0) # sleep time | msg | exitcode 
+  SECONDS=0
+
+  "$this_path/../libs/timeout" --timeout $time_out "$ext_source" "$ext_func" "${ext_func_args[@]}"
+  test_exitcode 143  
+
+  local secs=$SECONDS
+ 
+  #allow a litte leeway as we are working with seconds
+  test_between $secs 1 2 "Sleep 6; Timeout 1; Exec $secs"
+
+  _test_processes_closed "--"
+}
+
+# test that the exit code from the external code is returned
+test_timeout_exitcode_from_exec() {
+  local -i time_out=6
+  local -a ext_func_args=(2 "" 22) # sleep time | msg | exitcode
+
+  "$this_path/../libs/timeout" --timeout $time_out "$ext_source" "$ext_func" "${ext_func_args[@]}"
+  test_exitcode 22
+ 
+  _test_processes_closed "--"
+}
+
+# test timeout function returns the output from the called funtion
+test_timeout_echo_from_exec() {
+
+  local -i time_out=4
+  local -a ext_func_args=(2 "hello world" 3) # sleep time | msg | exitcode
+  local result=
+ 
+  result=$("$this_path/../libs/timeout" --timeout $time_out "$ext_source" "$ext_func" "${ext_func_args[@]}")
+  test_exitcode 3  
+
+  expexted_result="timeout-sleep:hello world"
+  test_eq "$result" "$expexted_result" "Func $ext_func returned:$expexted_result"
+
+  _test_processes_closed "--"
+
+}
+
+# test_timeout_exe_less_than_timeout
+# test_timeout_with_long_action
+# test_timeout_exitcode_from_exec
+# test_timeout_echo_from_exec

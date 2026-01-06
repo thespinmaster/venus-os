@@ -1,0 +1,23 @@
+#!/bin/bash
+
+set -o nounset
+
+this_path="$(dirname "${BASH_SOURCE[0]}")"
+
+. "$this_path/../scripts/libs/test-lib"
+ 
+declare -a test_files=()
+
+if [[ "${1:-}" == "all" || -z "${1:-}" ]]; then
+  mapfile -t test_files < <(find "$this_path/../" -path "*/*/tests/*" \( -name "*-tests" ! -name "_*" \))
+  #test_files=("$this_path/../scripts/tests/_all-tests")
+fi
+
+clear
+
+for test_file in "${test_files[@]}"; do
+  test_runner_on_source_file --summary "$test_file"
+  #test_runner_on_source_file "$test_file" 
+ 
+  #echo "$test_file"
+done 

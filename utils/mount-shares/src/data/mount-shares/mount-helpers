@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 #. /data/opkg-helpers/log-helpers.sh
 

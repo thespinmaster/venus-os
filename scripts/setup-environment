@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # sets up any custom environment settings
 # called from /data/rc.local and dev-setup
 
@@ -20,6 +20,6 @@ if [[ "$(readlink "${NANORV_FILE}")" != "/data/dev/projects/venus-os/scripts/nan
 fi
 
 # Keep at the end of the script
-if [[ reload_bash ]]; then
+if [[ $reload_bash ]]; then
   bash -l
 fi

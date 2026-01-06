@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 #TODO review readonly....need to change locations for testing?
 readonly rc_local_file=/data/rc.local

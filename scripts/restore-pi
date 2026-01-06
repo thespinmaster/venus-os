@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # use echo $(<./restore-pi.log) to get progress updates
 

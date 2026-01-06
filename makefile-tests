@@ -1,0 +1,48 @@
+
+none:
+	@echo "building none... specify the ipk folder to build"
+
+#MAKE SURE package is the last item
+all: network-gps-build dbus-ne-shunt-build test-service-build test-install-build mount-shares-build opkg-helpers-build package
+	@echo "building all targets"
+
+network-gps: network-gps-build package
+network-gps-build:
+	@echo "building network-gps"
+	cd ./scripts/tests && /dev/bin/bash
+
+dbus-ne-shunt: dbus-ne-shunt-build package
+dbus-ne-shunt-build:
+	@echo "building dbus-ne-shunt"
+	cd ./feed && opkg-build -o root -g root ../services/dbus-ne-shunt/src ./
+
+test-service: test-service-build package
+test-service-build:
+	@echo "building test-service"
+	cd ./feed && opkg-build -o root -g root ../services/test-service/src ./
+
+test-install: test-install-build package
+test-install-build:
+	@echo "building test-install"
+	cd ./feed && opkg-build -o root -g root ../services/test-install/src ./
+
+dbus-relay-board: dbus-relay-board-build package 
+dbus-relay-board-build:
+	@echo "building dbus-relay-board"
+	cd ./feed && opkg-build -o root -g root ../services/dbus-relay-board/src ./
+
+mount-shares: mount-shares-build package
+mount-shares-build:
+	@echo "building mount-shares"
+	cd ./feed && opkg-build -o root -g root ../utils/mount-shares/src ./
+
+opkg-helpers: opkg-helpers-build package
+opkg-helpers-build:
+	@echo "building opkg-helpers"
+	cd ./feed && opkg-build -o root -g root ../utils/opkg-helpers/src ./
+
+package:
+	echo "building package index"
+	cd ./feed && opkg-make-index ./ -p Packages
+
+

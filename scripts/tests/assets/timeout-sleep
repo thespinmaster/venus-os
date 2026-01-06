@@ -1,0 +1,22 @@
+#!/bin/bash
+
+scriptName="${0##*/}"
+
+do_sleep() {
+  sleep $1
+  local msg="${2:-""}"
+  local exitcode="${3:-0}"
+ 
+  if (( exitcode < 0 || exitcode > 255 )); then
+    exitcode=2
+  fi 
+  if [[ -n "$msg" ]]; then
+   echo "${scriptName}:$msg"
+  fi
+
+  return "$exitcode"
+}
+
+if [[ "$1" == "do_sleep" ]]; then
+  do_sleep "${2}" "${3}" "${4}"
+fi

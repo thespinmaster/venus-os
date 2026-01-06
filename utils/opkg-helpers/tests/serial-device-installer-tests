@@ -1,0 +1,424 @@
+#!/usr/bin/env bash
+
+# test-runner-ignore
+
+# unreachable SC2329,SC2317
+# shellcheck disable=SC2329,SC2317
+# modified in subshell
+# shellcheck disable=SC2031
+
+this_path="$(dirname "${BASH_SOURCE[0]}")"
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+  printf "\033c" # clear
+fi
+
+echo "hello world from serial-device-installer-tests"
+echo "$this_path"
+ 
+. "$this_path/../../../scripts/libs/test-lib"
+. "$this_path/../src/data/opkg-helpers/libs/core-lib"
+. "$this_path/../src/data/opkg-helpers/libs/log-lib"
+. "$this_path/../src/data/opkg-helpers/libs/conf-lib"
+. "$this_path/../src/data/opkg-helpers/serial-device-installer"
+
+src_code_path="this_path/../src/data/opkg-helpers"
+
+this_path_full="$(core_lib_realpath_nosymlinks "${this_path}")"
+output_path="${this_path_full}/output"
+assets_path="${this_path_full}/assets"
+src_code_path="$(core_lib_realpath_nosymlinks "${this_path_full}/../src/data/opkg-helpers")"
+
+clean_output() {
+rm -rf "${output_path:?}"/*
+}
+ 
+reset_all() {
+#init_variables;
+reset_assets;
+}
+
+reset_assets() {
+  clean_output
+
+  #mkdir -p "${SERVICE_SERIAL_STARTER_PATH}"
+  #mkdir -p "${SERVICE_PATH}"
+  cp -r "${assets_path}/serial-starter.rules" "${output_path}/"
+  cp -r "${assets_path}/serial-starter.conf" "${output_path}/"
+  cp -r "${assets_path}/installer.conf.test" "${output_path}/"
+}
+
+call_install_usb_serial_device() {
+ push_log_indent
+ install_usb_serial_device
+ local -i r=$?
+ pop_log_indent
+ return "$r"
+}
+ 
+#logging##############################
+LOGLEVEL=$LOGLEVEL_TRACE
+#LOGLEVEL=$LOGLEVEL_NONE
+#LOGLEVEL=$LOGLEVEL_ERROR
+LOG_DATE_TIME=
+ 
+#testing#############################
+EXIT_ON_FAILED_TEST=1
+silent="--"
+
+conf_file="${output_path}/installer.conf"
+test_SERVICE_NAME='dummy_service'
+test_def_SERVICE_NAME='ve_${test_SERVICE_NAME}'
+test_TTY='ttyUSB0'
+test_SERIAL_STARTER_RULES_FILE="${output_path}/serial-starter.rules"
+test_SERIAL_STARTER_CONF_FILE="${output_path}/serial-starter.conf"
+
+#Tests loading the serial-device-installer.conf.schema file
+ 
+test_serial_device_installer_schema() {
+ 
+  schema_file="$this_path/assets/serial-device-installer.conf.schema"
+
+  conf_lib_lint "$schema_file"
+  test_exitcode
+
+}
+
+# test loading defaults from schema file; conf file is missing
+test_load_with_schema() {
+ 
+  conf_file="$this_path/assets/serial-device-installer.conf"
+  silent="--"
+  conf_lib_load_with_schema "$conf_file"
+  test_exitcode 21 "Missing Required Values"
+  test_empty "$SERVICE_NAME" "$silent"
+  test_empty "$SERVICE_MAPPING_NAME" "$silent"
+  test_empty "$TTY" "$silent"
+  test_empty "$SERIAL_STARTER_RULE" "$silent"
+  test_not_empty "$SERVICE_PATH" "$silent"
+  test_not_empty "$SERIAL_STARTER_START_SERVICE_PATH" "$silent"
+  test_not_empty "$SERIAL_STARTER_RULES_FILE" "$silent"
+  test_not_empty "$SERIAL_STARTER_CONFIG_FILE" "$silent"
+  test_not_empty "$SERIAL_STARTER_CONFIG_TEXT_MATCH" "$silent"
+  test_not_empty "$SERIAL_STARTER_RULES_TEXT_MATCH" "$silent"
+  test_not_empty "$UDEVADM_PROPS" "$silent"
+  test_not_empty "$USE_UDEVADM_MONITOR" "$silent"
+}
+
+# test loading defaults from schema file; conf file is missing; required vars set
+test_load_with_schema_filled_required_vars() {
+  conf_file="$this_path/assets/serial-device-installer.conf"
+  
+  SERVICE_NAME="$test_def_SERVICE_NAME"
+  conf_lib_load_with_schema "$conf_file"
+  test_exitcode 0 
+  test_eq "$SERVICE_NAME" "$test_def_SERVICE_NAME" "$silent"
+}
+ 
+cur_test_load_with_schema_filled_required_vars() {
+  conf_file="$this_path/assets/serial-device-installer.conf"
+  
+  SERVICE_NAME="$test_def_SERVICE_NAME"
+  SERVICE_MAPPING_NAME="ve$test_def_SERVICE_NAME"
+  conf_lib_load_with_schema "$conf_file"
+  conf_lib_update
+  test_exitcode 0 
+  test_eq "$SERVICE_NAME" "$test_def_SERVICE_NAME" "$silent"
+}
+oldstuff() {
+
+
+#1.1###################################
+(
+reset_assets
+echo "1.1) conf file name not supplied; SERVICE_NAME set"
+
+test_value_is_empty "${SERVICE_NAME}" "SERVICE_NAME not set"
+load_from_conf_file $conf_file
+r=$?
+test_exitcode 1 $r "test exit code: expected #1; recieved #2"
+test_value_is_empty "${SERVICE_NAME}" "SERVICE_NAME not set"
+)
+
+#1.2###################################
+(
+
+echo "1.2) conf file name suppled, SERVICE_NAME not set"
+
+test_file_does_not_exist $conf_file "conf_file does not exist"
+test_value_is_empty "${SERVICE_NAME}" "SERVICE_NAME not set"
+test_value_is_empty "${SERVICE_MAPPING_NAME}" "SERVICE_MAPPING_NAME not set"
+
+load_from_conf_file $conf_file
+r=$?
+test_exitcode 1 $r "test exit code: expected #1; recieved #2"
+test_value_is_empty "${SERVICE_NAME}" "SERVICE_NAME not set"
+test_value_is_empty "${SERVICE_MAPPING_NAME}" "SERVICE_MAPPING_NAME not set"
+test_file_does_not_exist $conf_file "conf_file does not exist"
+)
+
+#1.3####################################
+echo "1.3) conf file name supplied; SERVICE_NAME set"
+(
+#reset_assets
+test_file_does_not_exist $conf_file "conf_file does not exist"
+test_service_name=dummy_service
+SERVICE_NAME=$test_service_name
+
+load_from_conf_file $conf_file
+r=$?
+test_exitcode 0 $r "test exit code: expected #1; recieved #2"
+test_file_exists $conf_file "conf_file exists"
+test_values_match "${test_service_name}" "${SERVICE_NAME}"\
+  "SERVICE_NAME set; expected #1; recieved #2"
+test_values_match "ve_${test_service_name}" "${SERVICE_MAPPING_NAME}" \
+  "SERVICE_MAPPING_NAME set; expected #1; recieved #2"
+
+rm $conf_file
+)
+
+#1.4####################################
+echo "1.4) testing save_to_conf_file; conf file name supplied, SERVICE_NAME set"
+(
+reset_assets
+SERVICE_NAME=$test_SERVICE_NAME
+TTY=
+test_file_does_not_exist $conf_file "conf_file does not exist"
+load_from_conf_file $conf_file
+
+test_file_does_not_contain "${conf_file}" "TTY=\"${TTY}\"" "config file contains updated TTY value"
+test_file_contains "${conf_file}" "SERVICE_NAME=\"${SERVICE_NAME}" "config file contains updated SERVICE_NAME value;"
+TTY=$test_TTY
+
+save_to_conf_file $conf_file
+r=$?
+
+test_exitcode 0 $r "test exit code: expected 0; received $r"
+test_file_exists $conf_file "conf_file exists"
+test_file_contains "${conf_file}" "TTY='${test_TTY}'" 'config file contains updated TTY value'
+test_file_contains "${conf_file}" "SERVICE_NAME='${test_SERVICE_NAME}'" 'config file contains updated SERVICE_NAME value;'
+
+#rm $conf_file #keep file open for next test(s)
+)
+
+#1.5####################################
+(
+echo "1.5) testing re-load_conf_file; variables set"
+reset_assets
+
+SERVICE_NAME=
+SERVICE_NAME_MAPPING=
+TTY=
+
+conf_file=$conf_file.test
+
+test_file_exists $conf_file "conf_file exists"
+load_from_conf_file $conf_file
+
+test_values_match "${test_SERVICE_NAME}" "${SERVICE_NAME}" 'SERVICE_NAME match; expected #1; received #2'
+test_values_match ve_${test_SERVICE_NAME} ${SERVICE_MAPPING_NAME} 'SERVICE_MAPPING_NAME matched; expected #2; received #1'
+test_values_match ${test_TTY} ${TTY} 'TTY matched; expected #2; received #1'
+
+)
+test_if_subshell_failed_exit
+
+#set once
+load_from_conf_file $conf_file
+TTY=
+save_to_conf_file $conf_file # Save empty TTY
+
+#2.0###################################
+(
+reset_all
+echo "2.0) testing usb device not found; TTY not set"
+TTY=
+call_install_usb_serial_device
+
+test_exitcode $r 1 "USB device  not found; expected 1 received $r"
+)
+test_if_subshell_failed_exit
+
+(
+#2.1###################################
+echo "2.1 testing usb found, using existing installerconf file"
+reset_all
+
+conf_file+=.test
+test_file_exists $conf_file "conf file exists"
+
+load_from_conf_file $conf_file
+
+TTY=$test_TTY
+SERIAL_STARTER_RULES_FILE=$test_SERIAL_STARTER_RULES_FILE
+SERIAL_STARTER_CONFIG_FILE=$test_SERIAL_STARTER_CONF_FILE
+expected_config_entry="${SERIAL_STARTER_CONFIG_TEXT_MATCH}"
+
+test_value_is_not_empty "${SERIAL_STARTER_CONFIG_TEXT_MATCH}" "SERIAL_STARTER_CONFIG_TEXT_MATCH set"
+test_value_is_not_empty "${TTY}" "tty set: ${TTY}"
+test_value_is_empty "${SERIAL_STARTER_RULE}" "SERIAL_STARTER_RULE set"
+test_file_exists "${SERIAL_STARTER_RULES_FILE}" "SERIAL_STARTER_RULES_FILE file exists"
+test_file_exists "${SERIAL_STARTER_CONFIG_FILE}" "SERIAL_STARTER_CONFIG_FILE file exists"
+test_file_does_not_contain "${SERIAL_STARTER_RULES_FILE}" $test_SERVICE_NAME "Rule not in SERIAL_STARTER_RULES_FILE"
+test_file_does_not_contain "${SERIAL_STARTER_CONFIG_FILE}" "${expected_config_entry}" "Mapping not in serial-starter.conf"
+
+#echo "$(<$conf_file)"
+
+call_install_usb_serial_device
+echo "SERIAL_STARTER_RULE:${SERIAL_STARTER_RULE}"
+save_to_conf_file $conf_file
+#echo "$(<$conf_file)"
+exit
+test_exitcode 0 $r "USB found; expected #1 received #2"
+test_value_is_not_empty "${SERIAL_STARTER_RULE}" "SERIAL_STARTER_RULE set"
+test_file_exists "${SERIAL_STARTER_RULES_FILE}" "SERIAL_STARTER_RULES_FILE file exists"
+
+before_file=$SERIAL_STARTER_RULES_FILE
+after_file=/home/admin/dev/projects/venus-os/utils/opkg-helpers/tests/output/serial-starter.rules
+before_rule="${SERIAL_STARTER_RULE}"
+. ./output/installer.conf.test
+after_rule="${SERIAL_STARTER_RULE}"
+echo "conf_file:$conf_file"
+echo "before:$before_file"
+echo "after :$after_file"
+echo "before_rule:$before_rule"
+echo "after_rule :$after_rule"
+test_file_contains "${SERIAL_STARTER_RULES_FILE}" "${after_rule}" "Rule found"
+exit 1
+#SERIAL_STARTER_RULES_FILE=/home/admin/dev/projects/venus-os/utils/opkg-helpers/tests/output/serial-starter.rules
+#. ./output/installer.conf.test
+
+test_file_contains "${SERIAL_STARTER_RULES_FILE}" "${SERIAL_STARTER_RULE}" "Rule found"
+
+line_num=$(grep -nw -m 1 "${SERIAL_STARTER_RULE}" "${SERIAL_STARTER_RULES_FILE}" | cut -f1 -d ":")
+test_values_match 2 $line_num "Rule should be at line 2; expected #1; recieved #2"
+
+echo "2.1) testing serial-starter-conf file"
+test_file_exists "${SERIAL_STARTER_CONFIG_FILE}" \
+	"serial-starter.conf file exits $(relative_path ${SERIAL_STARTER_CONFIG_FILE})."
+test_file_contains "${SERIAL_STARTER_CONFIG_FILE}" "${expected_config_entry}"  "serial-starter-mapping is correct "
+
+)
+exit
+test_if_subshell_failed_exit
+
+exit
+#tests###############################
+#1############################################################
+echo "1) testing usb device not found"
+reset_all
+TTY_FILE=
+call_install_usb_serial_device
+
+test_exitcode $r 1 "1) usb not found; expected 1 received $r"
+exit
+#2############################################################
+echo "2) testing usb found, using existing tty file"
+reset_all
+
+#SERIAL_STARTER_RULE_FILE="${assets_path}/serial-starter-test1.rule"
+
+expected_config_entry="${SERIAL_STARTER_CONFIG_TEXT_MATCH}"
+test_value_is_not_empty "${TTY}" "2) tty set: ${TTY}"
+test_file_does_not_exist "${SERIAL_STARTER_RULE}" "2) SERIAL_STARTER_RULE exits"
+
+test_file_does_not_contains_string "${SERIAL_STARTER_RULE}" \
+        "${SERIAL_STARTER_RULES_FILE}" "2) rule not set"
+test_file_does_not_contains_string "${expected_config_entry}" \
+        "${SERIAL_STARTER_CONFIG_FILE}" "2) entry not in serial-starter.conf"
+
+call_install_usb_serial_device
+
+test_exitcode $r 0 "2) usb found; expected 0 received $r"
+#test_values_match "${USED_TTY_FILE}" 1 "2) used tty file; expected 1 recieved ${USED_TTY_FILE}"
+test_file_contains_string "${SERIAL_STARTER_RULE}" "${SERIAL_STARTER_RULE}" "2) rule found"
+line_num=$(grep -nw -m 1 "${SERIAL_STARTER_RULES_TEXT_MATCH}" "${SERIAL_STARTER_RULES_FILE}" | cut -f1 -d ":")
+test_values_match $line_num 2 "2) rule should be at line 2, recieved ${line_num}"
+echo "2.1) testing serial-starter-conf file"
+test_file_exists "${SERIAL_STARTER_CONFIG_FILE}" \
+	"2) serial-starter.conf file exits $(relative_path ${SERIAL_STARTER_CONFIG_FILE})."
+test_file_contains_string "${expected_config_entry}" \
+	"${SERIAL_STARTER_CONFIG_FILE}" "2.1) serial-starter-mapping is correct "
+
+#3############################################################
+echo "3) testing no match found in rules file"
+reset_all
+SERIAL_STARTER_RULE_FILE="${output_path}/serial-starter-test1.rule"
+SERIAL_STARTER_RULES_FILE="${output_path}/serial-starter.rules.no-match"
+call_install_usb_serial_device
+test_exitcode $r 1 "3) no match; expected 1 received $r"
+
+#4############################################################
+echo "4) testing start_service"
+reset_all
+push_log_indent
+start_service
+test_file_exists "${SERVICE_SERIAL_STARTER_PATH}/${TTY}" \
+  "2) serial-starter service start file exists \"$(relative_path "${SERVICE_SERIAL_STARTER_PATH}/${TTY}")\""
+
+pop_log_indent
+
+#TODO remove
+#5############################################################
+echo "6) testing stop_and_remove_service"
+
+
+#6############################################################
+echo "6) testing stop_and_remove_service"
+reset_all
+
+full_service_path="${SERVICE_PATH}/${SERVICE_NAME}.${TTY}"
+mkdir -p "${full_service_path}"
+touch "{full_service_path}/${SERVICE_NAME}"
+touch "{full_service_path}/${SERVICE_NAME}2"
+push_log_indent
+stop_and_remove_service
+test_file_does_not_exist "${full_service_path}/${SERVICE_NAME}" '5) service files removed'
+test_directory_does_not_exist "${full_service_path}" '5) service directory removed'
+pop_log_indent
+
+
+exit
+
+test_values_match "$expected_tty" "$(cat '../output/serial-starter.devname')" "serial-starter.devname equals ttyUSB0"
+
+match="# dbus-ne-shunt"
+test_values_match "$(grep "$match"  "../output/serial-starter.rules")" "$match" "serial-starter.rule comment removed"
+
+match="neshunt"
+test_value_is_not_empty "$(grep "$match"  "../output/serial-starter.rules")" "serial-starter.rule removed"
+
+echo "###########################################"
+echo "testing re-install"
+echo "###########################################"
+echo "calling install_usb_serial_device"
+install_usb_serial_device
+exit
+test_values_match "$(get_USED_TTY_FILE)" 1 "used serial-starter-port file"
+
+test_values_match "$(get_USED_SERIAL_STARTER_RULE_FILE)" 1 "used serial-starter.rule file"
+
+match="# dummy-service"
+test_values_match "$(grep "$match"  "../output/serial-starter.rules")" "$match" "serial-starter.rule comment removed"
+
+match="dummy-service"
+test_value_is_not_empty "$(grep "$match"  "../output/serial-starter.rules")" "serial-starter.rule removed"
+
+echo "###########################################"
+echo "testing un-install"
+echo "###########################################"
+echo "calling remove_usb_serial_device"
+
+#resolve why serial-starter.rules not removed
+remove_usb_serial_device
+
+test_file_does_not_exist "../output/serial-starter.rule" "serial-starter.rule removed"
+
+test_file_does_not_exist "../output/serial-starter-port" "serial-starter-port removed"
+
+match="# dummy-service"
+test_value_is_empty "$(grep "$match"  "../output/serial-starter.rules")" "rule comment removed from serial-starter.rules"
+
+match="dummy-service"
+test_value_is_empty "$(grep "$match"  "../output/serial-starter.rules")" "rule removed from serial-starter.rules"
+
+}
