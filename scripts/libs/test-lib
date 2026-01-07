@@ -8,7 +8,7 @@ TEST_RUNNER_ERROR_COUNT=0
 TEST_RUNNER_SUCCESS_COUNT=0
 TEST_RUNNER_SILENT=
  
-__test_lib_pass_or_fail() {
+__assert_lib_pass_or_fail() {
 
   # result is always the first
   # comment is always the second
@@ -46,8 +46,12 @@ __test_lib_pass_or_fail() {
     #echo -e "${TEST_INDENT}\033[31;1mFAILED (line:$lineNo)\033[00m: \e[9m$comment\e[0m"
     
     # (( ! TEST_RUNNER_SILENT )) && {
+      local align_space=
       printf '%s\033[31;1m\u274c\ufe0f (line:%s)\033[00m: %s\e[0m\n' "${TEST_INDENT}" "${lineNo}" "${comment}"
-      for (( i=1; i <= "$#"; i++ )); do printf '%s%q\n' "${TEST_INDENT}" "${!i}"; done
+      for (( i=1; i <= "$#"; i++ )); do 
+        #((i==2)) && align_space=" "
+        printf '%s%s%s%q\n' "${TEST_INDENT}" "${align_space}" "${!i}"
+      done
     #}
     if [[ $EXIT_ON_FAILED_TEST  ]]; then
       exit 255
@@ -67,13 +71,13 @@ __set_comment() {
 }
 
 ###################################
-# Tests if a file exists
+# Asserts if a file exists
 # Arguments:
 #   $1 file name
 #   $2 optional - comment; default; "File exists"
 #   $3 optional - retry count; default 1
 ###################################
-test_file_exists() {
+assert_file_exists() {
   local result=false
   local comment="${2:-}"
   local -i retry_count="${3:-1}"
@@ -85,106 +89,106 @@ test_file_exists() {
     sleep 0.25
   done
 
-  __test_lib_pass_or_fail $result "$comment" "file:$1"
+  __assert_lib_pass_or_fail $result "$comment" "file:$1"
 
 }
 
 ###################################
-# Tests if a file does not exist
+# Asserts if a file does not exist
 # Arguments:
 #   $1 file name
 #   $2 comment
 ###################################
-test_file_not_exist() {
+assert_file_not_exist() {
   local result=false
   local comment="${2:-}"
   __set_comment comment "File does not exist"
   [[ -f "${1}" ]] || result=true
-  __test_lib_pass_or_fail $result "$comment" "file:$1"
+  __assert_lib_pass_or_fail $result "$comment" "file:$1"
 }
 
 ###################################
-# Tests if a directory exists
+# Asserts if a directory exists
 # Arguments:
 #   $1 directory path
 #   $2 comment
 ###################################
-test_dir_exists() {
+assert_dir_exists() {
   local result=false
   local comment="${2:-}"
   __set_comment comment "Path exists"
   [[ -d "${1}" ]] && result=true
-  __test_lib_pass_or_fail $result "$comment" "path:$1"
+  __assert_lib_pass_or_fail $result "$comment" "path:$1"
 }
 
 ###################################
-# Tests if a directory does not exist
+# Asserts if a directory does not exist
 # Arguments:
 #   $1 directory path
 #   $2 comment
 ###################################
-test_dir_not_exist() {
+assert_dir_not_exist() {
   local result=false
   local comment="${2:-}"
   __set_comment comment "Path does not exist"
   [[ -d "${1}" ]] || result=true
-  __test_lib_pass_or_fail $result "$comment" "path:$1"
+  __assert_lib_pass_or_fail $result "$comment" "path:$1"
 }
 
 ###################################
-# Tests if 2 values are equal
+# Asserts if 2 values are equal
 # Arguments:
 #   $1 value1
 #   $2 value2
 #   $3 comment
 ###################################
-test_eq() { 
+assert_eq() { 
   local result=false
   local comment="${3:-}"
   __set_comment comment "Values are equal"
   [[ "${1}" == "${2}" ]] && result=true
-  __test_lib_pass_or_fail $result "$comment" "value 1:$1" "value 2:$2"
+  __assert_lib_pass_or_fail $result "$comment" "value 1:$1" "value 2:$2"
  }
  
  ###################################
-# Tests if value1 is greater than value 2
+# Asserts if value1 is greater than value 2
 # Arguments:
 #   $1 value1
 #   $2 value1
 #   $3 comment
 ###################################
-test_gt() { 
+assert_gt() { 
   local result=false
   local comment="${3:-}"
   __set_comment comment "Value1 is greater than Value2"
   (( "${1}" > "${2}" )) && result=true
-  __test_lib_pass_or_fail $result "$comment" "value 1:$1" "value 2:$2"
+  __assert_lib_pass_or_fail $result "$comment" "value 1:$1" "value 2:$2"
  }
 
 ###################################
-# Tests if value1 is less than value 2
+# Asserts if value1 is less than value 2
 # Arguments:
 #   $1 value1
 #   $2 value1
 #   $3 comment
 ###################################
-test_lt() { 
+assert_lt() { 
   local result=false
   local comment="${3:-}"
   __set_comment comment "Value1 is less than Value2"
   (( "${1}" < "${2}" )) && result=true
-  __test_lib_pass_or_fail $result "$comment" "value 1:$1" "value 2:$2"
+  __assert_lib_pass_or_fail $result "$comment" "value 1:$1" "value 2:$2"
  }
 
 ###################################
-# Tests if value1 is between value 2 and value 3
+# Asserts if value1 is between value 2 and value 3
 # Arguments:
 #   $1 value1
 #   $2 value2
 #   $3 value3
 #   $4 comment
 ###################################
-test_between() { 
+assert_between() { 
 
   if (( "${2}" >= "${3}"  )); then
     echo "value1 must be greater than value 2" &>2; 
@@ -195,36 +199,64 @@ test_between() {
   local comment="${4:-}"
   __set_comment comment "Value1 is less than Value2"
   (( "${1}" >= "${2}" )) && (( "${1}" <= "${3}" )) && result=true
-  __test_lib_pass_or_fail $result "$comment" "value 1:$1" "value 2:$2" "value 3:$3"
+  __assert_lib_pass_or_fail $result "$comment" "value 1:$1" "value 2:$2" "value 3:$3"
  }
 
 ###################################
-# Tests if 2 values are not equal
+# Asserts if 2 values are not equal
 # Arguments:
 #   $1 value1
 #   $2 value2
 #   $3 comment
 ###################################
-test_not_eq() {
+assert_not_eq() {
   local result=false
   local comment="${3:-}"
   __set_comment comment "Values are not equal"
   [[ "${1}" != "${2}" ]] && result=true
-  __test_lib_pass_or_fail $result "$comment" "value 1:$1" "value 2:$2"
+  __assert_lib_pass_or_fail $result "$comment" "value 1:$1" "value 2:$2"
  }
  
 ###################################
-# Tests if the value is empty
+# Asserts if the value is empty
 # Arguments:
 #   $1 value
 #   $2 comment
 ###################################
-test_empty() {
+assert_empty() {
   local result=false
   local comment="${2:-}"
   __set_comment comment "Value is empty"
   [[ -z "${1}" ]] && result=true
-  __test_lib_pass_or_fail $result "$comment" "value:$1"
+  __assert_lib_pass_or_fail $result "$comment" "value:$1"
+}
+
+###################################
+# Asserts if a variable exists (not unset)
+# Arguments:
+#   $1 variable name
+#   $2 comment
+###################################
+assert_var_exists() {
+  local result=false
+  local comment="${2:-}"
+  [[ -v $1 ]] && result=true # normalize the results to true/false
+  __set_comment comment "Variable exists; ${1}"
+  __assert_lib_pass_or_fail $result "$comment" "${1}"
+}
+
+###################################
+# Asserts if a variable does not exist (not unset)
+# Arguments:
+#   $1 variable name
+#   $2 comment
+###################################
+assert_var_not_exist() {
+  local result=false
+  local comment="${2:-}"
+  [[ ! -v $1 ]] && result=true # normalize the results to true/false
+  __set_comment comment "Variable exists; ${1}"
+  __assert_lib_pass_or_fail $result "$comment" "${1}"
 }
 
 ###################################
@@ -234,31 +266,31 @@ test_empty() {
 #   $2 comment
 #   $3 any args
 ###################################
-test_result() {
+assert_result() {
   local result=false
   local comment="${2:-}"
-  [[ ${1} ]] && result=true # normalize the results to true/false
+  [[ ${1} == true ||  ${1} == 0 ]] && result=true # normalize the results to true/false
   __set_comment comment "Test Result=${1}"
   shift 2 # for args
-  __test_lib_pass_or_fail $result "$comment" "${@}"
+  __assert_lib_pass_or_fail $result "$comment" "${@}"
 }
 
 ###################################
-# Tests if the value is not empty
+# Asserts if the value is not empty
 # Arguments:
 #   $1 value
 #   $2 comment
 ###################################
-test_not_empty() { 
+assert_not_empty() { 
   local result=false
   local comment="${2:-}"
   __set_comment comment "Value is not empty"
   [[ -n "${1}" ]] && result=true
-  __test_lib_pass_or_fail $result "$comment" "value:$1"
+  __assert_lib_pass_or_fail $result "$comment" "value:$1"
  }
  
 ###################################
-# Tests if the exit code equals
+# Asserts if the exit code equals
 # Arguments:
 #   $1 - required; exit code to match
 #   $2 - optional; comment
@@ -266,18 +298,18 @@ test_not_empty() {
 # after the command to check as it
 # uses "$?"
 ###################################
-test_exitcode() {
+assert_exitcode() {
   exitcode=$?
   local result=false
   local comment="${2:-}"
   local expected=${1:-0}
   __set_comment comment "Exit code is valid"
   (( exitcode == expected )) && result=true
-  __test_lib_pass_or_fail $result "$comment" "expected:$expected" "recieved:$exitcode"
+  __assert_lib_pass_or_fail $result "$comment" "expected:$expected" "recieved:$exitcode"
 }
 
 ###################################
-# Tests if the exit code does not equal
+# Asserts if the exit code does not equal
 # Arguments:
 #   $1 - required; exit code to not match
 #   $2 - optional; comment
@@ -285,7 +317,7 @@ test_exitcode() {
 # after the command to check as it
 # uses "$?"
 ###################################
-test_exitcode_not() {
+assert_exitcode_not() {
   exitcode=$?
   local result=false
   local comment="${2:-}"
@@ -297,17 +329,17 @@ test_exitcode_not() {
   #fi
   __set_comment comment "Exit code is valid" 
   (( exitcode != ${1} )) && result=true
-  __test_lib_pass_or_fail $result "$comment" "$arg1" "$arg2"
+  __assert_lib_pass_or_fail $result "$comment" "$arg1" "$arg2"
 }
 
 ###################################
-# Tests if a file contains a string
+# Asserts if a file contains a string
 # Arguments:
 #   $1 - required; the file to check
 #   $2 - required; the string value to find
 #   $3 - optional comment
 ###################################
-test_file_contains() {
+assert_file_contains() {
   local result=false
   local file="${1}"
   local match="${2}"
@@ -315,17 +347,17 @@ test_file_contains() {
   __set_comment comment "File contains"
   # don't try to match if match string is empty
   [[ -n "${match}" ]] && [[ "$(<"${file}")" = *"${match}"* ]] && result=true
-  __test_lib_pass_or_fail $result "$comment" "file:$file" "match:$match"
+  __assert_lib_pass_or_fail $result "$comment" "file:$file" "match:$match"
 }
 
 ###################################
-# Tests if a file does not contain a string
+# Asserts if a file does not contain a string
 # Arguments:
 #   $1 the file to check
 #   $2 the string value to find
 #   $3 comment
 ###################################
-test_file_not_contain() { 
+assert_file_not_contain() { 
   local result=false
   local file="${1}"
   local match="${2}"
@@ -333,7 +365,7 @@ test_file_not_contain() {
   __set_comment comment "File does not contain"
   # don't try to match if match string is empty
   [[ -n "${match}" ]] && [[ "$(<"${file}")" = *"${match}"* ]] || result=true
-  __test_lib_pass_or_fail $result "$comment" "file:$file" "match:$match"
+  __assert_lib_pass_or_fail $result "$comment" "file:$file" "match:$match"
 }
  
 ###################################
@@ -459,7 +491,7 @@ test_runner() {
 #   $1 - required; The file containing the 
 #        tests to run
 #   $2 - optional; Filters the name of the test
-#        The default filter is "^test_*"
+#        The default filter is "^assert_*"
 # Each function is run in its own
 # isolated process '(...)''
 ###################################

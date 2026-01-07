@@ -9,6 +9,18 @@
 #   source core-utils-lib.sh
 #######################################
 
+# ___assert_depends() {
+#   if [[ -v "__this_path" ]]; then
+#     echo "__this_path variable missing" >&2; exit 0; fi
+  
+#   local name="$1"
+ 
+#   if [[ -f "$__this_path/$name" ]]; then
+#     echo "depenency missing $__this_path/$name" >&2; exit 0; fi
+# }
+
+
+
 ######################################
 # expands the path to a full path
 # does not follow symlinks, even for
@@ -143,5 +155,5 @@ EOF
   ' "$script"
 }
 
-[[ "$1" = "core_utils_lib_list_methods_in_script" ]] && { shift; core_lib_list_methods_in_script "$@"; }
+[[ "${1:-}" = "core_utils_lib_list_methods_in_script" ]] && { shift; core_lib_list_methods_in_script "$@"; }
 

@@ -11,9 +11,15 @@
 #   - load_vars        (safe, multiline, escaped)
 #   - load_schema
 #   - load_vars_with_schema
-#
 
 set -o nounset
+ 
+#Depends
+# shellcheck disable=SC2155
+declare __this_path=$(dirname "${BASH_SOURCE[0]}")
+
+#. "$__this_path/core-lib"
+. "$__this_path/string-lib"
  
 # ============================================================
 # Schema state
@@ -50,22 +56,9 @@ __conf_lib_schema_reset() {
 #######################################
 
 __conf_lib_valid_var() { [[ "$1" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]; }
-__conf_lib_is_upper()  { [[ "$1" =~ ^[A-Z_][A-Z0-9_]*$ ]]; }
-__conf_lib_ends_with_unescaped_quote() { [[ "$1" =~ (^|[^\\])\"$ ]]; }
-__conf_lib_starts_with_quote() { [[ "$1" =~ (^|[^\\])\" ]]; }
+__conf_lib_is_multi_line() { [[ $1 =~ ^\"(.|\\)*([^\\\"]|\\)$ ]]; }
 __conf_lib_has_invalid_escape() { [[ "$1" =~ \\[^\"\\] ]]; }
-__conf_lib_unescape() {
-  local s="$1"
 
-  # First unescape escaped quotes
-  s="${s//\\\"/\"}"
-
-  # Then unescape escaped backslashes
-  s="${s//\\\\/\\}"
-
-  printf '%s' "$s"
-}
- 
 #######################################
 # Validate a value against a schema type.
 #
@@ -87,20 +80,20 @@ conf_lib_schema_validate_value() {
   local value="$1" type="$2"
 
   case "$type" in
-    string) return 0 ;;
-    int)    [[ "$value" =~ ^-?[0-9]+$ ]] ;;
-    bool)   [[ "$value" == "true" || "$value" == "false" ]] ;;
-    enum:*)
-      local opts="${type#enum:}"
-      IFS=',' read -ra allowed <<< "$opts"
-      for v in "${allowed[@]}"; do
-        [[ "$value" == "$v" ]] && return 0
-      done
-      return 1
-      ;;
-    *) return 1 ;;
+  string) return 0 ;;
+  int) [[ "$value" =~ ^-?[0-9]+$ ]] ;;
+  bool) [[ "$value" == "true" || "$value" == "false" ]] ;;
+  enum:*)
+    local opts="${type#enum:}"
+    IFS=',' read -ra allowed <<<"$opts"
+    for v in "${allowed[@]}"; do
+      [[ "$value" == "$v" ]] && return 0
+    done
+    return 1
+    ;;
+  *) return 1 ;;
   esac
- 
+
 }
 
 #######################################
@@ -127,53 +120,78 @@ conf_lib_schema_validate_value() {
 # Side effects:
 #   - Initializes/overwrites schema globals
 #######################################
+
 conf_lib_load_schema() {
   local schema_file="$1"
-  local line key type def flags   
-  local -i bitflags=0 
-  local -i lineno=0  
-  
-  __conf_lib_schema_reset
+  local line skey type def flags # using skey as key appears to be reserved in bashdb
+  local -i bitflags=0 lineno=0 multi_line_default=0
 
   if [[ ! -f "$schema_file" ]]; then
     echo "schema file not found" >&2
     return 1
   fi
- 
+
+  __conf_lib_schema_reset
+
   while IFS= read -r line || [[ -n "$line" ]]; do
     ((lineno++))
-    
-    line="${line%%#*}"
-    [[ -z "${line//[[:space:]]/}" ]] && continue
- 
-    IFS='|' read -r key type flags def <<< "$line"
- 
-    key="${key//[[:space:]]/}"
-    type="${type//[[:space:]]/}"
-    def="${def#"${def%%[![:space:]]*}"}"
-    def="${def%"${def##*[![:space:]]}"}"
-    flags="${flags#"${flags%%[![:space:]]*}"}"
-    flags="${flags%"${flags##*[![:space:]]}"}"
 
-    __conf_lib_valid_var "$key" || {
-      echo "$schema_file:$lineno invalid variable '$key'" >&2
-      return 1
-    }
-    __CONF_LIB_SCHEMA_VARIABLES["$key"]=1
-    __CONF_LIB_SCHEMA_TYPE["$key"]="$type"
+    if ((multi_line_default)); then
+      def+="${line}"$'\n'
+      string_lib_ends_with_quote "${line}" || continue
+    else
+      #line="${line%%#*}" do not remove comments from the end of lines in a schema file
+      [[ -z "${line//[[:space:]]/}" || $line == \#* ]]  && continue
  
-    [[ -n "$def" ]] && {
-      __CONF_LIB_SCHEMA_DEFAULT["$key"]="$(__conf_lib_unescape "$def")"; }
-    
+      IFS='|' read -r skey type flags def <<<"$line"
+
+      string_lib_remove_all_whitespace skey
+      string_lib_remove_all_whitespace type
+      string_lib_trim flags
+      string_lib_trim_start def
+
+      __conf_lib_valid_var "$skey" || {
+        echo "$schema_file:$lineno Invalid variable '$skey'" >&2
+        return 1
+      }
+      __CONF_LIB_SCHEMA_VARIABLES["$skey"]=1
+      __CONF_LIB_SCHEMA_TYPE["$skey"]="$type"
+    fi
+
+    if [[ -n "$def" ]]; then
+      if ((multi_line_default)); then
+        multi_line_default=0
+
+        def="${def:0:-1}" # remove newline we added above
+        # remove any trailing spaces before end quote
+        string_lib_trim_end def
+        def="${def:1:-1}" # start and end quote
+      elif __conf_lib_is_multi_line "$def"; then
+        multi_line_default=1
+
+        def+=$'\n'
+        continue
+      else
+        string_lib_trim def
+      fi
+
+      if ((!multi_line_default)); then
+        string_lib_unescape def
+        if [[ -n "$def" ]]; then
+          __CONF_LIB_SCHEMA_DEFAULT["$skey"]="$def"
+        fi
+      fi
+    fi
+
     bitflags=0
-    [[ "$flags" =~ required ]] && (( bitflags |= __CONF_LIB_SCHEMA_FLAG_REQUIRED ))
-    [[ "$flags" =~ secret ]] && (( bitflags |= __CONF_LIB_SCHEMA_FLAG_SECRET ))
-    [[ "$flags" =~ readonly ]] && (( bitflags |= __CONF_LIB_SCHEMA_FLAG_READONLY ))
- 
-    __CONF_LIB_SCHEMA_FLAGS["$key"]="$bitflags"
- 
-  done < "$schema_file"
- 
+    [[ "$flags" =~ required ]] && ((bitflags |= __CONF_LIB_SCHEMA_FLAG_REQUIRED))
+    [[ "$flags" =~ secret ]] && ((bitflags |= __CONF_LIB_SCHEMA_FLAG_SECRET))
+    [[ "$flags" =~ readonly ]] && ((bitflags |= __CONF_LIB_SCHEMA_FLAG_READONLY))
+
+    __CONF_LIB_SCHEMA_FLAGS["$skey"]="$bitflags"
+
+  done <"$schema_file"
+
   return 0
 }
 
@@ -201,75 +219,79 @@ conf_lib_load_schema() {
 #   - Writes diagnostics to stderr or stdout (JSON mode)
 #######################################
 conf_lib_lint() {
-  local file="$1"; shift
+  local file="$1"
+  shift
   local fix=0 strict=0 json=0 style=0
 
   while [[ "${1:-}" ]]; do
     case "$1" in
-      --fix)    fix=1 ;;
-      --strict) strict=1 ;;
-      --json)   json=1 ;;
-      --style)  style=1 ;;
+    --fix) fix=1 ;;
+    --strict) strict=1 ;;
+    --json) json=1 ;;
+    --style) style=1 ;;
     esac
     shift
   done
-
-  [[ -f "$file" ]] || { echo "conf file not found" >&2; return 1; }
+    
+  [[ -f "$file" ]] || {
+    echo "conf file not found" >&2
+    return 1
+  }
 
   local line lineno=0
   local in_multiline=0 in_heredoc=0 heredoc_tag=""
-  declare -A seen=()
+  local -A seen=()
   local errors=0 warnings=0
   local messages=()
   local fixed=""
-  local key=
+  local skey=
 
   while IFS= read -r line || [[ -n "$line" ]]; do
     ((lineno++))
-
+ 
     # auto-fix trailing whitespace
-    if (( fix )); then
+    if ((fix)); then
       fixed+="${line%"${line##*[![:space:]]}"}"$'\n'
     fi
 
     [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
 
-    if (( in_multiline )); then
-      __conf_lib_ends_with_unescaped_quote "$line" && in_multiline=0
+    if ((in_multiline)); then
+      string_lib_ends_with_quote "$line" && in_multiline=0
       continue
     fi
 
-    if (( in_heredoc )); then
+    if ((in_heredoc)); then
       [[ "$line" == "$heredoc_tag" ]] && in_heredoc=0
       continue
     fi
 
     # quoted assignment ([[:space:]]*)
-    if [[ "$line" =~ ^([A-Za-z_][A-Za-z0-9_]*)=\" ]]; then 
-      local key="${BASH_REMATCH[1]}"
+    if [[ "$line" =~ ^([A-Za-z_][A-Za-z0-9_]*)=\" ]]; then
+      local skey="${BASH_REMATCH[1]}"
 
-      (( strict )) && __conf_lib_has_invalid_escape "$line" && {
+      ((strict)) && __conf_lib_has_invalid_escape "$line" && {
         messages+=("$file:$lineno ERROR invalid escape sequence")
         ((errors++))
       }
 
-      (( style )) && ! __conf_lib_is_upper "$key" && {
-        messages+=("$file:$lineno WARNING '$key' should be uppercase")
+      ((style)) && ! string_lib_is_upper "$skey" && {
+        messages+=("$file:$lineno WARNING '$skey' should be uppercase")
         ((warnings++))
       }
 
-      (( seen["$key"]++ )) && {
-        messages+=("$file:$lineno WARNING duplicate '$key'")
+      ((seen["$skey"]++)) && {
+        messages+=("$file:$lineno WARNING duplicate '$skey'")
         ((warnings++))
       }
 
-      if (( strict )) && __conf_lib_ends_with_unescaped_quote "$line" &&
-         [[ "$line" =~ \"[[:space:]]+[^#[:space:]] ]]; then
+      if ((strict)) && string_lib_ends_with_quote "$line" &&
+        [[ "$line" =~ \"[[:space:]]+[^#[:space:]] ]]; then
         messages+=("$file:$lineno ERROR trailing garbage after closing quote")
         ((errors++))
       fi
 
-      __conf_lib_ends_with_unescaped_quote "$line" || in_multiline=1
+      string_lib_ends_with_quote "$line" || in_multiline=1
       continue
     fi
 
@@ -284,29 +306,32 @@ conf_lib_lint() {
     #  messages+=("$file:$lineno ERROR malformed assignment")
     #  ((errors++))
     #}
-  done < "$file"
+  done <"$file"
 
-  (( in_multiline )) && messages+=("$file:$lineno ERROR unterminated quoted value")
-  (( in_heredoc )) && messages+=("$file:$lineno ERROR unterminated heredoc")
+  ((in_multiline)) && messages+=("$file:$lineno ERROR unterminated quoted value")
+  ((in_heredoc)) && messages+=("$file:$lineno ERROR unterminated heredoc")
 
-  (( fix )) && printf '%s' "$fixed" > "$file"
+  ((fix)) && printf '%s' "$fixed" >"$file"
 
-  if (( json )); then
+  if ((json)); then
+
     printf '{ "errors": %d, "warnings": %d, "messages": [' "$errors" "$warnings"
     local first=1
     for m in "${messages[@]}"; do
-      (( first )) || printf ','
+      ((first)) || printf ','
       first=0
       printf '"%s"' "$m"
     done
     printf '] }\n'
-  else
-    printf '%s\n' "${messages[@]}" >&2
+    
+  elif [[ "${#messages[@]}" -gt 0 ]]; then
+     printf '%s\n' "${messages[@]}" >&2
   fi
 
-  (( errors > 0 )) && return 2
-  (( warnings > 0 )) && return 1
+  ((errors > 0)) && return 1
+  ((warnings > 0)) && return 2
   return 0
+  
 }
 
 #######################################
@@ -335,17 +360,18 @@ conf_lib_lint() {
 conf_lib_load() {
   __conf_lib_schema_reset
   __conf_lib_load "$1" || return 1
-return 0
+  return 0
 }
 
 __conf_lib_load() {
 
   local file="$1"
   local using_schema=${2:-}
- 
-  conf_lib_lint "$file" --strict --style || return 1
- 
-  local line key value buffer="" heredoc_tag=""
+
+  conf_lib_lint "$file" --strict --style || {     
+    return 1
+  }
+  local line skey value buffer="" heredoc_tag=""
   local -i in_multiline=0 in_heredoc=0 is_quoted=0
 
   check_key_exists_in_schema() {
@@ -355,7 +381,7 @@ __conf_lib_load() {
     fi
     return 0
   }
- 
+
   add_key_and_value() {
     printf -v "$1" '%s' "$2"
   }
@@ -363,72 +389,74 @@ __conf_lib_load() {
   while IFS= read -r line || [[ -n "$line" ]]; do
     [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
 
-    if (( in_multiline )) ; then
-    
-      if __conf_lib_ends_with_unescaped_quote "$line"; then
+    if ((in_multiline)); then
+
+      if string_lib_ends_with_quote "$line"; then
 
         buffer+="${line%\"}"
-        buffer="$(__conf_lib_unescape "$buffer")"
+        string_lib_unescape buffer
 
-        add_key_and_value "$key" "$buffer"
-        
-        buffer=""; in_multiline=0
+        add_key_and_value "$skey" "$buffer"
+
+        buffer=""
+        in_multiline=0
       else
         buffer+="$line"$'\n'
       fi
       continue
     fi
 
-    if (( in_heredoc )); then
+    if ((in_heredoc)); then
       if [[ "$line" == "$heredoc_tag" ]]; then
         buffer="${buffer%$'\n'}" # trim trailing newline
 
-        add_key_and_value "$key" "$buffer"
-        buffer=""; in_heredoc=0
+        add_key_and_value "$skey" "$buffer"
+        buffer=""
+        in_heredoc=0
       else
         buffer+="$line"$'\n'
       fi
       continue
     fi
-    
+
     if [[ "$line" =~ ^([A-Za-z_][A-Za-z0-9_]*)=(.*)$ ]]; then
-      key="${BASH_REMATCH[1]}"
+      skey="${BASH_REMATCH[1]}"
       value="${BASH_REMATCH[2]}"
- 
-      check_key_exists_in_schema "$key" || return 1
+
+      check_key_exists_in_schema "$skey" || return 1
       if [[ ${value:0:1} == "\"" ]]; then
-        value="${value:1}" 
+        value="${value:1}"
         is_quoted=1
       else
         is_quoted=0
       fi
-      
-      if [[ $is_quoted == 0 ]] || __conf_lib_ends_with_unescaped_quote "$line"; then
+
+      if [[ $is_quoted == 0 ]] || string_lib_ends_with_quote "$line"; then
         value="${value%\"}"
         value="${value//\\\"/\"}"
- 
+
         # only need to check here for return code to see if value is valid
-        add_key_and_value "$key" "$value" || return 1
+        add_key_and_value "$skey" "$value" || return 1
       else
         buffer="$value"$'\n'
         in_multiline=1
       fi
       continue
     elif [[ "$line" =~ ^([A-Za-z_][A-Za-z0-9_]*)=(.*)$ ]]; then
-      key="${BASH_REMATCH[1]}"
+      skey="${BASH_REMATCH[1]}"
       value="${BASH_REMATCH[2]}"
     fi
 
     if [[ "$line" =~ ^([A-Za-z_][A-Za-z0-9_]*)\<\<([A-Za-z0-9_]+)$ ]]; then
-      key="${BASH_REMATCH[1]}"
+      skey="${BASH_REMATCH[1]}"
       heredoc_tag="${BASH_REMATCH[2]}"
-      check_key_exists_in_schema "$key" || return 1
+      check_key_exists_in_schema "$skey" || return 1
       buffer=""
       in_heredoc=1
     fi
-  done < "$file"
+  done <"$file"
 
-return 0
+  return 0
 }
 
 #######################################
@@ -461,14 +489,14 @@ conf_lib_load_with_schema() {
   local config="$1"
   local schema="${2:-${config}.schema}"
   local -i retVal=0
-
+ 
   conf_lib_load_schema "$schema" || retVal=1
 
-  if (( retVal == 0 )); then
+  if ((retVal == 0)); then
 
     # reset all values in the schema before loading
-    for key in "${!__CONF_LIB_SCHEMA_TYPE[@]}"; do
-      [[ -v "${key}" ]] && unset -v "${key}"
+    for skey in "${!__CONF_LIB_SCHEMA_TYPE[@]}"; do
+      [[ -v "${skey}" ]] && unset -v "${skey}"
     done
 
     if [[ -f $config ]]; then
@@ -476,102 +504,109 @@ conf_lib_load_with_schema() {
     fi
   fi
 
-  (( retVal != 0 )) && {
+  ((retVal != 0)) && {
     __conf_lib_schema_reset
     return $retVal
   }
   CONF_LIB_STATE_FLAGS=()
 
-  local key type flags required #errors=0
- 
-  for key in "${!__CONF_LIB_SCHEMA_TYPE[@]}"; do
+  local skey type flags required #errors=0
+
+  for skey in "${!__CONF_LIB_SCHEMA_TYPE[@]}"; do
     
-    local type="${__CONF_LIB_SCHEMA_TYPE["$key"]}"  
-    local flags="${__CONF_LIB_SCHEMA_FLAGS["$key"]:-0}"
-    local required=0; (( flags & __CONF_LIB_SCHEMA_FLAG_REQUIRED )) && required=1
-    local resolved_value="${!key:-}"
- 
-    if [[ ! -v "${key}" ]]; then
-      (( CONF_LIB_STATE_FLAGS["$key"] |= __CONF_LIB_STATE_FLAGS__DEFAULT_ORIGIN_MISSING ))
-    elif [[ -z ${!key} ]]; then
-      (( CONF_LIB_STATE_FLAGS["$key"] |= __CONF_LIB_STATE_FLAGS__DEFAULT_ORIGIN_EMPTY ))
+    local type="${__CONF_LIB_SCHEMA_TYPE["$skey"]}"
+    local flags="${__CONF_LIB_SCHEMA_FLAGS["$skey"]:-0}"
+    local required=0
+    ((flags & __CONF_LIB_SCHEMA_FLAG_REQUIRED)) && required=1
+    local resolved_value="${!skey:-}"
+
+    if [[ ! -v "${skey}" ]]; then
+      ((CONF_LIB_STATE_FLAGS["$skey"] |= __CONF_LIB_STATE_FLAGS__DEFAULT_ORIGIN_MISSING))
+    elif [[ -z ${!skey} ]]; then
+      ((CONF_LIB_STATE_FLAGS["$skey"] |= __CONF_LIB_STATE_FLAGS__DEFAULT_ORIGIN_EMPTY))
     fi
 
-    if [[ -z ${!key:-} ]]; then
-      resolved_value="${__CONF_LIB_SCHEMA_DEFAULT[$key]:-}"
+    if [[ -z ${!skey:-} ]]; then
+      resolved_value="${__CONF_LIB_SCHEMA_DEFAULT[$skey]:-}"
     fi
-    
+
     if [[ -z "$resolved_value" ]]; then
-      #check if the caller supplied a default value 
-      local key_def="___${key}" 
+      #check if the caller supplied a default value
+      local key_def="___${skey}"
       if [[ -v "${key_def}" ]]; then
-        (( CONF_LIB_STATE_FLAGS["$key"] |= __CONF_LIB_STATE_FLAGS__DEFAULT_ORIGIN_USER ))
+        ((CONF_LIB_STATE_FLAGS["$skey"] |= __CONF_LIB_STATE_FLAGS__DEFAULT_ORIGIN_USER))
         resolved_value="${!key_def}"
-      fi 
+      fi
     fi
 
     if [[ -z "$resolved_value" ]]; then
       ((required)) && {
-        echo "Missing required '$key'" >&2
+    
+        echo "Missing required value for '\$$skey'" >&2
+ 
         retVal=1
       }
+      printf -v "$skey" '%s' "" # Ensure variable exists
       continue
     fi
- 
+
     conf_lib_schema_validate_value "$resolved_value" "$type" || {
-      echo "Invalid value for '$key' (expected $type)" >&2
+      echo "Invalid value for '$skey' (expected $type)" >&2
       retVal=1
       continue
     }
-    [[ -n $resolved_value ]] &&
-      printf -v "$key" '%s' "$resolved_value"
-
-    #echo "key=$key | type=$type | flags=$flags | readonly=$read_only | required=$required | value=""$(echo "${!key:-(empty)}" | head -c 10)"
+ 
+    printf -v "$skey" '%s' "$resolved_value"
+    
+    #echo "skey=$skey | type=$type | flags=$flags | readonly=$read_only | required=$required | value=""$(echo "${!skey:-(empty)}" | head -c 10)"
 
   done
- 
+
   __conf_lib_schema_reset
- 
+
   return $retVal
 }
- 
+
 #######################################
 # Update config file with current shell values
 # Escapes double quotes and backslashes
 #######################################
-  # loop though the existing file
-  # keeping existing comments
-  # for each variable found update its value
-  #   When updating and using a schema
-  #     use a supplied schama_callback to....
-  #       set the value to the default value if empty
-  #       set the value to the default value if readonly
-  #       validate the new value
-  #   store the value in the file
-  # For multi-line and heredoc values
-  # keep looping until the end of the variables end tag
-  # finaly add any values not found in the existing file
-  #     doing the same as we did with the existing variables
+# loop though the existing file
+# keeping existing comments
+# for each variable found update its value
+#   When updating and using a schema
+#     use a supplied schama_callback to....
+#       set the value to the default value if empty
+#       set the value to the default value if readonly
+#       validate the new value
+#   store the value in the file
+# For multi-line and heredoc values
+# keep looping until the end of the variables end tag
+# finaly add any values not found in the existing file
+#     doing the same as we did with the existing variables
 
 conf_lib_save_with_schema() {
 
   for opt in "$@"; do
     case "$opt" in
-    --dry-run);;
-    --diff);;
-    --*) echo "invalid args"; return 1 ;;
-    *) break;;
+    --dry-run) ;;
+    --diff) ;;
+    --*)
+      echo "invalid args"
+      return 1
+      ;;
+    *) break ;;
     esac
   done
 
-  local -i dry_run=0 
+  local -i dry_run=0
   local -i diff=0
- 
+
   local conf_file="$1"
   local schema_file=${2:-${conf_file}.schema}
- 
+
   conf_lib_load_schema "${schema_file}" || return 1
-  
+
   __conf_lib_save "$@" --use-schema-callback
 }
 
@@ -579,10 +614,13 @@ conf_lib_save() {
 
   for opt in "$@"; do
     case "$opt" in
-    --dry-run);;
-    --diff);;
-    --*) echo "invalid args"; return 1 ;;
-    *) break;;
+    --dry-run) ;;
+    --diff) ;;
+    --*)
+      echo "invalid args"
+      return 1
+      ;;
+    *) break ;;
     esac
   done
 
@@ -590,162 +628,169 @@ conf_lib_save() {
 }
 
 __conf_lib_save() {
-  
+
   local conf_file=
-  local -i use_schema_callback= 
-  local -i dry_run= 
+  local -i use_schema_callback=
+  local -i dry_run=
   local -i diff=
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
     --dry-run) dry_run=1 ;;
     --diff) diff=1 ;;
-    --use-schema-callback) use_schema_callback=1;;
-    *) break;;
+    --use-schema-callback) use_schema_callback=1 ;;
+    *) break ;;
     esac
     shift
   done
 
   local conf_file="$1"
   local tmp="${conf_file}.tmp"
-  local line key indent heredoc_tag
+  local line skey indent heredoc_tag
   local -i in_multiline=0 in_heredoc=0 retVal=0
   local -A seen=()
   local lf=$'\n'
-  
+
   escape() {
     local -n _value="$1"
     #_value="${_value//\\/\\\\}"
     _value="${_value//\"/\\\"}"
   }
-  
+
   save_schema_value() {
-    
-    if (( __CONF_LIB_SCHEMA_FLAGS["$key"] & __CONF_LIB_SCHEMA_FLAG_READONLY )); then
+
+    if ((__CONF_LIB_SCHEMA_FLAGS["$skey"] & __CONF_LIB_SCHEMA_FLAG_READONLY)); then
       # if the value is readonly keep the existing config value
       [[ -z $line ]] && { return; }
-      printf '%s%s' "$line" "$lf" >> "$tmp" 
-      return
+      printf '%s%s' "$line" "$lf" >>"$tmp"
+      return 0
     fi
 
-    [[ ! -v ${key} ]] && return
+    [[ ! -v ${skey} ]] && return 0
 
-    if [[ "${!key}" == "${__CONF_LIB_SCHEMA_DEFAULT["$key"]:-}" ]]; then
-      if (( CONF_LIB_STATE_FLAGS["$key"] & __CONF_LIB_STATE_FLAGS__DEFAULT_ORIGIN_EMPTY )); then
-        printf '%s%s=%s' "${indent}" "$key" "$lf" >> "$tmp"
-        return
-      elif (( CONF_LIB_STATE_FLAGS["$key"] & __CONF_LIB_STATE_FLAGS__DEFAULT_ORIGIN_MISSING )); then
-        # key did not exit in file keep it that way
-        return
+    if [[ "${!skey}" == "${__CONF_LIB_SCHEMA_DEFAULT["$skey"]:-}" ]]; then
+      if ((CONF_LIB_STATE_FLAGS["$skey"] & __CONF_LIB_STATE_FLAGS__DEFAULT_ORIGIN_EMPTY)); then
+        printf '%s%s=%s' "${indent}" "$skey" "$lf" >>"$tmp"
+        return 0
+      elif ((CONF_LIB_STATE_FLAGS["$skey"] & __CONF_LIB_STATE_FLAGS__DEFAULT_ORIGIN_MISSING)); then
+        # skey did not exit in file keep it that way
+        return 0
       fi
     fi
 
-    local value="${!key}"; escape value
-    local type="${__CONF_LIB_SCHEMA_TYPE["$key"]}"
- 
+    local value="${!skey}"
+    escape value
+    local type="${__CONF_LIB_SCHEMA_TYPE["$skey"]}"
+
     conf_lib_schema_validate_value "$value" "$type" || {
-      echo "Invalid value for '$key' 'value:'$value' (expected $type)" >&2
+      echo "Invalid value for '$skey' 'value:'$value' (expected $type)" >&2
       retVal=1
       return
     }
-    printf '%s%s="%s"%s' "${indent}" "$key" "${value}" "$lf" >> "$tmp"
+    printf '%s%s="%s"%s' "${indent}" "$skey" "${value}" "$lf" >>"$tmp"
   }
-  
+
   touch "$tmp"
-  
-  (( dry_run )) && [[ -f "$conf_file" ]] &&
-    cp "$conf_file" "${conf_file}.bak"> "$tmp"
- 
+
+  ((dry_run)) && [[ -f "$conf_file" ]] &&
+    cp "$conf_file" "${conf_file}.bak" >"$tmp"
+
   local lineno=0
- 
+
   # HACK: read but don't alter the lf for the last line
   # on last line set lf=''
   if [[ -f "$conf_file" ]]; then
-  while IFS= read -r line || { [[ -n "$line" ]] && { lf=''; } }; do
- 
-    if (( in_heredoc )); then
-      [[ "$line" == "$heredoc_tag" ]] && in_heredoc=0; continue
-    fi
+    while IFS= read -r line || { [[ -n "$line" ]] && { lf=''; }; }; do
 
-    if (( in_multiline )); then
-      [[ "$line" == *'"' ]] && in_multiline=0; continue
-    fi
-
-    if [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]]; then
-      printf '%s%s' "$line" "$lf" >> "$tmp"; continue
-    fi
-
-    if [[ "$line" =~ ^([[:space:]]*)([A-Za-z_][A-Za-z0-9_]*)\<\<([A-Za-z0-9_]+)$ ]]; then
-      indent="${BASH_REMATCH[1]}"; 
-      key="${BASH_REMATCH[2]}"; 
-      heredoc_tag="${BASH_REMATCH[3]}"
-      seen["$key"]=1
-
-      if [[ -n "${!key+x}" ]]; then
-        local value="${!key}"; escape value
-        printf '%s%s<<%s\n%s\n%s%s' "$indent" "$key" "$heredoc_tag" \
-                "$value" "$heredoc_tag" "$lf" >> "$tmp"
- 
-        in_heredoc=1
+      if ((in_heredoc)); then
+        [[ "$line" == "$heredoc_tag" ]] && in_heredoc=0
         continue
       fi
-    fi
-     
-    if [[ "$line" =~ ^([[:space:]]*)([A-Za-z_][A-Za-z0-9_]*)=(.*)$ ]]; then
-      indent="${BASH_REMATCH[1]}"
-      key="${BASH_REMATCH[2]}"
- 
-      (( seen["$key"]=1 ))
-      #echo "key:$key"
-      if [[ -v "$key" ]]; then
 
-        if [[ "${BASH_REMATCH[3]}" =~ (^|[^\\])\" ]]; then # starts with quote "
-          __conf_lib_ends_with_unescaped_quote "$line" || in_multiline=1
-        fi
-        
-        if [[ $use_schema_callback ]]; then
-           save_schema_value
-        else
-          local value="${!key}"; escape value
-          printf '%s%s="%s"%s' "$indent" "$key" "${value}" "$lf" >> "$tmp"
-        fi
-        
+      if ((in_multiline)); then
+        [[ "$line" == *'"' ]] && in_multiline=0
         continue
       fi
-    fi
 
-    printf '%s%s' "$line" "$lf" >> "$tmp"
-  done < "$conf_file"
+      if [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]]; then
+        printf '%s%s' "$line" "$lf" >>"$tmp"
+        continue
+      fi
+
+      if [[ "$line" =~ ^([[:space:]]*)([A-Za-z_][A-Za-z0-9_]*)\<\<([A-Za-z0-9_]+)$ ]]; then
+        indent="${BASH_REMATCH[1]}"
+        skey="${BASH_REMATCH[2]}"
+        heredoc_tag="${BASH_REMATCH[3]}"
+        seen["$skey"]=1
+
+        if [[ -n "${!skey+x}" ]]; then
+          local value="${!skey}"
+          escape value
+          printf '%s%s<<%s\n%s\n%s%s' "$indent" "$skey" "$heredoc_tag" \
+            "$value" "$heredoc_tag" "$lf" >>"$tmp"
+
+          in_heredoc=1
+          continue
+        fi
+      fi
+
+      if [[ "$line" =~ ^([[:space:]]*)([A-Za-z_][A-Za-z0-9_]*)=(.*)$ ]]; then
+        indent="${BASH_REMATCH[1]}"
+        skey="${BASH_REMATCH[2]}"
+
+        ((seen["$skey"] = 1))
+        #echo "skey:$skey"
+        if [[ -v "$skey" ]]; then
+
+          if [[ "${BASH_REMATCH[3]}" =~ (^|[^\\])\" ]]; then # starts with quote "
+            string_lib_ends_with_quote "$line" || in_multiline=1
+          fi
+
+          if [[ $use_schema_callback ]]; then
+            save_schema_value
+          else
+            local value="${!skey}"
+            escape value
+            printf '%s%s="%s"%s' "$indent" "$skey" "${value}" "$lf" >>"$tmp"
+          fi
+
+          continue
+        fi
+      fi
+
+      printf '%s%s' "$line" "$lf" >>"$tmp"
+    done <"$conf_file"
   fi
-  
+
   # Add any new variables not origonaly in the file
   if [[ $use_schema_callback ]]; then
-    line=;indent=
-    for key in "${!__CONF_LIB_SCHEMA_TYPE[@]}"; do
-       
-      [[ -v ${key} ]] && continue
-      if [[ ! -v seen["$key"] ]]; then
-        (( __CONF_LIB_SCHEMA_FLAGS["$key"] & __CONF_LIB_SCHEMA_FLAG_READONLY )) && continue
+    line=
+    indent=
+    for skey in "${!__CONF_LIB_SCHEMA_TYPE[@]}"; do
+
+      [[ -v ${skey} ]] && continue
+      if [[ ! -v seen["$skey"] ]]; then
+        ((__CONF_LIB_SCHEMA_FLAGS["$skey"] & __CONF_LIB_SCHEMA_FLAG_READONLY)) && continue
 
         save_schema_value
       fi
-      
+
     done
   fi
- 
+
   ((diff)) && { diff -u "$conf_file" "$tmp" || true; }
-  if (( dry_run || retVal != 0 )); then
+  if ((dry_run || retVal != 0)); then
     rm -f "$tmp"
   else
- 
+
     [[ -f "$conf_file" ]] &&
       cp "$conf_file" "$conf_file.bak"
-    
+
     [[ -f "$tmp" ]] &&
       mv "$tmp" "$conf_file"
-   
+
   fi
- 
+
   __conf_lib_schema_reset
 
   return $retVal

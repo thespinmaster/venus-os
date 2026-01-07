@@ -5,9 +5,9 @@
 images_path=/mnt/storage/images/
 
 if [[ -n "${2}" ]]; then
-  if [[ ! -f "${2}" ]]; then
-    echo "Could not find file \'${1}\'; exiting..."
-    exit
+  if [[ ! -f "${1}" ]]; then
+    printf "Could not find file 's%'; exiting..." "${1}" >&2
+    exit 1
   fi
 
   image_filename="${2}"
@@ -15,20 +15,20 @@ if [[ -n "${2}" ]]; then
   if [[ -n "${1}" ]]; then
 
     # final check that we have an device path
-    if [[ $(lsblk -dnpo name | grep "^${1}$") ]]; then
+    if lsblk -dpo name | grep -q "^${1}$"; then
       disk="${1}"
       sudo dd if="${disk}" iflag=fullblock bs=8M status=progress | gzip > "${image_filename}"
       echo "completed" >> "${0%.*}".log
-      exit
+      exit 0
     else
       echo "invalid device path:${2}; exiting..."
-      exit
+      exit 0
     fi
   fi
 
 else
 
- read -p "Enter image file name to backup:" image_filename
+ read -p -r "Enter image file name to backup:" image_filename
 
 fi
 
@@ -40,13 +40,13 @@ fi
 # -e 11 (exclude CDROM drives")
 
 echo
-if [[ -z $(lsblk -e 11 -o rm | grep " 1") ]]; then
+if lsblk -e 11 -o rm | grep -q " 1"; then
    echo "no removable disks found; exiting..."
    exit
 fi
 
 echo "=Disks==========================================================="
-echo "$(lsblk -e 11 -o name,size,type,tran,model,rm)" #| grep " 1$" | sed 's![^ ]*$!!')
+lsblk -e 11 -o name,size,type,tran,model,rm #| grep " 1$" | sed 's![^ ]*$!!')
 echo "================================================================="
 
   # create an array with all the filer/dir inside ~/myDir
@@ -65,7 +65,7 @@ echo "================================================================="
     fi
 
     # now we can use the selected file
-    echo "\'${disk}\' selected"
+    printf "'%s' selected" "${disk}"
 
     # it'll ask for another unless we leave the loop
     break
@@ -73,16 +73,15 @@ echo "================================================================="
 
 echo
 echo "backing up disk ${disk} to image ${images_path}${image_filename}"
-read -p "Do you want to proceed? (y/n) " confirm
-
-case "${confirm}" in
-	y ) echo;;
-	n ) echo exiting...;
-          exit;;
-	* ) echo invalid response;
-          continue;;
-esac
-
+while read -p -r "Do you want to proceed? (y/n) " confirm; do
+  case "${confirm}" in
+    y ) echo; break;;
+    n ) echo exiting...;
+            exit 0;;
+    * ) echo invalid response;
+            continue;;
+  esac
+done
 # dummy sudo ls (ls could be any call) to elevate
 # permissions before the nohup call
 sudo ls 1>/dev/null 2>/dev/null
@@ -92,7 +91,8 @@ sudo ls 1>/dev/null 2>/dev/null
 # we call this script again with the args we have set
 # this is so that nohup names the process with the name of this script
 # so its easy to find and kill if required.
-echo 'use `echo $(<./restore-pi.log)` to get progress updates'
+# shellcheck disable=SC2016
+echo 'use echo $(<./restore-pi.log) to get progress updates'
 
 nohup "${0}" "${disk}" "${images_path}${image_filename}" > "${0%.*}".log &
 

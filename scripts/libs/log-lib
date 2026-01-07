@@ -95,7 +95,7 @@ init_logging() {
   echo "*** $(date +%y/%m/%d_%H:%M:%S) ***" > "${1}"
 }
 
-if [[ "${1}" == "init_logging" ]]; then
-  echo "init_logging ${2}"
-  echo "${2}"
+if [[ "${1:-}" == "init_logging" ]]; then
+  echo "init_logging ${2:-}"
+  echo "${2:-}"
 fi

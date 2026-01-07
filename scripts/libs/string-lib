@@ -3,6 +3,101 @@
 set -o nounset
 
 ##########################################################
+# returns if the passed string is uppercase
+# Arguments:
+#   $1 string to query
+##########################################################
+string_lib_is_upper()  { [[ "$1" =~ ^[A-Z_][A-Z0-9_]*$ ]]; }
+
+##########################################################
+# returns if the passed string is lowercase
+# Arguments:
+#   $1 string to query
+##########################################################
+string_lib_is_lower()  { [[ "$1" =~ ^[a-z_][A-Z0-9_]*$ ]]; }
+
+##########################################################
+# returns if the passed string ends with a double quote
+# Arguments:
+#   $1 string to query
+##########################################################
+string_lib_ends_with_quote() { [[ $1 =~ (^|[^\\])\"$ ]]; }
+
+##########################################################
+# returns if the passed string starts with a double quote
+# Arguments:
+#   $1 string to query
+##########################################################
+string_lib_starts_with_quote() { [[ "$1" =~ (^|[^\\])\" ]]; }
+
+##########################################################
+# trims whitespace from the start of the passed string
+# Arguments:
+#   $1 string to trim
+#      the string is passed byref 
+#      string_lib_trim_start str (not $str)
+##########################################################
+string_lib_trim_start() {
+  local -n _s="$1"
+  _s="${_s#"${_s%%[![:space:]]*}"}"
+}
+
+##########################################################
+# trims whitespace from the end of the passed string
+# Arguments:
+#   $1 string to trim
+#      the string is passed byref 
+#      string_lib_trim_end str (not $str)
+##########################################################
+string_lib_trim_end() {
+  local -n _s="$1"
+  _s="${_s%"${_s##*[![:space:]]}"}"
+}
+
+##########################################################
+# trims whitespace from the start and of the passed string
+# Arguments:
+#   $1 string to trim
+#      the string is passed byref 
+#      string_lib_trim str (not $str)
+##########################################################
+string_lib_trim() {
+  local -n _s="$1"
+  _s="${_s#"${_s%%[![:space:]]*}"}"
+  _s="${_s%"${_s##*[![:space:]]}"}"
+}
+ 
+ ##########################################################
+# removes all whitespace anywhere in the passed string
+# Arguments:
+#   $1 string to remove whitespace from
+#      the string is passed byref 
+#      string_lib_remove_all_whitespace str (not $str)
+##########################################################
+string_lib_remove_all_whitespace() {
+  local -n _s="$1"
+  _s="${_s//[[:space:]]/}"
+}
+
+ ##########################################################
+# unescapes quotes and backslashes from the passed string
+# Arguments:
+#   $1 string to unescape
+#      the string is passed byref 
+#      string_lib_remove_all_whitespace str (not $str)
+##########################################################
+string_lib_unescape() {
+  local -n _s="$1"
+
+  # First unescape escaped quotes
+  _s="${_s//\\\"/\"}"
+
+  # Then unescape escaped backslashes
+  _s="${_s//\\\\/\\}"
+}
+ 
+
+##########################################################
 # replaces newlines with \n so whole string can ve viewed 
 # in debugger (and not just the first line)
 # Arguments:

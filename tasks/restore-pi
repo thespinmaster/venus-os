@@ -6,8 +6,8 @@ images_path=/mnt/storage/images
 
 if [[ -n "${1}" ]]; then
   if [[ ! -f "${1}" ]]; then
-    echo "Could not find file \'${1}\'; exiting..."
-    exit
+    printf "Could not find file 's%'; exiting..." "${1}" >&2
+    exit 1
   fi
 
   image_filename="${1}"
@@ -15,17 +15,17 @@ if [[ -n "${1}" ]]; then
   if [[ -n "${2}" ]]; then
 
     # final check that we have an device path
-    if [[ $(lsblk -dnpo name | grep "^${2}$") ]]; then
+    if lsblk -dpo name | grep -q "^${2}$"; then
       disk="${2}"
 
       gunzip -c "${image_filename}" | \
            sudo dd of="${disk}" iflag=fullblock bs=2M status=progress
 
       echo "completed" >> "${0%.*}".log
-      exit
+      exit 0
     else
       echo "invalid device path:${2}; exiting..."
-      exit
+      exit 0
     fi
   fi
 
@@ -56,8 +56,7 @@ if [[ -z "${image_filename}" ]]; then
   echo "no image file found; exiting..."
   exit
 fi
-
-
+ 
 # -e 11 (exclude CDROM drives")
 
 echo
@@ -67,7 +66,7 @@ if [[ -z $(lsblk -e 11 -o rm | grep " 1") ]]; then
 fi
 
 echo "=Disks==========================================================="
-echo "$(lsblk -e 11 -o name,size,type,tran,model,rm)" #| grep " 1$" | sed 's![^ ]*$!!')
+lsblk -e 11 -o name,size,type,tran,model,rm #| grep " 1$" | sed 's![^ ]*$!!')
 echo "================================================================="
 
   # create an array with all the filer/dir inside ~/myDir
@@ -86,7 +85,7 @@ echo "================================================================="
     fi
 
     # now we can use the selected file
-    echo "\'${disk}\' selected"
+    printf "'%s' selected" "${disk}"
 
     # it'll ask for another unless we leave the loop
     break
@@ -94,23 +93,22 @@ echo "================================================================="
 
 echo
 echo "Restoring image ${image_filename} to disk ${disk}"
-read -p "Do you want to proceed? (y/n) " confirm
-
-case "${confirm}" in
-	y ) echo;;
-	n ) echo exiting...;
-          exit;;
-	* ) echo invalid response;
-          continue;;
-esac
-
+while read -p -r "Do you want to proceed? (y/n) " confirm; do
+  case "${confirm}" in
+    y ) echo; break;;
+    n ) echo exiting...;
+            exit 0;;
+    * ) echo invalid response;
+            continue;;
+  esac
+done
 # dummy sudo ls (ls could be any call) to elevate
 # permissions before the nohup call
 sudo ls 1>/dev/null 2>/dev/null
 touch "${0%.*}".log
 
 # here we use nohup so that the process works in the background and
-# can logout of ssh terminals.
+# we can logout of ssh terminals.
 # we call this script again with the args we have set
 # this is so that nohup names the process with the name of this script
 # so its easy to find and kill if required.

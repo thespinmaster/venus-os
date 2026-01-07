@@ -1,0 +1,5 @@
+TESTVALUE1 | string        | | a default with "quoted"@$ #%!^@&*()[]\/ chars
+TESTVALUE2 | string        | | "a multi-line default with "quoted"@$ #%!^@&*()[]\/
+ chars
+ this is line 3"
+ 

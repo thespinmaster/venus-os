@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2329,SC2317
 
-#set -o errexit
-set -o pipefail
 set -o nounset
 
 this_path="$(dirname "${BASH_SOURCE[0]}")"
@@ -16,14 +14,13 @@ output_dir="$this_path/output"
 #testing#############################
 EXIT_ON_FAILED_TEST=1
 TEST_INDENT="   "
-HIDE_TEST="--"
+silent="--"
 
 clear_output() {
   mkdir -p "$output_dir"
   rm -fr "${output_dir:?}/"*
   #cp -r "${ASSETS_DIR}/"* "$OUTPUT_DIR/"
 }
-
 
 stage_conf_files() {
   
@@ -53,19 +50,18 @@ multi_line_match() {
 
   local -i line_start_number
   local conf_line
-  line_start_number=$(awk "/${varname}=/{ print NR; exit }" "$conf_file")
+  line_start_number=$(awk "/${varname}=/{ print NR; exit }" "$filename")
   (( line_start_number )) || return 1
   
   while IFS= read -r line; do
-    conf_line="$(sed ${line_start_number}!d "$conf_file")"
-    (( debug )) && {
-      echo  "file:$conf_line"
-      echo  " var:${line}" 
-    }
+    conf_line="$(sed ${line_start_number}!d "$filename")"
+    (( debug )) && echo -e "file:$conf_line\n var:${line}"   
     [[ "$conf_line" != "${line}" ]] && return 1
     (( line_start_number++ ))
   done <<< "${test_string}"
 }
+
+clear_output
 
 # shellcheck disable=SC2329,SC2317
 # Test schema lib lint
@@ -73,8 +69,8 @@ test_conf_lib_lint() {
   local conf_file="${assets_dir}/conf-lib-test12.conf"
 
   conf_lib_lint "${conf_file}.schema"
-  test_exitcode "0" "Linting conf-lib-test1-conf.schema should succeed"
-  test_file_exists "${conf_file}.schema"
+  assert_exitcode "0" "Linting conf-lib-test1-conf.schema should succeed"
+  assert_file_exists "${conf_file}.schema"
   
 }
 
@@ -95,12 +91,12 @@ EOF
 )
   conf_lib_load "${conf_file}"
 
-  test_eq "$HOST" "somehost" "HOST var should be #1; received #2"
-  test_eq "$PORT" "8080" "PORT var should be #1; received #2"
-  test_eq "$MODE" "prod" "MODE var should be #1; received #2"
-  test_eq "$expected_MESSAGE" "$MESSAGE" "test multiline MESSAGE value"
-  test_eq "$expected_BANNER" "$BANNER" "test multiline BANNER value"
-  test_not_empty "$SOMEVALUE" "SOMEVALUE var should NOT be empty since no schema used"
+  assert_eq "$HOST" "somehost" "HOST var should be #1; received #2"
+  assert_eq "$PORT" "8080" "PORT var should be #1; received #2"
+  assert_eq "$MODE" "prod" "MODE var should be #1; received #2"
+  assert_eq "$expected_MESSAGE" "$MESSAGE" "test multiline MESSAGE value"
+  assert_eq "$expected_BANNER" "$BANNER" "test multiline BANNER value"
+  assert_not_empty "$SOMEVALUE" "SOMEVALUE var should NOT be empty since no schema used"
 
 }
 
@@ -108,10 +104,10 @@ EOF
 test_load_missing_schema_file() {
   local conf_file="${assets_dir}/conf-lib-test6.conf"
 
-  test_file_not_exist "${conf_file}.schema" "--schema file does not exist"
+  assert_file_not_exist "${conf_file}.schema" "--schema file does not exist"
   conf_lib_load_with_schema "${conf_file}" 2>/dev/null
-  test_exitcode 1 "failed due to missing schema file"
-  test_empty "${PORT:-}"
+  assert_exitcode 1 "failed due to missing schema file"
+  assert_empty "${PORT:-}"
   
 }
  
@@ -120,12 +116,45 @@ test_load_succeds_missing_conf_file_use_schema_defaults() {
   local conf_file="${assets_dir}/this_file_does_not_exist.conf"
   local schema_file="${assets_dir}/conf-lib-test12.conf.schema"
   
-  test_file_not_exist "${conf_file}" "--conf file does not exist"
-  test_file_exists "${schema_file}" "--schema file exists"
-  conf_lib_load_with_schema "${conf_file}" "${schema_file}" 2>/dev/null
-  test_exitcode 0 "load succeds when conf file does not exist; using schema defaults"
-  test_not_empty "${PORT:-}"
+  assert_file_not_exist "${conf_file}" "--conf file does not exist"
+  assert_file_exists "${schema_file}" "--schema file exists"
+  conf_lib_load_with_schema "${conf_file}" "${schema_file}" #2>/dev/null
+  assert_exitcode 0 "load succeds when conf file does not exist; using schema defaults"
+  assert_not_empty "${PORT:-}"
   
+}
+# shellcheck disable=SC2120
+#Tests conf_lib_load_with_schema will succeed if no conf file exists; using schema default with special characters
+test_load_succeeds_use_schema_default_with_special_chars() {
+  local conf_file="${assets_dir}/this_file_does_not_exist.conf"
+  local schema_file="${assets_dir}/conf-lib-test13.conf.schema"
+  
+  assert_file_not_exist "${conf_file}" "--conf file does not exist"
+  assert_file_exists "${schema_file}" "--schema file exists"
+  conf_lib_load_with_schema "${conf_file}" "${schema_file}" #2>/dev/null
+  assert_exitcode 0 "load succeds when conf file does not exist; using schema defaults"
+  assert_not_empty "${TESTVALUE1:-}"
+ 
+  expected_TESTVALUE1="a default with \"quoted\"@$ #%!^@&*()[]\/ chars"
+  assert_eq "${expected_TESTVALUE1}" "${TESTVALUE1:-}" 
+}
+# shellcheck disable=SC2120
+#Tests conf_lib_load_with_schema will succeed if no conf file exists; using schema default with special characters
+test_load_succeeds_use_schema_default_with_special_chars_multiline() {
+  local conf_file="${assets_dir}/this_file_does_not_exist.conf"
+  local schema_file="${assets_dir}/conf-lib-test13.conf.schema"
+  
+  assert_file_not_exist "${conf_file}" "--conf file does not exist"
+  assert_file_exists "${schema_file}" "--schema file exists"
+  conf_lib_load_with_schema "${conf_file}" "${schema_file}" 2>/dev/null
+  assert_exitcode 0 "load succeds when conf file does not exist; using schema defaults"
+  assert_not_empty "${TESTVALUE2:-}"
+ 
+  expected_TESTVALUE2="a multi-line default with \"quoted\"@$ #%!^@&*()[]\/
+ chars
+ this is line 3"
+ 
+  assert_eq "${expected_TESTVALUE2}" "${TESTVALUE2:-}" 
 }
 
 #Tests conf_lib_load_with_schema will fail if no conf file exists and schema has required value
@@ -135,11 +164,11 @@ test_load_fails_missing_conf_file_required() {
   
   # NOTES: remove 2>/dev/null from end of conf_lib_load_with_schema to see errors
 
-  test_file_not_exist "${conf_file}" "--conf file does not exist"
-  test_file_exists "${schema_file}" "--schema file exists"
+  assert_file_not_exist "${conf_file}" "--conf file does not exist"
+  assert_file_exists "${schema_file}" "--schema file exists"
   conf_lib_load_with_schema "${conf_file}" "${schema_file}" 2>/dev/null
-  test_exitcode 1 "load fails when conf file does not exist; schema requires value"
-  test_empty "${PORT:-}"
+  assert_exitcode 1 "load fails when conf file does not exist; schema requires value"
+  assert_empty "${PORT:-}"
   
 }
 
@@ -150,11 +179,11 @@ test_load_succeeds_missing_conf_file_manually_set_required_value() {
   
   ___PORT=8080 # manualy set missing value
   
-  test_file_not_exist "${conf_file}" "--conf file does not exist"
-  test_file_exists "${schema_file}" "--schema file exists"
+  assert_file_not_exist "${conf_file}" "--conf file does not exist"
+  assert_file_exists "${schema_file}" "--schema file exists"
   conf_lib_load_with_schema "${conf_file}" "${schema_file}" 2>/dev/null
-  test_exitcode 0 "load succeeds if required schema value is manualy set with a default value"
-  test_eq "8080" "${PORT:-}"
+  assert_exitcode 0 "load succeeds if required schema value is manualy set with a default value"
+  assert_eq "8080" "${PORT:-}"
   
 }
 
@@ -167,11 +196,11 @@ test_conf_lib_loads_with_schema_defaults() {
   local conf_file="${assets_dir}/conf-lib-test0.conf"
   conf_lib_load_with_schema "${conf_file}" 2>/dev/null
   # shellcheck disable=SC2153
-  test_eq "$STR1" 'Hello' "STR1=#1"
+  assert_eq "$STR1" 'Hello' "STR1=#1"
   # shellcheck disable=SC2153,SC2016
-  test_eq "$STR2" '${STR1} world' "STR2=#1"
+  assert_eq "$STR2" '${STR1} world' "STR2=#1"
   STR3="${STR2@P}"
-  test_eq "$STR3" 'Hello world' "STR3=#1"
+  assert_eq "$STR3" 'Hello world' "STR3=#1"
 
 }
 
@@ -180,7 +209,7 @@ test_conf_lib_load_with_schema_fails() {
   local conf_file="${assets_dir}/conf-lib-test12.conf"
 
   conf_lib_load_with_schema "${conf_file}" 2>/dev/null
-  test_exitcode_not 0 "Loading should fail SOMEVALUE not in schema; #1; #2"
+  assert_exitcode_not 0 "Loading should fail SOMEVALUE not in schema; #1; #2"
 }
 
 #tests that conf_lib_load_with_schema will not fail if a required value is not supplied, but has a default value.
@@ -188,8 +217,8 @@ test_conf_lib_load_with_schema_required_missing_using_default() {
   local conf_file="${assets_dir}/conf-lib-test2.conf"
   
   conf_lib_load_with_schema "${conf_file}" 2>/dev/null
-  test_exitcode 0 "Loading should succeed; #1; #2"
-  test_eq "8080" "${PORT}"
+  assert_exitcode 0 "Loading should succeed; #1; #2"
+  assert_eq "8080" "${PORT}"
 }
 
 #tests that conf_lib_load_with_schema will fail if a required value is not supplied and has no default value in the schema.
@@ -198,8 +227,8 @@ test_conf_lib_load_with_schema_required_missing() {
   local schema_file="${assets_dir}/output/conf-lib-test2.1.conf.schema"
 
   conf_lib_load_with_schema "${conf_file}" "${schema_file}" 2>/dev/null
-  test_exitcode 1 "Loading should fail PORT is required; #1; #2"
-  test_eq "" "${PORT:-}" "PORT is empty"
+  assert_exitcode 1 "Loading should fail PORT is required; #1; #2"
+  assert_eq "" "${PORT:-}" "PORT is empty"
  
 }
 #tests that conf_lib_load_with_schema will not fail if a required value is not supplied and has no default value.
@@ -208,8 +237,8 @@ test_conf_lib_load_with_schema_required_wrong_default_type() {
   local schema_file="${assets_dir}/conf-lib-test2.2.conf.schema"
 
   conf_lib_load_with_schema "${conf_file}" "${schema_file}" 2>/dev/null
-  test_exitcode 1 "Loading should fail PORT is required; #1; #2"
-  test_eq "" "${PORT:-}" "PORT is empty"
+  assert_exitcode 1 "Loading should fail PORT is required; #1; #2"
+  assert_eq "" "${PORT:-}" "PORT is empty"
 }
 
 #Tests that conf_lib_load_with_schema will fail if an integer value is set to a string
@@ -217,7 +246,7 @@ test_load_bad_integer_type() {
   local conf_file="${assets_dir}/conf-lib-test3.conf"
 
   conf_lib_load_with_schema "${conf_file}" 2>/dev/null
-  test_exitcode_not 0 "Loading should fail; PORT is a string not an integer; expected #1; received #2"
+  assert_exitcode_not 0 "Loading should fail; PORT is a string not an integer; expected #1; received #2"
 }
 
 #Tests that the default values loaded from the schema when not supplied in the conf
@@ -225,8 +254,27 @@ test_loads_defaults() {
   local conf_file="${assets_dir}/conf-lib-test4.conf"
 
   conf_lib_load_with_schema "${conf_file}" 2>/dev/null
-  test_eq "8080" "$PORT" "PORT value loaded from schema"
-  test_eq "localhost" "$HOST" "HOST value loaded from schema"
+  assert_eq "8080" "$PORT" "PORT value loaded from schema"
+  assert_eq "localhost" "$HOST" "HOST value loaded from schema"
+}
+
+#Tests that the default values loaded from the schema when not supplied in the conf
+test_loads_schema_variables_exist_after_load() {
+  local conf_file="${assets_dir}/conf-lib-test4.conf"
+  
+  assert_vars_exists() { 
+    for var in "$@"; do assert_var_exists "$var"; done; }
+  
+  unset_vars() { 
+    for var in "$@"; do unset -v "$var" ;done; } 
+ 
+  local -a vars=(PORT HOST DEBUG MODE MESSAGE BANNER); 
+  unset_vars "${vars[@]}"
+ 
+  conf_lib_load_with_schema "${conf_file}" 2>/dev/null
+  
+  assert_vars_exists "${vars[@]}"
+
 }
 
 #Tests if conf_lib_load_with_schema fails when an invalid enum is provided
@@ -234,7 +282,7 @@ test_load_fails_invalid_enum() {
   conf_file="${assets_dir}/conf-lib-test5.conf"
 
   conf_lib_load_with_schema "${conf_file}" 2>/dev/null
-  test_exitcode 1 "Loading should fail; MODE is invalid; #1; #2"
+  assert_exitcode 1 "Loading should fail; MODE is invalid; #1; #2"
 }
 
 #test loading multiline strings
@@ -253,8 +301,8 @@ EOF
 )
  
   conf_lib_load_with_schema "${conf_file}" 2>/dev/null
-  test_eq "$expected_MESSAGE" "$MESSAGE" "MESSAGE: test multiline string"
-  test_eq "$expected_BANNER" "$BANNER" "BANNER: test multiline string"
+  assert_eq "$expected_MESSAGE" "$MESSAGE" "MESSAGE: test multiline string"
+  assert_eq "$expected_BANNER" "$BANNER" "BANNER: test multiline string"
  
 }
 
@@ -271,14 +319,14 @@ scaffold_test_conf_lib_load_with_schema()
   local conf_file="${output_dir}/$filename"
  
   (( skip_file_exists )) &&
-    test_file_exists "${conf_file}.schema" "--"
+    assert_file_exists "${conf_file}.schema" "--"
   
   conf_lib_load_with_schema "${conf_file}" 
 
   if (( ! should_fail )); then
-    test_exitcode 0 "--"
+    assert_exitcode 0 "--"
   else
-    test_exitcode_not 0 "--"
+    assert_exitcode_not 0 "--"
   fi
 
   #2000 dec 31 18:30 00s
@@ -304,18 +352,18 @@ scaffold_test_conf_lib_save_with_schema()
   conf_lib_save_with_schema "${conf_file}" "${conf_file}.schema"
   local exitcode=$?
   if (( should_fail )); then
-    test_eq 1 "$exitcode" "save failed: exit code is 1"
+    assert_eq 1 "$exitcode" "save failed: exit code is 1"
     
     #check file has not been modified
     local modtime=; modtime=$(stat -c %y "${conf_file}")
-    test_eq "2001" "${modtime:0:4}" "file not modified"
+    assert_eq "2001" "${modtime:0:4}" "file not modified"
   else
-    test_eq 0 "$exitcode" "save succeeded: exit code is 0"
+    assert_eq 0 "$exitcode" "save succeeded: exit code is 0"
  
-    test_file_exists "${conf_file}"
+    assert_file_exists "${conf_file}"
 
     local modtime=; modtime=$(stat -c %y "${conf_file}")
-    test_eq "$(date +%Y)" "${modtime:0:4}" "file modified"
+    assert_eq "$(date +%Y)" "${modtime:0:4}" "file modified"
   fi
   
   return $exitcode
@@ -344,10 +392,10 @@ test_save_succeeds() {
   scaffold_test_conf_lib_load_and_save_with_schema "$filename"
  
   local r=$(diff "${assets_dir}/${filename}" "${output_dir}/${filename}")
-  test_empty "$r" "should be an exact match after re-writing the file"
+  assert_empty "$r" "should be an exact match after re-writing the file"
  
   # test
-  #test_eq "5" "$(grep RETRIES "${conf_file}" | cut -d'=' -f2 | tr -d '"')" "Dry-run should not change file"
+  #assert_eq "5" "$(grep RETRIES "${conf_file}" | cut -d'=' -f2 | tr -d '"')" "Dry-run should not change file"
  
 }
 
@@ -364,8 +412,8 @@ test_save_fails_schema_does_not_exist() {
   # conf_lib_save_with_schema can work if the conf does not exist
   # However the schema file must exist so this should fail
   r=$(conf_lib_save_with_schema "${conf_file}" 2>&1 ) 
-  test_exitcode 1 "save failed: no schema file; exitcode=1"
-  test_eq "schema file not found" "$r" "save failed: no schema file; test stderr string"
+  assert_exitcode 1 "save failed: no schema file; exitcode=1"
+  assert_eq "schema file not found" "$r" "save failed: no schema file; test stderr string"
 
 }
 
@@ -392,19 +440,19 @@ test_save_existing_empty_value_unchanged_when_default_loaded() {
 
   scaffold_test_conf_lib_load_with_schema "$filename"
   
-  test_eq "test value1 default value" "$TESTVALUE1" "value set to default"
+  assert_eq "test value1 default value" "$TESTVALUE1" "value set to default"
   
   scaffold_test_conf_lib_save_with_schema "$filename"
   
   local r=
   r=$(grep "test value1 default value" "$conf_file") 
-  test_empty "$r" "default value should not be saved"
+  assert_empty "$r" "default value should not be saved"
 
   r=$(grep "TESTVALUE1=" "$conf_file") 
-  test_empty "$r" "TESTVALUE1 should not be saved"
+  assert_empty "$r" "TESTVALUE1 should not be saved"
 
   local r=$(diff "${assets_dir}/${filename}" "${output_dir}/${filename}")
-  test_empty "$r" "should be an exact match after re-writing the file"
+  assert_empty "$r" "should be an exact match after re-writing the file"
 
 }
 
@@ -421,19 +469,19 @@ test_save_missing_value_unchanged_when_default_loaded() {
 
   scaffold_test_conf_lib_load_with_schema "$filename"
   
-  test_eq "test value1 default value" "$TESTVALUE1" "value set to default"
+  assert_eq "test value1 default value" "$TESTVALUE1" "value set to default"
   
   scaffold_test_conf_lib_save_with_schema "$filename"
   
   local r=
   r=$(grep "test value1 default value" "$conf_file") 
-  test_empty "$r" "default value should not be saved"
+  assert_empty "$r" "default value should not be saved"
 
   r=$(grep "TESTVALUE1=" "$conf_file") 
-  test_eq "TESTVALUE1=" "$r" "TESTVALUE1 should exist but with no value"
+  assert_eq "TESTVALUE1=" "$r" "TESTVALUE1 should exist but with no value"
 
   local r=$(diff "${assets_dir}/${filename}" "${output_dir}/${filename}")
-  test_empty "$r" "should be an exact match after re-writing the file"
+  assert_empty "$r" "should be an exact match after re-writing the file"
 
 }
 
@@ -450,7 +498,7 @@ test_newvalue_saved_when_default_loaded() {
 
   scaffold_test_conf_lib_load_with_schema "$filename"
   
-  test_eq "test value1 default value" "$TESTVALUE1" "value set to default"
+  assert_eq "test value1 default value" "$TESTVALUE1" "value set to default"
   
   TESTVALUE1="my new test value"
 
@@ -459,13 +507,13 @@ test_newvalue_saved_when_default_loaded() {
   local r=
  
   r=$(grep "TESTVALUE1=" "$conf_file") 
-  test_eq "TESTVALUE1=\"my new test value\"" "$r" "TESTVALUE1 should be set to the new value"
+  assert_eq "TESTVALUE1=\"my new test value\"" "$r" "TESTVALUE1 should be set to the new value"
  
 }
 
 # test multi-line values get saved correctly
 test_multi_line_values_saved() {
-
+ 
   local _TESTVALUE1="Escaped \"hello\"
 and this is line two
 some special chars: \!@#$%^&*()_+{}|:<>?[];\'/.,~
@@ -481,7 +529,7 @@ and this is line three"
 
   scaffold_test_conf_lib_load_with_schema "$filename"
   
-  test_eq "test value1 default value" "$TESTVALUE1" "value set to default"
+  assert_eq "test value1 default value" "$TESTVALUE1" "value set to default"
   
   TESTVALUE1=$_TESTVALUE1
  
@@ -492,7 +540,7 @@ and this is line three"
     multi_line_match "TESTVALUE1" "$_TESTVALUE1" "$conf_file" "--debug"
     match_result=false
   }
-  test_result "$match_result" "multiline match succeeded" 
+  assert_result "$match_result" "multiline match succeeded" 
  
 }
 
@@ -509,7 +557,7 @@ test_readonly_value_remains_unchanged_when_updated() {
 
   scaffold_test_conf_lib_load_with_schema "$filename"
   
-  test_eq "cannot change this value" "$TESTVALUE1" "value set to default"
+  assert_eq "cannot change this value" "$TESTVALUE1" "value set to default"
   
   TESTVALUE1="my changed value"
 
@@ -517,21 +565,21 @@ test_readonly_value_remains_unchanged_when_updated() {
   
   local r=
   r=$(grep "my changed value" "$conf_file") 
-  test_empty "$r" "readonly value should not be saved"
+  assert_empty "$r" "readonly value should not be saved"
 
   r=$(grep "TESTVALUE1=" "$conf_file") 
-  test_eq "TESTVALUE1=" "$r" "readonly value should not be saved"
+  assert_eq "TESTVALUE1=" "$r" "readonly value should not be saved"
  
   local r=
   r=$(diff "${assets_dir}/${filename}" "${output_dir}/${filename}")
-  test_empty "$r" "should be an exact match after re-writing the file"
+  assert_empty "$r" "should be an exact match after re-writing the file"
 
 }
 
 # test if the type of a value changes save should fail
 test_save_fails_invalid_type_used_for_value() {
 
-  local filename="conf-lib-test1.conf" 
+  local filename="conf-lib-test1.conf"
  
   stage_conf_files "$filename"
 
@@ -545,17 +593,20 @@ test_save_fails_invalid_type_used_for_value() {
   stdErr=$(scaffold_test_conf_lib_save_with_schema "$filename" "--should-fail" 2>&1 1>&3)
  
   local -i stdErrMsg=0
-  [[ "$stdErr" == "Invalid value for 'PORT'*" ]] && stdErrMsg=0
-  test_result "$stdErrMsg" "stderr outputs message when wrong type is used"
+  [[ "$stdErr" == "Invalid value for value 'PORT'*" ]] && stdErrMsg=0
+  assert_result "$stdErrMsg" "stderr outputs message when wrong type is used"
  
 }
 
-#test_runner_on_source_file "/home/admin/dev/projects/venus-os/scripts/tests/tmp"
-#exit
+ 
 #clear
-# test_save_fails_invalid_type_used_for_value 
-#exit 
-
+# test_load_succeeds_use_schema_default_with_special_chars
+#exit
+ 
 #test_runner_all "" "^cur_test_.*"
-#test_runner_all --summary "" #"^cur_test_.*"
- # test-runner-ignore
+if [[ "${0:-}" == "$BASH_SOURCE" ]]; then
+    # only run if call called from this script
+    # ${0} is *always* this file
+  test_loads_schema_variables_exist_after_load
+  #test_runner_all --summary "" #"^cur_test_.*"
+fi

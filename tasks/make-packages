@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
  
 this_path="$(dirname "${BASH_SOURCE[0]}")"
 
@@ -12,36 +12,49 @@ elif [[ "${1}" == "-c" ]]; then
 fi
 
 declare -a build_items=()
- 
-pushd "${this_path}/../feed" || exit 1
- 
-if [[ "$build" == "all" ]]; then
-  build_items=("network-gps" "dbus-ne-shunt" "test-service" 
-  "test-install" "dbus-relay-board" "mount-shares" "opkg-helpers")
-elif [[ "$build" == "package" ]]; then
-  build_items=("package")
-else
-  build_items=("${@}")
-fi
+declare -a folders=("../services" "../utils")
+declare pwd_old=$PWD
+
+cd "${this_path}/../feed" || exit 1
 
 build_feed_package() {
-  pushd "${this_path}/../feed" || exit 1
   opkg-make-index ./ -p Packages
-  popd || exit 1
 }
-
+ 
+if [[ "$build" == "all" ]]; then
+  mapfile -t build_items < <(find "${folders[@]}" -mindepth 1 -maxdepth 1 -type d)
+elif [[ "$build" == "package" ]]; then
+  build_feed_package
+else
+  build_items=("${@}")
+  #build_items=("opkg-helpers" "test-service")
+  declare -i found=0 i 
+  declare f
+ 
+  for i in "${!build_items[@]}"; do
+    for f in "${folders[@]}"; do
+      if [[ -d "${f}/${build_items[$i]}" ]]; then
+        build_items[i]="$f/${build_items[$i]}"
+        found=1
+        break;
+      fi
+    done
+    (( found==0)) && { echo "invalid package:${build_items[$i]}" >&2; return 1; }
+    found=0
+  done
+ 
+fi
+ 
 build_package() {
-  name="${1}"
+
+  path="${1}/src"
+  name="$(basename "${1}")"
   echo "building ${name}"
 
-  path_name="services"
-  case ${1} in
-    "mount-shares") path_name="utils";;
-    "opkg-helpers") path_name="utils";;
-  esac
+  [[ -d "${path}" ]] || { echo "invalid path:${path}" >&2 ; return 1; }
 
-  opkg-build -o root -g root "../${path_name}/${name}/src" ./
-  popd || exit 1
+  opkg-build -o root -g root "${path}" ./
+
 }
  
 for pkg in "${build_items[@]}"; do
@@ -55,3 +68,5 @@ if [[ -n "$comment" ]]; then
   git commit -am "${comment}"
   git push
 fi
+
+cd "$pwd_old" || true
