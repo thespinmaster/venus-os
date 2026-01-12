@@ -1,6 +1,0 @@
-PORT     | int           | required | 8080
-HOST     | string        | required | localhost
-DEBUG    | bool          |          | false
-MODE     | enum:dev,prod |          | dev     
-MESSAGE  | string        |          |
-BANNER   | string        |          |

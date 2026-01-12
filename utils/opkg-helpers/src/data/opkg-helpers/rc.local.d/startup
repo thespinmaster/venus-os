@@ -6,10 +6,7 @@ declare __this_path; __this_path="$(dirname "${BASH_SOURCE[0]}")"
 export OPKGH_LOG_FILE=$__this_path/startup.log
 init_logging "${OPKGH_LOG_FILE}"
  
-# needed for +([0-9]) part of the find call below
-#shopt -s extglob
-
-# find and execute all script files in alpha-numeric order
+# find and execute all script files in alpha-numeric order from 0 to 10
 for f in $(find "$__this_path/"[0-9] "$__this_path/10" -type f 2>/dev/null | sort -V); do
   log "***************************"
   log "execuing... $f"

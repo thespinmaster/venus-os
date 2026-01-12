@@ -1,2 +1,0 @@
-mount -o remount,rw /
-mount -o remount,ro /

@@ -2,12 +2,9 @@
 
 set -o nounset
 
-#TODO review readonly....need to change locations for testing?
-#
- 
 readonly rc_local_file="${VENUS_ROOT_DIR:-}/data/rc.local"
 readonly opkg_helpers_path="${VENUS_ROOT_DIR:-}/data/opkg-helpers"
-readonly opkg_custom_packages_file="${opkg_helpers_path}/custom-packages.conf"
+readonly opkg_registered_packages_file="${opkg_helpers_path}/registered-packages.conf"
 # shellcheck disable=SC2034
 readonly opkg_rc_local_d_dir="${opkg_helpers_path}/rc.local.d"
 readonly resize2fs_file="$/opt/victronenergy/swupdate-scripts/resize2fs.sh"
@@ -35,7 +32,7 @@ opkg_common_expand_root_fs() {
 }
 
 # mount the rootfs as read/write
-opkg_common_mount_root_fs_readwrite() {
+__root_fs_readwrite() {
   log "mounting fs as read write"
   if [ ! $dry_run ]; then
     mount -o remount,rw /
@@ -43,7 +40,7 @@ opkg_common_mount_root_fs_readwrite() {
 }
 
 # mount the rootfs as read/write
-opkg_common_mount_root_fs_readonly() {
+__mount_root_fs_readonly() {
   log "mounting fs as readonly"
 
   if [ ! $dry_run ]; then
@@ -55,12 +52,12 @@ opkg_common_mount_root_fs_readonly() {
 # pass initial state of ___is_fs_readonly
 # if initial state is empty but ___is_fs_readonly now
 # has a value then we restore back to readonly.
-opkg_common_restore_previous_fs_access() {
+__restore_previous_fs_access() {
   
   log "restoring previous fs state"
 
   if [[ "${___is_fs_readonly}" = 1 ]]; then
-    opkg_common_mount_root_fs_readonly
+    __mount_root_fs_readonly
   else
     log "previous state was readwrite; nothing to restore"
   fi
@@ -114,7 +111,7 @@ __init_root_fs_for_writing() {
     fi
  
     if [[ "${___is_fs_readonly}" = 1 ]]; then
-      opkg_common_mount_root_fs_readwrite
+      __root_fs_readwrite
     fi
 
     log "fs is readonly:${___is_fs_readonly}"
@@ -148,15 +145,14 @@ __init_opkg() {
 }
 
 # loops through all the lines in
-# the opkg_custom_packages_file 
+# the opkg_registered_packages_file 
 # and proceeds to install each
 # package.
 # takes care of read write access
 opkg_common_ensure_installed() {
 
- 
-  [[ -f "$opkg_custom_packages_file" ]] || {
-     log "opkg_custom_packages_file does not exist"; return 0; }
+  [[ -f "$opkg_registered_packages_file" ]] || {
+     log "opkg_registered_packages_file does not exist"; return 0; }
 
   log "opkg_common_ensure_installed"
  
@@ -169,9 +165,9 @@ opkg_common_ensure_installed() {
  
     __opkg_common_try_install_package "${line}"
 
-  done < "${opkg_custom_packages_file}"
+  done < "${opkg_registered_packages_file}"
 
-  opkg_common_restore_previous_fs_access
+  __restore_previous_fs_access
 
   log_pop_indent
 
@@ -269,16 +265,16 @@ opkg_common_remove_script_from_rc_local() {
 # the custom packages file is read when a new firmware
 # has been installed
 # args: ${1} the name of the package
-opkg_common_add_package_name_to_custom_packages_file() {
+opkg_common_register_package() {
 
   [[ -z "${1}" ]] && { log_error "ERROR: no package name supplied" ; return 1; }
 
   local package_name="${1}"
 
-  if ! grep -q "^${package_name}$" "${opkg_custom_packages_file}" ; then
-    log "adding ${package_name} to ${opkg_custom_packages_file}"
+  if ! grep -q "^${package_name}$" "${opkg_registered_packages_file}" ; then
+    log "adding ${package_name} to ${opkg_registered_packages_file}"
     if [ ! $dry_run ]; then
-      echo "${package_name}" >> "${opkg_custom_packages_file}"
+      echo "${package_name}" >> "${opkg_registered_packages_file}"
     fi
   else
     log "package ${package_name} already added"
@@ -288,22 +284,60 @@ opkg_common_add_package_name_to_custom_packages_file() {
 
 # removes an opkg package name to the custom packages file
 # args: ${1} the name of the opkg package to remove
-opkg_common_remove_package_name_from_custom_packages_file() {
+opkg_common_unregister() {
 
   [[ -z "${1}" ]] && { log_error "ERROR: no package name supplied" ; return 1; }
-  [[ -f "${opkg_custom_packages_file}" ]] || return 0
+  [[ -f "${opkg_registered_packages_file}" ]] || return 0
 
   local package_name="${1}"
 
-  if grep -q "^${package_name}$" "${opkg_custom_packages_file}" ; then
-    log "Removing ${package_name} from ${opkg_custom_packages_file}"
+  if grep -q "^${package_name}$" "${opkg_registered_packages_file}" ; then
+    log "Removing ${package_name} from ${opkg_registered_packages_file}"
     if [ ! $dry_run ]; then
-      sed -i "/^$package_name/d" "${opkg_custom_packages_file}"
+      sed -i "/^$package_name/d" "${opkg_registered_packages_file}"
     fi
   else
     log "package '${package_name}' not found"
   fi
 
+}
+ 
+opkg_common_remove_package() {
+
+  log "__opkg_common_try_install_package"
+
+  local package_name="${1}"
+
+  if [[ -z "${package_name}" ]]; then
+    log "package name not supplied"
+    return 1
+  fi
+
+  # see if the ipk is installed
+  # list-installed only returns an exact match
+  local installed; installed=$(opkg list-installed "${package_name}")
+
+  # if already installed then exit
+  if [[ -n "${installed}" ]]; then
+    log "Already Installed ${package_name}, exiting"
+    return 0
+  fi
+
+  __init_root_fs_for_writing
+  __init_opkg
+
+  log "Removing... ${package_name}"
+  if [ ! $dry_run ]; then
+    opkg remove "${package_name}"
+  fi
+
+  __restore_previous_fs_access
+
+  log_pop_indent
+
+  log "opkg_common_ensure_installed: done"
+
+  return 0
 }
  
 if [[ "${1:-}" == "opkg_common_ensure_installed" ]]; then
@@ -316,4 +350,3 @@ if [[ "${1:-}" == "opkg_common_ensure_installed" ]]; then
   opkg_common_ensure_installed
 
 fi
-
