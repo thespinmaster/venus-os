@@ -1,34 +1,49 @@
 #!/usr/bin/env bash
 
+set -o nounset
+
 #TODO review readonly....need to change locations for testing?
-readonly rc_local_file=/data/rc.local
-readonly opkg_helpers_path=/data/opkg-helpers
-readonly opkg_custom_packages_file=${opkg_helpers_path}/custom-packages.conf
-readonly opkg_common_file=${opkg_helpers_path}/opkg-common.sh
+#
+ 
+readonly rc_local_file="${VENUS_ROOT_DIR:-}/data/rc.local"
+readonly opkg_helpers_path="${VENUS_ROOT_DIR:-}/data/opkg-helpers"
+readonly opkg_custom_packages_file="${opkg_helpers_path}/custom-packages.conf"
+# shellcheck disable=SC2034
+readonly opkg_rc_local_d_dir="${opkg_helpers_path}/rc.local.d"
+readonly resize2fs_file="$/opt/victronenergy/swupdate-scripts/resize2fs.sh"
+
+declare OPKG_FEED_NAME=thespinmaster
+declare OPKG_FEED_URL="https://github.com/${OPKG_FEED_NAME}}/venus-os/raw/refs/heads/main/feed"
+declare OPKG_FEED_CONFIG_FILE="${VENUS_ROOT_DIR:-}/etc/opkg/${OPKG_FEED_NAME}.conf"
+
 #readonly LOG=${opkg_helpers_path}/log
 
-is_fs_readonly=
+___is_fs_readonly=
 init_opkg_helpers=
 dry_run=
 
-. $(dirname ${BASH_SOURCE[0]})/log-helpers.sh
+declare __this_path; __this_path="$(dirname "${BASH_SOURCE[0]}")"
+. "${__this_path}/libs/log-lib"
 
-expand_root_fs() {
-  # Expand rootfs and make it writable
+# Expand rootfs and make it writable
+opkg_common_expand_root_fs() {
+  
   log "expanding root fs"
   if [ ! $dry_run ]; then
-    /opt/victronenergy/swupdate-scripts/resize2fs.sh
+    $resize2fs_file
   fi
 }
 
-mount_root_fs_readwrite() {
+# mount the rootfs as read/write
+opkg_common_mount_root_fs_readwrite() {
   log "mounting fs as read write"
   if [ ! $dry_run ]; then
     mount -o remount,rw /
   fi
 }
 
-mount_root_fs_readonly() {
+# mount the rootfs as read/write
+opkg_common_mount_root_fs_readonly() {
   log "mounting fs as readonly"
 
   if [ ! $dry_run ]; then
@@ -37,43 +52,38 @@ mount_root_fs_readonly() {
 
 }
 
-# pass initial state of is_fs_readonly
-# if initial state is empty but is_fs_readonly now
+# pass initial state of ___is_fs_readonly
+# if initial state is empty but ___is_fs_readonly now
 # has a value then we restore back to readonly.
-restore_previous_fs_access() {
+opkg_common_restore_previous_fs_access() {
+  
+  log "restoring previous fs state"
 
-#  if [[ -z "${1}" ]]; then
-
-    log "restoring previous fs state"
-
-    if [[ "${is_fs_readonly}" = 1 ]]; then
-      mount_root_fs_readonly
-    else
-      log "previous state was readwrite; nothing to restore"
-    fi
-    is_fs_readonly=
-#  fi
+  if [[ "${___is_fs_readonly}" = 1 ]]; then
+    opkg_common_mount_root_fs_readonly
+  else
+    log "previous state was readwrite; nothing to restore"
+  fi
+  ___is_fs_readonly=
 
 }
-
-ensure_feed() {
+ 
+opkg_common_ensure_feed() {
 
   log "adding opkg feed"
-
-  feed_config_file="/etc/opkg/thespinmaster.conf"
-  feed_url="https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feed"
-  feed_content="src/gz thespinmaster ${feed_content}"
+ 
+  local feed_content="src/gz {feed_name} ${OPKG_FEED_URL}"
 
   if [ ! $dry_run ]; then
-    echo "${feed_content}" > "${feed_config_file}"
+    echo "${feed_content}" > "${OPKG_FEED_CONFIG_FILE}"
   else
-    log "feed content:\"${feed_content} > ${feed_config_file}\""
+    log "feed content:\"${feed_content} > ${OPKG_FEED_CONFIG_FILE}\""
   fi
 
 }
 
-ensure_rc_local() {
-  log "ensure_rc_local"
+__ensure_rc_local() {
+  log "__ensure_rc_local"
   if [[ ! -f "${rc_local_file}" ]]; then
     log "rc.local does not exist; creating..."
     if [[ ! $dry_run ]]; then
@@ -83,84 +93,98 @@ ensure_rc_local() {
   fi
 }
 
-init_root_fs_for_writing() {
+# placed in separate function: easier to override for testing
+__is_fs_readonly() {
+  grep -q "[[:space:]]ro[[:space:],]" /proc/mounts
+}
 
-  log "init_root_fs_for_writing"
+# sets the rootfs for writing
+# sets the flag ___is_fs_readonly
+__init_root_fs_for_writing() {
 
-  if [[ -z "${is_fs_readonly}" ]]; then
+  log "__init_root_fs_for_writing"
+
+  if [[ -z "${___is_fs_readonly}" ]]; then
 
     # make sure the file system is writeable
-    v=$(grep "[[:space:]]ro[[:space:],]" /proc/mounts)
-    if [ -z "${v}" ] ; then
-      is_fs_readonly=0
+    if __is_fs_readonly; then
+      ___is_fs_readonly=1
     else
-      is_fs_readonly=1
+      ___is_fs_readonly=0
+    fi
+ 
+    if [[ "${___is_fs_readonly}" = 1 ]]; then
+      opkg_common_mount_root_fs_readwrite
     fi
 
-    ###########
-    is_fs_readonly=1
-
-    if [ "${is_fs_readonly}" = 1 ]; then
-      mount_root_fs_readwrite
-    fi
-
-    log "fs is readonly:${is_fs_readonly}"
+    log "fs is readonly:${___is_fs_readonly}"
 
   else
-    log "is_fs_readonly already initialized"
+    log "___is_fs_readonly already initialized"
   fi
 
 }
 
-init_opkg() {
+# ensures the opkg feed is setup
+# calls opkg update
+# sets init_opkg_helpers flag so
+# only done once
+__init_opkg() {
 
-  if [[ -z "${init_opkg_helpers}" ]]; then
-    log "init_opkg: initializing"
+  ((init_opkg_helpers)) && {
+    log "__init_opkg: already initialzed"
+    return;
+  }
 
-    ensure_feed
-    if [ ! $dry_run ]; then
-      opkg update
-    fi
+  log "__init_opkg: initializing"
 
-    init_opkg_helpers=1
-  else
-    log "init_opkg: already initialzed"
+  opkg_common_ensure_feed
+  if [ ! $dry_run ]; then
+    opkg update
   fi
 
+  init_opkg_helpers=1
+ 
 }
 
-ensure_installed() {
+# loops through all the lines in
+# the opkg_custom_packages_file 
+# and proceeds to install each
+# package.
+# takes care of read write access
+opkg_common_ensure_installed() {
 
-  log "ensure_installed"
+ 
+  [[ -f "$opkg_custom_packages_file" ]] || {
+     log "opkg_custom_packages_file does not exist"; return 0; }
 
-  push_log_indent
-
+  log "opkg_common_ensure_installed"
+ 
+  log_push_indent
+  
   while IFS= read -r line
   do
     # ignore comments and empty lines
-    if [[ -z $(grep '^[[:blank:]]*[^[:blank:]#]' <<< "${line}" ) ]] || \
-       [[ -z "${line}" ]]; then
-      continue
-    fi
-
-    try_install_package "${line}"
+    [[ -z "${line//[[:space:]]/}" || $line == \#* ]]  && continue
+ 
+    __opkg_common_try_install_package "${line}"
 
   done < "${opkg_custom_packages_file}"
 
-  restore_previous_fs_access
+  opkg_common_restore_previous_fs_access
 
-  #log "is_fs_readonly=${is_fs_readonly} 'value should be empty'"
+  log_pop_indent
 
-  pop_log_indent
+  log "opkg_common_ensure_installed: done"
 
-  log "ensure_installed: done"
+  return 0
 }
+ 
+__opkg_common_try_install_package() {
 
-try_install_package() {
+  log "__opkg_common_try_install_package"
 
-  log "try_install_package"
-
-  package_name="${1}"
+  local package_name="${1}"
 
   if [[ -z "${package_name}" ]]; then
     log "package name not supplied"
@@ -169,7 +193,7 @@ try_install_package() {
 
   # see if the ipk is installed
   # list-installed only returns an exact match
-  installed=$(opkg list-installed "${package_name}")
+  local installed; installed=$(opkg list-installed "${package_name}")
 
   # if already installed then exit
   if [[ -n "${installed}" ]]; then
@@ -177,8 +201,8 @@ try_install_package() {
     return 0
   fi
 
-  init_root_fs_for_writing
-  init_opkg
+  __init_root_fs_for_writing
+  __init_opkg
 
   log "Installing... ${package_name}"
   if [ ! $dry_run ]; then
@@ -186,54 +210,70 @@ try_install_package() {
   fi
 }
 
-add_script_to_rc_local() {
+# adds script to the rc_local file
+# args: ${1} the script to add
+# this script can be multiple lines
+opkg_common_add_script_to_rc_local() {
 
-  if [[ -z "${1}" ]]; then
-    log "no script supplied; exiting..."
-    return
-  fi
+  [[ -z "${1}" ]] && { log_error "ERROR: no script supplied" ; return 1; }
 
-  ensure_rc_local
+  __ensure_rc_local
+  
+  local thispath; thispath="$(dirname "${BASH_SOURCE[0]}")"
+  . "$thispath/libs/string-lib"
 
-  . /data/opkg-helpers/string-helpers.sh
-  local FOUND=
-  FOUND=$(multiline_string_match "${1}" --find-only --break-on-first < "${rc_local_file}")
-
-  if [[ ! $FOUND ]]; then
+  #local found=
+  #string_lib_multiline_find_replace "${1}" --find-only --break-on-first < "$rc_local_file"
+  local found; found=$(string_lib_multiline_find_replace "${1}" --find-only --break-on-first < "$rc_local_file")
+  
+  if [[ -z $found ]]; then
     log "adding custom script to ${rc_local_file}"
     if [ ! $dry_run ]; then
-      log "${1}" >> "${rc_local_file}"
+      echo "${1}" >> "${rc_local_file}"
     fi
   else
     log "custom script already added"
   fi
-
+  return 0
 }
 
-remove_script_from_rc_local() {
+# removes the script from the rc_local file
+# args: ${1} the script to add
+# this script can be multiple lines
+opkg_common_remove_script_from_rc_local() {
 
-  if [[ -z "${1}" ]] || [[ ! -f ${rc_local_file} ]]; then
-    log "no script supplied; exiting..."
-    return
-  fi
+  [[ -z "${1}" ]] && { log_error "ERROR: no script supplied" ; return 1; }
+  [[ -f "${rc_local_file}" ]] || return 0
 
-  . /data/opkg-helpers/string-helpers.sh
   log "removing custom script from ${rc_local_file}"
 
   # reads from ${rc_local_file} removes ${1} and saves back to ${rc_local_file}
-  # multiline_string_match "${1}" --trim-lines < "${rc_local_file}" > "${rc_local_file}"
+  # string_lib_multiline_find_replace "${1}" --trim-lines < "${rc_local_file}" > "${rc_local_file}"
 
   if [ ! $dry_run ]; then
-    out=$(multiline_string_match "${1}" --trim-lines < "${rc_local_file}") && \
-        log "$out" > "${rc_local_file}"
+  
+  thispath="$(dirname "${BASH_SOURCE[0]}")"
+  . "$thispath/libs/string-lib"
+    
+    # TODO add inplace option to string_lib_multiline_find_replace
+    local tmp; tmp=$(mktemp)
+    string_lib_multiline_find_replace "${1}" --trim-lines < "${rc_local_file}" > "$tmp" && {
+      mv "$tmp" "${rc_local_file}"
+    }
+     
   fi
 
 }
 
-add_package_name_to_custom_packages_file() {
+# adds an opkg package name to the custom packages file
+# the custom packages file is read when a new firmware
+# has been installed
+# args: ${1} the name of the package
+opkg_common_add_package_name_to_custom_packages_file() {
 
-  local package_name
-  package_name="${1}"
+  [[ -z "${1}" ]] && { log_error "ERROR: no package name supplied" ; return 1; }
+
+  local package_name="${1}"
 
   if ! grep -q "^${package_name}$" "${opkg_custom_packages_file}" ; then
     log "adding ${package_name} to ${opkg_custom_packages_file}"
@@ -246,9 +286,14 @@ add_package_name_to_custom_packages_file() {
 
 }
 
-remove_package_name_from_custom_packages_file() {
-  local package_name
-  package_name="${1}"
+# removes an opkg package name to the custom packages file
+# args: ${1} the name of the opkg package to remove
+opkg_common_remove_package_name_from_custom_packages_file() {
+
+  [[ -z "${1}" ]] && { log_error "ERROR: no package name supplied" ; return 1; }
+  [[ -f "${opkg_custom_packages_file}" ]] || return 0
+
+  local package_name="${1}"
 
   if grep -q "^${package_name}$" "${opkg_custom_packages_file}" ; then
     log "Removing ${package_name} from ${opkg_custom_packages_file}"
@@ -260,20 +305,15 @@ remove_package_name_from_custom_packages_file() {
   fi
 
 }
+ 
+if [[ "${1:-}" == "opkg_common_ensure_installed" ]]; then
 
-if [[ ${1} == "ensure_installed" ]]; then
-
-  if [[ ${2} == "--dry-run" ]]; then
+  if [[ "${2:-}" == "--dry-run" ]]; then
     dry_run=1
     log "*** DRY RUN ***"
   fi
 
-  ensure_installed
+  opkg_common_ensure_installed
 
 fi
 
-ensure_rc_local_d_folder() {
-  folder_path=/data/opkg-helpers/rc.local.d/"${1}"
-  mkdir -p "${folder_path}"
-  echo "${folder_path}"
-}

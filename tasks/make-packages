@@ -45,16 +45,44 @@ else
  
 fi
  
-build_package() {
+# args: ${1} [in] build path (../.build)
+#       ${2} in source path (../services/project-name)
+#       ${3} [out] staging path (../.build/project-name)
+stage_source_byref() {
+  local build_path="${1}"
+  local src_path="${2}"
+  local dest_path
+  local -n _staging_path="${3}"
 
+  [[ "$src_path" =~ ^(\.\./)+(.*)$ ]]
+    dest_path="$build_path/${BASH_REMATCH[2]}"
+ 
+  #--exclude=*-v? means exclude [filename-v2 | filename-v2] etc
+  options=(--exclude=*.bak --exclude=.git --exclude=*.tmp --exclude=tests/)
+  options+=(--exclude=*-v[0-9] --exclude=*.old)
+
+  rsync -a --mkpath "$src_path/" "$dest_path" "${options[@]}" || return 1
+  _staging_path="$dest_path"
+  return 0
+}
+
+build_package() {
+  
   path="${1}/src"
   name="$(basename "${1}")"
+
   echo "building ${name}"
-
+ 
   [[ -d "${path}" ]] || { echo "invalid path:${path}" >&2 ; return 1; }
+ 
+  local build_path="../.build"
+  local staging_path;
+  stage_source_byref "$build_path" "$path" staging_path || return 1
+  
+  opkg-build -o root -g root "${staging_path}" ./
 
-  opkg-build -o root -g root "${path}" ./
-
+  rm -r "${build_path:?}/"*
+ 
 }
  
 for pkg in "${build_items[@]}"; do

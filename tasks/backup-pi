@@ -67,7 +67,7 @@ echo "================================================================="
     # now we can use the selected file
     printf "'%s' selected" "${disk}"
 
-    # it'll ask for another unless we leave the loop
+    # it will ask for another unless we leave the loop
     break
   done
 

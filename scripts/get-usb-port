@@ -39,7 +39,8 @@ done
 #udm_output=$(./timeout -t $arg_timeout sleep 2; echo "$UDEV" | \
 #                grep -E '(^UDEV .*\[[0-9]*\.[0-9]*\] add )')
 
-timeout="$(dirname "./libs/${BASH_SOURCE[0]}")/timeout"
+timeout="$(dirname "${BASH_SOURCE[0]}")/libs/timeout"
+
 #echo "TT:${timeout}"
 udm_output=$("${timeout}" -t "${arg_timeout}" udevadm monitor --subsystem-match=tty -u | \
                grep -E '(^UDEV .*\[[0-9]*\.[0-9]*\] add )')

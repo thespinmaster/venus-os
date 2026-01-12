@@ -1,14 +1,12 @@
 #!/usr/bin/env bash
 
-# VERSION 1.0
+# shellcheck disable=SC2034
+LOG_LIB_VERSION=1.0
 
 # usage
-# export OPKGH_LOG_FILE=$(/data/opkg-helpers/log-helpers.sh "init_logging" "/data/rc.local.log")
-
+ 
 INDENT=
-# shellcheck disable=SC2034
 declare -r LOGGER=1
-# shellcheck disable=SC2034
 declare -r LOGLEVEL_NONE=0
 declare -r LOGLEVEL_ERROR=1
 declare -r LOGLEVEL_MINIMAL=2
@@ -16,14 +14,15 @@ declare -r LOGLEVEL_INFO=3
 declare -r LOGLEVEL_TRACE=4
 declare LOGLEVEL=$LOGLEVEL_INFO
  # source must contain a method called CUSTOM_LOGGING_FUNC
-declare USE_CUSTOM_LOGGING_FUNC=
+# depreciated just define a function called log_custom
+#declare USE_CUSTOM_LOGGING_FUNC= 
 declare LOG_DATE_TIME=1
 declare LOG_FUNC_NAME=1
 declare LOG_SOURCE_NAME=1
 
-log_trace() { log "${1}" $LOGLEVEL_TRACE 2; }
-log_info() { log "${1}" $LOGLEVEL_INFO 2; }
-log_error() { log "${1}" $LOGLEVEL_ERROR 2; }
+log_trace() { log "${1:-}" $LOGLEVEL_TRACE 2; }
+log_info() { log "${1:-}" $LOGLEVEL_INFO 2; }
+log_error() { log "${1:-}" $LOGLEVEL_ERROR 2; }
 
 log() {
 
@@ -40,18 +39,17 @@ log() {
   # shellcheck disable=SC2071
   [[ (( $# > 2 )) ]] && func_offset=$3 || func_offset=1
   [[ (( $LOGLEVEL = LOGLEVEL_NONE )) ]] && return 0
-
-  if [[ $USE_CUSTOM_LOGGING_FUNC ]]; then
-    #define func in string so it does not error bash parses
-    custfunc="CUSTOM_LOGGING_FUNC"
-    ${custfunc} "$@"
-    local r=$?
-    (( r != 0 )) && return $?
-  fi
+  
+  [[ $(type -t log_custom) == function ]] && {
+      local r
+      log_custom; 
+      r=$?
+      (( r != 0 )) && return $?
+  }
+  local prefix=
 
   if (( LOGLEVEL > LOGLEVEL_INFO )); then
-    local prefix=""
-
+ 
     [[ $LOG_DATE_TIME ]] && prefix="$(date +%y/%m/%d_%H:%M:%S)::"
     [[ $LOG_SOURCE_NAME ]] && prefix+="${BASH_SOURCE[func_offset]##*/}::"
     [[ $LOG_FUNC_NAME ]] && prefix+="${FUNCNAME[func_offset]}::"
@@ -62,7 +60,7 @@ log() {
     [[ -z $1 ]] && return 0
   fi
 
-  if [[ -f "${OPKGH_LOG_FILE}" ]]; then
+  if [[ -v "OPKGH_LOG_FILE" && -f "${OPKGH_LOG_FILE}" ]]; then
     echo "${INDENT}${prefix}${1}" >> "${OPKGH_LOG_FILE}"
   else
     echo "${INDENT}${prefix}${1}" >&2

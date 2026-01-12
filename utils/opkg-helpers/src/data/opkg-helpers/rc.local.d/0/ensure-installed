@@ -1,0 +1,8 @@
+#!/bin/bash
+
+declare __this_path; __this_path="$(dirname "${BASH_SOURCE[0]}")"
+. "$__this_path/../../opkg-common"
+
+ensure_installed
+
+

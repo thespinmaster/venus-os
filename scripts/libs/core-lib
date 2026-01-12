@@ -155,5 +155,5 @@ EOF
   ' "$script"
 }
 
-[[ "${1:-}" = "core_utils_lib_list_methods_in_script" ]] && { shift; core_lib_list_methods_in_script "$@"; }
+[[ "${1:-}" = "core_lib_list_methods_in_script" ]] && { shift; core_lib_list_methods_in_script "$@"; }
 

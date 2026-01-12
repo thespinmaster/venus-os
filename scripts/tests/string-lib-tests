@@ -9,8 +9,8 @@
 
 this_path="$(dirname "${BASH_SOURCE[0]}")"
 
-. $this_path/../libs/test-lib
-. $this_path/../libs/string-lib
+. "$this_path/../libs/test-lib"
+. "$this_path/../libs/string-lib"
  
 ########################################
 # Test config
@@ -40,7 +40,7 @@ test_remove1() {
   assert_not_eq "${TEST_STRING: -1}" $'\n' "--TEST_STRING string does not end in newline"
 
   set_var RESULT < <(send_var "$TEST_STRING" | 
-            string_lib_literal_helper "$SEARCH_TEXT")
+            string_lib_multiline_find_replace "$SEARCH_TEXT")
   expected_RESULT="one
 three
 four"
@@ -54,7 +54,7 @@ test_remove2() {
   TEST_STRING+=$'\n'
   assert_eq "${TEST_STRING: -1}" $'\n' "--TEST_STRING string should end with a newline"
   set_var RESULT < <(send_var "$TEST_STRING" | 
-            string_lib_literal_helper "$SEARCH_TEXT")
+            string_lib_multiline_find_replace "$SEARCH_TEXT")
   expected_RESULT="one
 three
 four
@@ -68,7 +68,7 @@ test_break_on_first1() {
  
   assert_not_eq "${TEST_STRING: -1}" $'\n' "--TEST_STRING string does not end in newline"
   set_var RESULT < <(send_var "$TEST_STRING" | 
-            string_lib_literal_helper --break-on-first "$SEARCH_TEXT")
+            string_lib_multiline_find_replace --break-on-first "$SEARCH_TEXT")
   expected_RESULT="one
 three
 two
@@ -83,7 +83,7 @@ test_break_on_first2() {
   TEST_STRING=${TEST_STRING/two/$'\n'two$'\n'}
   assert_not_eq "${TEST_STRING: -1}" $'\n' "--TEST_STRING string does not end in newline"
   set_var RESULT < <(send_var "$TEST_STRING" | 
-            string_lib_literal_helper --break-on-first "$SEARCH_TEXT")
+            string_lib_multiline_find_replace --break-on-first "$SEARCH_TEXT")
   expected_RESULT="one
 
 
@@ -100,7 +100,7 @@ test_trimLines1() {
   TEST_STRING=${TEST_STRING/two/$'\n'two$'\n'}
   assert_not_eq "${TEST_STRING: -1}" $'\n' "--TEST_STRING string does not end in newline"
   set_var RESULT < <(send_var "$TEST_STRING" | 
-            string_lib_literal_helper --trim-lines "$SEARCH_TEXT")
+            string_lib_multiline_find_replace --trim-lines "$SEARCH_TEXT")
   expected_RESULT="one
 three
 four"
@@ -120,7 +120,7 @@ test_trimLines2() {
   TEST_STRING=${TEST_STRING/three/$'\t'three$'\t\t'} # add extra tabs
   assert_not_eq "${TEST_STRING: -1}" $'\n' "--TEST_STRING string does not end in newline"
   set_var RESULT < <(send_var "$TEST_STRING" | 
-            string_lib_literal_helper --trim-lines "$SEARCH_TEXT")
+            string_lib_multiline_find_replace --trim-lines "$SEARCH_TEXT")
    expected_RESULT="one
 three
 four"
@@ -140,7 +140,7 @@ test_trim_lines_ignore_white_space() {
   
   assert_not_eq "${TEST_STRING: -1}" $'\n' "--TEST_STRING string does not end in newline"
   set_var RESULT < <(send_var "$TEST_STRING" | 
-    string_lib_literal_helper --trim-lines --ignore-white-space "$SEARCH_TEXT")
+    string_lib_multiline_find_replace --trim-lines --ignore-white-space "$SEARCH_TEXT")
     expected_RESULT=$'one
 \tthree
 four'
@@ -155,7 +155,7 @@ test_literal_match_with_replacement() {
 
   set_var RESULT < <(
     send_var "$TEST_STRING" |
-    string_lib_literal_helper "$SEARCH_TEXT" --replacement-text "REPLACED"
+    string_lib_multiline_find_replace "$SEARCH_TEXT" --replacement-text "REPLACED"
   )
 
   expected_RESULT="one
@@ -173,7 +173,7 @@ four"
 test_break_on_first() {
   set_var RESULT < <(
     send_var "$TEST_STRING" |
-    string_lib_literal_helper "$SEARCH_TEXT" --break-on-first
+    string_lib_multiline_find_replace "$SEARCH_TEXT" --break-on-first
   )
 
   expected_RESULT="one
@@ -189,7 +189,7 @@ four"
 test_find() {
   set_var RESULT < <(
     send_var "$TEST_STRING" |
-    string_lib_literal_helper "$SEARCH_TEXT" --find-only
+    string_lib_multiline_find_replace "$SEARCH_TEXT" --find-only
   )
 
   expected_RESULT="2"
@@ -202,7 +202,7 @@ test_find() {
 test_find_and_break() {
   set_var RESULT < <(
     send_var "$TEST_STRING" |
-    string_lib_literal_helper "$SEARCH_TEXT" --find-only --break-on-first
+    string_lib_multiline_find_replace "$SEARCH_TEXT" --find-only --break-on-first
   )
 
   expected_RESULT="1"
@@ -222,7 +222,7 @@ beta
 "
   set_var RESULT < <(
     send_var "$TEST_STRING_TRIM" |
-    string_lib_literal_helper "two" --trim-lines
+    string_lib_multiline_find_replace "two" --trim-lines
   )
 
   expected_RESULT="
@@ -238,7 +238,7 @@ beta
 test_no_matches() {
   set_var RESULT < <(
     send_var "$TEST_STRING" |
-    string_lib_literal_helper "nomatch"
+    string_lib_multiline_find_replace "nomatch"
   )
 
   expected_RESULT="$TEST_STRING"
@@ -251,7 +251,7 @@ test_no_matches() {
 test_empty_input() {
   set_var RESULT < <(
     send_var "" |
-    string_lib_literal_helper "$SEARCH_TEXT"
+    string_lib_multiline_find_replace "$SEARCH_TEXT"
   )
 
   expected_RESULT=""
@@ -268,7 +268,7 @@ a*b"
 
   set_var RESULT < <(
     send_var "$TEST_STRING_REGEX" |
-    string_lib_literal_helper "a.b"
+    string_lib_multiline_find_replace "a.b"
   )
 
   expected_RESULT="axb
@@ -287,7 +287,7 @@ three
 four"
   SEARCH_TEXT="two \"hell#*&()|o\""
   set_var RESULT < <(send_var "$TEST_STRING" | 
-            string_lib_literal_helper "$SEARCH_TEXT")
+            string_lib_multiline_find_replace "$SEARCH_TEXT")
   expected_RESULT="one
 three
 four"

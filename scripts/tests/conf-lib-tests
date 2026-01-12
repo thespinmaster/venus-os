@@ -84,7 +84,7 @@ and this is line two
 some special chars: \\!@#$%^&*()_+{}|:<>?[];\'/.,~
 and this is line three"
 
-  local expected_BANNER=$(cat <<EOF
+  local expected_BANNER; expected_BANNER=$(cat <<EOF
 Welcome to the system
 This is a banner
 EOF

@@ -148,7 +148,7 @@ send_var () {
 #  Input: Content via STDIN '< [filename]' or '<<< [string]' to supply the contents
 #  Returns: The modified string or the number of matches depending on the options above
 ##########################################################
-string_lib_literal_helper() {
+string_lib_multiline_find_replace() {
 
 _printhelp() {
   cat <<EOF
@@ -314,9 +314,9 @@ EOF
 
   if (( opt_find_only == 0 )); then
     #local _d=; make_debug_str "${output}" _d
-    printf '%s\0' "${output}" # null terminate the output
+    printf '%s\n' "${output}"
   elif (( found > 0)); then
-    printf '%s\0' "$found" # null terminate the output
+    printf '%s\n' "$found"
   fi
   return 0
 }

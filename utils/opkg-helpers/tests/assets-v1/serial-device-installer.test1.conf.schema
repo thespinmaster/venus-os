@@ -32,3 +32,4 @@ SERIAL_STARTER_CONFIG_TEXT_MATCH  | string |          | ^service ${SERVICE_NAME}
 SERIAL_STARTER_RULES_TEXT_MATCH   | string | required | RUN+="/opt/victronenergy/serial-starter/cleanup.sh %k"
 UDEVADM_PROPS                     | string | required | ID_BUS,ID_VENDOR,ID_MODEL,ID_SERIAL
 USE_UDEVADM_MONITOR               | int    |          | 1
+USB_TIMEOUT                       | int    |          | 30
