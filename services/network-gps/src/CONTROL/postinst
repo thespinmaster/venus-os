@@ -1,27 +1,16 @@
-#!/bin/sh
-set -e
-if [ -z "$D" ]; then
-  
-  source /data/opkg-helpers/opkg-common.sh
-
-  SERVICE_NAME=$(basename "${0%.*}") #get file name without path
-
-  # copy service, svscan will detect the new files & avoid a reboot
-  cp -R "/opt/victronenergy/service/${SERVICE_NAME}/" /service/
-  
-  ################################################
-  # Adding ensure-installed to rc.local
-  ################################################
-  RC_LOCAL_FILE="/data/rc.local"
-  RC_LOCAL_ACTION="/data/${SERVICE_NAME}/ensure-installed"
-  if ! grep -q "^${RC_LOCAL_ACTION}$" "${RC_LOCAL_FILE}"; then
-    echo "adding ${RC_LOCAL_ACTION} to ${RC_LOCAL_FILE}"
-    echo "${RC_LOCAL_ACTION}" >> "${RC_LOCAL_FILE}"
-    chmod +x "${RC_LOCAL_FILE}"
-  fi
-  ################################################
-
-  add_package_name_to_custom_packages_file "${SERVICE_NAME}"
-  
-  echo "${SERVICE_NAME} installed"
+#!/bin/bash
+ 
+if [[ -n "$D" ]]; then
+  return;
 fi
+
+declare package_name="$(basename "${0%.*}")" #get file name without path
+declare service_name="$package_name"
+
+# copy service, svscan will detect the new files & avoid a reboot
+cp -R "/opt/victronenergy/service/${service_name}/" /service/
+
+source "${VENUS_ROOT_DIR:-}/data/opkg-helpers/opkg-common"
+opkg_common_register_package "${package_name}"
+ 
+echo "${package_name} installed"

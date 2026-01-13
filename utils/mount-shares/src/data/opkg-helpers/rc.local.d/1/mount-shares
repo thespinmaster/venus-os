@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
 # mount-shares (do not edit)
-. /data/mount-shares/mount-helpers.sh 
+. "${VENUS_ROOT_DIR:-}/data/mount-shares/mount-helpers"
 
 mount_shares

@@ -1,34 +1,26 @@
 #!/bin/sh
 set -e
-if [ -z "$D" ]; then
-  
-  source /data/opkg-helpers/opkg-common.sh
-
-  SERVICE_NAME=$(basename "${0%.*}") #get file name without path
- 
-  # Stop services to avoid a reboot
-  svc -d /service/"${SERVICE_NAME}"
-  sleep 1
-  rm -R /service/"${SERVICE_NAME}"
-
-  # Remove conf file
-  rm -r /data/"${SERVICE_NAME}"
-
-  # Clear logs
-  if [ -f "/var/log/${SERVICE_NAME}" ]; then
-    rm -R "/var/log/${SERVICE_NAME}"
-  fi
-
-  # Removing ensure-installed from rc.local
-  RC_LOCAL_FILE="/data/rc.local"
-  RC_LOCAL_ACTION="/data/${SERVICE_NAME}/ensure-installed"
-  if ! grep -q "^${RC_LOCAL_ACTION}$" "${RC_LOCAL_FILE}"; then
-    echo "Removing ${RC_LOCAL_ACTION} from ${RC_LOCAL_FILE}"
-    sed -i '/^'"${RC_LOCAL_ACTION}"'/d' "${RC_LOCAL_FILE}"
-  fi
-
-  remove_package_name_from_custom_packages_file "${SERVICE_NAME}"
-
-  echo "${SERVICE_NAME}" removed
-
+if [ -n "$D" ]; then
+  return 0
 fi
+
+declare package_name="$(basename "${0%.*}")" #get file name without path
+declare service_name="$package_name"
+
+# Stop services to avoid a reboot
+svc -d /service/"${service_name}"
+sleep 1
+rm -R /service/"${service_name}"
+
+# Remove conf file
+rm -r /data/"${service_name}"
+
+# Clear logs
+if [ -f "/var/log/${service_name}" ]; then
+  rm -R "/var/log/${service_name}"
+fi
+ 
+source "${VENUS_ROOT_DIR:-}/data/opkg-helpers/opkg-common"
+opkg_common_unregister_package "${package_name}"
+
+echo "${package_name}" removed

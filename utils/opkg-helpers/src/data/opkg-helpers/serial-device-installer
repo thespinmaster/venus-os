@@ -516,8 +516,7 @@ serial_device_installer_install() {
 
   return 0
 }
-
-
+ 
 ################################################
 # Removes the rule added to the serial-starter.rules file
 # Removes the service mapping from the serial-starter.conf file

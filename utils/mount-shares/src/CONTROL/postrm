@@ -1,18 +1,15 @@
 #!/bin/bash
 
-# exit on error
-set -e
-source /data/opkg-helpers/opkg-common.sh
+package_name="mount-shares"
+new_file=/lib/libcap-ng.so.0.0.0
 
-PACKAGENAME=mount-shares
-NEW_FILE=/lib/libcap-ng.so.0.0.0
-
-if [[ -f $NEW_FILE.bak ]]; then
-  echo "restoring $NEW_FILE.bak to $NEW_FILE"
-  mv $NEW_FILE.bak $NEW_FILE
+if [[ -f $new_file.bak ]]; then
+  echo "restoring $new_file.bak to $new_file"
+  mv $new_file.bak $new_file
 fi
 
-remove_package_name_from_custom_packages_file "${PACKAGENAME}"
+source "${VE_ROOT_DIR:-}/data/opkg-helpers/opkg-common"
+opkg_common_unregister_package "${package_name}"
 
-echo "successfully removed ${PACKAGENAME}"
+echo "successfully removed ${package_name}"
 

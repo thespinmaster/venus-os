@@ -10,10 +10,7 @@ init_logging "${OPKGH_LOG_FILE}"
 for f in $(find "$__this_path/"[0-9] "$__this_path/10" -type f 2>/dev/null | sort -V); do
   log "***************************"
   log "execuing... $f"
-  # execute each script in a separate process.
-  (
-    "$f" || true
-  )
+  "$f" || true
   log "***************************"
   log " "
 done

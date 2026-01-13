@@ -4,8 +4,24 @@
 
 dry_run=
 
-readonly mount_point_conf_file=/data/mnt/mountpoints.conf
+readonly mount_point_conf_file="${VENUS_ROOT_DIR:-}/data/mnt/mountpoints.conf"
 
+__ping() {
+  local -i count=0 tries="${1}"
+  local server="${2}"
+  
+  while ((count < tries)); do
+    if ping -q -c1 -W 3 "${server}" >>/dev/null; then
+      return 0
+    fi
+    ((count+=1))
+  done
+
+  return 1
+}
+
+# reads the mount_point_conf_file and remounts
+# the share at startup
 mount_shares() {
 
   log "mount_shares"
@@ -19,7 +35,6 @@ mount_shares() {
 
   local mount_command
   local mount_found
-  local mount_server
 
   while IFS= read -r line; do
     #[[ -n $line ]] && log "line=${line}"
@@ -37,7 +52,7 @@ mount_shares() {
       mount_command=
     fi
 
-  done < "${mount_point_conf_file}"
+  done <"${mount_point_conf_file}"
 
   if [[ ! ${mount_found} ]]; then
     log "no mount points found in mountpoints.conf"
@@ -51,80 +66,85 @@ mount_server() {
 
   log "mount_server"
 
-  local mount_command="${1}"; local mount_point=
-  local server=; local server_path=; local retval=
+  local mount_command="${1}"
+  local mount_point server server_path
 
   # extract string between '//' and '/' to return IP '192.169.60.20' or 'hostname'
-  server=$(sed 's|.* //||; s|/.*||' <<< "$mount_command")
+  server=$(sed 's|.* //||; s|/.*||' <<<"$mount_command")
 
   # extract string between '//' and ' ' to return IP '192.169.60.20/data/abc' or 'hostname/data/abc'
-  server_path=$(sed 's|.* //||; s| .*||' <<< "$mount_command")
+  server_path=$(sed 's|.* //||; s| .*||' <<<"$mount_command")
 
   # extract string after last space to get mount path e.g. '/data/dev'
   mount_point="${mount_command##* }"
 
   if [[ -z "${server}" ]] || [[ -z "${server_path}" ]] || [[ -z "${mount_point}" ]]; then
-    log "mount_server: invaid args"
-    return
+    log_error "ERROR: mount_server: invaid args"
+    return 1
   fi
-
-  push_log_indent
 
   # if mountpoint returns anything else but 0 then re-mount (-q=quiet)
   # store return value in RETVAL and return true on error.
   # otherwise if 'set -e' is used we will exit
-  mountpoint -q "${mount_point}" && retval=0 || { retval=$?; true; }
-
-  if [[ ${retval} -ne 0 ]]; then
-    log "not mounted...mounting"
-
-   if [[ $(ping -q -c1 -W 1 ${server} >>/dev/null && echo 0 || true) ]]; then
-
-      log "server ${server} is up"
-      log "mounting... ${server_path} to ${mount_point}"
-
-      if [[ ! -d "${mount_point}" ]]; then
-        log "creating mountpoint folder... ${mount_point}"
-        if [[ ! ${dry_run} ]]; then
-          mkdir -p "${mount_point}"
-        fi
-      else
-        log "mountpoint folder already exists... ${mount_point}"
-      fi
-
-      if [[ ! ${dry_run} ]]; then
-        eval "${mount_command}"
-      fi
-
-      # check mount succeeded
-      mountpoint -q "${mount_point}" && retval=0 || { retval=$?; true; } ## always return true
-      if [[ ${retval} -eq 0 ]]; then
-        log "mount point succeeded"
-      else
-        log "mount point failed"
-      fi
-
-    else
-       log "server ${server} is down"
-    fi
-
-  else
+  if mountpoint -q "${mount_point}"; then
     log "mount point already exists"
+    return 0
   fi
 
+  log_push_indent
+
+  log "not mounted...mounting"
+  local -i tries=10
+  __ping "${tries}" "${server}" && { 
+    log_error "ERROR: service is down: ${server}"; return 1; }
+
+  log "server ${server} is up"
+  log "mounting... ${server_path} to ${mount_point}"
+
+  if [[ ! -d "${mount_point}" ]]; then
+    log "creating mountpoint folder... ${mount_point}"
+    if [[ ! ${dry_run} ]]; then
+      mkdir -p "${mount_point}" || { log_error "Unable to create mountpount folder"; return 1; }
+    fi
+  else
+    log "mountpoint folder already exists... ${mount_point}"
+  fi
+
+  if [[ ! ${dry_run} ]]; then 
+    mount "${mount_command}"
+  fi
+
+  # check mount succeeded
+  if mountpoint -q "${mount_point}"; then
+    log "mount point succeeded"
+  else
+    log "mount point failed"
+  fi
+ 
   pop_log_indent
 
   log "mount server done"
 }
 
+#############################################################################
+# Creates a cifs mount point and stores the settings to the
+# mountpoints.conf file. The mount_all function is called from
+# rc.local (at startup) and reads the mountpoints.conf file to mount
+# the stored mountpoints.
+#if any arguments are missing (-s,-t,-u,-p) the values are prompted for.
+#  Version 1.0
+#  Arguments:
+#    --source | -s : The source of the mountpoint. i.e. //192.168.2.1/data or //hostname/data
+#    --target | -t : The local target for the mountpoint. i.e. /mnt/data
+#    --username | -u: The user name to access the source.
+#    --password | -p : The password used to access the source.
+#    --options  | -o : any additional options. i.e. ",someoption -rw"
+#############################################################################
 mount_cifs() {
 
   printhelp() {
     cat <<EOF
-Creates a cifs mount point and stores the settings to the
-mountpoints.conf file. The mount_all function is called from
-rc.local (at startup) and reads the mountpoints.conf file to mount
-the stored mountpoints.
+
 
 if any arguments are missing (-s,-t,-u,-p) the values are prompted for.
 
@@ -140,24 +160,47 @@ EOF
 
   }
 
-  local source; local target; local username; local password
+  local source target username password
 
   while [ $# -gt 0 ]; do
     case "$1" in
-      --source*|-s*) [[ "$1" != *=* ]] && shift; source="${1#*=}" ;;
-      --target*|-t*) [[ "$1" != *=* ]] && shift; target="${1#*=}" ;;
-      --username*|-u*) [[ "$1" != *=* ]] && shift; username="${1#*=}" ;;
-      --password*|-p*) [[ "$1" != *=* ]] && shift; password="${1#*=}" ;;
-      --help|-h) printhelp; exit 0 ;;
-      *) >&2 printf "Error: Invalid argument\n"; exit 1 ;;
+    --source* | -s*)
+      [[ "$1" != *=* ]] && shift
+      source="${1#*=}"
+      ;;
+    --target* | -t*)
+      [[ "$1" != *=* ]] && shift
+      target="${1#*=}"
+      ;;
+    --username* | -u*)
+      [[ "$1" != *=* ]] && shift
+      username="${1#*=}"
+      ;;
+    --password* | -p*)
+      [[ "$1" != *=* ]] && shift
+      password="${1#*=}"
+      ;;
+    --options* | -o)
+      [[ "$1" != *=* ]] && shift
+      options="${1#*=}"
+      ;;
+    --help | -h)
+      printhelp
+      exit 0
+      ;;
+    *)
+      >&2 printf "Error: Invalid argument\n"
+      exit 1
+      ;;
     esac
     shift
   done
 
-  [[ -z "${source}" ]] && read -p "Enter server ip/host address and path: " source
-  [[ -z "${target}" ]] && read -p "Enter local mount point path: " target
-  [[ -z "${username}" ]] && read -p "Enter username for share: " username
-  [[ -z "${password}" ]] && read -s -p "Enter password for share: " password; echo
+  [[ -z "${source}" ]] && read -r -p "Enter server ip/host address and path: " source
+  [[ -z "${target}" ]] && read -r -p "Enter local mount point path: " target
+  [[ -z "${username}" ]] && read -r -p "Enter username for share: " username
+  [[ -z "${password}" ]] && read -r -s -p "Enter password for share: " password
+  echo
 
   if [[ -z "${source}" ]] || [[ -z "${target}" ]]; then
     echo "exiting..."
@@ -168,32 +211,17 @@ EOF
 
   [[ "${source:0:2}" != "//" ]] && source="//${source}"
 
-  mount_command="mount -t cifs -o user=${username},pass=${password} ${options} ${source} ${target}"
+  mount_command="-t cifs -o user=${username},pass=${password} ${options} ${source} ${target}"
 
   if grep -Fq "${mount_command}" "${mount_point_conf_file}"; then
     log "mount already added to mountpoints.conf"
   else
     log "added mount to mountpoints.conf"
     if [[ ! ${dry_run} ]]; then
-	  mkdir -p "$(basename "${mount_point_conf_file}")"
-      echo "${mount_command}" >> "${mount_point_conf_file}"
+      mkdir -p "$(basename "${mount_point_conf_file}")"
+      echo "${mount_command}" >>"${mount_point_conf_file}"
     fi
   fi
-
+  
   mount_server "${mount_command}"
 }
-
-if [[ "${1}" == "mount_shares" ]]; then
-
-  if [[ ${2} == "--dry-run" ]]; then
-    DRY_RUN=1
-    log "*** DRY RUN ***"
-  fi
-
-  mount_shares
-
-elif [[ "${1}" == "mount_cifs" ]]; then
-  shift
-  mount_cifs "$@"
-fi
-

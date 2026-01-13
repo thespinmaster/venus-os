@@ -1,38 +1,24 @@
 #!/bin/bash
-
-# exit on error
-set -e
-
-# note shellcheck requires +xn arguments
-# shellcheck source=./install-helper
-#source "${0%.*}".install-helper
-source /data/opkg-helpers/install-helper.sh
-source /data/opkg-helpers/opkg-common.sh
-
+ 
 ##############################################################
 # Install-helper. Prompts and detects usb serial devices
 # Creates /data/dbus-ne-shunt/serial-starter.rule file
 # Creates /data/dbus-ne-shunt/serial-starter.devname file
 # containing device name (ttyACM0, used to start and stop the service) 
 # Adds serial-starter.rule content to serial-serter.rules file
-# When 'ensure-installed' script is run from rcS.local it uses 
-# the files to automatically re-install after a firmware update.
 ##############################################################
 
-SERVICE_NAME=$(basename "${0%.*}") #get file name without path
-VE_SERVICE_MAPPING_NAME="neshunt"
-TTY_FILE="/data/${SERVICE_NAME}/serial-starter.devname"
-SERIAL_STARTER_RULE_FILE="/data/${SERVICE_NAME}/serial-starter.rule"
-DBUS_MESSAGE_PATH="" #"com.victronenergy.packageManager /GuiEditStatus"
-#TEST_USB_ID="1a86:55d3"
+declare package_name="dbus-ne-shunt"
+#VE_SERVICE_MAPPING_NAME="neshunt"
+#TTY_FILE="/data/${SERVICE_NAME}/serial-starter.devname"
+#SERIAL_STARTER_RULE_FILE="/data/${SERVICE_NAME}/serial-starter.rule"
+#DBUS_MESSAGE_PATH="" #"com.victronenergy.packageManager /GuiEditStatus"
 
-install_usb_serial_device
+source "${VENUS_ROOT_DIR:-}/data/opkg-helpers/opkg-common"
+opkg_common_register_package "${package_name}"
 
-add_ve_service_config_file_mapping
- 
-add_package_name_to_custom_packages_file "${SERVICE_NAME}"
+source "${VENUS_ROOT_DIR:-}/data/opkg-helpers/serial-device-installer"
+serial_device_installer_install && serial_device_installer_start_service
 
-start_service
-
-echo "${SERVICE_NAME} installed"
+echo "${package_name} installed"
 

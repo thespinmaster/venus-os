@@ -1,9 +1,8 @@
 #!/bin/bash
 
-source /data/opkg-helpers/opkg-common.sh
+declare package_name=$(basename "${0%.*}") #get file name without path
 
-PACKAGE_NAME=$(basename "${0%.*}") #get file name without path
+source "${VENUS_ROOT_DIR:-}/data/opkg-helpers/opkg-common"
+opkg_common_register_package "${package_name}"
 
-add_package_name_to_custom_packages_file "${PACKAGE_NAME}"
-
-echo "${PACKAGE_NAME} installed"
+echo "${package_name} installed"
