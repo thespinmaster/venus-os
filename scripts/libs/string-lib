@@ -314,9 +314,9 @@ EOF
 
   if (( opt_find_only == 0 )); then
     #local _d=; make_debug_str "${output}" _d
-    printf '%s\n' "${output}"
+    printf '%s' "${output}"
   elif (( found > 0)); then
-    printf '%s\n' "$found"
+    printf '%s' "$found"
   fi
   return 0
 }

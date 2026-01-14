@@ -187,15 +187,17 @@ four"
 ########################################
 # find-only; return count number of matches
 test_find() {
+  
   set_var RESULT < <(
     send_var "$TEST_STRING" |
     string_lib_multiline_find_replace "$SEARCH_TEXT" --find-only
   )
 
   expected_RESULT="2"
-
+ 
   assert_eq "$expected_RESULT" "$RESULT" "find-only returns literal match count"
 }
+ 
 
 ########################################
 # find-only + break-on-first

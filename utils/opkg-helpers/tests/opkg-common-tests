@@ -322,7 +322,7 @@ test_opkg_common_register_package_succeeds_package_removed_from_registered_packa
   echo "$package_name_after" >> "$opkg_registered_packages_file"
 
   # Act
-  stderr=$(opkg_common_unregister "${package_name}" 2>&1)
+  stderr=$(opkg_common_unregister_package "${package_name}" 2>&1)
 
   # Assert
   assert_exitcode 0
@@ -335,9 +335,7 @@ test_opkg_common_register_package_succeeds_package_removed_from_registered_packa
   assert_file_contains "$opkg_registered_packages_file" "$package_name_after"
 
 }
-
-#test_remove_script_fails_no_package_name_supplied
-
+ 
 test_startup_script_executes_script_in_rc_local_d_folder() {
   # Arrange
   local stdout
@@ -412,7 +410,6 @@ test_startup_script_is_run_in_seperate_processes() {
   assert_not_eq "$pid1" "$pid2"
  
 }
-test_startup_script_is_run_in_seperate_processes
  
 test_ensure_package_succeeds_when_custom_packages_conf_does_not_exist() {
 

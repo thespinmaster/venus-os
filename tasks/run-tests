@@ -10,7 +10,6 @@ declare -a test_files=()
 
 if [[ "${1:-}" == "all" || -z "${1:-}" ]]; then
   mapfile -t test_files < <(find "$this_path/../" -path "*/*/tests/*" \( -name "*-tests" ! -name "_*" \))
-  #test_files=("$this_path/../scripts/tests/_all-tests")
 fi
 
 clear
@@ -18,6 +17,4 @@ clear
 for test_file in "${test_files[@]}"; do
   test_runner_on_source_file --summary "$test_file"
   #test_runner_on_source_file "$test_file" 
- 
-  #echo "$test_file"
 done 

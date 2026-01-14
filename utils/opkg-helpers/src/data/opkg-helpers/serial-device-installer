@@ -61,7 +61,6 @@ __read_props_byref() {
   # Split the string into array by NUL character
   IFS='|' read -r -a __props <<< "$UDEVADM_PROPS"
   for key_value in "${__props[@]}"; do
-    #[[ "$key_value" == *"="* ]] || { echo "UDEVADM_PROPS are invalid" >&2; return 1; } 
     k="${key_value%%=*}"; 
     value=
     [[ "$key_value" == *"="* ]] && value="${key_value#*=}"

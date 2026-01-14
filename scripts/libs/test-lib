@@ -365,42 +365,40 @@ assert_exitcode_not() {
 }
 
 ###################################
-# Asserts if a file contains a string
+# Asserts if arg2 contains the string in arg1
 # Arguments:
-#   $1 - required; the string value to find
-#   $2 - optional comment
-# Notes:
-#  uses std-in for the contents
-#  assert_stdin_contains "match" <<<"some contents to match"
+#   $1 - required; the string value to match
+#   $1 - required; the string to look for the match in
+#   $3 - optional comment
 ###################################
-assert_stdin_contains() {
+assert_contains() {
   local res=false
   local match="${1}"
-  local comment="${2:-}"
+  local source="${2:-}"
+  local comment="${3:-}"
   __set_comment comment "Contains"
   # don't try to match if match string is empty
-  local stdin; stdin="$(cat)"
-   
-  [[ -n "${match}" ]] && [[ "$(stdin)" = *"${match}"* ]] && res=true
-  __assert_lib_pass_or_fail $res "$comment" "stdin:$stdin" "match:$match"
+ 
+  [[ -n "${match}" ]] && [[ "$source" == *"${match}"* ]] && res=true
+  __assert_lib_pass_or_fail $res "$comment" "arg1:$source" "arg2:$match"
 }
 ###################################
-# Asserts if a file contains a string
+# Asserts if arg2 does not contain the string in arg1
 # Arguments:
-#   $1 - required; the string value to find
-#   $2 - optional comment
-# Notes:
-#  uses std-in for the contents
-#  assert_stdin_contains "match" <<<"some contents to match"
+#   $1 - required; the string value to match
+#   $1 - required; the string to look for the match in
+#   $3 - optional comment
 ###################################
-assert_stdin_not_contain() {
-  local res=false
+assert_not_contain() {
+   local res=false
   local match="${1}"
-  local comment="${2:-}"
+  local source="${2:-}"
+  local comment="${3:-}"
   __set_comment comment "Contains"
   # don't try to match if match string is empty
-  [[ -n "${match}" ]] && [[ "$(stdin)" = *"${match}"* ]] || res=true
-  __assert_lib_pass_or_fail $res "$comment" "file:$file" "match:$match"
+ 
+  [[ -n "${match}" ]] && [[ "$source" == *"${match}"* ]] || res=true
+  __assert_lib_pass_or_fail $res "$comment" "arg1:$source" "arg2:$match"
 }
 ###################################
 # Asserts if a file contains a string
@@ -416,7 +414,7 @@ assert_file_contains() {
   local comment="${3:-}"
   __set_comment comment "File contains"
   # don't try to match if match string is empty
-  [[ -n "${match}" ]] && [[ "$(<"${file}")" = *"${match}"* ]] && res=true
+  [[ -n "${match}" ]] && [[ "$(<"${file}")" == *"${match}"* ]] && res=true
   __assert_lib_pass_or_fail $res "$comment" "file:$file" "match:$match"
 }
 
@@ -434,7 +432,7 @@ assert_file_not_contain() {
   local comment="${3:-}"
   __set_comment comment "File does not contain"
   # don't try to match if match string is empty
-  [[ -n "${match}" ]] && [[ "$(<"${file}")" = *"${match}"* ]] || res=true
+  [[ -n "${match}" ]] && [[ "$(<"${file}")" == *"${match}"* ]] || res=true
   __assert_lib_pass_or_fail $res "$comment" "file:$file" "match:$match"
 }
  
@@ -621,10 +619,9 @@ test_runner_on_source_file() {
  
   (
       local summary=()
-      [[ "${1}" == "--summary" ]] && { shift; summary=("--summary"); }
+      [[ "${1:-}" == "--summary" ]] && { shift; summary=("--summary"); }
       local src="${1}"
       local filter="${2:-}"
- 
  
     if head -n 10 "$src" | grep -iq "# test-runner-ignore"; then
       echo "file: $1"
@@ -654,6 +651,7 @@ __get_public_functions() {
   [[ -f "$file" ]] || return 1
 
   local last_comment=""
+  local fn="" pending_func=""
 
   while IFS= read -r line; do
     # Capture single comment line
@@ -663,21 +661,38 @@ __get_public_functions() {
     fi
 
     # Reset comment on blank or non-comment, non-function line
-    [[ "$line" =~ ^[[:space:]]*$ ]] && continue
-    [[ ! "$line" =~ ^[[:space:]]*(function[[:space:]]+)?[a-zA-Z_] ]] && last_comment=""
-
+  
       # Match function definitions
-    if [[ "$line" =~ ^[[:space:]]*(function[[:space:]]+)?([a-zA-Z_][a-zA-Z0-9_]*)[[:space:]]*(\(\))?[[:space:]]*\{ ]]; then
-      local fn="${BASH_REMATCH[2]}"
+    if [[ -n $pending_func ]]; then
+      if [[ $line =~ ^[[:space:]]*\{ ]]; then
+        fn="$pending_func"
+        pending_func=""
+      else
+        continue
+      fi
+    else 
+      [[ "$line" =~ ^[[:space:]]*$ ]] && { last_comment=""; continue; }
+      [[ ! "$line" =~ ^[[:space:]]*(function[[:space:]]+)?[a-zA-Z_] ]] && last_comment=""
 
+      if [[ "$line" =~ ^[[:space:]]*(function[[:space:]]+)?([a-zA-Z_][a-zA-Z0-9_]*)[[:space:]]*(\(\))?[[:space:]]*\{ ]]; then
+        fn="${BASH_REMATCH[2]}"
+
+      elif [[ $line =~ ^[[:space:]]*(function[[:space:]]+)?([a-zA-Z_][a-zA-Z0-9_]*)[[:space:]]*(\(\))?[[:space:]]*$ ]]; then
+        pending_func="${BASH_REMATCH[1]}"
+      fi
+    fi
+
+    if [[ -n $fn ]]; then
+      local _fn="$fn"
+      fn=""
       # Skip private functions
-      [[ "$fn" == _* ]] && last_comment="" && continue
+      [[ "$_fn" == _* ]] && last_comment="" && continue
 
       # Optional filter
       
-      [[ -n "$filter" && ! "$fn" =~ $filter ]] && last_comment="" && continue
+      [[ -n "$filter" && ! "$_fn" =~ $filter ]] && last_comment="" && continue
   
-      _names+=("$fn")
+      _names+=("$_fn")
       _comments+=("$last_comment")
       last_comment=""
     fi

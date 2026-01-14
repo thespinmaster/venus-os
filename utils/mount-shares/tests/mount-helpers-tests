@@ -1,1 +1,626 @@
-#TODO 
+#!/usr/bin/env bash
+
+# unreachable SC2329,SC2317
+# shellcheck disable=SC2329,SC2317
+# modified in subshell
+# shellcheck disable=SC2031
+# shellcheck disable=SC2086
+# shellcheck disable=SC2119
+
+set -o nounset
+
+this_path="$(dirname "${BASH_SOURCE[0]}")"
+
+VENUS_ROOT_DIR="$this_path/output"
+
+. "$this_path/../../../scripts/libs/test-lib"
+. "$this_path/../../../scripts/libs/core-lib"
+. "$this_path/../src/data/mount-shares/mount-helpers"
+
+this_dir_full="$(core_lib_realpath_nosymlinks "${this_path}")"
+output_dir="${this_dir_full}/output"
+assets_dir="${this_dir_full}/assets"
+
+# shellcheck disable=SC2034
+LOG_INDENT_CHAR= # turn off indenting so string compares are simpler
+echo $LOGLEVEL_ERROR
+LOGLEVEL=1 #$LOGLEVEL_ERROR
+
+clear_output() {
+  mkdir -p "$output_dir"
+  rm -fr "${output_dir:?}/"*
+  #cp -r "${ASSETS_DIR}/"* "$OUTPUT_DIR/"
+  mkdir "$(dirname $mountpoint_conf_file)"
+}
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+  printf "\033c" # clear
+  clear_output
+fi
+#Staging helpers#############################################
+stage_get_server_ip() { hostname -I | cut -d' ' -f1; }
+stage_get_server_ip_path() { echo "$(hostname -I | cut -d' ' -f1;)/downloads"; }
+stage_get_server_name() { hostname; }
+stage_get_server_name_path() { hostname"//downloads"; }
+# shellcheck disable=SC1037
+stage_get_password() { echo "spoons_play_on_saturn$%#\$343@2"; }
+stage_get_user_name() { echo "$USER"; }
+stage_get_mount_point_dir() { echo "$output_dir/mountpoints/mymountpoint"; }
+stage_get_mount_point_dir2() { echo "$output_dir/mountpoints/mymountpoint2"; }
+#############################################################
+ 
+test_mount_cifs_prompts_for_user_name() {
+
+  # Arrange
+  mount_server() { return 0; } # override, do nothing for current test
+  
+  ___read() {
+    
+    if (($#==4)) && [[ "${1}" == "-r" ]] && [[ "${2}" == "-p" ]]; then
+      if [[ "${4}" = "username" ]]; then
+        local -n _retval=${4}; _retval="$(stage_get_user_name)"
+        echo "$_retval" >&3
+      fi
+      return 0
+    fi
+    echo "ERROR: moked __read: unexpected args" >&3
+    exit
+  }
+  local stdout
+  exec 3>&1
+
+  # Act
+  stdout=$(mount_cifs --source="$(stage_get_server_ip_path)" --password="$(stage_get_password)" \
+            --target="$(stage_get_mount_point_dir)" 3>&1 2>/dev/null )
+  # Assert
+  assert_eq "$(stage_get_user_name)" "$stdout"
+}
+
+test_mount_cifs_prompts_for_password() {
+  
+  # Arrange
+  mount_server() { return 0; } # override, do nothing for current test
+  ___read() {
+    
+    if (($#==5)) && [[ "${1}" == "-r" ]] && [[ "${2}" == "-s" ]] && [[ "${3}" == "-p" ]]; then
+      if [[ "${5}" = "password" ]]; then
+        local -n _retval=${5}; _retval="$(stage_get_password)"
+        echo "$_retval" >&3
+      fi
+      return 0
+    fi
+    echo "ERROR: moked __read: unexpected args" >&3
+    exit
+  }
+  local stdout
+
+  # Act
+  exec 3>&1
+  stdout=$(mount_cifs --username="$(stage_get_user_name)" --target="$(stage_get_mount_point_dir)" \
+          --source="$(stage_get_server_ip_path)" 3>&1 2>/dev/null )
+
+  # Assert
+  assert_eq "$(stage_get_password)" "$stdout"
+}
+
+test_mount_cifs_prompts_for_source() {
+
+  # Arrange
+  mount_server() { return 0; } # override, do nothing for current test
+
+  ___read() {
+    
+    if (($#==4)) && [[ "${1}" == "-r" ]] && [[ "${2}" == "-p" ]]; then
+      if [[ "${4}" = "source" ]]; then
+        local -n _retval=${4}; _retval="$(stage_get_server_ip_path)"
+        echo "$_retval" >&3
+      fi
+      return 0
+    fi
+    echo "ERROR: moked __read: unexpected args" >&3
+    exit
+  }
+  local stdout
+  exec 3>&1
+
+  # Act
+  stdout=$(mount_cifs --username="$(stage_get_user_name)" --password="$(stage_get_password)" \
+            --target="$(stage_get_mount_point_dir)" 3>&1 2>/dev/null )
+ 
+  # Assert
+  assert_eq "$(stage_get_server_ip_path)" "$stdout"
+}
+
+test_mount_cifs_prompts_for_target() {
+  
+  # Arrange
+  mount_server() { return 0; } # override, do nothing for current test
+  ___read() {
+    
+    if (($#==4)) && [[ "${1}" == "-r" ]] && [[ "${2}" == "-p" ]]; then
+      if [[ "${4}" = "target" ]]; then
+        local -n _retval=${4}; _retval="$(stage_get_mount_point_dir)"
+        echo "$_retval" >&3
+      fi
+      return 0
+    fi
+    echo "ERROR: moked __read: unexpected args" >&3
+    exit
+  }
+  local stdout
+  exec 3>&1
+
+  # Act
+  stdout=$(mount_cifs --username="$(stage_get_user_name)" --password="$(stage_get_password)" \
+          --source="$(stage_get_server_ip_path)" 3>&1 2>/dev/null )
+
+  # Assert
+  assert_eq "$(stage_get_mount_point_dir)" "$stdout"
+}
+
+test_mount_cifs_accepts_additional_options() {
+  
+  # Arrange
+  mount_server() { echo "$@" >&3; } # override, do nothing for current test
+ 
+  local stdout
+  exec 3>&1
+  local options="LABEL=AAA PARTLABEL=BBB"
+
+  # Act
+
+  stdout=$(mount_cifs --username="$(stage_get_user_name)" --password="$(stage_get_password)" \
+          --source="$(stage_get_server_ip_path)" --target="$(stage_get_mount_point_dir)" \
+          --options="$options" 3>&1  ) # 2>/dev/null
+
+  # Assert
+  assert_contains "$options" "$stdout"
+}
+
+
+test_mount_cifs_fails_when_source_prompt_not_filled() {
+
+  # Arrange
+  mount_server() { return 0; } # override, do nothing for current test
+
+  ___read() {
+    
+    if (($#==4)) && [[ "${1}" == "-r" ]] && [[ "${2}" == "-p" ]]; then
+      if [[ "${4}" = "source" ]]; then
+        local -n _retval=${4}; _retval=""
+      fi
+      return 0
+    fi
+    echo "ERROR: moked __read: unexpected args" >&3
+    exit
+  }
+  local stdout
+ 
+  # Act
+  stdout=$(mount_cifs --username="$(stage_get_user_name)" --password="$(stage_get_password)" \
+            --target="$(stage_get_mount_point_dir)" 2>&1 )
+ 
+  # Assert
+  assert_exitcode 1
+  assert_eq "ERROR: required args missing" "$stdout"
+}
+ 
+
+test_mount_cifs_fails_when_target_prompt_not_filled() {
+
+  # Arrange
+  mount_server() { return 0; } # override, do nothing for current test
+
+  ___read() {
+    
+    if (($#==4)) && [[ "${1}" == "-r" ]] && [[ "${2}" == "-p" ]]; then
+      if [[ "${4}" = "target" ]]; then
+        local -n _retval=${4}; _retval=""
+      fi
+      return 0
+    fi
+    echo "ERROR: moked __read: unexpected args" >&3
+    exit
+  }
+  local stdout
+ 
+  # Act
+  stdout=$(mount_cifs --username="$(stage_get_user_name)" --password="$(stage_get_password)" \
+            --source="$(stage_get_server_ip_path)" 2>&1 )
+ 
+  # Assert
+  assert_exitcode 1
+  assert_eq "ERROR: required args missing" "$stdout"
+}
+
+test_mount_cifs_succeeds_settings_added_to_mountpoints_conf_file() {
+   # Arrange
+  mount_server() { return 0; } # override, do nothing for current test
+  local options="LABEL=AAA PARTLABEL=BBB"
+  local expected
+  expected="cifs|$(stage_get_user_name)|$(stage_get_password)|$(stage_get_server_ip_path)|$(stage_get_mount_point_dir)|$options"
+  
+  assert_file_not_exist "$mountpoint_conf_file"
+
+  # Act
+  mount_cifs --username="$(stage_get_user_name)" --password="$(stage_get_password)" \
+          --source="$(stage_get_server_ip_path)" --target="$(stage_get_mount_point_dir)" \
+          --options="$options" 2>/dev/null 
+ 
+  # Assert
+  assert_exitcode 0
+  assert_file_exists "$mountpoint_conf_file"
+ 
+  assert_eq "${expected}" "$(<$mountpoint_conf_file)"
+
+}
+
+test_mount_cifs_succeeds_settings_already_exist_not_added_twice() {
+   # Arrange
+  mount_server() { return 0; } # override, do nothing for current test
+  local options="LABEL=AAA PARTLABEL=BBB"
+  local expected
+  expected="cifs|$(stage_get_user_name)|$(stage_get_password)|$(stage_get_server_ip_path)|$(stage_get_mount_point_dir)|$options"
+  
+  assert_file_not_exist "$mountpoint_conf_file"
+  echo "$expected" > "$mountpoint_conf_file"
+
+  # Act
+  mount_cifs --username="$(stage_get_user_name)" --password="$(stage_get_password)" \
+          --source="$(stage_get_server_ip_path)" --target="$(stage_get_mount_point_dir)" \
+          --options="$options" 2>/dev/null 
+ 
+  # Assert
+  assert_exitcode 0
+ 
+  local count_of=;count_of=$(grep -o "$expected" "${mountpoint_conf_file}" | wc -l)
+  assert_eq 1 "${count_of}"
+ 
+  assert_eq "${expected}" "$(<$mountpoint_conf_file)"
+
+}
+
+test_mount_cifs_succeeds_mount_server_called_in_background() {
+
+   # Arrange
+  
+  mount_server() { echo "BASHPID2=$BASHPID" >&3; return 0; } # override, do nothing for current test
+ 
+  local stdout 
+  local calling_pid mount_server_pid
+  
+  exec 3>&1
+
+  # Act
+  stdout=$(echo "BASHPID1=$BASHPID" >&1;
+          mount_cifs --username="$(stage_get_user_name)" --password="$(stage_get_password)" \
+          --source="$(stage_get_server_ip_path)" --target="$(stage_get_mount_point_dir)" \
+          3>&1 2>/dev/null)
+ 
+  # Assert
+  assert_exitcode 0
+ 
+  calling_pid="${stdout#BASHPID1=}"
+  calling_pid="${calling_pid%%$'\n'*}"  # take only the first line
+
+  mount_server_pid="${stdout#*BASHPID2=}"
+  mount_server_pid="${mount_server_pid%%$'\n'*}"  # take only the first line
+ 
+  assert_not_eq "${calling_pid}" "${mount_server_pid}"
+
+}
+ 
+
+test_mount_server_succeeds_mountpoint_already_exists() {
+  
+  # Arrange
+  
+  mountpoint() {
+
+    # shellcheck disable=SC2199
+    if [[ "$@" == "-q $(stage_get_mount_point_dir)" ]]; then
+      echo "moked mountpoint: mount point already exists" >&3
+      return 0
+    fi
+ 
+    echo "ERROR: moked mountpoint: unexpected args" >&3
+    exit
+  }
+  local stdout
+
+  # Act
+  exec 3>&1
+  stdout="$(mount_server "cifs" "$(stage_get_user_name)" "$(stage_get_password)" \
+            "$(stage_get_server_ip_path)" "$(stage_get_mount_point_dir)" "" 2>&1 3>&1)"
+
+  # Assert
+  assert_exitcode 0
+  assert_eq "moked mountpoint: mount point already exists" "$stdout"
+}
+
+test_mount_server_fails_server_is_down() {
+  
+  # Arrange
+  
+  mountpoint() { return 1; }
+  __mount_helpers_is_server_up() { 
+    return 1; } # error
+  local stdout
+  local host; host=$(stage_get_server_ip)
+
+  # Act
+  exec 3>&1
+  stdout="$(mount_server "cifs" "$(stage_get_user_name)" "$(stage_get_password)" \
+            "$(stage_get_server_ip_path)" "$(stage_get_mount_point_dir)" "" 2>&1)"
+
+  # Assert
+  assert_exitcode 1
+  assert_eq "ERROR: server is down: ${host}" "$stdout"
+}
+
+test_mount_server_succeeds_creates_mount_target_folder() {
+  # Arrange
+  
+  mountpoint() { return 1; }
+  __mount_helpers_is_server_up() { return 0; } # error
+  mount() { return 0; }
+
+  local stdout
+  local mount_point_path; mount_point_path="$(stage_get_mount_point_dir)"
+
+  assert_dir_not_exist "$mount_point_path"
+  # Act
+  exec 3>&1
+  stdout="$(mount_server "cifs" "$(stage_get_user_name)" "$(stage_get_password)" \
+            "$(stage_get_server_ip_path)" "$(stage_get_mount_point_dir)" "" 2>&1)"
+
+  # Assert
+  assert_exitcode 0
+  
+  assert_dir_exists "$mount_point_path"
+ 
+}
+
+test_mount_server_mount_fails_returns_exitcode_from_mount() {
+  # Arrange
+  
+  local expected_exit_code=127
+
+  mountpoint() { return 1; }
+  __mount_helpers_is_server_up() { return 0; } # error
+  mount() { return $expected_exit_code; }
+  
+  local stdout
+  local mount_point_path; mount_point_path="$(stage_get_mount_point_dir)"
+
+  assert_dir_not_exist "$mount_point_path"
+
+  # Act
+  exec 3>&1
+  stdout="$(mount_server "cifs" "$(stage_get_user_name)" "$(stage_get_password)" \
+            "$(stage_get_server_ip_path)" "$(stage_get_mount_point_dir)" "" 2>&1)"
+
+  # Assert
+  assert_exitcode $expected_exit_code
+  
+  assert_eq "ERROR: mount returned exit code $expected_exit_code" "$stdout"
+
+}
+
+test_mount_server_succeeds() {
+
+  # Arrange
+ 
+  mountpoint() { return 1; }
+  __mount_helpers_is_server_up() { return 0; } # error
+  mount() { echo "mount called" >&3; return 0; }
+  
+  local stdout
+  local mount_point_path; mount_point_path="$(stage_get_mount_point_dir)"
+
+  assert_dir_not_exist "$mount_point_path"
+
+  # Act
+  exec 3>&1
+  stdout="$(mount_server "cifs" "$(stage_get_user_name)" "$(stage_get_password)" \
+            "$(stage_get_server_ip_path)" "$(stage_get_mount_point_dir)" "" 3>&1 2>&1)"
+
+  # Assert
+  assert_exitcode 0
+  
+  assert_eq "mount called" "$stdout"
+}
+
+test_mount_server_fails_when_host_has_invalid_args() {
+
+  # Arrange
+ 
+  mountpoint() { return 1; }
+  __mount_helpers_is_server_up() { return 0; } # error
+  mount() { return 0; }
+  
+  local stdout
+  local mount_point_path; mount_point_path="$(stage_get_mount_point_dir)"
+  local -i exitcode
+  
+  assert_dir_not_exist "$mount_point_path"
+    
+  invalid_cifs_hosts=(
+    "//"                       # empty UNC
+    "//server"                 # missing share
+    "//server/"                # empty share
+    "///server/share"          # too many leading slashes
+    "/server/share"            # missing leading slash
+    "\\\\server\\share"        # backslashes instead of slashes
+    "//server//share"          # empty path element
+    "//server///share"
+    "//server:/share"          # illegal colon
+    "//server/share/subdir"    # subdir not allowed in CIFS source
+    "//server/."               # invalid share name
+    "//server/.."              # invalid share name
+    "//server/*"               # illegal character
+    "//server/?"               # illegal character
+  )
+
+  # Act
+ 
+  #Test everything works first
+  mount_server "cifs" "$(stage_get_user_name)" "$(stage_get_password)" \
+              "$(stage_get_server_ip_path)" "$(stage_get_mount_point_dir)" "" 3>&1 2>&1
+  exitcode=$?
+  assert_exitcode $exitcode "--This should succeed before doing any validation tests below"
+
+  (( exitcode==0 )) || return
+  for src in "${invalid_cifs_hosts[@]}"; do
+    stdout=$(mount_server "cifs" "$(stage_get_user_name)" "$(stage_get_password)" \
+                "${src}" "$(stage_get_mount_point_dir)" "" 2>&1)
+ 
+    assert_exitcode 1 "${src} should be invalid"
+    if [[ ! "$stdout" == "ERROR: host path is invalid" ]] &&
+       [[ ! "$stdout" == "ERROR: host name or ip address is invalid" ]]; then
+       assert_result false "Invalid error returned"
+    fi
+  done
+  
+}
+ 
+test_mount_server_fails_when_host_ip_has_invalid_args() {
+
+  # Arrange
+ 
+  mountpoint() { return 1; }
+  __mount_helpers_is_server_up() { return 0; } # error
+  mount() { return 0; }
+  
+  local stdout
+  local mount_point_path; mount_point_path="$(stage_get_mount_point_dir)"
+  local -i exitcode
+  
+  assert_dir_not_exist "$mount_point_path"
+    
+  invalid_cifs_ips=(
+  "//1.2.3"                  # too few octets
+  "//1.2.3.4.5/share"        # too many octets
+  "//256.1.1.1/share"        # octet out of range
+  "//1.2.3.-1/share"         # negative octet
+  "//1.2.3.4"                # missing share
+  "//1.2.3.4/"               # empty share
+  "///1.2.3.4/share"         # too many leading slashes
+  "//1.2.3.4//share"         # empty path element
+  "//1.2.3.4:/share"         # illegal colon
+  "//1.2.3.4/share/subdir"   # subdir not allowed
+  "\\\\1.2.3.4\\share"       # backslashes
+  "//.../share"              # malformed IP
+ )
+
+  # Act
+ 
+  #Test everything works first
+  mount_server "cifs" "$(stage_get_user_name)" "$(stage_get_password)" \
+              "$(stage_get_server_ip_path)" "$(stage_get_mount_point_dir)" "" 3>&1 2>&1
+  exitcode=$?
+  assert_exitcode $exitcode "--This should succeed before doing any validation tests below"
+
+  (( exitcode==0 )) || return
+  for src in "${invalid_cifs_ips[@]}"; do
+    stdout=$(mount_server "cifs" "$(stage_get_user_name)" "$(stage_get_password)" \
+                "${src}" "$(stage_get_mount_point_dir)" "" 2>&1)
+    exitcode=$?
+    assert_eq 1 $exitcode "${src} should be invalid"
+    if ((exitcode==0)) && [[ ! "$stdout" == "ERROR: host path is invalid" ]] &&
+       [[ ! "$stdout" == "ERROR: host name or ip address is invalid" ]]; then
+       assert_result false "Invalid error returned: $stdout"
+    fi
+  done
+  
+}
+
+test_mount_all_succeeds_calls_mount_correctly() {
+ 
+  # Arrange
+
+  #store the results in a test.log file as mount_server is called in the background
+  local test_log_file="${output_dir}/test.log"
+  [[ -f "$test_log_file" ]] && rm "$test_log_file"
+
+  mountpoint() { return 1; }
+  __mount_helpers_is_server_up() { return 0; } # error
+  # shellcheck disable=SC2145
+  mount() { echo "mount called:$@" >> "$test_log_file"; return 0; }
+
+  local mount host bad_host="1.1.2/downloads" 
+
+  for opt in "Opt1=a" "Opt2=b" "Opt3=b" "Opt4=e"; do
+    host=$(stage_get_server_ip_path)
+    [[ "$opt" == "Opt3=b" ]] && host="$bad_host"
+    mount="cifs|$(stage_get_user_name)|$(stage_get_password)|${host}|$(stage_get_mount_point_dir)|$opt"
+    printf '%s\n' "${mount}" >> "${mountpoint_conf_file}"
+  done
+ 
+  local mount_count
+  local expected_count_of_mounts=3; #as 1 of the 4 is bad
+
+  # Act
+  mount_all 2>/dev/null
+  sleep 1 # need to sleep as the mount_server calls are executed in the background 
+
+  # Assert
+  assert_exitcode 0
+  assert_file_exists "$test_log_file"
+
+  mount_count="$(wc -l <"$test_log_file")"
+  assert_eq "${expected_count_of_mounts}" "$mount_count"
+
+  for opt in "Opt1=a" "Opt2=b" "Opt3=b" "Opt4=e"; do
+    if [[ "$opt" == "Opt3=b" ]]; then
+      assert_file_not_contain "$test_log_file" "$opt"
+    else
+      assert_file_contains "$test_log_file" "$opt"
+    fi
+  done
+}
+
+pre_test_runner() {
+  clear_output
+}
+post_test_runner() {
+  true
+}
+
+if [[ "${0:-}" == "${BASH_SOURCE[0]}" ]]; then
+  #test_mount_cifs_fails_when_target_prompt_not_filled
+  #exit
+  test_runner_all --summary "" #"^cur_test_*"
+  exit
+fi
+
+: '
+_test_mount_cifs_fails_invalid_server_path
+_test_mount_cifs_fails_invalid_target_path
+
+_test_mount_server_fails_when_host_path_has_invalid_args
+_test_mount_server_fails_when_target_path_has_invalid_args
+ 
+
+'
+
+: '
+ read() {
+    local -n _retval=${2}
+    if [["$@" == "read -r -p \"Enter server ip/host address and path: \"" ]]; then
+      _retval="192.168.10.30/downloads"
+      return
+    elif [["$@" == "read -r -p \"Enter local mount point path: \"" ]]; then
+      _retval="$_retval/mountpoints/mountpoint_1"
+      return
+    elif [["$@" == "read -r -p \"Enter username for share: \"" ]]; then
+      _retval="myusername"
+      return
+      return 0
+    elif [["$@" == "read -r -p \"Enter password for share: \"" ]]; then
+      _retval="mypassword"
+      return
+    fi
+    return "ERROR: faked read: unexpected arguments passed"
+  }
+'

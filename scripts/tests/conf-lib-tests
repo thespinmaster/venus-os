@@ -100,7 +100,7 @@ EOF
 
 }
 
-#Tests conf_lib_load_with_schema will fail if no schema file exists
+#testsconf_lib_load_with_schema will fail if no schema file exists
 test_load_missing_schema_file() {
   local conf_file="${assets_dir}/conf-lib-test6.conf"
 
@@ -111,7 +111,7 @@ test_load_missing_schema_file() {
   
 }
  
-#Tests conf_lib_load_with_schema will succeed if no conf file exists; using schema defaults
+#testsconf_lib_load_with_schema will succeed if no conf file exists; using schema defaults
 test_load_succeds_missing_conf_file_use_schema_defaults() {
   local conf_file="${assets_dir}/this_file_does_not_exist.conf"
   local schema_file="${assets_dir}/conf-lib-test12.conf.schema"
@@ -124,7 +124,7 @@ test_load_succeds_missing_conf_file_use_schema_defaults() {
   
 }
 # shellcheck disable=SC2120
-#Tests conf_lib_load_with_schema will succeed if no conf file exists; using schema default with special characters
+#testsconf_lib_load_with_schema will succeed if no conf file exists; using schema default with special characters
 test_load_succeeds_use_schema_default_with_special_chars() {
   local conf_file="${assets_dir}/this_file_does_not_exist.conf"
   local schema_file="${assets_dir}/conf-lib-test13.conf.schema"
@@ -139,7 +139,7 @@ test_load_succeeds_use_schema_default_with_special_chars() {
   assert_eq "${expected_TESTVALUE1}" "${TESTVALUE1:-}" 
 }
 # shellcheck disable=SC2120
-#Tests conf_lib_load_with_schema will succeed if no conf file exists; using schema default with special characters
+#testsconf_lib_load_with_schema will succeed if no conf file exists; using schema default with special characters
 test_load_succeeds_use_schema_default_with_special_chars_multiline() {
   local conf_file="${assets_dir}/this_file_does_not_exist.conf"
   local schema_file="${assets_dir}/conf-lib-test13.conf.schema"
@@ -157,7 +157,7 @@ test_load_succeeds_use_schema_default_with_special_chars_multiline() {
   assert_eq "${expected_TESTVALUE2}" "${TESTVALUE2:-}" 
 }
 
-#Tests conf_lib_load_with_schema will fail if no conf file exists and schema has required value
+#testsconf_lib_load_with_schema will fail if no conf file exists and schema has required value
 test_load_fails_missing_conf_file_required() {
   local conf_file="${assets_dir}/this_file_does_not_exist.conf"
   local schema_file="${assets_dir}/conf-lib-test2.1.conf.schema"
@@ -172,7 +172,7 @@ test_load_fails_missing_conf_file_required() {
   
 }
 
-#Tests conf_lib_load_with_schema succeeds when conf file exists and required schema value is manual set
+#testsconf_lib_load_with_schema succeeds when conf file exists and required schema value is manual set
 test_load_succeeds_missing_conf_file_manually_set_required_value() {
   local conf_file="${assets_dir}/this_file_does_not_exist.conf"
   local schema_file="${assets_dir}/conf-lib-test2.1.conf.schema"
@@ -187,7 +187,7 @@ test_load_succeeds_missing_conf_file_manually_set_required_value() {
   
 }
 
-# tests loading default variables from schema that contain escaped variables
+# test loading default variables from schema that contain escaped variables
 test_conf_lib_loads_with_schema_defaults() {
   # This scheme contains a default value
   # with a variable.
@@ -204,7 +204,7 @@ test_conf_lib_loads_with_schema_defaults() {
 
 }
 
-#Tests that conf_lib_load_with_schema fails when finds value not in schema
+#test conf_lib_load_with_schema fails when finds value not in schema
 test_conf_lib_load_with_schema_fails() {
   local conf_file="${assets_dir}/conf-lib-test12.conf"
 
@@ -212,7 +212,7 @@ test_conf_lib_load_with_schema_fails() {
   assert_exitcode_not 0 "Loading should fail SOMEVALUE not in schema; #1; #2"
 }
 
-#tests that conf_lib_load_with_schema will not fail if a required value is not supplied, but has a default value.
+#test conf_lib_load_with_schema will not fail if a required value is not supplied, but has a default value.
 test_conf_lib_load_with_schema_required_missing_using_default() {
   local conf_file="${assets_dir}/conf-lib-test2.conf"
   
@@ -221,7 +221,7 @@ test_conf_lib_load_with_schema_required_missing_using_default() {
   assert_eq "8080" "${PORT}"
 }
 
-#tests that conf_lib_load_with_schema will fail if a required value is not supplied and has no default value in the schema.
+#test conf_lib_load_with_schema will fail if a required value is not supplied and has no default value in the schema.
 test_conf_lib_load_with_schema_required_missing() {
   local conf_file="${assets_dir}/output/conf-lib-test2.conf"
   local schema_file="${assets_dir}/output/conf-lib-test2.1.conf.schema"
@@ -231,7 +231,7 @@ test_conf_lib_load_with_schema_required_missing() {
   assert_eq "" "${PORT:-}" "PORT is empty"
  
 }
-#tests that conf_lib_load_with_schema will not fail if a required value is not supplied and has no default value.
+#test conf_lib_load_with_schema will not fail if a required value is not supplied and has no default value.
 test_conf_lib_load_with_schema_required_wrong_default_type() {
   local conf_file="${assets_dir}/conf-lib-test2.conf"
   local schema_file="${assets_dir}/conf-lib-test2.2.conf.schema"
@@ -241,7 +241,7 @@ test_conf_lib_load_with_schema_required_wrong_default_type() {
   assert_eq "" "${PORT:-}" "PORT is empty"
 }
 
-#Tests that conf_lib_load_with_schema will fail if an integer value is set to a string
+#test conf_lib_load_with_schema will fail if an integer value is set to a string
 test_load_bad_integer_type() {
   local conf_file="${assets_dir}/conf-lib-test3.conf"
 
@@ -249,7 +249,7 @@ test_load_bad_integer_type() {
   assert_exitcode_not 0 "Loading should fail; PORT is a string not an integer; expected #1; received #2"
 }
 
-#Tests that the default values loaded from the schema when not supplied in the conf
+#test the default values loaded from the schema when not supplied in the conf
 test_loads_defaults() {
   local conf_file="${assets_dir}/conf-lib-test4.conf"
 
@@ -258,7 +258,7 @@ test_loads_defaults() {
   assert_eq "localhost" "$HOST" "HOST value loaded from schema"
 }
 
-#Tests that the default values loaded from the schema when not supplied in the conf
+#test the default values loaded from the schema when not supplied in the conf
 test_loads_schema_variables_exist_after_load() {
   local conf_file="${assets_dir}/conf-lib-test4.conf"
   
@@ -277,7 +277,7 @@ test_loads_schema_variables_exist_after_load() {
 
 }
 
-#Tests if conf_lib_load_with_schema fails when an invalid enum is provided
+#test conf_lib_load_with_schema fails when an invalid enum is provided
 test_load_fails_invalid_enum() {
   conf_file="${assets_dir}/conf-lib-test5.conf"
 
@@ -285,7 +285,7 @@ test_load_fails_invalid_enum() {
   assert_exitcode 1 "Loading should fail; MODE is invalid; #1; #2"
 }
 
-#test loading multiline strings
+# test loading multiline strings
 test_conf_lib_loads_multiline_strings() {
   local conf_file="${assets_dir}/conf-lib-test12.conf"
 
@@ -456,7 +456,7 @@ test_save_existing_empty_value_unchanged_when_default_loaded() {
 
 }
 
-# tests when saving missing value should not be saved when the default value is loaded
+# test when saving missing value should not be saved when the default value is loaded
 test_save_missing_value_unchanged_when_default_loaded() {
 
   local filename="conf-lib-test10.conf" 

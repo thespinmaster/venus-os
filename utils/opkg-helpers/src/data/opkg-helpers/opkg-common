@@ -272,8 +272,8 @@ opkg_common_register_package() {
   [[ -z "${1}" ]] && { log_error "ERROR: no package name supplied" ; return 1; }
 
   local package_name="${1}"
-
-  if ! grep -q "^${package_name}$" "${opkg_registered_packages_file}" ; then
+  
+  if [[ ! -f "${opkg_registered_packages_file}" ]] || ! grep -q "^${package_name}$" "${opkg_registered_packages_file}" ; then
     log "adding ${package_name} to ${opkg_registered_packages_file}"
     if [ ! $dry_run ]; then
       echo "${package_name}" >> "${opkg_registered_packages_file}"

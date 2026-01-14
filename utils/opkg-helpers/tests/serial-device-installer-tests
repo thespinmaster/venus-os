@@ -10,12 +10,6 @@
 set -o nounset
 
 this_path="$(dirname "${BASH_SOURCE[0]}")"
-
-#if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-  #printf "\033c" # clear
-#fi
-
-echo "$this_path"
  
 . "$this_path/../../../scripts/libs/test-lib"
 . "$this_path/../src/data/opkg-helpers/libs/core-lib"
@@ -23,12 +17,14 @@ echo "$this_path"
 . "$this_path/../src/data/opkg-helpers/libs/conf-lib"
 . "$this_path/../src/data/opkg-helpers/serial-device-installer"
  
-#src_code_path="${this_path}/../src/data/opkg-helpers"
-
 this_dir_full="$(core_lib_realpath_nosymlinks "${this_path}")"
 output_dir="${this_dir_full}/output"
 assets_dir="${this_dir_full}/assets"
- 
+
+#if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+  #printf "\033c" # clear
+#fi
+
 clear_output() {
   mkdir -p "$output_dir"
   rm -fr "${output_dir:?}/"*
@@ -630,8 +626,6 @@ test_remove_succeeds_SERIAL_STARTER_CONF_entry_is_removed() {
   count_of=$(grep -o "$expected_ve_service_mapping" "${SERIAL_STARTER_CONFIG_FILE}" | wc -l)
   assert_eq 1 "$count_of" "--"
  
-  
-  
   # Act
   #serial_device_installer_remove
   stderr=$(serial_device_installer_remove) #2>/dev/null
@@ -684,7 +678,6 @@ test_remove_succeeds_config_file_remains_unchanged_when_ve_service_mapping_not_f
   assert_empty $stderr
 }
 
-#serial_device_installer_start_service
 test_start_service_fails_when_tty_not_found() { 
   
   # Arrange
