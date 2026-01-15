@@ -140,13 +140,20 @@ mount_helpers_wait_on_mount_point() {
   
   local mount_point="${1}"
   local -i count tries="${2:-10}"
-  
+  local -i quiet
+  [[ "${2:-}" == "--quiet" || "${3:-}" == "--quiet" ]] && quiet=1
+
   while ((count < tries)); do 
-    mountpoint -q "$mount_point" && break;
+    mountpoint -q "$mount_point" && {
+      ((quiet==0)) && echo "mountpount available: ${1}"
+      return 0
+      };
     sleep .5
     ((count+=1))
   done
-
+  
+  ((quiet==0)) && echo "mountpount not available: ${1}"
+  return 1
 }
 
 # reads the mountpoint_conf_file and remounts
@@ -378,4 +385,10 @@ EOF
 if [[ "${1:-}" == "mount_server" ]]; then
   shift
   mount_helpers_mount_server "$@"
+elif [[ "${1:-}" == "mount_cifs" ]]; then
+  shift
+  mount_helpers_mount_cifs "$@"
+elif [[ "${1:-}" == "waitformount" ]]; then
+  shift
+  mount_helpers_wait_on_mount_point "$@"
 fi

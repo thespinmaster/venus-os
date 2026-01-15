@@ -23,6 +23,7 @@ assets_dir="${this_dir_full}/assets"
 
 # shellcheck disable=SC2034
 LOG_INDENT_CHAR= # turn off indenting so string compares are simpler
+# shellcheck disable=SC2034
 LOGLEVEL=1 #$LOGLEVEL_ERROR
 
 clear_output() {
@@ -339,9 +340,7 @@ test_mount_cifs_succeeds_mount_server_called_with_all_args() {
   done < "$test_log_file"
 
 }
-declare host="192.168.10.30/dev"
-__hostname_from_server_path_byref host
-exit
+ 
 test_mount_server_succeeds_mountpoint_already_exists() {
   
   # Arrange
@@ -624,17 +623,7 @@ if [[ "${0:-}" == "${BASH_SOURCE[0]}" ]]; then
   test_runner_all --summary "" #"^cur_test_*"
   exit
 fi
-
-: '
-_test_mount_cifs_fails_invalid_server_path
-_test_mount_cifs_fails_invalid_target_path
-
-_test_mount_server_fails_when_host_path_has_invalid_args
-_test_mount_server_fails_when_target_path_has_invalid_args
  
-
-'
-
 : '
  read() {
     local -n _retval=${2}
