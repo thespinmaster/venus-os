@@ -339,9 +339,7 @@ test_mount_cifs_succeeds_mount_server_called_with_all_args() {
   done < "$test_log_file"
 
 }
-declare host="192.168.10.30/dev"
-__hostname_from_server_path_byref host
-exit
+ 
 test_mount_server_succeeds_mountpoint_already_exists() {
   
   # Arrange
