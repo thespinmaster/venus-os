@@ -23,18 +23,17 @@ assets_dir="${this_dir_full}/assets"
 
 # shellcheck disable=SC2034
 LOG_INDENT_CHAR= # turn off indenting so string compares are simpler
-echo $LOGLEVEL_ERROR
 LOGLEVEL=1 #$LOGLEVEL_ERROR
 
 clear_output() {
   mkdir -p "$output_dir"
   rm -fr "${output_dir:?}/"*
   #cp -r "${ASSETS_DIR}/"* "$OUTPUT_DIR/"
-  mkdir "$(dirname $mountpoint_conf_file)"
+  mkdir -p "$(dirname $mountpoint_conf_file)"
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-  printf "\033c" # clear
+  #printf "\033c" # clear
   clear_output
 fi
 #Staging helpers#############################################
@@ -310,7 +309,39 @@ test_mount_cifs_succeeds_mount_server_called_in_background() {
 
 }
  
+test_mount_cifs_succeeds_mount_server_called_with_all_args() {
 
+   # Arrange
+  local index=0
+  local test_log_file="${output_dir}/test.log"
+  rm -f "$test_log_file"
+
+  mount_helpers_mount_server() { 
+    for arg in "$@"; do
+      echo "$arg" >> "$test_log_file"
+    done
+  } # override, do nothing for current test
+   
+  local args=("cifs" "$(stage_get_user_name)" "$(stage_get_password)" \
+                      "$(stage_get_server_ip_path)" "$(stage_get_mount_point_dir)" "opt1=aaa")
+
+  # Act
+  
+  mount_helpers_mount_cifs --username="${args[1]}" --password="${args[2]}" \
+          --source="${args[3]}" --target="${args[4]}" --options="${args[5]}" \
+          2>/dev/null
+  
+  # Assert
+  assert_exitcode 0
+   
+  while read -r line; do
+    assert_eq "${args[index]}" "${line}"
+    ((index+=1))
+  done < "$test_log_file"
+
+}
+test_mount_cifs_succeeds_mount_server_called_with_all_args
+exit
 test_mount_server_succeeds_mountpoint_already_exists() {
   
   # Arrange
@@ -541,7 +572,7 @@ test_mount_all_succeeds_calls_mount_correctly() {
 
   #store the results in a test.log file as mount_helpers_mount_server is called in the background
   local test_log_file="${output_dir}/test.log"
-  [[ -f "$test_log_file" ]] && rm "$test_log_file"
+  rm -f "$test_log_file"
 
   mountpoint() { return 1; }
   __mount_helpers_is_server_up() { return 0; } # error

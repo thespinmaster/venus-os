@@ -102,7 +102,7 @@ __validate_mount_settings() {
     return 1
   }
   [[ -z "$type" ]] || [[ "$type" != "cifs" ]] && {
-    log_error "ERROR: invalid mount type"
+    log_error "ERROR: invalid mount type: $type"
     return 1
   }
   [[ -z "$hostpath" ]] && {
@@ -358,15 +358,14 @@ EOF
   else
     log "adding mount to mountpoints.conf"
     if [[ ! ${dry_run} ]]; then
-      echo "aaa:$(dirname "${mountpoint_conf_file}")"
-      echo "bbb:${mount_settings}"
-
       mkdir -p "$(dirname "${mountpoint_conf_file}")"
       echo "${mount_settings}" >>"${mountpoint_conf_file}"
     fi
   fi
 
-  mount_helpers_mount_server "${mount_settings}" &
+  mount_helpers_mount_server "${type}" "${username:-}" "${password:-}" \
+    "${source}" "${target}" "${options:-}" &
+  
 }
 
 if [[ "${1:-}" == "mount_server" ]]; then
