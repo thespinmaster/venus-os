@@ -11,7 +11,7 @@ else
 fi
 
 readonly mount_helpers_path="${VENUS_ROOT_DIR:-}/data/mount-shares"
-readonly mountpoint_conf_file="${mount_helpers_path/mountpoints.conf}"
+readonly mountpoint_conf_file="${mount_helpers_path}/mountpoints.conf"
 declare -i mount_point_ping_tries=10
 
 
@@ -300,7 +300,7 @@ EOF
   local password=
   local options=
   local mount_settings=
-
+  
   while [ $# -gt 0 ]; do
     case "$1" in
     --source* | -s*)
@@ -356,8 +356,10 @@ EOF
   if [[ -f "${mountpoint_conf_file}" ]] && grep -Fq "${mount_settings}" "${mountpoint_conf_file}"; then
     log "mount already added to mountpoints.conf"
   else
-    log "added mount to mountpoints.conf"
+    log "adding mount to mountpoints.conf"
     if [[ ! ${dry_run} ]]; then
+      echo "aaa:$(dirname "${mountpoint_conf_file}")"
+      echo "bbb:${mount_settings}"
 
       mkdir -p "$(dirname "${mountpoint_conf_file}")"
       echo "${mount_settings}" >>"${mountpoint_conf_file}"
