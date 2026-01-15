@@ -27,9 +27,9 @@ Installs libatomic1
 Sets up rc.local and alias files
 
 ```
-wget https://raw.githubusercontent.com/thespinmaster/venus-os/refs/heads/main/scripts/dev-setup.sh -O /data/dev-setup.sh
-chmod +x /data/dev-setup.sh
-/data/dev-setup.sh
+wget https://raw.githubusercontent.com/thespinmaster/venus-os/refs/heads/main/tasks/dev-setup -O /data/dev-setup
+chmod +x /data/dev-setup
+/data/dev-setup
 
 ```
 
@@ -38,6 +38,7 @@ root@192.xxx.xxx.xxx
 open remote folder in /data/dev/projects
 may need to remove .env folder from project
 debug code...
+
 
 
 
