@@ -34,7 +34,7 @@ Depends: opkg-helpers
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: 241aaf1ed9be5236d0a5d626ea590e2f
+MD5Sum: bbb180c954bf248534f3aa09a334400f
 Size: 67742
 Filename: mount-shares_1.0.1_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feed/mount-shares
@@ -63,7 +63,7 @@ Version: 1.0.1
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: 1b2f24f8a1b82d54e1fcddf342b5d033
+MD5Sum: e5db6df992d47b63a7e486b9828efae3
 Size: 19042
 Filename: opkg-helpers_1.0.1_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feed/opkg-helpers
