@@ -14,6 +14,14 @@ readonly mount_helpers_path="${VENUS_ROOT_DIR:-}/data/mount-shares"
 readonly mountpoint_conf_file="${mount_helpers_path/mountpoints.conf}"
 declare -i mount_point_ping_tries=10
 
+
+# exposed so can override for mocking
+# overriding read callin bashdb fails
+__mount_helpers___read() {
+  # shellcheck disable=SC2162
+  read "$@"
+}
+
 __mount_helpers_is_server_up() {
   local -i count=0
   local server="${2}"
@@ -28,45 +36,8 @@ __mount_helpers_is_server_up() {
   return 1
 }
 
-# reads the mountpoint_conf_file and remounts
-# the share
-# no args
-mount_all() {
 
-  log "mount_all"
-
-  if [[ ! -f ${mountpoint_conf_file} ]]; then
-    log "missing mountpoint.conf file"
-    return 0
-  fi
-
-  log_push_indent
-
-  local type username password source target options
-  local -i mount_found
-  
-  while IFS= read -r line || [ -n "$line" ]; do
-    [[ -z "$line" || "$line" == [[:blank:]#]* ]] && continue
-
-    IFS='|' read -r type username password source target options <<< "$line"
-    # call in backbround thread
-    (mount_server "$type" "$username" "$password" "$source" "$target" "$options" &) &&
-      mount_found=1  
- 
-  done <"${mountpoint_conf_file}"
-
-  if [[ ! ${mount_found} ]]; then
-    log "no mount points found in mountpoints.conf"
-  fi
-
-  log_pop_indent
-
-  log "mount_all done"
-
-  return 0
-}
-
-validate_host_and_path() {
+__validate_host_and_path() {
  
   local input="$1"
   local path octet host
@@ -143,7 +114,7 @@ __validate_mount_settings() {
     return 1
   }
  
-  validate_host_and_path "$hostpath" || return 1
+  __validate_host_and_path "$hostpath" || return 1
  
   if [[ -n "$mountpoint" ]]; then
     [[ "$mountpoint" =~ ^/([A-Za-z0-9._-]+/)*[A-Za-z0-9._-]+/?$ ]] || { 
@@ -157,6 +128,65 @@ __hostname_from_server_path_byref() {
   __serverPath="${__serverPath%%/*}"
 }
 
+
+##############################################
+# checks if the supplied mountpoint is available
+# each check is every .5 seconds
+# Args
+# {1} mount point: [reqiured] the mount point directory to check
+# {2} tries: [optional] the number of tries before returning 
+#     with a failure. The default is 10 tries (5 seconds aprox)
+mount_helpers_wait_on_mount_point() {
+  
+  local mount_point="${1}"
+  local -i count tries="${2:-10}"
+  
+  while ((count < tries)); do 
+    mountpoint -q "$mount_point" && break;
+    sleep .5
+    ((count+=1))
+  done
+
+}
+
+# reads the mountpoint_conf_file and remounts
+# the share
+# no args
+mount_helpers_mount_all() {
+
+  log "mount_all"
+
+  if [[ ! -f ${mountpoint_conf_file} ]]; then
+    log "missing mountpoint.conf file"
+    return 0
+  fi
+
+  log_push_indent
+
+  local type username password source target options
+  local -i mount_found
+  
+  while IFS= read -r line || [ -n "$line" ]; do
+    [[ -z "$line" || "$line" == [[:blank:]#]* ]] && continue
+
+    IFS='|' read -r type username password source target options <<< "$line"
+    # call in backbround thread
+    (mount_server "$type" "$username" "$password" "$source" "$target" "$options" &) &&
+      mount_found=1  
+ 
+  done <"${mountpoint_conf_file}"
+
+  if [[ ! ${mount_found} ]]; then
+    log "no mount points found in mountpoints.conf"
+  fi
+
+  log_pop_indent
+
+  log "mount_all done"
+
+  return 0
+}
+
 #############################################################################
 # Creates a cifs mount point using the passed arguments
 #  Version 1.0
@@ -168,7 +198,7 @@ __hostname_from_server_path_byref() {
 #  {5} password | [optional] The password used to access the source.
 #  {6} options  | [optional] Any additional options. i.e. ",someoption -rw"
 #############################################################################
-mount_server() {
+mount_helpers_mount_server() {
 
   log "mount_server"
 
@@ -233,13 +263,6 @@ mount_server() {
   return 0
 }
 
-# exposed so can override for mocking
-# overriding read callin bashdb fails
-___read() {
-  # shellcheck disable=SC2162
-  read "$@"
-}
-
 #############################################################################
 # Creates a cifs mount point and stores the settings to the
 # mountpoints.conf file.
@@ -252,7 +275,7 @@ ___read() {
 #    --password | -p : The password used to access the source.
 #    --options  | -o : any additional options. i.e. ",someoption -rw"
 #############################################################################
-mount_cifs() {
+mount_helpers_mount_cifs() {
 
   printhelp() {
     cat <<EOF
@@ -312,10 +335,10 @@ EOF
     shift
   done
 
-  [[ -z "${source}" ]] && ___read -r -p "Enter server ip/host address and path: " source
-  [[ -z "${target}" ]] && ___read -r -p "Enter local mount point folder: " target
-  [[ -z "${username}" ]] && ___read -r -p "Enter username for share: " username
-  [[ -z "${password}" ]] && ___read -r -s -p "Enter password for share: " password
+  [[ -z "${source}" ]] && __mount_helpers___read -r -p "Enter server ip/host address and path: " source
+  [[ -z "${target}" ]] && __mount_helpers___read -r -p "Enter local mount point folder: " target
+  [[ -z "${username}" ]] && __mount_helpers___read -r -p "Enter username for share: " username
+  [[ -z "${password}" ]] && __mount_helpers___read -r -s -p "Enter password for share: " password
 
   if [[ -z "${source}" ]] || [[ -z "${target}" ]]; then
     log_error "ERROR: required args missing"
@@ -341,10 +364,10 @@ EOF
     fi
   fi
 
-  mount_server "${mount_settings}" &
+  mount_helpers_mount_server "${mount_settings}" &
 }
 
 if [[ "${1:-}" == "mount_server" ]]; then
   shift
-  mount_server "$@"
+  mount_helpers_mount_server "$@"
 fi

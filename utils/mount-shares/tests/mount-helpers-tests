@@ -52,9 +52,9 @@ stage_get_mount_point_dir2() { echo "$output_dir/mountpoints/mymountpoint2"; }
 test_mount_cifs_prompts_for_user_name() {
 
   # Arrange
-  mount_server() { return 0; } # override, do nothing for current test
+  mount_helpers_mount_server() { return 0; } # override, do nothing for current test
   
-  ___read() {
+  __mount_helpers___read() {
     
     if (($#==4)) && [[ "${1}" == "-r" ]] && [[ "${2}" == "-p" ]]; then
       if [[ "${4}" = "username" ]]; then
@@ -70,7 +70,7 @@ test_mount_cifs_prompts_for_user_name() {
   exec 3>&1
 
   # Act
-  stdout=$(mount_cifs --source="$(stage_get_server_ip_path)" --password="$(stage_get_password)" \
+  stdout=$(mount_helpers_mount_cifs --source="$(stage_get_server_ip_path)" --password="$(stage_get_password)" \
             --target="$(stage_get_mount_point_dir)" 3>&1 2>/dev/null )
   # Assert
   assert_eq "$(stage_get_user_name)" "$stdout"
@@ -79,8 +79,8 @@ test_mount_cifs_prompts_for_user_name() {
 test_mount_cifs_prompts_for_password() {
   
   # Arrange
-  mount_server() { return 0; } # override, do nothing for current test
-  ___read() {
+  mount_helpers_mount_server() { return 0; } # override, do nothing for current test
+  __mount_helpers___read() {
     
     if (($#==5)) && [[ "${1}" == "-r" ]] && [[ "${2}" == "-s" ]] && [[ "${3}" == "-p" ]]; then
       if [[ "${5}" = "password" ]]; then
@@ -96,7 +96,7 @@ test_mount_cifs_prompts_for_password() {
 
   # Act
   exec 3>&1
-  stdout=$(mount_cifs --username="$(stage_get_user_name)" --target="$(stage_get_mount_point_dir)" \
+  stdout=$(mount_helpers_mount_cifs --username="$(stage_get_user_name)" --target="$(stage_get_mount_point_dir)" \
           --source="$(stage_get_server_ip_path)" 3>&1 2>/dev/null )
 
   # Assert
@@ -106,9 +106,9 @@ test_mount_cifs_prompts_for_password() {
 test_mount_cifs_prompts_for_source() {
 
   # Arrange
-  mount_server() { return 0; } # override, do nothing for current test
+  mount_helpers_mount_server() { return 0; } # override, do nothing for current test
 
-  ___read() {
+  __mount_helpers___read() {
     
     if (($#==4)) && [[ "${1}" == "-r" ]] && [[ "${2}" == "-p" ]]; then
       if [[ "${4}" = "source" ]]; then
@@ -124,7 +124,7 @@ test_mount_cifs_prompts_for_source() {
   exec 3>&1
 
   # Act
-  stdout=$(mount_cifs --username="$(stage_get_user_name)" --password="$(stage_get_password)" \
+  stdout=$(mount_helpers_mount_cifs --username="$(stage_get_user_name)" --password="$(stage_get_password)" \
             --target="$(stage_get_mount_point_dir)" 3>&1 2>/dev/null )
  
   # Assert
@@ -134,8 +134,8 @@ test_mount_cifs_prompts_for_source() {
 test_mount_cifs_prompts_for_target() {
   
   # Arrange
-  mount_server() { return 0; } # override, do nothing for current test
-  ___read() {
+  mount_helpers_mount_server() { return 0; } # override, do nothing for current test
+  __mount_helpers___read() {
     
     if (($#==4)) && [[ "${1}" == "-r" ]] && [[ "${2}" == "-p" ]]; then
       if [[ "${4}" = "target" ]]; then
@@ -151,7 +151,7 @@ test_mount_cifs_prompts_for_target() {
   exec 3>&1
 
   # Act
-  stdout=$(mount_cifs --username="$(stage_get_user_name)" --password="$(stage_get_password)" \
+  stdout=$(mount_helpers_mount_cifs --username="$(stage_get_user_name)" --password="$(stage_get_password)" \
           --source="$(stage_get_server_ip_path)" 3>&1 2>/dev/null )
 
   # Assert
@@ -161,7 +161,7 @@ test_mount_cifs_prompts_for_target() {
 test_mount_cifs_accepts_additional_options() {
   
   # Arrange
-  mount_server() { echo "$@" >&3; } # override, do nothing for current test
+  mount_helpers_mount_server() { echo "$@" >&3; } # override, do nothing for current test
  
   local stdout
   exec 3>&1
@@ -169,7 +169,7 @@ test_mount_cifs_accepts_additional_options() {
 
   # Act
 
-  stdout=$(mount_cifs --username="$(stage_get_user_name)" --password="$(stage_get_password)" \
+  stdout=$(mount_helpers_mount_cifs --username="$(stage_get_user_name)" --password="$(stage_get_password)" \
           --source="$(stage_get_server_ip_path)" --target="$(stage_get_mount_point_dir)" \
           --options="$options" 3>&1  ) # 2>/dev/null
 
@@ -181,9 +181,9 @@ test_mount_cifs_accepts_additional_options() {
 test_mount_cifs_fails_when_source_prompt_not_filled() {
 
   # Arrange
-  mount_server() { return 0; } # override, do nothing for current test
+  mount_helpers_mount_server() { return 0; } # override, do nothing for current test
 
-  ___read() {
+  __mount_helpers___read() {
     
     if (($#==4)) && [[ "${1}" == "-r" ]] && [[ "${2}" == "-p" ]]; then
       if [[ "${4}" = "source" ]]; then
@@ -197,7 +197,7 @@ test_mount_cifs_fails_when_source_prompt_not_filled() {
   local stdout
  
   # Act
-  stdout=$(mount_cifs --username="$(stage_get_user_name)" --password="$(stage_get_password)" \
+  stdout=$(mount_helpers_mount_cifs --username="$(stage_get_user_name)" --password="$(stage_get_password)" \
             --target="$(stage_get_mount_point_dir)" 2>&1 )
  
   # Assert
@@ -209,9 +209,9 @@ test_mount_cifs_fails_when_source_prompt_not_filled() {
 test_mount_cifs_fails_when_target_prompt_not_filled() {
 
   # Arrange
-  mount_server() { return 0; } # override, do nothing for current test
+  mount_helpers_mount_server() { return 0; } # override, do nothing for current test
 
-  ___read() {
+  __mount_helpers___read() {
     
     if (($#==4)) && [[ "${1}" == "-r" ]] && [[ "${2}" == "-p" ]]; then
       if [[ "${4}" = "target" ]]; then
@@ -225,7 +225,7 @@ test_mount_cifs_fails_when_target_prompt_not_filled() {
   local stdout
  
   # Act
-  stdout=$(mount_cifs --username="$(stage_get_user_name)" --password="$(stage_get_password)" \
+  stdout=$(mount_helpers_mount_cifs --username="$(stage_get_user_name)" --password="$(stage_get_password)" \
             --source="$(stage_get_server_ip_path)" 2>&1 )
  
   # Assert
@@ -235,7 +235,7 @@ test_mount_cifs_fails_when_target_prompt_not_filled() {
 
 test_mount_cifs_succeeds_settings_added_to_mountpoints_conf_file() {
    # Arrange
-  mount_server() { return 0; } # override, do nothing for current test
+  mount_helpers_mount_server() { return 0; } # override, do nothing for current test
   local options="LABEL=AAA PARTLABEL=BBB"
   local expected
   expected="cifs|$(stage_get_user_name)|$(stage_get_password)|$(stage_get_server_ip_path)|$(stage_get_mount_point_dir)|$options"
@@ -243,7 +243,7 @@ test_mount_cifs_succeeds_settings_added_to_mountpoints_conf_file() {
   assert_file_not_exist "$mountpoint_conf_file"
 
   # Act
-  mount_cifs --username="$(stage_get_user_name)" --password="$(stage_get_password)" \
+  mount_helpers_mount_cifs --username="$(stage_get_user_name)" --password="$(stage_get_password)" \
           --source="$(stage_get_server_ip_path)" --target="$(stage_get_mount_point_dir)" \
           --options="$options" 2>/dev/null 
  
@@ -257,7 +257,7 @@ test_mount_cifs_succeeds_settings_added_to_mountpoints_conf_file() {
 
 test_mount_cifs_succeeds_settings_already_exist_not_added_twice() {
    # Arrange
-  mount_server() { return 0; } # override, do nothing for current test
+  mount_helpers_mount_server() { return 0; } # override, do nothing for current test
   local options="LABEL=AAA PARTLABEL=BBB"
   local expected
   expected="cifs|$(stage_get_user_name)|$(stage_get_password)|$(stage_get_server_ip_path)|$(stage_get_mount_point_dir)|$options"
@@ -266,7 +266,7 @@ test_mount_cifs_succeeds_settings_already_exist_not_added_twice() {
   echo "$expected" > "$mountpoint_conf_file"
 
   # Act
-  mount_cifs --username="$(stage_get_user_name)" --password="$(stage_get_password)" \
+  mount_helpers_mount_cifs --username="$(stage_get_user_name)" --password="$(stage_get_password)" \
           --source="$(stage_get_server_ip_path)" --target="$(stage_get_mount_point_dir)" \
           --options="$options" 2>/dev/null 
  
@@ -284,7 +284,7 @@ test_mount_cifs_succeeds_mount_server_called_in_background() {
 
    # Arrange
   
-  mount_server() { echo "BASHPID2=$BASHPID" >&3; return 0; } # override, do nothing for current test
+  mount_helpers_mount_server() { echo "BASHPID2=$BASHPID" >&3; return 0; } # override, do nothing for current test
  
   local stdout 
   local calling_pid mount_server_pid
@@ -293,7 +293,7 @@ test_mount_cifs_succeeds_mount_server_called_in_background() {
 
   # Act
   stdout=$(echo "BASHPID1=$BASHPID" >&1;
-          mount_cifs --username="$(stage_get_user_name)" --password="$(stage_get_password)" \
+          mount_helpers_mount_cifs --username="$(stage_get_user_name)" --password="$(stage_get_password)" \
           --source="$(stage_get_server_ip_path)" --target="$(stage_get_mount_point_dir)" \
           3>&1 2>/dev/null)
  
@@ -330,7 +330,7 @@ test_mount_server_succeeds_mountpoint_already_exists() {
 
   # Act
   exec 3>&1
-  stdout="$(mount_server "cifs" "$(stage_get_user_name)" "$(stage_get_password)" \
+  stdout="$(mount_helpers_mount_server "cifs" "$(stage_get_user_name)" "$(stage_get_password)" \
             "$(stage_get_server_ip_path)" "$(stage_get_mount_point_dir)" "" 2>&1 3>&1)"
 
   # Assert
@@ -350,7 +350,7 @@ test_mount_server_fails_server_is_down() {
 
   # Act
   exec 3>&1
-  stdout="$(mount_server "cifs" "$(stage_get_user_name)" "$(stage_get_password)" \
+  stdout="$(mount_helpers_mount_server "cifs" "$(stage_get_user_name)" "$(stage_get_password)" \
             "$(stage_get_server_ip_path)" "$(stage_get_mount_point_dir)" "" 2>&1)"
 
   # Assert
@@ -371,7 +371,7 @@ test_mount_server_succeeds_creates_mount_target_folder() {
   assert_dir_not_exist "$mount_point_path"
   # Act
   exec 3>&1
-  stdout="$(mount_server "cifs" "$(stage_get_user_name)" "$(stage_get_password)" \
+  stdout="$(mount_helpers_mount_server "cifs" "$(stage_get_user_name)" "$(stage_get_password)" \
             "$(stage_get_server_ip_path)" "$(stage_get_mount_point_dir)" "" 2>&1)"
 
   # Assert
@@ -397,7 +397,7 @@ test_mount_server_mount_fails_returns_exitcode_from_mount() {
 
   # Act
   exec 3>&1
-  stdout="$(mount_server "cifs" "$(stage_get_user_name)" "$(stage_get_password)" \
+  stdout="$(mount_helpers_mount_server "cifs" "$(stage_get_user_name)" "$(stage_get_password)" \
             "$(stage_get_server_ip_path)" "$(stage_get_mount_point_dir)" "" 2>&1)"
 
   # Assert
@@ -422,7 +422,7 @@ test_mount_server_succeeds() {
 
   # Act
   exec 3>&1
-  stdout="$(mount_server "cifs" "$(stage_get_user_name)" "$(stage_get_password)" \
+  stdout="$(mount_helpers_mount_server "cifs" "$(stage_get_user_name)" "$(stage_get_password)" \
             "$(stage_get_server_ip_path)" "$(stage_get_mount_point_dir)" "" 3>&1 2>&1)"
 
   # Assert
@@ -465,14 +465,14 @@ test_mount_server_fails_when_host_has_invalid_args() {
   # Act
  
   #Test everything works first
-  mount_server "cifs" "$(stage_get_user_name)" "$(stage_get_password)" \
+  mount_helpers_mount_server "cifs" "$(stage_get_user_name)" "$(stage_get_password)" \
               "$(stage_get_server_ip_path)" "$(stage_get_mount_point_dir)" "" 3>&1 2>&1
   exitcode=$?
   assert_exitcode $exitcode "--This should succeed before doing any validation tests below"
 
   (( exitcode==0 )) || return
   for src in "${invalid_cifs_hosts[@]}"; do
-    stdout=$(mount_server "cifs" "$(stage_get_user_name)" "$(stage_get_password)" \
+    stdout=$(mount_helpers_mount_server "cifs" "$(stage_get_user_name)" "$(stage_get_password)" \
                 "${src}" "$(stage_get_mount_point_dir)" "" 2>&1)
  
     assert_exitcode 1 "${src} should be invalid"
@@ -516,14 +516,14 @@ test_mount_server_fails_when_host_ip_has_invalid_args() {
   # Act
  
   #Test everything works first
-  mount_server "cifs" "$(stage_get_user_name)" "$(stage_get_password)" \
+  mount_helpers_mount_server "cifs" "$(stage_get_user_name)" "$(stage_get_password)" \
               "$(stage_get_server_ip_path)" "$(stage_get_mount_point_dir)" "" 3>&1 2>&1
   exitcode=$?
   assert_exitcode $exitcode "--This should succeed before doing any validation tests below"
 
   (( exitcode==0 )) || return
   for src in "${invalid_cifs_ips[@]}"; do
-    stdout=$(mount_server "cifs" "$(stage_get_user_name)" "$(stage_get_password)" \
+    stdout=$(mount_helpers_mount_server "cifs" "$(stage_get_user_name)" "$(stage_get_password)" \
                 "${src}" "$(stage_get_mount_point_dir)" "" 2>&1)
     exitcode=$?
     assert_eq 1 $exitcode "${src} should be invalid"
@@ -539,7 +539,7 @@ test_mount_all_succeeds_calls_mount_correctly() {
  
   # Arrange
 
-  #store the results in a test.log file as mount_server is called in the background
+  #store the results in a test.log file as mount_helpers_mount_server is called in the background
   local test_log_file="${output_dir}/test.log"
   [[ -f "$test_log_file" ]] && rm "$test_log_file"
 
@@ -561,8 +561,8 @@ test_mount_all_succeeds_calls_mount_correctly() {
   local expected_count_of_mounts=3; #as 1 of the 4 is bad
 
   # Act
-  mount_all 2>/dev/null
-  sleep 1 # need to sleep as the mount_server calls are executed in the background 
+  mount_helpers_mount_all 2>/dev/null
+  sleep 1 # need to sleep as the mount_helpers_mount_server calls are executed in the background 
 
   # Assert
   assert_exitcode 0

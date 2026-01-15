@@ -53,7 +53,7 @@ stage_opkg_helpers_installed() {
         [[ "$path" == "$dest_path/data/opkg-helpers" ]] && continue
         [[ "$path" == "$dest_path/data/opkg-helpers/libs" ]] && continue
         [[ "$path" == "$dest_path/data/opkg-helpers/rc.local.d" ]] && continue
-        [[ "$path" == "$dest_path/data/opkg-helpers/rc.local.d/0" ]] && continue
+        [[ "$path" == "$dest_path/data/opkg-helpers/rc.local.d/1" ]] && continue
         [[ "$path" == "$dest_path/etc"* ]] && continue
       }
       [[ -L "$path" ]] || { 
@@ -144,6 +144,7 @@ test_add_script_succeeds_script_added_to_rc_local() {
   assert_file_contains "$rc_local_file" "# my test script"
   assert_file_contains "$rc_local_file" "echo \"hello world\"" 
 }
+
 test_add_script_succeeds_script_not_added_to_rc_local_twice() {
   
   # Arrange
@@ -173,6 +174,7 @@ test_add_script_succeeds_script_not_added_to_rc_local_twice() {
   count_of=$(grep -o "echo \"hello world\"" "$rc_local_file" | wc -l)
   assert_eq 1 "${count_of}"
 }
+
 test_remove_script_fails_no_script_supplied() {
   
   # Arrange
@@ -190,6 +192,7 @@ test_remove_script_fails_no_script_supplied() {
   assert_eq "ERROR: no script supplied" "$stderr"
 
 }
+
 test_remove_script_succeeds_script_removed() {
   
   # Arrange
@@ -263,7 +266,6 @@ test_opkg_common_register_package_succeeds() {
   assert_file_contains "$opkg_registered_packages_file" "my_test_package"
 
 }
-
 
 test_opkg_common_register_package_succeeds_not_added_twice() {
 
@@ -384,6 +386,7 @@ test_startup_script_executes_scripts_in_correct_order() {
 
   assert_eq "$expected_order" "$stdout" 
 }
+
 test_startup_script_is_run_in_seperate_processes() {
   # Arrange
   local stdout
@@ -592,7 +595,5 @@ if [[ "${0:-}" == "${BASH_SOURCE[0]}" ]]; then
   #cur_func=${cur_func%%\(\)*}
   #[[ "$cur_func" ]] && { "$cur_func"; exit 0; }
   
-  # "dummy_service"
-
   test_runner_all --summary "" #"^cur_test_*"
 fi

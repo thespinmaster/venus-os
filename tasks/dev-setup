@@ -26,6 +26,7 @@ mount -o remount,ro /
 sed 's#Subsystem\s*sftp\s*/usr/libexec/sftp-server#Subsystem       sftp    /usr/libexec/sftp-server -d /data#' /etc/ssh/sshd_config
 
 # make data the default folder when logging in via ssh 
+# shellcheck disable=SC2088
 cat "cd /data" >> "~/.profile"
 
 echo "ensuring spinmaster feed"
@@ -47,11 +48,11 @@ opkg install mount-shares
 
 # () keeps . (source) to within bounds
 (
-  . /data/mount-shares/mount-helpers.sh
+  . /data/mount-shares/mount-helpers
 
   #source, username and password will be prompted for
   # store mnt under /data and not /mnt as mnt may be readonly 
-  mount_cifs --target="/data/mnt/dev"
+  mount_helpers_mount_cifs --target="/data/mnt/dev"
 )
 
 if [[ ! -L "/data/dev" ]]; then
@@ -60,19 +61,22 @@ fi
 
 echo "setting up environment (bash aliases, nanorc config)"
 (
-  . /data/opkg-helpers/opkg-common.sh
+  . /data/opkg-helpers/opkg-common
   # priority 3 to execute after mount-shares
-  local rc_local_d_path=$(ensure_rc_local_d_folder "3")
+  declare rc_local_d_path=$(ensure_rc_local_d_folder "3")
 
+  # shellcheck disable=SC2217
   echo "#!/bin/bash
 
 # setup enviroment (do not edit)
-/data/dev/projects/venus-os/scripts/setup-environment.sh 
-" < "$rc_local_d_path/setup-environment.sh"
+. /data/mount-shares/mount-helpers
+mount_helpers_wait_on_mount_point \"/data/dev/\" &&
+  /data/dev/projects/venus-os/tasks/setup-environment
+" < "$rc_local_d_path/setup-environment"
 
-    chmod +x "$rc_local_d_path/setup-environment.sh"
+    chmod +x "$rc_local_d_path/setup-environment"
     # execute script
-    "$rc_local_d_path"/setup-environment.sh
+    "$rc_local_d_path/setup-environment"
 )
 
 echo "dev environment setup completed successfully" 

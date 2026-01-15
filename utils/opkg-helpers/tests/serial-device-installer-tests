@@ -898,7 +898,6 @@ if [[ "${0:-}" == "${BASH_SOURCE[0]}" ]]; then
   #[[ "$cur_func" ]] && { "$cur_func"; exit 0; }
   
   # "dummy_service"
-
   test_runner_all --summary "" #"^cur_test_*"
 fi
 

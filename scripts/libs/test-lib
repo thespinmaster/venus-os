@@ -7,7 +7,7 @@ TEST_INDENT=
 TEST_RUNNER_ERROR_COUNT=0
 TEST_RUNNER_SUCCESS_COUNT=0
 TEST_RUNNER_SILENT=
- 
+
 __assert_lib_pass_or_fail() {
 
   # result is always the first
@@ -30,7 +30,7 @@ __assert_lib_pass_or_fail() {
   fi  
 
   if [[ $res == true ]]; then
-    TEST_RUNNER_SUCCESS_COUNT=$(( TEST_RUNNER_SUCCESS_COUNT+=1 ))
+    (( TEST_RUNNER_SUCCESS_COUNT+=1 ))
     # \u2714\ufe0f
     # \u2705'
     #success="PASSED"
@@ -39,7 +39,7 @@ __assert_lib_pass_or_fail() {
       printf '%s\033[32m\u2705\ufe0f - \033[00m%s\n' "${TEST_INDENT}" "${comment}"
     }
   else
-    TEST_RUNNER_ERROR_COUNT=$(( TEST_RUNNER_ERROR_COUNT+=1 ))
+    ((TEST_RUNNER_ERROR_COUNT+=1))
 
     local lineNo="${BASH_LINENO[1]}"
     # u274c\ufe0f cross
@@ -459,7 +459,7 @@ test_runner() {
   local style=
   local output=
   local icon=
-
+  
   if (( summary )); then
     TEST_RUNNER_SILENT=1
   fi
@@ -467,11 +467,7 @@ test_runner() {
   # shellcheck disable=SC2329,SC2317
   cleanup() { 
     TEST_RUNNER_SILENT=${saved_TEST_RUNNER_SILENT:-}
-    local tmpFile="/tmp/test-runner-${BASHPID}"
-    if [[ -f "$tmpFile" ]]; then
-      rm "$tmpFile" 
-    fi
- 
+    rm -f "/tmp/test-runner-${BASHPID}"
   }
   
   set_print_style() {
@@ -620,7 +616,7 @@ test_runner_on_source_file() {
   (
       local summary=()
       [[ "${1:-}" == "--summary" ]] && { shift; summary=("--summary"); }
-      local src="${1}"
+      local src="${1:-${BASH_SOURCE[1]}}"
       local filter="${2:-}"
  
     if head -n 10 "$src" | grep -iq "# test-runner-ignore"; then

@@ -4,11 +4,3 @@
 #DEBUG    | bool          | false      |
 #MODE     | enum:dev,prod | dev        |
 #MESSAGE  | string        |            |
-
-
-NAME      | TYPE                 | FLAGS           | DEFAULT
-API_KEY   | string               | required,secret | 
-PASSWORD  | string               | secret          | 
-COLOR     | enum:red,green,blue  | required        | red
-#PORT     | int           | 8080       | required
-#DEBUG    | bool          | false      |
