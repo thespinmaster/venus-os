@@ -325,8 +325,7 @@ test_mount_cifs_succeeds_mount_server_called_with_all_args() {
   local args=("cifs" "$(stage_get_user_name)" "$(stage_get_password)" \
                       "$(stage_get_server_ip_path)" "$(stage_get_mount_point_dir)" "opt1=aaa")
 
-  # Act
-  
+  # Act 
   mount_helpers_mount_cifs --username="${args[1]}" --password="${args[2]}" \
           --source="${args[3]}" --target="${args[4]}" --options="${args[5]}" \
           2>/dev/null
@@ -340,7 +339,8 @@ test_mount_cifs_succeeds_mount_server_called_with_all_args() {
   done < "$test_log_file"
 
 }
-test_mount_cifs_succeeds_mount_server_called_with_all_args
+declare host="192.168.10.30/dev"
+__hostname_from_server_path_byref host
 exit
 test_mount_server_succeeds_mountpoint_already_exists() {
   

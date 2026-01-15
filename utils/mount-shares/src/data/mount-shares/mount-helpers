@@ -24,7 +24,7 @@ __mount_helpers___read() {
 
 __mount_helpers_is_server_up() {
   local -i count=0
-  local server="${2}"
+  local server="${1}"
 
   while ((count < mount_point_ping_tries)); do
     if ping -q -c1 -W 3 "${server}" >>/dev/null; then
@@ -248,9 +248,16 @@ mount_helpers_mount_server() {
  
   if [[ ! ${dry_run} ]]; then
     local -i retval=0
-
+    
+    # append // to host name/ip if missing
     [[ "${host_name_path:0:2}" != "//" ]] && host_name_path="//${host_name_path}"
-    mount -t "${type}" -o user="${username}",pass="${password}" "${options}" "${host_name_path}" "${mount_point}" || {
+    
+    # append command to options if missing
+    [[ -n "${options}" && "${options:0:1}" != "," ]] && options=",${options}"
+
+    # make sure $options is next to $password
+    # shellcheck disable=SC2140
+    mount -t "${type}" -o user="${username}",pass="${password}${options}" "${host_name_path}" "${mount_point}" || {
       retval=$?;
       log_error "ERROR: mount returned exit code $retval" ;
       return $retval; }
