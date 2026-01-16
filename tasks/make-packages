@@ -18,7 +18,7 @@ declare pwd_old=$PWD
 cd "${this_path}/../feed" || exit 1
 
 build_feed_package() {
-  opkg-make-index ./ -p Packages 1>/dev/null
+  opkg-make-index -p Packages ./ 1>/dev/null
   echo "feed updated"
 }
 
