@@ -3,7 +3,14 @@
 1763809163 mount-nfs-cifs_1.0.0_all.ipk
 1765245560 mount-nfs-cifs_1.0.1_all.ipk
 1768140864 network-gps_1.0.0_all.ipk
+<<<<<<< HEAD
 1768561728 opkg-helpers_1.0.1_all.ipk
 1768140865 test-install_1.0.4_all.ipk
 1768140864 test-service_1.0.0_all.ipk
 1768561728 mount-shares_1.0.1_all.ipk
+=======
+1768504071 opkg-helpers_1.0.1_all.ipk
+1768140865 test-install_1.0.4_all.ipk
+1768140864 test-service_1.0.0_all.ipk
+1768504071 mount-shares_1.0.1_all.ipk
+>>>>>>> 76da6504adf4ccb603d39757ca762654af7450c0
