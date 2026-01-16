@@ -662,7 +662,7 @@ test_mount_helpers_wait_on_mount_point_quiet_args_return_empty_stdout() {
   stdout_success=$(mount_helpers_wait_on_mount_point "$mount_point" 2 2>&1 )
   retval=1
   stdout_fail=$(mount_helpers_wait_on_mount_point "$mount_point" 2>&1 )
-  
+
   # Assert
   assert_eq "mountpount available: $mount_point" "$stdout_success"
   assert_eq "mountpount not available: $mount_point" "$stdout_fail"
