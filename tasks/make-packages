@@ -21,7 +21,7 @@ build_feed_package() {
   opkg-make-index ./ -p Packages 1>/dev/null
   echo "feed updated"
 }
- 
+
 if [[ "$build" == "all" ]]; then
   mapfile -t build_items < <(find "${folders[@]}" -mindepth 1 -maxdepth 1 -type d)
 elif [[ "$build" == "package" ]]; then

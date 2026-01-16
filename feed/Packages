@@ -9,6 +9,7 @@ Size: 60800
 Filename: dbus-ne-shunt_1.0.19_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feed/dbus-ne-shunt
 Description: Adds support for NordElectronica shunt NE196/NE319 board to Venus-OS
+ Adds support for NordElectronica shunt NE196/NE319 board to Venus-OS
 OE: dbus-ne-shunt
 License: MIT
 Priority: optional
@@ -24,6 +25,7 @@ Size: 16228
 Filename: dbus-relay-board_1.0.0_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feed/dbus-relay-board
 Description: Add support to RS485, RS232 and TTL232 relay boards
+ Add support to RS485, RS232 and TTL232 relay boards
 OE: dbus-relay-board
 License: MIT
 Priority: optional
@@ -34,16 +36,12 @@ Depends: opkg-helpers
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-<<<<<<< HEAD
-MD5Sum: 13546984019473dc31d04a38d05598bc
-Size: 67888
-=======
-MD5Sum: 698e2f8a4fe03ce9935e831563fc2908
-Size: 67898
->>>>>>> 76da6504adf4ccb603d39757ca762654af7450c0
+MD5Sum: 69fccbb68bff05711b12ddd225535b9d
+Size: 68178
 Filename: mount-shares_1.0.1_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feed/mount-shares
 Description: Adds support for nfs and cifs shares to Venus OS
+ Adds support for nfs and cifs shares to Venus OS
 OE: mount-shares
 License: MIT
 Priority: optional
@@ -59,6 +57,7 @@ Size: 1978
 Filename: network-gps_1.0.0_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feed/network-gps
 Description: Network GPS using NMEA
+ Network GPS using NMEA
 OE: network-gps
 License: MIT
 Priority: optional
@@ -68,15 +67,12 @@ Version: 1.0.1
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-<<<<<<< HEAD
-MD5Sum: ec778a56faa2028534c179ec826f6e92
-=======
-MD5Sum: e3cd9bcedb10e521d09b28e31cbb8d4c
->>>>>>> 76da6504adf4ccb603d39757ca762654af7450c0
-Size: 19040
+MD5Sum: ee505a673cfe73e19fda952afcac4815
+Size: 19206
 Filename: opkg-helpers_1.0.1_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feed/opkg-helpers
 Description: Adds helper scripts for installing opkg packages on the Venus OS
+ Adds helper scripts for installing opkg packages on the Venus OS
 OE: einstine
 License: MIT
 Priority: optional
@@ -92,6 +88,7 @@ Size: 972
 Filename: test-install_1.0.4_all.ipk
 Source: https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feed/test-install
 Description: A simple app for testing install
+ A simple app for testing install
 OE: einstine
 License: MIT
 Priority: optional
@@ -107,6 +104,7 @@ Size: 3110
 Filename: test-service_1.0.0_all.ipk
 Source: https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feed/test-service
 Description: A simple service for testing
+ A simple service for testing
 OE: einstine
 License: MIT
 Priority: optional

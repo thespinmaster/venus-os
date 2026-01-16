@@ -37,6 +37,15 @@
             "neshunt", 
             "",
             "1a86:7523"]
+        },
+        {
+            "name": "Python Debugger: opkg-make-index",
+            "type": "debugpy",
+            "request": "launch",
+        
+            "program": "/usr/local/bin/opkg-make-index",
+            "console": "integratedTerminal",
+            "args": ["-p","Packages", "/home/admin/dev/projects/venus-os/feed"]
         }
     ]
 }
