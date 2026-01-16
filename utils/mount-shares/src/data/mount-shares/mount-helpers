@@ -139,20 +139,20 @@ __hostname_from_server_path_byref() {
 mount_helpers_wait_on_mount_point() {
   
   local mount_point="${1}"
-  local -i count tries="${2:-10}"
-  local -i quiet
+  local -i count=0 tries="${2:-10}"
+  local -i quiet=0
   [[ "${2:-}" == "--quiet" || "${3:-}" == "--quiet" ]] && quiet=1
 
   while ((count < tries)); do 
     mountpoint -q "$mount_point" && {
-      ((quiet==0)) && echo "mountpount available: ${1}"
+      ((quiet==0)) && log_error "mountpount available: ${1}"
       return 0
       };
     sleep .5
     ((count+=1))
   done
   
-  ((quiet==0)) && echo "mountpount not available: ${1}"
+  ((quiet==0)) && log_error "mountpount not available: ${1}"
   return 1
 }
 

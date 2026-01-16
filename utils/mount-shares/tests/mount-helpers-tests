@@ -610,6 +610,70 @@ test_mount_all_succeeds_calls_mount_correctly() {
   done
 }
 
+
+test_mount_helpers_wait_on_mount_point_succeeds_when_mount_exists() {
+
+  # Arrange
+  mountpoint() {
+    return 0
+  }
+  local stdout
+  local mount_point="/mnt/some_mount_point"
+
+  # Act
+  stdout=$(mount_helpers_wait_on_mount_point "$mount_point")
+
+  # Assert
+  assert_exitcode 0
+  assert_eq "mountpount available: ${mount_point}" "$stdout"
+  
+}
+
+test_mount_helpers_wait_on_mount_point_fails_when_mount_times_out() {
+
+  # Arrange
+  mountpoint() {
+    return 1
+  }
+  local stdout
+  local mount_point="/mnt/some_mount_point"
+
+  # Act
+  stdout=$(mount_helpers_wait_on_mount_point "$mount_point" 2)
+
+  # Assert
+  assert_exitcode 1
+  assert_eq "mountpount not available: ${mount_point}" "$stdout"
+  
+}
+
+
+test_mount_helpers_wait_on_mount_point_quiet_args_return_empty_stdout() {
+
+  # Arrange
+  local retval=0
+  mountpoint() {
+    return $retval
+  }
+  local stdout_success stdout_fail
+  local mount_point="/mnt/some_mount_point"
+
+  # Act
+  stdout_success=$(mount_helpers_wait_on_mount_point "$mount_point" 2 2>&1 )
+  retval=1
+  stdout_fail=$(mount_helpers_wait_on_mount_point "$mount_point" 2>&1 )
+  
+  # Assert
+  assert_eq "mountpount available: $mount_point" "$stdout_success"
+  assert_eq "mountpount not available: $mount_point" "$stdout_fail"
+  
+}
+
+test_mount_helpers_wait_on_mount_point_quiet_args_return_empty_stdout
+exit
+test_mount_helpers_wait_on_mount_point_fails_when_mount_times_out
+test_mount_helpers_wait_on_mount_point_quiet_args
+
 pre_test_runner() {
   clear_output
 }
