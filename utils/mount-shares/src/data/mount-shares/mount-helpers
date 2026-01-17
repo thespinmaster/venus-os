@@ -14,7 +14,6 @@ readonly mount_helpers_path="${VENUS_ROOT_DIR:-}/data/mount-shares"
 readonly mountpoint_conf_file="${mount_helpers_path}/mountpoints.conf"
 declare -i mount_point_ping_tries=10
 
-
 # exposed so can override for mocking
 # overriding read callin bashdb fails
 __mount_helpers___read() {
@@ -170,15 +169,15 @@ mount_helpers_mount_all() {
 
   log_push_indent
 
-  local type username password source target options
+  local name type username password source target options
   local -i mount_found
   
   while IFS= read -r line || [ -n "$line" ]; do
     [[ -z "$line" || "$line" == [[:blank:]#]* ]] && continue
 
-    IFS='|' read -r type username password source target options <<< "$line"
+    IFS='|' read -r name type username password source target options <<< "$line"
     # call in backbround thread
-    (mount_server "$type" "$username" "$password" "$source" "$target" "$options" &) &&
+    (mount_helpers_mount_server "$type" "$username" "$password" "$source" "$target" "$options" &) &&
       mount_found=1  
  
   done <"${mountpoint_conf_file}"
@@ -219,7 +218,7 @@ mount_helpers_mount_server() {
   __validate_mount_settings "${type}" "${username}" "${password}" \
     "${host_name_path}" "${mount_point}" "${options}" || return 1
   
-  local host="$host_name_path"
+  local host="${host_name_path%%/*}"
   __hostname_from_server_path_byref host
 
   # if mountpoint returns anything else but 0 then re-mount (-q=quiet)
@@ -308,6 +307,7 @@ EOF
 
   }
 
+  local name=
   local source=
   local target=
   local username=
@@ -317,6 +317,10 @@ EOF
   
   while [ $# -gt 0 ]; do
     case "$1" in
+    --name* | -n*)
+      [[ "$1" != *=* ]] && shift
+      name="${1#*=}"
+      ;;
     --source* | -s*)
       [[ "$1" != *=* ]] && shift
       source="${1#*=}"
@@ -348,12 +352,16 @@ EOF
     esac
     shift
   done
+  
+  [[ -z "${name}" ]] && __mount_helpers___read -r -p "Enter the name for the mount point: " name
+  [[ "${name}" =~ ^[A-Za-z0-9_]+$ && "${name}" =~ [A-Za-z0-9] ]] || {
+    log_error "ERROR: Invalid name: Only alpha numeric characters with underscores allowed"; return 1; }
 
   [[ -z "${source}" ]] && __mount_helpers___read -r -p "Enter server ip/host address and path: " source
   [[ -z "${target}" ]] && __mount_helpers___read -r -p "Enter local mount point folder: " target
   [[ -z "${username}" ]] && __mount_helpers___read -r -p "Enter username for share: " username
   [[ -z "${password}" ]] && __mount_helpers___read -r -s -p "Enter password for share: " password
-
+ 
   if [[ -z "${source}" ]] || [[ -z "${target}" ]]; then
     log_error "ERROR: required args missing"
     return 1
@@ -365,21 +373,48 @@ EOF
   __validate_mount_settings "${type}" "${username:-}" "${password:-}" \
     "${source}" "${target}" "${options:-}" || return 1
 
-  mount_settings="${type}|${username}|${password}|${source}|${target}|${options}"
+  mount_helpers_mount_server "${type}" "${username:-}" "${password:-}" \
+    "${source}" "${target}" "${options:-}" && {
+
+      mount_settings="${name}|${type}|${username}|${password}|${source}|${target}|${options}"
+
+      log "adding mount to mountpoints.conf"
+      if [[ ! ${dry_run} ]]; then
+        __update_mount_settings mount_settings
+      fi
   
-  if [[ -f "${mountpoint_conf_file}" ]] && grep -Fq "${mount_settings}" "${mountpoint_conf_file}"; then
-    log "mount already added to mountpoints.conf"
+    }
+ 
+}
+
+__update_mount_settings() {
+  local -n _mount_settings="${1}"
+  local name="${_mount_settings%%|*}"
+  
+  [[ -f "${mountpoint_conf_file}" ]] || {
+    mkdir -p "$(dirname "${mountpoint_conf_file}")"
+    echo "${_mount_settings}" >> "${mountpoint_conf_file}"
+    return 0
+  }
+
+  # if a line starting with the name is found then replace the line
+  # else add to the end
+  if grep -q ^"${name}|" "${mountpoint_conf_file}"; then
+    sed -i "/^${name}/c${mount_settings}" "${mountpoint_conf_file}"
   else
-    log "adding mount to mountpoints.conf"
-    if [[ ! ${dry_run} ]]; then
-      mkdir -p "$(dirname "${mountpoint_conf_file}")"
-      echo "${mount_settings}" >>"${mountpoint_conf_file}"
-    fi
+    echo "${mount_settings}" >>"${mountpoint_conf_file}"
   fi
 
-  mount_helpers_mount_server "${type}" "${username:-}" "${password:-}" \
-    "${source}" "${target}" "${options:-}" &
+}
+
+mount_helpers_remove_mount()
+{
+  [[ -f "${mountpoint_conf_file}" ]] || return 0
   
+  local mount_name="${1}"
+  sed -i "/^${mount_name}/d" "${mountpoint_conf_file}"
+ 
+  return 0
 }
 
 if [[ "${1:-}" == "mount_server" ]]; then

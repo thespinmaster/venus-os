@@ -2,11 +2,9 @@
 
 # shellcheck disable=SC2034
 LOG_LIB_VERSION=1.0
-
-# usage
  
 LOG_INDENT_CHAR=" "
-LOG_INDENT=
+declare LOG_INDENT=
 declare -r LOGGER=1
 declare -r LOGLEVEL_NONE=0
 declare -r LOGLEVEL_ERROR=1
