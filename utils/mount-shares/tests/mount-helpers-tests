@@ -19,7 +19,7 @@ VENUS_ROOT_DIR="$this_path/output"
 
 this_dir_full="$(core_lib_realpath_nosymlinks "${this_path}")"
 output_dir="${this_dir_full}/output"
-assets_dir="${this_dir_full}/assets"
+#assets_dir="${this_dir_full}/assets"
 
 # shellcheck disable=SC2034
 LOG_INDENT_CHAR= # turn off indenting so string compares are simpler

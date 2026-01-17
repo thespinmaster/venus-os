@@ -5,6 +5,7 @@ dry_run=
 __this_path="$(dirname "${BASH_SOURCE[0]}")"
 
 if [[ -f "$__this_path/../opkg-helpers/libs/log-lib" ]]; then
+  # shellcheck disable=SC1091
   . "$__this_path/../opkg-helpers/libs/log-lib"
 else
   . "$__this_path/../../../../opkg-helpers/src/data/opkg-helpers/libs/log-lib"
