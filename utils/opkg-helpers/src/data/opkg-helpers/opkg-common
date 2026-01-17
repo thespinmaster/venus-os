@@ -10,7 +10,7 @@ readonly opkg_rc_local_d_dir="${opkg_helpers_path}/rc.local.d"
 readonly resize2fs_file="$/opt/victronenergy/swupdate-scripts/resize2fs.sh"
 
 declare OPKG_FEED_NAME=thespinmaster
-declare OPKG_FEED_URL="https://github.com/${OPKG_FEED_NAME}}/venus-os/raw/refs/heads/main/feed"
+declare OPKG_FEED_URL="https://github.com/${OPKG_FEED_NAME}/venus-os/raw/refs/heads/main/feed"
 declare OPKG_FEED_CONFIG_FILE="${VENUS_ROOT_DIR:-}/etc/opkg/${OPKG_FEED_NAME}.conf"
 
 #readonly LOG=${opkg_helpers_path}/log
@@ -69,7 +69,7 @@ opkg_common_ensure_feed() {
 
   log "adding opkg feed"
  
-  local feed_content="src/gz {feed_name} ${OPKG_FEED_URL}"
+  local feed_content="src/gz ${OPKG_FEED_NAME} ${OPKG_FEED_URL}"
 
   if [ ! $dry_run ]; then
     echo "${feed_content}" > "${OPKG_FEED_CONFIG_FILE}"
