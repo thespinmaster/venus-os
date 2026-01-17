@@ -129,6 +129,26 @@ __hostname_from_server_path_byref() {
 }
 
 
+__update_mount_settings() {
+  local -n _mount_settings="${1}"
+  local name="${_mount_settings%%|*}"
+  
+  [[ -f "${mountpoint_conf_file}" ]] || {
+    mkdir -p "$(dirname "${mountpoint_conf_file}")"
+    echo "${_mount_settings}" >> "${mountpoint_conf_file}"
+    return 0
+  }
+
+  # if a line starting with the name is found then replace the line
+  # else add to the end
+  if grep -q ^"${name}|" "${mountpoint_conf_file}"; then
+    sed -i "/^${name}/c${mount_settings}" "${mountpoint_conf_file}"
+  else
+    echo "${mount_settings}" >>"${mountpoint_conf_file}"
+  fi
+
+}
+
 ##############################################
 # checks if the supplied mountpoint is available
 # each check is every .5 seconds
@@ -386,26 +406,6 @@ EOF
   
     }
  
-}
-
-__update_mount_settings() {
-  local -n _mount_settings="${1}"
-  local name="${_mount_settings%%|*}"
-  
-  [[ -f "${mountpoint_conf_file}" ]] || {
-    mkdir -p "$(dirname "${mountpoint_conf_file}")"
-    echo "${_mount_settings}" >> "${mountpoint_conf_file}"
-    return 0
-  }
-
-  # if a line starting with the name is found then replace the line
-  # else add to the end
-  if grep -q ^"${name}|" "${mountpoint_conf_file}"; then
-    sed -i "/^${name}/c${mount_settings}" "${mountpoint_conf_file}"
-  else
-    echo "${mount_settings}" >>"${mountpoint_conf_file}"
-  fi
-
 }
 
 mount_helpers_remove_mount()

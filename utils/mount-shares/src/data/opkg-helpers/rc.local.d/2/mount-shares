@@ -3,4 +3,4 @@
 # mount-shares (do not edit)
 . "${VENUS_ROOT_DIR:-}/data/mount-shares/mount-helpers"
 
-mount_all
+mount_helpers_mount_all
