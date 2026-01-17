@@ -84,10 +84,11 @@ __ensure_rc_local() {
   if [[ ! -f "${rc_local_file}" ]]; then
     log "rc.local does not exist; creating..."
     if [[ ! $dry_run ]]; then
-      log "#!/bin/bash" > "${rc_local_file}"
-      chmod +x "${rc_local_file}"
+      echo "#!/bin/bash" > "${rc_local_file}"
+      
     fi
   fi
+  chmod +x "${rc_local_file}"
 }
 
 # placed in separate function: easier to override for testing

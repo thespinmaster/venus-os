@@ -3,8 +3,10 @@
 declare package_name="opkg-helpers"
 source "/data/${package_name}/opkg-common"
 
-declare rc_local_script="# ${package_name} (do not edit)
-/data/${package_name}/rc.local.d/startup.sh"
+declare rc_local_script="
+# ${package_name} (do not edit)
+/data/${package_name}/rc.local.d/startup
+"
 
 opkg_common_remove_script_from_rc_local "${rc_local_script}"
 
