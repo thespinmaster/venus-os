@@ -4,7 +4,7 @@ if [[ -n "$D" ]]; then
   return;
 fi
 
-declare package_name="$(basename "${0%.*}")" #get file name without path
+declare package_name="network-gps" #get file name without path
 declare service_name="$package_name"
 
 # copy service, svscan will detect the new files & avoid a reboot

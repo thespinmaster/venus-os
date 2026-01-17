@@ -4,8 +4,8 @@ package_name="mount-shares"
 new_file=/lib/libcap-ng.so.0.0.0
 
 if [[ -f $new_file.bak ]]; then
-  echo "restoring $new_file.bak to $new_file"
-  mv $new_file.bak $new_file
+  echo "restoring $new_file.mountshares to $new_file"
+  mv $new_file.mountshares $new_file
 fi
 
 source "${VE_ROOT_DIR:-}/data/opkg-helpers/opkg-common"

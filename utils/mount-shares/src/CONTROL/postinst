@@ -7,8 +7,8 @@ declare tmp_folder="/tmp/${package_name}"
 declare tml_file="${tmp_folder}/libcap-ng.so.0.0.0"
 
 if [[ -f "${new_file}" ]]; then
-  echo "backing up existing file ${new_file} to ${new_file}.bak"
-  mv "${new_file}" "${new_file}".bak
+  echo "backing up existing file ${new_file} to ${new_file}.mountshares"
+  mv "${new_file}" "${new_file}".mountshares
 fi
 
 echo "copying ${tml_file} to ${new_file}"

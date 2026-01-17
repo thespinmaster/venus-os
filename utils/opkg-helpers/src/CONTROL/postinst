@@ -4,10 +4,10 @@ declare package_name="opkg-helpers"
 
 declare rc_local_script="
 # ${package_name} (do not edit)
-/data/${package_name}/rc.local.d/startup
+${VE_ROOT_DIR:-}/data/${package_name}/rc.local.d/startup
 "
 
-. "/data/${package_name}/opkg-common"
+. "${VE_ROOT_DIR:-}/data/${package_name}/opkg-common"
 
 opkg_common_add_script_to_rc_local "${rc_local_script}"
 
