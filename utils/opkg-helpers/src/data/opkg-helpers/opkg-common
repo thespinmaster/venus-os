@@ -176,6 +176,22 @@ __opkg_common_try_install_package() {
   fi
 }
 
+# ensures the rc.local.d folder exists
+# {1} [in,out]: in, a number between 0 and 99,
+#               out the full path to the folder
+opkg_common_ensure_rc_local_d() {
+  local -n __path="${1}"
+  if [[ "$__path" -ge 0 ]] && [[ "$__path" -le 99 ]]; then 
+    mkdir -p "${opkg_rc_local_d_dir}/${__path}" && {
+        __path="${opkg_rc_local_d_dir}/${__path}"
+      return 0
+    }
+  else
+    log_error "ERROR: invalid arg. arg1 should be a number between 0 and 99"
+  fi
+  return 1
+}
+
 # loops through all the lines in
 # the opkg_registered_packages_file 
 # and proceeds to install each
@@ -208,8 +224,6 @@ opkg_common_ensure_installed() {
   return 0
 }
  
-
-
 # adds script to the rc_local file
 # args: ${1} the script to add
 # this script can be multiple lines
