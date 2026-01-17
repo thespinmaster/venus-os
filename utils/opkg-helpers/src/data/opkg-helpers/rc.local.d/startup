@@ -3,9 +3,8 @@
 declare __this_path; __this_path="$(dirname "${BASH_SOURCE[0]}")"
 . "$__this_path/../libs/log-lib"
 
-export OPKGH_LOG_FILE=$__this_path/startup.log
-init_logging "${OPKGH_LOG_FILE}"
- 
+init_logging_to_file "$__this_path/startup.log"
+
 # find and execute all script files in alpha-numeric order from 0 to 10
 for f in $(find "$__this_path/"[0-9] "$__this_path/10" -type f 2>/dev/null | sort -V); do
   log "***************************"
@@ -14,6 +13,3 @@ for f in $(find "$__this_path/"[0-9] "$__this_path/10" -type f 2>/dev/null | sor
   log "***************************"
   log " "
 done
-
-unset OPKGH_LOG_FILE
- 
