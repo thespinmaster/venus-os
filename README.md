@@ -30,9 +30,9 @@ Adds a opkg feed for installing custom packages from this repository
      mount-shares: A package for mounting nfs and cfs shares  
 
 ```
-wget https://raw.githubusercontent.com/thespinmaster/venus-os/refs/heads/main/tasks/dev-setup -O /data/dev-setup
-chmod +x /data/dev-setup
-/data/dev-setup
+echo "src/gz thespinmaster https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feed" > "/etc/opkg/thespinmaster.conf"
+opkg update
+opkg install opkg-helpers
 
 ```
 
@@ -41,6 +41,7 @@ root@192.xxx.xxx.xxx
 open remote folder in /data/dev/projects  
 may need to remove .env folder from project  
 debug code...  
+
 
 
 
