@@ -1,7 +1,0 @@
-#!/bin/bash
-
-
-echo info >&1
-echo error >&2
-
-ls ./
