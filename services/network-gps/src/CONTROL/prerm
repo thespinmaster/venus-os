@@ -4,23 +4,24 @@ if [ -n "$D" ]; then
   return 0
 fi
 
-declare package_name="$(basename "${0%.*}")" #get file name without path
-declare service_name="$package_name"
+package_name="$(basename "${0%.*}")" #get file name without path
+service_name="$package_name"
 
 # Stop services to avoid a reboot
-svc -d /service/"${service_name}"
+svc -d "/service/${service_name}"
 sleep 1
-rm -R /service/"${service_name}"
+rm -R "/service/${service_name}"
 
 # Remove conf file
-rm -r /data/"${service_name}"
+rm -r "/data/${service_name}"
 
 # Clear logs
 if [ -f "/var/log/${service_name}" ]; then
   rm -R "/var/log/${service_name}"
 fi
  
-source "${VENUS_ROOT_DIR:-}/data/opkg-helpers/opkg-common"
+# shellcheck source=../../../../utils/opkg-helpers/src/data/opkg-helpers/opkg-common
+. "${VENUS_ROOT_DIR:-}/data/opkg-helpers/opkg-common"
 opkg_common_unregister_package "${package_name}"
 
 echo "${package_name}" removed

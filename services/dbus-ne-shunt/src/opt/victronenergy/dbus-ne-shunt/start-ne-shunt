@@ -10,7 +10,7 @@
 # -d -debug  : debug logging
 # -s -serial : serial port such as ttyACM0
 
-. /opt/victronenergy/serial-starter/run-service.sh
+. /opt/victronenergy/serial-starter/run-service
 
 app=/opt/victronenergy/dbus-ne-shunt/main.py
 args="/dev/$tty"

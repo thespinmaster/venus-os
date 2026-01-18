@@ -9,7 +9,11 @@
       find USB_DEVPATH from UDEVADM_PROPS
       find TTY from USB_DEVPATH
 '
- 
+set -o nounset
+
+__this_path="$(dirname "${BASH_SOURCE[0]}")"
+. "$__this_path/libs/log-lib"
+
 INTERACTIVE=1
  
 # requires: SERVICE_NAME
@@ -333,6 +337,7 @@ __add_rule_to_serial_starter_rules_file() {
   if grep -qF "${serial_starter_rule}" "${SERIAL_STARTER_RULES_FILE}"; then
     log "Rule already exists in the file."
     return 0
+ 
   fi
 
   local rule_with_comment; rule_with_comment="# ${SERVICE_NAME}"$'\n'"${serial_starter_rule}"$'\n'
@@ -345,24 +350,28 @@ __add_rule_to_serial_starter_rules_file() {
 
   log "Adding new rule to serial starter rules file..."
   log "after line ending:${SERIAL_STARTER_RULES_TEXT_MATCH}"
-
-  local new_rules nl=$'\n'
-  local -i found=
+  
+  local -i _found=
+  local new_rules="" nl=$'\n'
+ 
   while IFS= read -r line || { [[ -n "$line" ]]; }; do
     new_rules+="${line}${nl}"
-    ((found)) && continue
+    ((_found)) && continue
     if [[ "$line" = *"${SERIAL_STARTER_RULES_TEXT_MATCH}" ]]; then
       new_rules+="${rule_with_comment}${nl}"
-      found=1
+      _found=1
     fi
   done <"${SERIAL_STARTER_RULES_FILE}"
 
-  ((found)) || {
+  ((!_found)) && {
     log_error "ERROR: SERIAL_STARTER_RULES_TEXT_MATCH: insert location not found"
     return 1
   }
 
-  echo -e "${new_rules}" >"${SERIAL_STARTER_RULES_FILE}"
+  echo "${new_rules}" >"${SERIAL_STARTER_RULES_FILE}" || {
+    log_error "ERROR adding rule to ${SERIAL_STARTER_RULES_FILE}" 
+    return 1
+  }
   log "Rule added successfully."
   return 0
 }
@@ -471,8 +480,25 @@ __validate_all() {
     log_error "ERROR: file not found, SERIAL_STARTER_RULES_FILE:$SERIAL_STARTER_RULES_FILE"
     return 1
   }
+  [[ -r "${SERIAL_STARTER_RULES_FILE:-}" ]] || {
+    log_error "ERROR: SERIAL_STARTER_RULES_FILE does not have read access:$SERIAL_STARTER_RULES_FILE"
+    return 1
+  }
+  [[ -w "${SERIAL_STARTER_RULES_FILE:-}" ]] || {
+    log_error "ERROR: SERIAL_STARTER_RULES_FILE does not have write access:$SERIAL_STARTER_RULES_FILE"
+    return 1
+  }
+
   [[ -f "${SERIAL_STARTER_CONFIG_FILE:-}" ]] || {
     log_error "ERROR: file not found, SERIAL_STARTER_CONFIG_FILE:$SERIAL_STARTER_CONFIG_FILE"
+    return 1
+  }
+  [[ -r "${SERIAL_STARTER_CONFIG_FILE:-}" ]] || {
+    log_error "ERROR: SERIAL_STARTER_CONFIG_FILE does not have read access:$SERIAL_STARTER_CONFIG_FILE"
+    return 1
+  }
+  [[ -w "${SERIAL_STARTER_CONFIG_FILE:-}" ]] || {
+    log_error "ERROR: SERIAL_STARTER_CONFIG_FILE does not have write access:$SERIAL_STARTER_CONFIG_FILE"
     return 1
   }
 }
@@ -506,13 +532,11 @@ serial_device_installer_install() {
   local serial_starter_rule
   __create_serial_starter_rule_byref props serial_starter_rule || return 1
 
-  __add_rule_to_serial_starter_rules_file "${serial_starter_rule}" || {
-    log "Could not update ${serial_starter_rule}."
-    return 1
-  }
-
+  __add_rule_to_serial_starter_rules_file "${serial_starter_rule}" || return 1
+ 
   __add_ve_service_config_file_mapping || return $?
-
+  
+  TTY=$tty
   return 0
 }
  

@@ -26,17 +26,12 @@
             "args": []
         },
         {
-            "name": "Python Debugger: install-helper",
+            "name": "Python Debugger: dbus-neshunt",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/services/dbus-ne-shunt/src/CONTROL/install-helper",
+            "program": "${workspaceFolder}/services/dbus-ne-shunt/src/opt/victronenergy/dbus-ne-shunt/main.py",
             "console": "integratedTerminal",
-            "args": ["usb-serial-helper.detect_add", 
-            "${workspaceFolder}/services/dbus-ne-shunt/serial-starter.rules",
-            "dbus-ne-shunt",
-            "neshunt", 
-            "",
-            "1a86:7523"]
+            "args": ["ttyUSB0"]
         },
         {
             "name": "Python Debugger: opkg-make-index",

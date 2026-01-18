@@ -5,13 +5,16 @@ LOG_LIB_VERSION=1.0
  
 LOG_INDENT_CHAR=" "
 declare LOG_INDENT=
+if [[ ! -v "LOGLEVEL_NONE" ]]; then
 declare -r LOGGER=1
 declare -r LOGLEVEL_NONE=0
 declare -r LOGLEVEL_ERROR=1
 declare -r LOGLEVEL_MINIMAL=2
 declare -r LOGLEVEL_INFO=3
 declare -r LOGLEVEL_TRACE=4
+fi
 declare LOGLEVEL=$LOGLEVEL_INFO
+
  # source must contain a method called CUSTOM_LOGGING_FUNC
 # depreciated just define a function called log_custom
 #declare USE_CUSTOM_LOGGING_FUNC= 

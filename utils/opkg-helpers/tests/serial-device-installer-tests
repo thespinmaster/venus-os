@@ -13,7 +13,7 @@ this_path="$(dirname "${BASH_SOURCE[0]}")"
  
 . "$this_path/../../../scripts/libs/test-lib"
 . "$this_path/../src/data/opkg-helpers/libs/core-lib"
-. "$this_path/../src/data/opkg-helpers/libs/log-lib"
+#. "$this_path/../src/data/opkg-helpers/libs/log-lib"
 . "$this_path/../src/data/opkg-helpers/libs/conf-lib"
 . "$this_path/../src/data/opkg-helpers/serial-device-installer"
  
@@ -278,8 +278,8 @@ to_update_install_succeeds_when_TTY_is_unknown_tty_updated() {
   
   # Arrange
   stage_default_vars
-  TTY="ttyBAD0"
   local stderr=
+  TTY="ttyBAD0"
 
   # Act
   stderr="$(serial_device_installer_install 2>&1 )"

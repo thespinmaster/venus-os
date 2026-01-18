@@ -62,14 +62,15 @@ echo "setting up environment (bash aliases, nanorc config)"
 (
   . /data/opkg-helpers/opkg-common
   # priority 3 to execute after mount-shares
-  declare rc_local_d_path=$(ensure_rc_local_d_folder "3")
-
+  declare rc_local_d_path=3
+  opkg_common_ensure_rc_local_d rc_local_d_path
+  
   # shellcheck disable=SC2217
   echo "#!/bin/bash
 
 # setup enviroment (do not edit)
 . /data/mount-shares/mount-helpers
-mount_helpers_wait_on_mount_point \"/data/dev/\" &&
+mount_helpers_wait_on_mount_point \"/data/mnt/dev/\" &&
   /data/dev/projects/venus-os/tasks/setup-environment
 " < "$rc_local_d_path/setup-environment"
 
