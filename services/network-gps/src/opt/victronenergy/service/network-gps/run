@@ -13,7 +13,7 @@ exec 2>&1
 # route gps from router to serial port
 if [[ ! -e /dev/$NETWORK_GPS_DEVICE ]]; then
   echo /dev/$NETWORK_GPS_DEVICE does not exist, starting socat....
-  exec /usr/bin/socat -dd "UDP4-RECV:$NETWORK_GPS_PORT pty,link=/dev/$NETWORK_GPS_DEVICE,raw,nonblock,echo=0,b$NETWORK_GPS_BAUD" &
+  /usr/bin/socat -u -dd "UDP4-RECV:$NETWORK_GPS_PORT" "pty,link=/dev/$NETWORK_GPS_DEVICE,raw,nonblock,echo=0,b$NETWORK_GPS_BAUD" &
 fi
 
 # add a friendly name to display in the venus os gps settings
@@ -24,7 +24,7 @@ if [[ -n "$NETWORK_GPS_NAME" ]]; then
       dbus -y "com.victronenergy.gps.ve_$NETWORK_GPS_DEVICE" / GetValue &>/dev/null
       declare -i r=$?
       if ((r==0)); then
-        echo "Renaming network GPS device $NETWORK_GPS_DEVICE to $NETWORK_GPS_NAME"
+        echo "set victron dbus device name $NETWORK_GPS_NAME"
         dbus -y "com.victronenergy.gps.ve_$NETWORK_GPS_DEVICE" /ProductName SetValue "$NETWORK_GPS_NAME"
         break
       fi

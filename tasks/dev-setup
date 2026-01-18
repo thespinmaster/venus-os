@@ -13,7 +13,7 @@ ensure_feed() {
   echo "adding opkg feed"
   local feed_url="https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feed"
   echo "src/gz thespinmaster $feed_url" > "$feed_config_file"
- 
+  
 }
 
 echo "configuring file system"

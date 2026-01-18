@@ -52,8 +52,8 @@ Depends: opkg-helpers
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: b7f9653cc231f478df7c507d646c980c
-Size: 2108
+MD5Sum: 0b88ca4ea94150af1e6cfd9b7fd0c4e8
+Size: 2094
 Filename: network-gps_1.0.0_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feed/network-gps
 Description: Network GPS using NMEA
