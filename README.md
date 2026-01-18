@@ -25,10 +25,12 @@ Adds a opkg feed for installing custom packages from this repository
      Python 3 (full version)  
      libatomic1 (required by Python 3)  
 
-#### Installs 
+#### Install custom packages
      opkg-helpers: A package for installing custom opkg packages on the Venus OS which will automatically get re-installed after firmware updates  
      mount-shares: A package for mounting nfs and cfs shares  
 
+
+## Install opkg-helpers only
 ```
 echo "src/gz thespinmaster https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feed" > "/etc/opkg/thespinmaster.conf"
 opkg update
@@ -41,6 +43,7 @@ root@192.xxx.xxx.xxx
 open remote folder in /data/dev/projects  
 may need to remove .env folder from project  
 debug code...  
+
 
 
 
