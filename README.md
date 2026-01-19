@@ -20,6 +20,12 @@ Download and run dev_setup from github
 
 Adds a opkg feed for installing custom packages from this repository
 
+```
+wget https://raw.githubusercontent.com/thespinmaster/venus-os/refs/heads/main/tasks/dev-setup -O /data/dev-setup
+chmod +x /data/dev-setup
+/data/dev-setup
+```
+
 #### Installs
      Packages to replace BusyBox (so we can remote debug using VS Code)  
      Python 3 (full version)  
@@ -43,6 +49,7 @@ root@192.xxx.xxx.xxx
 open remote folder in /data/dev/projects  
 may need to remove .env folder from project  
 debug code...  
+
 
 
 
