@@ -26,12 +26,12 @@
             "args": []
         },
         {
-            "name": "Python Debugger: dbus-neshunt",
+            "name": "Python Debugger: dbus-ne-shunt",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/services/dbus-ne-shunt/src/opt/victronenergy/dbus-ne-shunt/main.py",
             "console": "integratedTerminal",
-            "args": ["ttyUSB0"]
+            "args": ["--serial", "ttyACM0"]
         },
         {
             "name": "Python Debugger: opkg-make-index",
