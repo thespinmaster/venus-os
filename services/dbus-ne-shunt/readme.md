@@ -21,3 +21,10 @@ stty -F /dev/ttyACM0 38400
 ### useful links  
 https://github.com/victronenergy/venus/wiki/howto-add-a-driver-to-Venus
 https://github.com/class142/ne-rs485/blob/master/spec.md
+
+
+speed 9600 baud; line = 0;
+min = 100; time = 2;
+-icrnl -imaxbel
+-opost -onlcr
+-isig -icanon -echo
