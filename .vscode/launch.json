@@ -26,7 +26,7 @@
             "args": []
         },
         {
-            "name": "Python Debugger: dbus-ne-shunt",
+            "name": "Python: dbus-ne-shunt",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/services/dbus-ne-shunt/src/opt/victronenergy/dbus-ne-shunt/main.py",
@@ -34,13 +34,12 @@
             "args": ["--serial", "/dev/ttyACM0", "--debug"]
         },
         {
-            "name": "Python Debugger: opkg-make-index",
+            "name": "Python: dbus-inetbox",
             "type": "debugpy",
             "request": "launch",
-        
-            "program": "/usr/local/bin/opkg-make-index",
+            "program": "${workspaceFolder}/services/dbus-ne-shunt/src/opt/victronenergy/dbus-inetbox/__main__.py",
             "console": "integratedTerminal",
-            "args": ["-p","Packages", "/home/admin/dev/projects/venus-os/feed"]
-        }
+            "args": ["--serial", "/dev/ttyUSB1", "--debug"]
+        },
     ]
 }

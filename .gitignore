@@ -1,1 +1,7 @@
 **/tests/output/
+
+# Python virtual environments (global)
+.venv/
+venv/
+env/
+.env/

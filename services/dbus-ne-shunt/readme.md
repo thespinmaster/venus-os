@@ -28,7 +28,7 @@ stty -F /dev/ttyAMC0 38400 cs8 -cstopb -parenb -ixon -ixoff -crtscts raw -echo
 - -echo → don't echo any data recieved back to device
 ### read data as hex using od
 ```
-od -An -tx1 -v </dev/ttyUSB0
+od -An -tx1 -v </dev/ttyACM0
 ```
 #### Flags explained
 - -An → no address offsets
@@ -38,10 +38,3 @@ od -An -tx1 -v </dev/ttyUSB0
 ### useful links  
 https://github.com/victronenergy/venus/wiki/howto-add-a-driver-to-Venus
 https://github.com/class142/ne-rs485/blob/master/spec.md
-
-
-speed 9600 baud; line = 0;
-min = 100; time = 2;
--icrnl -imaxbel
--opost -onlcr
--isig -icanon -echo
