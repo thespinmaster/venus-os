@@ -1,6 +1,7 @@
 import sys
 import os
 import logging
+import globals
 from typing import Optional
 
 sys.path.append(os.path.join(os.path.dirname(__file__), 'ext'))
@@ -24,21 +25,23 @@ from serial_service.ne_shunt_data import ne_shunt_data
 class ne_shunt_service:
 
 	_serialService : Optional[ne_shunt_serial_service] = None
-	_curData : ne_shunt_data
+	_curData : Optional[ne_shunt_data] = None
 	_serialPort : str
 	_inUpdate = False
 	_settingsPath = None
-	_lastData : str
+	_lastData : str = ""
 	_reset = False
+	_readonly = False
 
 	############################################
 	# constructor 
 	# serial port is passed from the SerialStarter 
 	# service. i.e. /dev/ttyACM0
 	############################################
-	def __init__(self, serialPort):
+	def __init__(self, serialPort, readonly):
 		self._serialPort = serialPort
-
+		self._readonly=readonly
+    
 	############################################
 	# Starts and stops the serial service as 
 	# required
@@ -52,7 +55,7 @@ class ne_shunt_service:
 			self._serialService = None
 
 		if (self._serialService == None and len(self._services) > 0):
-			self._serialService = ne_shunt_serial_service(self._serialPort)
+			self._serialService = ne_shunt_serial_service(self._serialPort, self._readonly)
  
 	############################################
 	# Occurs when the a device setting value is 
@@ -317,17 +320,17 @@ class ne_shunt_service:
 	# passed physical device value
 	############################################
 	def update_dbus_item(self, serviceName, servicePath, newValue):
-		logging.debug("update_dbus_item in")
+		globals.log_verbose("update_dbus_item in")
 
 		dbus_service = self._services.get(serviceName, None)
 		if dbus_service:
-			logging.debug(f"update_dbus_item set_value: {servicePath}/newValue = {newValue}")
+			globals.log_verbose(f"update_dbus_item set_value: {servicePath}/newValue = {newValue}")
 			dbus_service.set_value(servicePath, newValue)
 			
 		else:
-			logging.debug(f"update_dbus_item: serviceName = None ({serviceName})" )
-		
-		logging.debug("update_dbus_item out")
+			globals.log_verbose(f"update_dbus_item: serviceName = None ({serviceName})" )
+ 
+		globals.log_verbose("update_dbus_item out")
 
 	
 	############################################
@@ -339,23 +342,21 @@ class ne_shunt_service:
 	# for example: GLib.timeout_add(1000, nuss._update)
 	############################################
 	def _update(self):
-		logging.debug("_update in")
+		globals.log_verbose("_update in")
  
 		if (self._serialService == None):
-			logging.debug("_update out ss=None")
+			globals.log_verbose("_update out ss=None")
 			return True
  
 		data = self._serialService.read_data()
 		if not data:
-			logging.debug("_update out: no data returned")
+			globals.log_verbose("_update out: no data returned")   
 			return True
    
 		if (data == self._lastData):
-			logging.debug("no change exiting...")
+			globals.log_verbose("no change exiting...")
 			return True
-
-		logging.debug("_update out: parsing new data for changes")
-	   
+ 
 		#logging.debug(f"data: {data}\n_lastData:{self._lastData}")
 
 		newData = ne_shunt_data(data)
@@ -365,8 +366,8 @@ class ne_shunt_service:
 
 		for key, value in newData.diff(curData):
 			
-			logging.debug(f"_update diff value: {key} = {value}")
-
+			logging.info(f"value changed: {key} = {value}")
+      
 			match key:
 				case 'fresh_water_tank' | "grey_waste_tank" | 'grey_waste_tank2':
 					self.update_dbus_item(key, "/Level", value)
@@ -383,8 +384,8 @@ class ne_shunt_service:
 					dbus_service = self._services.get(key, None)
 					if dbus_service:
 						self.update_dbus_item(key, "/Soc", dbus_service.calcBatterySoc(value))
-						
-		logging.debug("_update out")
+		
+		globals.log_verbose("_update out")
 
 		 #keep at end, helps dbus events from turning off values before we are populated
 		self._curData = newData

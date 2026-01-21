@@ -7,7 +7,8 @@ import serial.rs485
 class ne_shunt_serial_service:
 	
 	SERIAL_BAUD_RATE = 38400
-
+	_readonly = False
+  
 	_idle = bytes(    [0xff, 0x40, 0x00, 0x80, 0xbf])    #FF400080BF
 	#_idle2 = bytes(  [0xff, 0x40, 0x00, 0x80, 0xbf])    #FF400080BF
 	_lightin = bytes( [0xff, 0x01, 0x00, 0xc0, 0xc0])    #FF0100C0C0 
@@ -17,8 +18,20 @@ class ne_shunt_serial_service:
  
 	_allOff = bytes(  [0xff, 0x80, 0x00, 0xc0, 0x7f])    #FF8000007F
  
-	def __init__(self, port_name):
-		self.serial_port = serial.rs485.RS485(port=port_name, baudrate=self.SERIAL_BAUD_RATE,bytesize=8, parity="N", stopbits=1, timeout=1)
+	def __init__(self, port_name, readonly):
+		self._readonly=readonly
+ 
+		self.serial_port = serial.rs485.RS485(port=port_name,
+												baudrate=self.SERIAL_BAUD_RATE,
+												bytesize=serial.EIGHTBITS,
+												parity=serial.PARITY_NONE,
+												stopbits=serial.STOPBITS_ONE,
+												xonxoff=False,
+												rtscts=False,
+												dsrdtr=False,   # also typically off unless explicitly needed
+												timeout=None    # blocking read (like raw mode)
+    )
+  
 		self.serial_port.rs485_mode = serial.rs485.RS485Settings()
 		#self.serial_port = serial.Serial(port=port_name, baudrate=self.SERIAL_BAUD_RATE,bytesize=8, parity="N", stopbits=1, timeout=1)
  
@@ -48,22 +61,15 @@ class ne_shunt_serial_service:
 		time.sleep(0.1)
 
 	def _send_data(self, data):
+   
+		if self._readonly == True:
+			return
+
 		self._send_idle()
 		self.serial_port.write(data)
 		self.serial_port.reset_input_buffer()
 		time.sleep(0.1)
-
-	"""
-	Wrong output looks like:  (usualy means that the rx and tx wires are around the wrong way)
-@40000000688640c71ac16f14 DEBUG    Timeout, read:01FEFE02FEBE3E0A0196EC0479F1FE828000FEFE02FEBE3E0A0196EC0479F1FE828001FEFE02FEBE3E0A0196EC0479F1FE828001FEFE02FEBE3E0A01
-@4000000068863f41015d059c DEBUG    _update out: no data returned
-
-	Correct output looks like:
-@400000006886430a02c680ac DEBUG    Success, read:FF000000FF00D00070FCFA009AA2FF0DA000001E
-@400000006886430a02d12b24 DEBUG    _update out: parsing new data for changes
-@400000006886430a02dac044 DEBUG    _get_states: D
-@400000006886430a02e3b53c DEBUG    _get_battery_level: 9A, voltage = 12.40
-	"""
+ 
 	def read_data(self) -> str:
 
 		if not self.serial_port.is_open:

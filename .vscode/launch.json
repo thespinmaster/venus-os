@@ -31,7 +31,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/services/dbus-ne-shunt/src/opt/victronenergy/dbus-ne-shunt/main.py",
             "console": "integratedTerminal",
-            "args": ["--serial", "ttyACM0"]
+            "args": ["--serial", "/dev/ttyACM0", "--debug"]
         },
         {
             "name": "Python Debugger: opkg-make-index",
