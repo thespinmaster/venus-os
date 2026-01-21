@@ -32,12 +32,14 @@ echo "ensuring spinmaster feed"
 ensure_feed
 opkg update
 
-#TODO manualy add these packages to the /data/opkg-helpers/custom-packages.conf file
 echo "replacing busybox"
 opkg install packagegroup-replace-busybox
 
 echo "installing python (full)"
 opkg install python3
+
+echo "installing git"
+opkg install git
 
 echo "installing additional packages"
 opkg install libatomic1
@@ -65,14 +67,16 @@ echo "setting up environment (bash aliases, nanorc config)"
   declare rc_local_d_path=3
   opkg_common_ensure_rc_local_d rc_local_d_path
   
+  
   # shellcheck disable=SC2217
   echo "#!/bin/bash
 
 # setup enviroment (do not edit)
 . /data/mount-shares/mount-helpers
 mount_helpers_wait_on_mount_point \"/data/mnt/dev/\" &&
-  /data/dev/projects/venus-os/tasks/setup-environment
-" < "$rc_local_d_path/setup-environment"
+  cp /data/dev/projects/venus-os/tasks/setup-environment /data
+  exec /data/setup-environment
+" > "$rc_local_d_path/setup-environment"
 
     chmod +x "$rc_local_d_path/setup-environment"
     # execute script
