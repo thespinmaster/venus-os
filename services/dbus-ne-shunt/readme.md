@@ -13,10 +13,18 @@
 ```
 stty -F /dev/ttyACM0
 ```
-### set serial port speed
+### set serial port to read at 38400 8N1 binary data
 ```
-stty -F /dev/ttyACM0 38400
+stty -F /dev/ttyAMC0 38400 cs8 -cstopb -parenb -ixon -ixoff -crtscts raw
 ```
+#### What this sets
+- 38400 → baud rate
+- cs8 → 8 data bits
+- cstopb → 1 stop bit
+- parenb → no parity
+- raw → no line processing (required for binary)
+- ixon -ixoff → disable software flow control
+- crtscts → disable hardware flow control
 
 ### useful links  
 https://github.com/victronenergy/venus/wiki/howto-add-a-driver-to-Venus
