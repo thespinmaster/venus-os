@@ -1,0 +1,15 @@
+class dbus_constants:
+
+	PRODUCT_NAME = "dbus-inetbox"
+	SAFE_PRODUCT_NAME="dbus_inetbox"
+	
+	PRODUCT_ID = 0xD01A
+	PRODUCT_VERSION = "0.01"
+	FIRMWARE_VERSION = "0.01"
+	HARDWARE_VERSION = "0.00"
+ 
+	DEFAULT_DEVICE_INSTANCE = 817
+	PATH_SETTING_INITIAL="initial"
+	PATH_SETTING_WRITABLE="writable"
+
+	

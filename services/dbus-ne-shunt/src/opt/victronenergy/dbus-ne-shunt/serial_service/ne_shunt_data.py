@@ -13,21 +13,6 @@ class ne_shunt_data:
 		return copy.deepcopy(self)
 	
 	def __init__(self, rawData = None):
-		#read:FF000000FF00D00070FCFA009DA2FF07400000BB
-		#                 w   g   g          b1 b2     s       checksum
-		#read:FF000000FF0 0 D 0 0 0 70FCFA00 9D A2 FF 07400000 BB
-		#read:FF000000FF00D00070FDFA009DA2FF          02A00000  17
-		
-		#                                    states   cm
-		#read:FF000000FF00D00070FEFA009DA3FF 00A00000 17 0 all off
-		#read:FF000000FF00D00070FEFA009DA4FF 01A00000 19 1 internal lights on
-		#read:FF000000FF00D00070FDFA009DA2FF 02A00000 17 2 external lights on
-		#read:FF000000FF00D00070FDFA009DA3FF 04A00000 1A 4 water pump on
-		#read:FF000000FF00D00070FCFA009DA4FF 08A00000 1E 8 Aux on
-
-		#read:FF000000FF00D00070FEFA009DA1FF 08C00000 3D
-		#read:FF4000003F00D00070FDFA009DA2FF 00230000 98 states 
-		
 		if rawData is None:
 			self.data = {k: "" for k in self.KEYS}
 		else:

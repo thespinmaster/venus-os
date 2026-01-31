@@ -1,0 +1,80 @@
+#!/bin/bash
+# Test both original and async versions with replayed serial data
+
+set -e
+
+RECORDED_FILE="${1:-/data/dev/serial-init-recording.bin}"
+ORIG_LOG="/data/dev/test-orig-replay.log"
+ASYNC_LOG="/data/dev/test-async-replay.log"
+
+if [ ! -f "$RECORDED_FILE" ]; then
+    echo "Recorded file not found: $RECORDED_FILE"
+    echo "First record serial data with:"
+    echo "  python3 /data/dev/utils/serial-recorder.py /dev/ttyUSB0 $RECORDED_FILE 120"
+    exit 1
+fi
+
+echo "Setting up virtual serial ports..."
+# Create two virtual port pairs
+socat -d -d pty,raw,echo=0,link=/tmp/vport1 pty,raw,echo=0,link=/tmp/vport1-client &
+SOCAT1_PID=$!
+sleep 1
+
+socat -d -d pty,raw,echo=0,link=/tmp/vport2 pty,raw,echo=0,link=/tmp/vport2-client &
+SOCAT2_PID=$!
+sleep 1
+
+echo "Virtual ports created:"
+echo "  Port 1: /tmp/vport1 <-> /tmp/vport1-client"
+echo "  Port 2: /tmp/vport2 <-> /tmp/vport2-client"
+
+# Cleanup function
+cleanup() {
+    echo "Cleaning up..."
+    kill $SOCAT1_PID $SOCAT2_PID 2>/dev/null || true
+    pkill -f "dbus-inetbox" 2>/dev/null || true
+    rm -f /tmp/vport* 2>/dev/null || true
+}
+trap cleanup EXIT
+
+echo ""
+echo "Starting replayers..."
+python3 /data/dev/utils/serial-replayer.py "$RECORDED_FILE" /tmp/vport1 &
+REPLAY1_PID=$!
+
+python3 /data/dev/utils/serial-replayer.py "$RECORDED_FILE" /tmp/vport2 &
+REPLAY2_PID=$!
+
+sleep 2
+
+echo ""
+echo "Starting original version..."
+folder="/data/dev/tmp/dbus-inetbox-orig/src/opt/victronenergy/dbus-inetbox"
+python3 "${folder}/__main__.py" --serial /tmp/vport1-client --debug_lin > "$ORIG_LOG" 2>&1 &
+ORIG_PID=$!
+
+echo "Starting async version..."
+folder="/data/dev/services/dbus-inetbox/src/opt/victronenergy/dbus-inetbox"
+python3 "${folder}/__main__.py" --serial /tmp/vport2-client --debug_lin > "$ASYNC_LOG" 2>&1 &
+ASYNC_PID=$!
+
+echo ""
+echo "Both versions running. Waiting for replay to complete..."
+wait $REPLAY1_PID $REPLAY2_PID
+
+echo ""
+echo "Waiting 5 seconds for processing..."
+sleep 5
+
+echo ""
+echo "Stopping services..."
+kill $ORIG_PID $ASYNC_PID 2>/dev/null || true
+
+echo ""
+echo "Logs saved:"
+echo "  Original: $ORIG_LOG"
+echo "  Async:    $ASYNC_LOG"
+echo ""
+echo "Compare with:"
+echo "  diff -u $ORIG_LOG $ASYNC_LOG | less"
+echo "  grep 'd8' $ORIG_LOG $ASYNC_LOG"

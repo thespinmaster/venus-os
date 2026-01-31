@@ -1,7 +1,8 @@
 class dbus_constants:
 
-	PRODUCT_NAME = "ne_shunt"
-
+	PRODUCT_NAME = "dbus-ne-shunt"
+	SAFE_PRODUCT_NAME="dbus_ne_shunt"
+   
 	PRODUCT_ID = 0xC01A
 	PRODUCT_VERSION = "0.01"
 	FIRMWARE_VERSION = "0.01"

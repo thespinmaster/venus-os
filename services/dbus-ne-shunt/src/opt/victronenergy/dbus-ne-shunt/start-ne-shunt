@@ -12,7 +12,7 @@
 
 . /opt/victronenergy/serial-starter/run-service
 
-app=/opt/victronenergy/dbus-ne-shunt/main.py
+app=/opt/victronenergy/dbus-ne-shunt/__main__.py
 args="/dev/$tty"
 
 start -s $args

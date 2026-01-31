@@ -1,0 +1,11 @@
+Package: dbus-inetbox
+Version: 0.0.01
+Description: Adds support for Truma inetbox to Venus-OS
+Section: utilities
+Priority: optional
+Maintainer: thespinmaster@github.com
+License: MIT
+Architecture: all
+OE: dbus-inetbox
+Source: https://github.com/thespinmaster/venus-os/tree/main/feed/dbus-inetbox
+Depends: opkg-helpers, python3

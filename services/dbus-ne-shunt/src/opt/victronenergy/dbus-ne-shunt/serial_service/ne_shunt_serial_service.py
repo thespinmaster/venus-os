@@ -30,7 +30,7 @@ class ne_shunt_serial_service:
 												rtscts=False,
 												dsrdtr=False,   # also typically off unless explicitly needed
 												timeout=None    # blocking read (like raw mode)
-    )
+	)
   
 		self.serial_port.rs485_mode = serial.rs485.RS485Settings()
 		#self.serial_port = serial.Serial(port=port_name, baudrate=self.SERIAL_BAUD_RATE,bytesize=8, parity="N", stopbits=1, timeout=1)

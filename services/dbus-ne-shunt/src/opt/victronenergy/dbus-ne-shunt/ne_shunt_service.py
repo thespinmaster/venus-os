@@ -41,7 +41,7 @@ class ne_shunt_service:
 	def __init__(self, serialPort, readonly):
 		self._serialPort = serialPort
 		self._readonly=readonly
-    
+	
 	############################################
 	# Starts and stops the serial service as 
 	# required
@@ -78,7 +78,7 @@ class ne_shunt_service:
 		# unique path used to generate unique ClassAndVrmInstance value 
 		# see https://github.com/victronenergy/localsettings#using-addsetting-to-allocate-a-vrm-device-instance
 		portName = os.path.basename(self._serialPort)
-		settingsPath = f'/Settings/Devices/{dbus_constants.PRODUCT_NAME}_{portName}'
+		settingsPath = f'/Settings/Devices/{dbus_constants.SAFE_PRODUCT_NAME}_{portName}'
 		
 		self._settings = SettingsDevice(
 			bus = dbusconnection(),
@@ -367,7 +367,7 @@ class ne_shunt_service:
 		for key, value in newData.diff(curData):
 			
 			logging.info(f"value changed: {key} = {value}")
-      
+	  
 			match key:
 				case 'fresh_water_tank' | "grey_waste_tank" | 'grey_waste_tank2':
 					self.update_dbus_item(key, "/Level", value)

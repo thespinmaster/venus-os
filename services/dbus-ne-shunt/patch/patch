@@ -1,49 +1,59 @@
-#!/bin/bash
- 
-PATCH_SEPARATOR="===="
-START_COMMENT="/*"
-END_COMMENT="*/"
-ACTION_INSERT_BEFORE="@insertbefore"
-ACTION_INSERT_AFTER="@insertafter"
-ACTION_REMOVE="@remove"
-ACTION_FIND="@find"
+#!/usr/bin/env bash
+
+set -o nounset
+
+declare PATCH_SEPARATOR="===="
+declare START_COMMENT="/*"
+declare END_COMMENT="*/"
+declare ACTION_INSERT_BEFORE="@insertbefore"
+declare ACTION_INSERT_AFTER="@insertafter"
+declare ACTION_REMOVE="@remove"
+declare ACTION_FIND="@find"
+
+declare -i PATCH_LENGTH=0
+declare -a PATCH_LINES
+declare -a FILE_LINES
 
 # Read file into array FILE_LINES
 # $1: the file to read the files from
-read_file_lines() {
-    local i line
+_read_file_lines() {
+    local filename="${1}"
+    local -i i=0 
+    local line
     while IFS= read -r line || [ -n "$line" ]; do
         FILE_LINES[i]="$line"
         i=$((i+1))
-    done < "$1"
+    done < "${filename}"
 }
 
 # reads the patch file into the PATCH_LINES array.
 # $1: the filename of the file to read
 # PATCH_LENGTH is set to the number size of the array
-read_patch_lines() {
-    # $1: filename
+_read_patch_lines() {
+
+    local filename="${1}"
 
     while IFS=: read -r line || [ -n "$line" ]; do
         PATCH_LINES[PATCH_LENGTH]="${line}"
         PATCH_LENGTH=$((PATCH_LENGTH+1))
-    done < "$1"
-    PATCH_LENGTH=$((PATCH_LENGTH+1))
+    done < "${filename}"
+    #PATCH_LENGTH=$((PATCH_LENGTH+1))
 }
 
 # Writes the FILE_LINES array to file
 # $1: the file name to write the FILE_LINES array too
-write_file_lines() {
-    printf "%s\n" "${FILE_LINES[@]}" >"$1"
+_write_file_lines() {
+    local filename="${1}"
+    printf "%s\n" "${FILE_LINES[@]}" >"${filename}"
 }
 
 # shellcheck disable=SC2329
 # inserts a new line in the FILE_LINES array
 # $1: the index in the FILE_LINES array to insert the new line at
 # $2: the string to insert
-insert_line() {
-    insert_at_index=$1
-    line_to_insert=$2
+_insert_line() {
+    local -i insert_at_index=${1}
+    local line_to_insert="${2}"
  
     FILE_LINES=("${FILE_LINES[@]:0:$insert_at_index}" "${line_to_insert}" "${FILE_LINES[@]:$insert_at_index}")
 }
@@ -52,11 +62,11 @@ insert_line() {
 # $1 insert index
 # $2 patch start index
 # $3 patch end index
-# requires read_file_lines & read_patch_lines methods have been called
-insert_patch() {
+# requires _read_file_lines & _read_patch_lines methods have been called
+_insert_patch() {
 
-    insert_at_index=$1
-    patch_start_index=$2
+    insert_at_index=${1}
+    patch_start_index=${2}
     patch_len=$(($3-$2+1))
 
     FILE_LINES=("${FILE_LINES[@]:0:$insert_at_index}" "${PATCH_LINES[@]:patch_start_index:patch_len}" "${FILE_LINES[@]:$insert_at_index}")
@@ -65,62 +75,60 @@ insert_patch() {
 # removes a range of lines from FILE_LINES using a start index and an end index
 # $1: the start index
 # $2: the end index
-# requires read_file_lines & read_patch_lines methods have been called
+# requires _read_file_lines & _read_patch_lines methods have been called
 # shellcheck disable=SC2329
-remove_range() {
-    remove_start_index=$1
-    remove_end_index=$2
-    remove_start_index=$((remove_start_index))
-    remove_end_index=$((remove_end_index+1))
+_remove_range() {
+    local -i remove_start_index=${1}
+    local -i remove_end_index=${2}
+    local -i remove_start_index=$((remove_start_index))
+    local -i remove_end_index=$((remove_end_index+1))
 
     FILE_LINES=("${FILE_LINES[@]:0:$remove_start_index}" "${FILE_LINES[@]:remove_end_index}")
 }
 
 # finds the end of a patch segment usualy definded by '===='
-# $1: the start position of the patch segment
-# requires read_patch_lines methods have been called
-findPatchSegmentEnd() {
+# Arguments
+# $1 : [in] the start position of the patch segment
+# $2 : [in,out] patch_end
+_findPatchSegmentEnd() {
 
-    local patchcurpos
-    local p
+    local -i patchcurpos=${1}
+    local -n __patch_end=${2}
+    local -i p=0
 
-    patchcurpos=$1
     for (( p=patchcurpos; p<PATCH_LENGTH; p++ ));
     do
         if [[ "${PATCH_LINES[$p]}" = "${PATCH_SEPARATOR}" ]]; then
-            patch_end=$((p-1))
+            __patch_end=$((p-1))
             break
         fi
     done
 }
 
-# resets the variables set by the find method
-reset() {
-    patch_end=-1
-    patch_start=-1
-    file_start=-1
-    file_end=-1
-}
-
 # finds the text in the FILE_LINES array using the text segment from the PATCH_LINES array
-# inputs:
-# $1 = startfileindex
-# $2 = startpatchindex
-# outputs:
-# file_start
-# file_end
-# patch_start
-# patch_end
-find() {
+# Arguments:
+# $1 : [in] startfileindex
+# $2 : [in] startpatchindex
+# $3 : [in,out] file_start
+# $4 : [in,out] file_end
+# $5 : [in,out] patch_start
+# $6 : [in,out] patch_end
+_find() {
+    
+    startfileindex=${1}
+	startpatchindex=${2}
 
-	local comment_start file_line f p
+    local -n __file_start=${3}
+    local -n __file_end=${4}
+    local -n __patch_start=${5}
+    local -n __patch_end=${6}
 
-    startfileindex=$1
-	startpatchindex=$2
+	local -i comment_start=0 f=0 p=0
+    local file_line
 
 	comment_start=-1
-	reset
- 
+    __file_start=-1; __file_end=-1; __patch_start=-1; __patch_end=-1; 
+
 	for (( f=startfileindex; f<${#FILE_LINES[@]}; f++ ));
 	do
 		# trim white space
@@ -129,8 +137,8 @@ find() {
 		if [[ "${file_line}" == "${START_COMMENT}" ]] ; then
 			comment_start=$f
 		elif [[ $comment_start -gt -1 ]] && [[ "${file_line}" = "${END_COMMENT}" ]] ; then
-			if [[ $file_end -gt -1 ]] && [[ $file_start -gt -1 ]] ; then
-				file_end=$f
+			if [[ $__file_end -gt -1 ]] && [[ $__file_start -gt -1 ]] ; then
+				__file_end=$f
 				break
 			else 
 				comment_start=-1
@@ -140,29 +148,28 @@ find() {
 		for (( p="${startpatchindex}"; p<"${PATCH_LENGTH}"; p++ ));
 		do
 			if [[ "${FILE_LINES[$f]}" = "${PATCH_LINES[$p]}" ]] ; then
-				if [[ $file_start -eq -1 ]] ; then
+				if [[ $__file_start -eq -1 ]] ; then
                     if [[ $comment_start -ne -1  ]] ; then
-					    file_start=$comment_start
+					    __file_start=$comment_start
                     else
-					    file_start=$f
+					    __file_start=$f
                     fi
-                    patch_start=$p
+                    __patch_start=$p
 				fi
 				f=$((f+1))
 			elif [[ "${PATCH_LINES[$p]}" = "${PATCH_SEPARATOR}" ]] ; then
                 f=$((f-1))
-				file_end=$f
-				patch_end=$p
+				__file_end=$f
+				__patch_end=$p
 				break
 			else
-				file_start=-1
-                # shellcheck disable=SC2034
-                patch_start=-1
+				__file_start=-1
+                __patch_start=-1
 				break
 			fi
 		done
 		
-		if [[ comment_start -eq -1 ]] && [[ file_start -gt -1 ]] && [[ file_end -gt file_start ]] ; then
+		if [[ comment_start -eq -1 ]] && [[ __file_start -gt -1 ]] && [[ __file_end -gt __file_start ]] ; then
             break
 		fi
 	done
@@ -173,22 +180,29 @@ find() {
 # $1: the file to apply the patch commands too
 # $2: the file containing the patch commands to apply.  
 apply_patch() { 
-    FILE="$1"
-    PATCH="$2"
-
-    read_file_lines "$FILE"
-    read_patch_lines "$PATCH"
-    
-    local p insert_at_file_pos insert_patch_start 
+    local filename="$1"
+    local patchfile="$2"
+    local -i file_start=0 file_end=0
+    local -i patch_start=0 patch_end=0
+    local -i p=0 
+    local -i insert_at_file_pos=0 
+    local -i insert_patch_start=0 
  
-    for (( p=0; p<"${PATCH_LENGTH}"; p++ ));
-    do
-        #echo "index: $p, value: ${PATCH_LINES[$p]}"
+    _read_file_lines "$filename"
+    _read_patch_lines "$patchfile"
+    
+    #for (( p=0; p<="${PATCH_LENGTH}"; p++ ));
+    while ((p < ${PATCH_LENGTH})); do
+       
+        echo "index: $p, ${#PATCH_LINES[@]}, value: ${PATCH_LINES[$p]}"
+        if (( $p==25 )); then
+            true
+        fi
         if [[ "${PATCH_LINES[$p]}" == "${ACTION_FIND}" ]]; then
             
             p=$((p+1)) # advance past @find command
             # search FILE_LINES for matching lines contained in PATCH_LINES (upto end ''===='')
-            find 0 "$p"
+            _find 0 "$p" file_start file_end patch_start patch_end
             p=$patch_end # set p to index at end of find text
 
         elif [[ "${PATCH_LINES[$p]}" == "${ACTION_INSERT_BEFORE}" ]] || [[ "${PATCH_LINES[$p]}" == "${ACTION_INSERT_AFTER}" ]] ; then
@@ -205,26 +219,27 @@ apply_patch() {
 
             # ensure patch has not already been applied
             # search FILE_LINES for matching lines contained in PATCH_LINES (upto end ''===='')
-            find 0 $insert_patch_start
+            _find 0 $insert_patch_start file_start file_end patch_start patch_end
             if [[ $file_start -eq -1 ]] ; then
-                findPatchSegmentEnd $insert_patch_start
+                _findPatchSegmentEnd $insert_patch_start patch_end
                 if [[ $patch_end -gt -1 ]] ; then
-                    insert_patch $insert_at_file_pos $insert_patch_start $patch_end
+                    _insert_patch $insert_at_file_pos $insert_patch_start $patch_end
                 fi
             fi
         
-            reset
+            file_start=-1; file_end=-1; patch_start=-1; patch_end=-1
         elif [[ "${PATCH_LINES[$p]}" == "${ACTION_REMOVE}" ]]; then
             p=$((p+1)) # advance past @find command
-            find 0 "$p"
+            _find 0 "$p" file_start file_end patch_start patch_end
             [[ $file_start -eq -1 ]] && continue
             file_end=$((file_end+1))
-            insert_line $file_end "${END_COMMENT}"
-            insert_line $file_start "${START_COMMENT}"
+            _insert_line $file_end "${END_COMMENT}"
+            _insert_line $file_start "${START_COMMENT}"
         fi
+        ((p+=1))
     done
 
-    write_file_lines "$FILE"
+    _write_file_lines "$filename"
 }
  
 # shellcheck disable=SC2329
@@ -232,11 +247,13 @@ apply_patch() {
 # $1: the file to apply the patch commands too
 # $2: the file containing the patch commands to revert.  
 revert_patch() {
-    FILE="$1"
-    PATCH="$2"
+    local filename="$1"
+    local patchfile="$2"
+    local -i file_start file_end
+    local -i patch_start patch_end
 
-    read_file_lines "$FILE"
-    read_patch_lines "$PATCH"
+    _read_file_lines "$filename"
+    _read_patch_lines "$patchfile"
 
     local p=0 insert_at_file_pos insert_patch_start 
  
@@ -247,40 +264,40 @@ revert_patch() {
             
             p=$((p+1))
             # shellcheck disable=SC2086
-            find 0 $p
+            _file 0 $p file_start file_end patch_start patch_end
             if [[ $file_start -gt -1 ]] && [[ "${FILE_LINES[$file_start]}" == "/*" ]] ; then
                 # shellcheck disable=SC2086
-                remove_range $file_end $((file_end))
+                _remove_range $file_end $((file_end))
                 # shellcheck disable=SC2086
-                remove_range $file_start $((file_start))
+                _remove_range $file_start $((file_start))
             fi
         
-            reset
+            file_start=-1; file_end=-1; patch_start=-1; patch_end=-1
         elif [[ "${PATCH_LINES[$p]}" == "${ACTION_INSERT_BEFORE}" ]] || [[ "${PATCH_LINES[$p]}" == "{${ACTION_INSERT_AFTER}}" ]] ; then
 
             # search FILE_LINES for matching lines contained in PATCH_LINES (upto end ''===='')
             p=$((p+1))
             # shellcheck disable=SC2086
-            find 0 $p
+            _file 0 $p file_start file_end patch_start patch_end
             if [[ $file_start -gt -1 ]] ; then
                 # shellcheck disable=SC2086
-                remove_range $file_start $file_end
+                _remove_range $file_start $file_end
             fi
         
-            reset
+            file_start=-1; file_end=-1; patch_start=-1; patch_end=-1
         fi
     done
 
-    write_file_lines "$FILE"
+    _write_file_lines "$filename"
 }
 
 BASH_ARGV1="apply"
-BASH_ARGV2="/home/admin/dev/projects/venus-os/services/dbus-ne-shunt/patch/test.working"
-BASH_ARGV3="/home/admin/dev/projects/venus-os/services/dbus-ne-shunt/patch/test.patch"
+BASH_ARGV2="/data/dev/services/dbus-ne-shunt/patch/test.working"
+BASH_ARGV3="/data/dev/services/dbus-ne-shunt/patch/test.patch"
 
 set -- "${BASH_ARGV1}" "${BASH_ARGV2}" "${BASH_ARGV3}"
 
-cp "/home/admin/dev/projects/venus-os/services/dbus-ne-shunt/patch/test.orig" "$2"
+cp "/data/dev/services/dbus-ne-shunt/patch/test.orig" "$2"
 
 apply_patch "$2" "$3"
 #revert_patch "$2" "$3"

@@ -1,0 +1,131 @@
+#!/bin/bash
+# Record serial initialization with app running simultaneously
+
+OUTPUT_FILE="/data/dev/services/dbus-inetbox/tests/assets/serial-init-recording.json"
+REAL_PORT="/dev/ttyUSB0"
+VSERIAL_REAL="/tmp/vserial_real"
+VSERIAL_APP="/tmp/vserial_app"
+RECORDER_PID=""
+APP_PID=""
+SOCAT_REAL_PID=""
+SOCAT_APP_PID=""
+
+clear
+
+cleanup() {
+    echo ""
+    echo "Cleaning up..."
+    
+    if [ -n "$APP_PID" ] && kill -0 "$APP_PID" 2>/dev/null; then
+        echo "Stopping app (PID $APP_PID)..."
+        kill "$APP_PID" 2>/dev/null || true
+        sleep 1
+    fi
+    
+    if [ -n "$RECORDER_PID" ] && kill -0 "$RECORDER_PID" 2>/dev/null; then
+        echo "Stopping recorder (PID $RECORDER_PID)..."
+        kill -INT "$RECORDER_PID" 2>/dev/null || true
+        sleep 3
+    fi
+    
+    if [ -n "$SOCAT_REAL_PID" ] && kill -0 "$SOCAT_REAL_PID" 2>/dev/null; then
+        kill "$SOCAT_REAL_PID" 2>/dev/null || true
+    fi
+    
+    if [ -n "$SOCAT_APP_PID" ] && kill -0 "$SOCAT_APP_PID" 2>/dev/null; then
+        kill "$SOCAT_APP_PID" 2>/dev/null || true
+    fi
+    
+    rm -f "$VSERIAL_REAL" "$VSERIAL_APP"
+    
+    # Check if file was created
+    if [ -f "$OUTPUT_FILE" ]; then
+        echo "✓ Recording saved: $OUTPUT_FILE"
+        SIZE=$(stat -c%s "$OUTPUT_FILE" 2>/dev/null || stat -f%z "$OUTPUT_FILE")
+        echo "  Size: $SIZE bytes"
+    else
+        echo "✗ Recording file NOT created!"
+    fi
+    
+    echo "Done"
+    exit 0
+}
+
+trap cleanup SIGINT SIGTERM EXIT
+
+echo "============================================"
+echo "SERIAL RECORDING WITH APP INITIALIZATION"
+echo "============================================"
+echo ""
+echo "Setup:"
+echo "  Real device:     $REAL_PORT"
+echo "  Recording to:    $OUTPUT_FILE"
+echo ""
+
+# Create socat bridge for real device (suppress output during setup)
+echo "[1/4] Creating socat bridge for real device..."
+socat -d -d \
+    "pty,raw,echo=0,link=$VSERIAL_REAL" \
+    "$REAL_PORT,raw,b9600,cs8,cstopb=1,parenb=0,crtscts=0,ixon=0,ixoff=0" >/dev/null 2>&1 &
+SOCAT_REAL_PID=$!
+sleep 1
+
+if [ ! -e "$VSERIAL_REAL" ]; then
+    echo "ERROR: Failed to create real device virtual port"
+    exit 1
+fi
+
+echo "      Real device bridge created"
+echo ""
+
+# Create socat pair for app communication (suppress output during setup)
+echo "[2/4] Creating socat pair for app..."
+socat -d -d \
+    "pty,raw,echo=0,link=$VSERIAL_APP" \
+    "pty,raw,echo=0,link=/tmp/vserial_internal" >/dev/null 2>&1 &
+SOCAT_APP_PID=$!
+sleep 1
+
+if [ ! -e "$VSERIAL_APP" ]; then
+    echo "ERROR: Failed to create app virtual ports"
+    exit 1
+fi
+
+echo "      App virtual ports created"
+echo ""
+
+# Start the recorder proxy
+echo "[3/4] Starting recorder proxy..."
+python3 /data/dev/python/serial-recorder.py "$VSERIAL_REAL" "$VSERIAL_APP" "$OUTPUT_FILE" &
+RECORDER_PID=$!
+sleep 1
+
+if ! kill -0 "$RECORDER_PID" 2>/dev/null; then
+    echo "ERROR: Recorder process died immediately!"
+    exit 1
+fi
+
+echo "      Recorder running (PID $RECORDER_PID)"
+echo ""
+
+# Start the app
+echo "[4/4] Starting dbus-inetbox app..."
+cd /data/dev/services/dbus-inetbox/src/opt/victronenergy/dbus-inetbox-orig
+python3 __main__.py --serial "$VSERIAL_APP" 2>&1 | sed 's/^/[APP] /' &
+APP_PID=$!
+
+echo "      App running (PID $APP_PID)"
+echo ""
+
+echo "============================================"
+echo "RECORDING IN PROGRESS"
+echo "============================================"
+echo ""
+echo "Device initialization is being recorded."
+echo "Allow 30-60 seconds for full initialization cycle."
+echo ""
+echo "Press Ctrl+C to stop recording"
+echo ""
+
+# Wait for user interrupt
+wait 2>/dev/null || true

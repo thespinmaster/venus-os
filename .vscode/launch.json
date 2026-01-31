@@ -37,9 +37,76 @@
             "name": "Python: dbus-inetbox",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/services/dbus-ne-shunt/src/opt/victronenergy/dbus-inetbox/__main__.py",
+            "program": "${workspaceFolder}/services/dbus-inetbox/src/opt/victronenergy/dbus-inetbox/__main__.py",
             "console": "integratedTerminal",
-            "args": ["--serial", "/dev/ttyUSB1", "--debug"]
+            "justMyCode": true,
+            "args": ["--serial", "/dev/ttyUSB0", "--debug_lin"]
         },
+        {
+            "name": "Inetbox-orig ttyUSB0",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/services/dbus-inetbox/src/opt/victronenergy/dbus-inetbox-orig/__main__.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": ["--serial", "/dev/ttyUSB0", 
+                "--debug_lin"]
+        },
+        {
+            "name": "SIM Inetbox-orig",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/services/dbus-inetbox/src/opt/victronenergy/dbus-inetbox-orig/__main__.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": ["--serial", "/tmp/lin_sim", "--debug_lin"]
+        },
+        {
+            "name": "Python: (active file)",
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "${fileDirname}",
+            "program": "${file}",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "LIN Device Simulator",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/services/dbus-inetbox/tests/device.py",
+            "args": [
+                "${workspaceFolder}/services/dbus-inetbox/tests/assets/serial-init-recording.json",
+                "--speed",
+                "1"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": false
+        },
+        {
+            "name": "LIN Client",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/services/dbus-inetbox/tests/client.py",
+            "console": "integratedTerminal",
+            "justMyCode": false
+        }
+    ],
+    "compounds": [
+        {
+            "name": "LIN Simulator + Client",
+            "configurations": [
+                "LIN Device Simulator",
+                "LIN Client"
+            ],
+            "stopAll": true
+        },
+        {
+            "name": "LIN Simulator + inetbox",
+            "configurations": [
+                "LIN Device Simulator",
+                "SIM Inetbox-orig"
+            ],
+            "stopAll": true
+        }
     ]
 }

@@ -197,11 +197,13 @@ MbPage {
         }
 
 /*
+/*
 		MbSubMenu {
 			description: "Debug"
 			subpage: Component { PageDebug {} }
 			showAccessLevel: User.AccessService
 		}
+*/
 */
 
 	}

@@ -45,8 +45,8 @@ class dbus_base_service(object):
 		className = classAndVrmInstanceParts[0]
 		deviceInstance = int(classAndVrmInstanceParts[1]) #!IMPORTANT MUST BE AN INT
 
-		serviceName = "com.victronenergy.{}.{}_id_{}.{}".format(
-			className, dbus_constants.PRODUCT_NAME, deviceInstance, portName)
+		serviceName = "com.victronenergy.{}.id_{}.{}.{}".format(
+			className, deviceInstance, dbus_constants.SAFE_PRODUCT_NAME, portName)
 
 		self._dbusservice = VeDbusService(serviceName, bus=dbusconnection(), register=False)
   
@@ -66,7 +66,7 @@ class dbus_base_service(object):
 			dbus_constants.HARDWARE_VERSION,
 			1)
 		
-		self._dbusservice.add_path("/ServiceName", "dbus-ne-shunt")
+		self._dbusservice.add_path("/ServiceName", dbus_constants.SAFE_PRODUCT_NAME)
 
 		for path, settings in self._paths.items():
 			self._dbusservice.add_path(
