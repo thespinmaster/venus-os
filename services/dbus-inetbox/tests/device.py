@@ -55,7 +55,7 @@ class VirtualSerialDevice:
         
         
         loop = asyncio.get_running_loop()
-        await asyncio.sleep(5)
+        await asyncio.sleep(3)
         
         start_time = loop.time()
     
@@ -108,7 +108,7 @@ class VirtualSerialDevice:
                 print(f"[APP→SIM] Expected response: {data.hex(' ')}")
                 
                 # Try to read actual response from app
-                await asyncio.sleep(0.01)  # Give app time to respond
+                await asyncio.sleep(0.02)  # Give app time to respond
                 
                 # Check if app sent the expected data
                 try:

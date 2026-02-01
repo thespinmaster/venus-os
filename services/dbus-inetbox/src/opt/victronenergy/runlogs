@@ -1,0 +1,77 @@
+#!/bin/bash
+
+set -e
+
+NAME=
+if [[ ${1} == "orig" ]]; then
+  NAME="dbus-inetbox-orig"
+elif [[ ${1} == "async" ]]; then
+  NAME="dbus-inetbox-async"
+else
+  echo "Invalid Args"
+  exit 1
+fi
+
+WORKSPACE_FOLDER="/data/dev"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+LOG_DIR="${SCRIPT_DIR}/logs"
+
+# Create logs directory
+mkdir -p "${LOG_DIR}"
+
+# Get timestamp for log files
+#TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+INETBOX_LOG="${LOG_DIR}/${NAME}.log"
+
+echo "Starting LIN Simulator + ${NAME} compound configuration"
+echo "Logs will be saved to:"
+echo "  Simulator:"
+echo "  Inetbox:   ${INETBOX_LOG}"
+echo ""
+
+# Start LIN Device Simulator in background
+echo "[$(date)] Starting LIN Device Simulator..."
+python3 "${WORKSPACE_FOLDER}/services/dbus-inetbox/tests/device.py" \
+    "${WORKSPACE_FOLDER}/services/dbus-inetbox/tests/assets/serial-init-recording.json" \
+    --speed 1 \
+    2>/dev/null 1>/dev/null &
+SIM_PID=$!
+
+# Give simulator time to set up the virtual device
+sleep 2
+
+# Start inetbox-orig/async in background
+echo "[$(date)] Starting ${NAME}..."
+cd ${SCRIPT_DIR}/${NAME}
+python3 "[${NAME}]" \
+    --serial /tmp/lin_sim \
+    --debug_lin \
+    2>&1 | tee "${INETBOX_LOG}" &
+INETBOX_PID=$!
+
+echo "[$(date)] Both processes started"
+echo "  Simulator PID: ${SIM_PID}"
+echo "  Inetbox PID: ${INETBOX_PID}"
+echo ""
+echo "Press Ctrl+C to stop both processes"
+echo ""
+
+# Function to clean up on exit
+cleanup() {
+    echo ""
+    echo "[$(date)] Stopping processes..."
+    kill ${SIM_PID} 2>/dev/null || true
+    kill ${INETBOX_PID} 2>/dev/null || true
+    echo "[$(date)] Done"
+}
+
+# Set up trap to clean up on exit
+trap cleanup EXIT INT TERM
+
+# Wait for both processes
+wait ${SIM_PID} 2>/dev/null || SIM_EXIT=$?
+wait ${INETBOX_PID} 2>/dev/null || INETBOX_EXIT=$?
+
+echo "[$(date)] Process exit codes:"
+echo "  Simulator: ${SIM_EXIT:-0}"
+echo "  Inetbox: ${INETBOX_EXIT:-0}"

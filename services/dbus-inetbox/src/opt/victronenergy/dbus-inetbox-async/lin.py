@@ -18,40 +18,47 @@
 # pip install pyserial-asyncio
 	
 import inetboxapp
-import serial
+import serial_asyncio
 from taskmanager import TaskManager
 from tools import calculate_checksum
 from lin_recorder import LinRecorder
 import logging
 import asyncio
-import logging
-import sys
-import time
+from typing import Optional, cast
+ 
 
-class Lin:
-		done=False
+class LinLogger(logging.Logger):
+  
+			# Add custom log level for LIN-TRACE
+		LIN_TRACE_LEVEL = 25  # Between INFO (20) and DEBUG (10)
+		logging.addLevelName(LIN_TRACE_LEVEL, "LIN-TRACE")
+
+		def lin_trace(self, message, *args, **kwargs):
+				if self.isEnabledFor(self.LIN_TRACE_LEVEL):
+					self._log(self.LIN_TRACE_LEVEL, message, args, **kwargs)
+
+logging.setLoggerClass(LinLogger)
+
+class Lin(asyncio.Protocol):
+
 		ts_response_buffer = []
 		cpp_in_buffer = [bytes([]),bytes([]),bytes([]),bytes([]),bytes([]),bytes([])]
 		updates_to_send = False
 		update_request = False
 		cpp_buffer = {}
 		cmd_buf = {}
-		cnt_rows = 1
+ 
 		stop_async = False
-		log = logging.getLogger(__name__)
-		cnt_in = 0
+		log: LinLogger = logging.getLogger(__name__)  # type: ignore[assignment]
+ 
 		app : inetboxapp.InetboxApp
 		# Same approach for the raw PID 0xD8. This corresponds to a PID 0x18
 		d8_alive = False
-
-
-		# Only for display control / slow event timing
-		CNT_ROWS_MAX = 200
-		
+ 
 		# Check Alive-status periodically - with 1ms delay it is appx. 9s
 		# there must be more than 1 D8-requests in this periode, than is alive status "ON"
 		# otherwise it would set "OFF" 
-		CNT_IN_MAX = 9000
+		# CNT_IN_MAX = 9000
 		
 		DISPLAY_STATUS_PIDS = [bytes([0x20]), bytes([0x61]), bytes([0xE2])]
 		
@@ -70,24 +77,15 @@ class Lin:
 
 
 		def __init__(self, app : inetboxapp.InetboxApp, port : str, tasks : TaskManager, lin_debug, record_file=None):
+			self.transport: Optional[asyncio.BaseTransport] = None
 			self.loop_state = False
-			self.serial = serial.Serial(
-				port,
-				baudrate=9600,
-				bytesize=serial.EIGHTBITS,
-				parity=serial.PARITY_NONE,
-				stopbits=serial.STOPBITS_ONE,
-				xonxoff=False,
-				rtscts=False,
-				dsrdtr=False,
-				timeout=0.003,
-			)
+			self.port = port
 			
 			# Initialize recorder if file specified
 			self.recorder = LinRecorder(record_file) if record_file else None
 			
 			self._rx_buf = bytearray()
-			self.cnt_rows = 1
+ 
 			if lin_debug:
 					self.log.setLevel(logging.DEBUG)
 			else:
@@ -98,13 +96,41 @@ class Lin:
 			self.app = app
 			if not(tasks==None):
 				tasks.add_task("lin_loop", self._lin_loop)
+				tasks.add_task("lin_connect", self.connect)
 
 			print("Lin initialized")
 			if self.recorder:
 				print(f"Recording enabled: {record_file}")
 
+		# ____________________________________
+		# serial_asyncio lambdas
+		def connection_made(self, transport):
+			self.transport = transport
+			self.log.info("Serial connection established")
+
+		def connection_lost(self, exc):
+    
+			self.log.error("Serial connection lost")
+			self.transport = None
+			if exc:
+				self.log.exception(exc)
+    
+		def data_received(self, data: bytes):
+			if not data:
+				return
+			if self.recorder:
+				self.recorder.record_read(data)
+			
+			#print(f"[LIN-DEBUGa] RX raw: {data.hex(' ')} ({len(data)} bytes)")
+			
+			self._rx_buf.extend(data)
+			self._process_rx_buffer()
+   
 		def response_waiting(self):
 			return len(self.ts_response_buffer)
+ 
+		# ____________________________________
+ 
 
 
 		def _send_answer_str(self, data_str):
@@ -122,18 +148,21 @@ class Lin:
 		def _send_answer(self, databytes):
 			if self.recorder:
 				self.recorder.record_write(databytes)
-			self.serial.write(databytes)
-			#self.serial.flush()
-			time.sleep(0.002)
-			self.log.debug("out > " + str(databytes.hex(" ")))
- 
+			if self.transport:
+				# Cast to WriteTransport which has the write() method
+				transport = cast(asyncio.WriteTransport, self.transport)
+				transport.write(databytes)
+			else:
+				self.log.warning("No transport available; dropping outgoing frame")
+				#self.log.debug("out > " + str(databytes.hex(" ")))
+			self.log.lin_trace(f"out > {databytes.hex(' ')}")
 
 		def prepare_tl_str_response(self, message_str, info_str):
 				self.prepare_tl_response(bytes.fromhex(message_str.replace(" ","")))
-				if info_str.startswith("_"):
-						self.log.debug(info_str)
-				else:    
-						self.log.info(info_str)
+				#if info_str.startswith("_"):
+				#		self.log.debug(info_str)
+				#else:    
+				#		self.log.info(info_str)
 
 
 		def prepare_tl_response(self, messages):
@@ -154,19 +183,34 @@ class Lin:
 						self.stop_async = self.response_waiting()
 				self.updates_to_send = (self.app.upload_buffer or self.app.upload02_buffer)
 				if p.startswith("_"): return
-				self.log.debug(p)
+				#self.log.debug(p)
 
 			 
 		def display_status(self):
 				pass
-#        if self.info:
-#            print()
-#            print("Overview received buffers")
-#            for key in self.cpp_buffer.keys():
-#                 print(f"Buf[{key}]={self.cpp_buffer[key]}")
-#            print("-----------------------------")
-#            print()
-
+		async def connect(self):
+			"""Establish and maintain async serial connection."""
+			while True:
+				if self.transport is None:
+					try:
+						await serial_asyncio.create_serial_connection(
+							asyncio.get_running_loop(),
+							lambda: self,
+							self.port,
+							baudrate=9600,
+							bytesize=8,
+							parity="N",
+							stopbits=1,
+							xonxoff=False,
+							rtscts=False,
+							dsrdtr=False,
+							timeout=0.003,
+						)
+					except Exception as exc:
+						self.log.error("Serial connection failed")
+						self.log.exception(exc)
+						await asyncio.sleep(5)
+				await asyncio.sleep(1)
 
 		def assemble_cpp_buffer(self):
 				# gather the transfered frames 
@@ -177,12 +221,12 @@ class Lin:
 						buf += self.cpp_in_buffer[i]
 				#print(buf.hex("+"))    
 				if buf[:8] != self.BUFFER_PREAMBLE:
-						self.log.debug("buffer preamble doesn't match")
+						#self.log.debug("buffer preamble doesn't match")
 						return False
 				buf_id = buf[8:10]
 				self.d8_alive = True
 				self.cpp_buffer[buf_id] = buf[10:]
-				self.log.debug(f"Buf[{buf_id}]={self.cpp_buffer[buf_id]}")
+				#self.log.debug(f"Buf[{buf_id}]={self.cpp_buffer[buf_id]}")
 				self.app.process_status_buffer_update(buf_id, self.cpp_buffer[buf_id])
 				return True
 
@@ -220,112 +264,81 @@ class Lin:
 						self.prepare_tl_response(i)
 				self.updates_to_send = False
 				if p.startswith("_"): return
-				self.log.debug(p)
-
-		async def watchdog(self):
-				self.log.info("watchdog activated")
-				await asyncio.sleep(60)
-				if (self.app.status["alive"][0] == "ON"):
-						self.log.info("watchdog deactivated_s1")
-						return
-				await asyncio.sleep(60)
-				if (self.app.status["alive"][0] == "ON"):
-						self.log.info("watchdog deactivated_s2")
-						return
-				await asyncio.sleep(60)
-				if (self.app.status["alive"][0] == "ON"):
-						self.log.info("watchdog deactivated_s3")
-				else:
-						if self.lin_debug:
-								self.log.debug("system reboot in debug_mode suppressed")
-						else:    
-								self.log.info("system reboot required")
-								# For standard Python, use sys.exit() instead of machine.reset()
-								sys.exit(1)
-		
+				#self.log.debug(p)
+ 
 		# check alive status
 		def status_monitor(self):
-				self.cnt_in += 1
- 
-				if not(self.cnt_in % self.CNT_IN_MAX):
-						self.cnt_in=0
-						self.app.status["alive"] = ["ON", True, False] 
-# Same approach for the raw PID 0xD8. This corresponds to a PID 0x18
-						if self.d8_alive:
-								self.app.status["alive"][0] = "ON"
-						else:
-								self.app.status["alive"][0] = "OFF"
-						self.d8_alive = False
- 
-
+			# Called every 9 seconds to check if device is alive
+			self.app.status["alive"] = ["ON", True, False] 
+			# Same approach for the raw PID 0xD8. This corresponds to a PID 0x18
+			if self.d8_alive:
+					self.app.status["alive"][0] = "ON"
+			else:
+					self.app.status["alive"][0] = "OFF"
+			self.d8_alive = False
+   
 		# major ctrl loop for inetbox-communication
 		async def _lin_loop(self):
-			#await asyncio.sleep(1) # Delay at begin
-			
-			#log.info("lin-loop is running")
-
+			# Timing loop for status monitoring
+			# Serial I/O now handled by data_received() callback
 			while True:
-				self._loop_serial()
-				if not(self.stop_async): # full performance to send buffer
-					await asyncio.sleep(0.001)
-					#await asyncio.sleep(0.5)
+				self.status_monitor()
+				await asyncio.sleep(9.0)  # Check alive status every 9 seconds
+		
 
-		def _loop_serial(self):
-			self.status_monitor()
-
-			# Read whatever is available
-			n = self.serial.in_waiting
-			if n <= 0:
-				return
-			data = self.serial.read(n)
-			if data:
-				if self.recorder:
-					self.recorder.record_read(data)
-				self._rx_buf.extend(data)
-
+   
+		def _process_rx_buffer(self):
+			
 			while True:
 				# Find sync 0x00 0x55
 				sync_idx = self._rx_buf.find(b'\x00\x55')
+			
 				if sync_idx < 0:
-					#print(f"[LIN-DEBUG] No sync found, buffer: {self._rx_buf.hex(' ')}")
-					# Keep last 0x00 in case sync starts there
-					self._rx_buf = self._rx_buf[-1:] if self._rx_buf[-1:] == b'\x00' else bytearray()
-					#print(f"[LIN-DEBUG] Kept for next iteration: {self._rx_buf.hex(' ')}")
+					# No sync found - keep a trailing 0x00 in case sync spans chunks
+					if self._rx_buf[-1:] == b'\x00':
+						self._rx_buf[:] = b'\x00'
+						#print(f"set \x00")
+					else:
+						self._rx_buf.clear()
+						#print(f"clear")
 					return
-
-				#print(f"[LIN-DEBUG] Sync found at index {sync_idx}")
 				
+				if sync_idx > 0:
+					# Sync not at start - discard leading garbage
+					del self._rx_buf[:sync_idx]
+					sync_idx = 0
+				
+				#print(f"sync_idx: {sync_idx}")
+    
+				# Now sync is at position 0
 				# Need at least 3 bytes for raw PID
-				if len(self._rx_buf) < sync_idx + 3:
-					#print(f"[LIN-DEBUG] Need 3 bytes, have {len(self._rx_buf) - sync_idx}")
-					return
-
-				raw_pid = self._rx_buf[sync_idx + 2]
-				#print(f"[LIN-DEBUG] Raw PID: 0x{raw_pid:02x}")
-
+				if len(self._rx_buf) < 3:
+					return  # Wait for more data
+				
+				raw_pid = self._rx_buf[2]
+				
 				# Determine required frame length
 				frame_len = 3 if raw_pid in (0xD8, 0x7D) else 12
-				if len(self._rx_buf) < sync_idx + frame_len:
-					#print(f"[LIN-DEBUG] Need {frame_len} bytes, have {len(self._rx_buf) - sync_idx}")
-					return
-
-				line = bytes(self._rx_buf[sync_idx:sync_idx + frame_len])
-				#print(f"[LIN-DEBUG] Extracted frame: {line.hex(' ')}")
-				del self._rx_buf[:sync_idx + frame_len]
-
-				self._process_frame(line)
-
-		def _process_frame(self, line: bytes):
-			raw_pid = line[2]
-
-			#if raw_pid in self.DISPLAY_STATUS_PIDS:
-					#print(f"status-message found with {raw_pid:x}")
-
+				#print(f"frame_len: {frame_len}")
+				if len(self._rx_buf) < frame_len:
+					return  # Wait for more data
+				
+				# Extract and process frame
+				line = bytes(self._rx_buf[:frame_len])
+				del self._rx_buf[:frame_len]
+				self.log.lin_trace(f"Full frame received: {line.hex(' ')} ({len(line)} bytes)")
+				
+				self._process_frame(line, raw_pid)
+				#if raw_pid in self.DISPLAY_STATUS_PIDS:
+						#print(f"status-message found with {raw_pid:x}")
+      
+		def _process_frame(self, line, raw_pid):
+			# self.log.trace(f"Processing frame: {line.hex(' ')}")
 			if raw_pid == 0xd8:
 				self.d8_alive = True
 				self.app.status["alive"] = ["ON", True, False]
 
-				self.log.debug(f"in 1 < {line.hex(' ')}")
+				#self.log.debug(f"in 1 < {line.hex(' ')}")
 				s = False
 				if not(self.app.upload_wait):
 								s = (self.app.upload_buffer or self.app.upload02_buffer)
@@ -347,12 +360,6 @@ class Lin:
 					self._answer_tl_request()
 				return
 
-			# Remaining logic expects 12‑byte frames
-			self.cnt_rows += 1
-			self.cnt_rows = self.cnt_rows % self.CNT_ROWS_MAX
-			if not(self.cnt_rows):
-				self.display_status()
-
 			#self.log.debug(f"in 3 < {line.hex(' ')}")
 
 			buf_trans_id = bytes([0x00, 0x55, 0x3c, 0x03])
@@ -364,25 +371,24 @@ class Lin:
 					return
 				else:
 					return
-
-			if self.done == 2:
-				return
-
+ 
 			cmd = line.hex(" ")
-			cmd_ctrl = {
-				"00 55 3c 7f 06 b2 00 17 46 00 1f 4b": [self.prepare_tl_str_response, "03 06 f2 17 46 00 1f 00 87", "_B2 - response request"],
-				"00 55 03 aa 0a ff ff ff ff ff ff 48": [self.no_answer, "", "_NAD 03 response - ack"],
-				"00 55 3c 03 06 b2 20 17 46 00 1f a7": [self.prepare_tl_str_response, "03 06 f2 17 46 00 1f 00 87", "B2 - identifier for NAD 03"],
-				"00 55 3c 03 06 b2 22 17 46 00 1f a5": [self.prepare_tl_str_response, "03 06 f2 17 46 00 1f 00 87", "B2 - initializer for NAD 03   -----------------> start registration"],
-				"00 55 3c 7f 06 b0 17 46 00 1f 03 4a": [self.prepare_tl_str_response, "03 01 f0 ff ff ff ff ff 0b", "B0 - init finalized - send ackn ---------------> registration finalized"],
-				"00 55 3c 03 05 b9 00 1f 00 00 ff 1f": [self.prepare_tl_str_response, "03 02 f9 00 ff ff ff ff 01", "_Heartbeat for NAD 03 - send response"],
-				"00 55 3c 03 10 29 bb 00 1f 00 1e ca": [self.no_answer, "", "_Frame 1 of buffer-transfer (6 frames) from CPplus"],
-				"00 55 3c 03 10 0b ba 00 1f 00 1e e9": [self.generate_inet_upload, "", "BA-request: upload started"],
-				"00 55 03 aa 0a ff ff ff ff ff ff 48": [self.no_answer, "", "_ackn from CPplus"],
-			}
-			if not(cmd in cmd_ctrl.keys()):
-				return
-	
-			self.log.debug(cmd_ctrl[cmd][2])
-			cmd_ctrl[cmd][0](cmd_ctrl[cmd][1], cmd_ctrl[cmd][2])
+			entry = self.cmd_ctrl.get(cmd)
+			if not entry is None:
+				fn, msg, info = entry
+				self.log.lin_trace(f"executing command: {info}")
+				fn(self, msg, info)
+			
 			return
+
+		cmd_ctrl = {
+			"00 55 3c 7f 06 b2 00 17 46 00 1f 4b": [prepare_tl_str_response, "03 06 f2 17 46 00 1f 00 87", "_B2 - response request"],
+			"00 55 03 aa 0a ff ff ff ff ff ff 48": [no_answer, "", "_NAD 03 response - ack"],
+			"00 55 3c 03 06 b2 20 17 46 00 1f a7": [prepare_tl_str_response, "03 06 f2 17 46 00 1f 00 87", "B2 - identifier for NAD 03"],
+			"00 55 3c 03 06 b2 22 17 46 00 1f a5": [prepare_tl_str_response, "03 06 f2 17 46 00 1f 00 87", "B2 - initializer for NAD 03   -----------------> start registration"],
+			"00 55 3c 7f 06 b0 17 46 00 1f 03 4a": [prepare_tl_str_response, "03 01 f0 ff ff ff ff ff 0b", "B0 - init finalized - send ackn ---------------> registration finalized"],
+			"00 55 3c 03 05 b9 00 1f 00 00 ff 1f": [prepare_tl_str_response, "03 02 f9 00 ff ff ff ff 01", "_Heartbeat for NAD 03 - send response"],
+			"00 55 3c 03 10 29 bb 00 1f 00 1e ca": [no_answer, "", "_Frame 1 of buffer-transfer (6 frames) from CPplus"],
+			"00 55 3c 03 10 0b ba 00 1f 00 1e e9": [generate_inet_upload, "", "BA-request: upload started"],
+			"00 55 03 aa 0a ff ff ff ff ff ff 48": [no_answer, "", "_ackn from CPplus"],
+		}

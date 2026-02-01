@@ -77,7 +77,7 @@ class InetboxService:
 		#self._dbusInetboxService = dbusInetboxService("InetBox", serialPort, classAndVrmInstance, self._onInetboxValueChanged)
 	
 	def published_inetbox_value(self, name: str, value: str):
-		logging.info(f'setting changed, {name}={value}')
+		#logging.info(f'setting changed, {name}={value}')
 		dbusPath=self.map_or_debug(self.LIN_TO_DBUS_MAPPING, name)
 		if dbusPath == "": 
 			return
@@ -98,7 +98,7 @@ class InetboxService:
 	# Occurs when the a device setting value changes
 	############################################
 	def _handle_changed_setting(self, setting, oldvalue, newvalue):
-		logging.debug('setting changed, setting: %s, old: %s, new: %s' % (setting, oldvalue, newvalue))
+		#logging.debug('setting changed, setting: %s, old: %s, new: %s' % (setting, oldvalue, newvalue))
 		dbusPath=self.map_or_debug(self.DBUS_TO_LIN_MAPPING,setting)
 		#self._start_stop_services(setting, newvalue)
 		return True
@@ -125,9 +125,10 @@ class InetboxService:
 				},
 			eventCallback = self._handle_changed_setting)
 
-	def map_or_debug(self, mapping, value):
-		if value in mapping:
-			return mapping[value]
+	def map_or_debug(self, mapping, name):
+		if name in mapping:
+			return mapping[name]
 		else:
-			logging.debug(f"map_or_debug:unknown value {value}")
+			#logging.debug(f"map_or_debug:unknown value {name}")
+			print(f"[LIN-DEBUG] map_or_debug:unknown value {name}")
 			return ""

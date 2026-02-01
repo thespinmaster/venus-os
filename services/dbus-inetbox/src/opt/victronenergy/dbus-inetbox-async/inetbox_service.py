@@ -65,23 +65,23 @@ class InetboxService:
 		self.log.setLevel(logging.DEBUG)
 		self._serialPort=serialPort
 		
-		#self._initializeSettings()
+		self._initializeSettings()
 		
 		self._app = InetboxApp(tasks, debug_inet)  
 		self._lin = Lin(self._app, serialPort, tasks, debug_lin, record_file)
 
 		self._app.add_publish_callback(self.published_inetbox_value)
 		
-		#classAndVrmInstance = self._settings['inetbox_class_and_vrm_instance']
+		classAndVrmInstance = self._settings['inetbox_class_and_vrm_instance']
  
-		#self._dbusInetboxService = dbusInetboxService("InetBox", serialPort, classAndVrmInstance, self._onInetboxValueChanged)
+		self._dbusInetboxService = dbusInetboxService("InetBox", serialPort, classAndVrmInstance, self._onInetboxValueChanged)
 	
 	def published_inetbox_value(self, name: str, value: str):
 		logging.info(f'setting changed, {name}={value}')
 		dbusPath=self.map_or_debug(self.LIN_TO_DBUS_MAPPING, name)
 		if dbusPath == "": 
 			return
-		#self._dbusInetboxService.set_value(self.DBUS_PATH + dbusPath, value)
+		self._dbusInetboxService.set_value(self.DBUS_PATH + dbusPath, value)
 
 	def _onInetboxValueChanged(self, path : str, value : str):
 		if not path.startswith(self.DBUS_PATH):
@@ -92,7 +92,7 @@ class InetboxService:
 			return
 		self._app.set_status(linPath, value)
  
-		#self._dbusInetboxService.set_value(name, value)
+		self._dbusInetboxService.set_value(name, value)
  
 	############################################
 	# Occurs when the a device setting value changes
@@ -125,9 +125,10 @@ class InetboxService:
 				},
 			eventCallback = self._handle_changed_setting)
 
-	def map_or_debug(self, mapping, value):
-		if value in mapping:
-			return mapping[value]
+	def map_or_debug(self, mapping, name):
+		if name in mapping:
+			return mapping[name]
 		else:
-			logging.debug(f"map_or_debug:unknown value {value}")
+			#logging.debug(f"map_or_debug:unknown value {value}")
+			print(f"map_or_debug:unknown value {name}")
 			return ""

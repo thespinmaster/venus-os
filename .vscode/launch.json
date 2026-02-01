@@ -7,8 +7,9 @@
     "configurations": [
         {
             "type": "bashdb",
+            "presentation": { "group": "bash" },
             "request": "launch",
-            "name": "Bash Dbg: (active file)",
+            "name": "Bash - active file",
             "cwd": "${fileDirname}",
             "program": "${file}",
             "terminalKind": "integrated",
@@ -18,51 +19,17 @@
  
         {
             "type": "bashdb",
+            "presentation": { "group": "bash" },
             "request": "launch",
-            "name": "Bash Dbg (defined script)",
+            "name": "Bash - defined script",
             "cwd": "${workspaceFolder}",
             "program": "${workspaceFolder}/utils/opkg-helpers/tests/serial-device-installer-tests",
             "terminalKind": "integrated",
             "args": []
         },
         {
-            "name": "Python: dbus-ne-shunt",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${workspaceFolder}/services/dbus-ne-shunt/src/opt/victronenergy/dbus-ne-shunt/main.py",
-            "console": "integratedTerminal",
-            "args": ["--serial", "/dev/ttyACM0", "--debug"]
-        },
-        {
-            "name": "Python: dbus-inetbox",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${workspaceFolder}/services/dbus-inetbox/src/opt/victronenergy/dbus-inetbox/__main__.py",
-            "console": "integratedTerminal",
-            "justMyCode": true,
-            "args": ["--serial", "/dev/ttyUSB0", "--debug_lin"]
-        },
-        {
-            "name": "Inetbox-orig ttyUSB0",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${workspaceFolder}/services/dbus-inetbox/src/opt/victronenergy/dbus-inetbox-orig/__main__.py",
-            "console": "integratedTerminal",
-            "justMyCode": true,
-            "args": ["--serial", "/dev/ttyUSB0", 
-                "--debug_lin"]
-        },
-        {
-            "name": "SIM Inetbox-orig",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${workspaceFolder}/services/dbus-inetbox/src/opt/victronenergy/dbus-inetbox-orig/__main__.py",
-            "console": "integratedTerminal",
-            "justMyCode": true,
-            "args": ["--serial", "/tmp/lin_sim", "--debug_lin"]
-        },
-        {
-            "name": "Python: (active file)",
+            "name": "Python - active file",
+            "presentation": { "group": "python"},
             "type": "debugpy",
             "request": "launch",
             "cwd": "${fileDirname}",
@@ -70,7 +37,53 @@
             "console": "integratedTerminal"
         },
         {
-            "name": "LIN Device Simulator",
+            "name": "dbus-inetbox-async (ttyUSB0)",
+            "presentation": { "group": "inetbox" },
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/services/dbus-inetbox/src/opt/victronenergy/dbus-inetbox-async",
+            "program": "__main__.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": ["--serial", "/dev/ttyUSB0", "--debug_lin"]
+        },
+        {
+            "name": "dbus-inetbox-orig (ttyUSB0)",
+            "presentation": { "group": "inetbox" },
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/services/dbus-inetbox/src/opt/victronenergy/dbus-inetbox-orig",
+            "program": "__main__.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": ["--serial", "/dev/ttyUSB0", 
+                "--debug_lin"]
+        },
+        {
+            "name": "Inetbox-orig (SIM)",
+            "presentation": {"hidden": true},
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/services/dbus-inetbox/src/opt/victronenergy/dbus-inetbox-orig",
+            "program": "__main__.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": ["--serial", "/tmp/lin_sim", "--debug_lin"]
+        },
+        {
+            "name": "Inetbox-async (SIM)",
+            "presentation": {"hidden": true},
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/services/dbus-inetbox/src/opt/victronenergy/dbus-inetbox-async",
+            "program": "__main__.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": ["--serial", "/tmp/lin_sim", "--debug_lin"]
+        },
+        {
+            "name": "LIN Device Player",
+            "presentation": {"hidden": true},
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/services/dbus-inetbox/tests/device.py",
@@ -83,28 +96,31 @@
             "justMyCode": false
         },
         {
-            "name": "LIN Client",
+            "name": "dbus-ne-shunt",
+            "presentation": { "group": "dbus-ne-shunt"},
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/services/dbus-inetbox/tests/client.py",
+            "program": "${workspaceFolder}/services/dbus-ne-shunt/src/opt/victronenergy/dbus-ne-shunt/main.py",
             "console": "integratedTerminal",
-            "justMyCode": false
-        }
+            "args": ["--serial", "/dev/ttyACM0", "--debug"]
+        },
     ],
     "compounds": [
         {
-            "name": "LIN Simulator + Client",
+            "name": "dbus-inetbox-orig + lin-playback",
+            "presentation": { "group": "inetbox" },
             "configurations": [
-                "LIN Device Simulator",
-                "LIN Client"
+                "LIN Device Player",
+                "Inetbox-orig (SIM)"
             ],
             "stopAll": true
         },
         {
-            "name": "LIN Simulator + inetbox",
+            "name": "dbus-inetbox-async + lin-playback",
+            "presentation": { "group": "inetbox" },
             "configurations": [
-                "LIN Device Simulator",
-                "SIM Inetbox-orig"
+                "LIN Device Player",
+                "Inetbox-async (SIM)"
             ],
             "stopAll": true
         }

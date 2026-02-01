@@ -29,7 +29,7 @@ import sys
 import time
 
 class Lin:
-		done=False
+
 		ts_response_buffer = []
 		cpp_in_buffer = [bytes([]),bytes([]),bytes([]),bytes([]),bytes([]),bytes([])]
 		updates_to_send = False
@@ -125,15 +125,15 @@ class Lin:
 			self.serial.write(databytes)
 			#self.serial.flush()
 			time.sleep(0.002)
-			self.log.debug("out > " + str(databytes.hex(" ")))
+			print(f"[LIN-DEBUG] out > {databytes.hex(' ')}")
  
 
 		def prepare_tl_str_response(self, message_str, info_str):
 				self.prepare_tl_response(bytes.fromhex(message_str.replace(" ","")))
-				if info_str.startswith("_"):
-						self.log.debug(info_str)
-				else:    
-						self.log.info(info_str)
+				#if info_str.startswith("_"):
+				#		self.log.debug(info_str)
+				#else:    
+				#		self.log.info(info_str)
 
 
 		def prepare_tl_response(self, messages):
@@ -145,8 +145,8 @@ class Lin:
 						databytes = bytes(self.ts_response_buffer[0])
 						self.ts_response_buffer.pop(0)
 						self._send_answer(databytes)
-				else:
-						self.log.debug("unexpacted behavior - nothing to send")
+				#else:
+						#self.log.debug("unexpacted behavior - nothing to send")
 
 
 		def no_answer(self, s, p):
@@ -154,7 +154,7 @@ class Lin:
 						self.stop_async = self.response_waiting()
 				self.updates_to_send = (self.app.upload_buffer or self.app.upload02_buffer)
 				if p.startswith("_"): return
-				self.log.debug(p)
+				#self.log.debug(p)
 
 			 
 		def display_status(self):
@@ -177,12 +177,12 @@ class Lin:
 						buf += self.cpp_in_buffer[i]
 				#print(buf.hex("+"))    
 				if buf[:8] != self.BUFFER_PREAMBLE:
-						self.log.debug("buffer preamble doesn't match")
+						#self.log.debug("buffer preamble doesn't match")
 						return False
 				buf_id = buf[8:10]
 				self.d8_alive = True
 				self.cpp_buffer[buf_id] = buf[10:]
-				self.log.debug(f"Buf[{buf_id}]={self.cpp_buffer[buf_id]}")
+				#self.log.debug(f"Buf[{buf_id}]={self.cpp_buffer[buf_id]}")
 				self.app.process_status_buffer_update(buf_id, self.cpp_buffer[buf_id])
 				return True
 
@@ -200,19 +200,19 @@ class Lin:
 #         self.prepare_tl_response(bytes.fromhex("03 26 00 00 00 00 00 00 d6".replace(" ","")))
 
 				if self.app.upload_buffer:
-						self.log.debug("heater_status to be generated")
+						#self.log.debug("heater_status to be generated")
 						self.cmd_buf = self.app._get_status_buffer_for_writing()
 						self.stop_async = True
 						if self.app.upload_buffer > 0: self.app.upload_buffer -= 1
 
 				if self.app.upload02_buffer:
-						self.log.debug("aircon_status to be generated")
+						#self.log.debug("aircon_status to be generated")
 						self.cmd_buf = self.app._get_status_buffer1_for_writing()
 						self.stop_async = True
 						if self.app.upload02_buffer > 0: self.app.upload02_buffer -= 1
 
 				if (self.cmd_buf == None) or (self.cmd_buf == {}):
-						self.log.debug("cmd_buffer is empty")
+						#self.log.debug("cmd_buffer is empty")
 						return
 				self.d8_alive = True
 				self.stop_async = True
@@ -220,13 +220,13 @@ class Lin:
 						self.prepare_tl_response(i)
 				self.updates_to_send = False
 				if p.startswith("_"): return
-				self.log.debug(p)
+				#self.log.debug(p)
 
 		async def watchdog(self):
 				self.log.info("watchdog activated")
 				await asyncio.sleep(60)
 				if (self.app.status["alive"][0] == "ON"):
-						self.log.info("watchdog deactivated_s1")
+						#self.log.info("watchdog deactivated_s1")
 						return
 				await asyncio.sleep(60)
 				if (self.app.status["alive"][0] == "ON"):
@@ -281,6 +281,7 @@ class Lin:
 			if data:
 				if self.recorder:
 					self.recorder.record_read(data)
+					print(f"[LIN-DEBUG] RX raw: {data.hex(' ')} ({len(data)} bytes)")
 				self._rx_buf.extend(data)
 
 			while True:
@@ -301,7 +302,6 @@ class Lin:
 					return
 
 				raw_pid = self._rx_buf[sync_idx + 2]
-				#print(f"[LIN-DEBUG] Raw PID: 0x{raw_pid:02x}")
 
 				# Determine required frame length
 				frame_len = 3 if raw_pid in (0xD8, 0x7D) else 12
@@ -310,12 +310,13 @@ class Lin:
 					return
 
 				line = bytes(self._rx_buf[sync_idx:sync_idx + frame_len])
-				#print(f"[LIN-DEBUG] Extracted frame: {line.hex(' ')}")
+				print(f"[LIN-DEBUG] Full frame received: {line.hex(' ')} ({len(line)} bytes)")				#print(f"[LIN-DEBUG] Extracted frame: {line.hex(' ')}")
 				del self._rx_buf[:sync_idx + frame_len]
 
 				self._process_frame(line)
 
 		def _process_frame(self, line: bytes):
+			#print(f"[LIN-DEBUG] Processing frame: {line.hex(' ')}")
 			raw_pid = line[2]
 
 			#if raw_pid in self.DISPLAY_STATUS_PIDS:
@@ -325,7 +326,8 @@ class Lin:
 				self.d8_alive = True
 				self.app.status["alive"] = ["ON", True, False]
 
-				self.log.debug(f"in 1 < {line.hex(' ')}")
+				#self.log.debug(f"in 1 < {line.hex(' ')}")
+
 				s = False
 				if not(self.app.upload_wait):
 								s = (self.app.upload_buffer or self.app.upload02_buffer)
@@ -364,10 +366,7 @@ class Lin:
 					return
 				else:
 					return
-
-			if self.done == 2:
-				return
-
+ 
 			cmd = line.hex(" ")
 			cmd_ctrl = {
 				"00 55 3c 7f 06 b2 00 17 46 00 1f 4b": [self.prepare_tl_str_response, "03 06 f2 17 46 00 1f 00 87", "_B2 - response request"],
@@ -383,6 +382,8 @@ class Lin:
 			if not(cmd in cmd_ctrl.keys()):
 				return
 	
-			self.log.debug(cmd_ctrl[cmd][2])
+			#self.log.debug(cmd_ctrl[cmd][2])
+   
+			print(f"[LIN-DEBUG] executing command: {cmd_ctrl[cmd][2]}")
 			cmd_ctrl[cmd][0](cmd_ctrl[cmd][1], cmd_ctrl[cmd][2])
 			return
