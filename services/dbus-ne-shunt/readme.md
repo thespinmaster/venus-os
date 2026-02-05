@@ -63,5 +63,5 @@ svc -t /service/gui
 
 ### useful links  
 https://github.com/victronenergy/venus/wiki/howto-add-a-driver-to-Venus  
-https://github.com/class142/ne-rs485/blob/master/spec.md
+https://github.com/class142/ne-rs485/blob/master/spec.md  
 https://github.com/victronenergy/venus/wiki/dbus-api  
