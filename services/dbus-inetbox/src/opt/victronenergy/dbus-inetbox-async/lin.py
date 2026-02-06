@@ -30,7 +30,7 @@ from typing import Optional, cast
 class LinLogger(logging.Logger):
   
 			# Add custom log level for LIN-TRACE
-		LIN_TRACE_LEVEL = 25  # Between INFO (20) and DEBUG (10)
+		LIN_TRACE_LEVEL = 15  # Between INFO (20) and DEBUG (10)
 		logging.addLevelName(LIN_TRACE_LEVEL, "LIN-TRACE")
 
 		def lin_trace(self, message, *args, **kwargs):

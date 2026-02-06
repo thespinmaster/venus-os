@@ -385,5 +385,6 @@ class Lin:
 			#self.log.debug(cmd_ctrl[cmd][2])
    
 			print(f"[LIN-DEBUG] executing command: {cmd_ctrl[cmd][2]}")
+			
 			cmd_ctrl[cmd][0](cmd_ctrl[cmd][1], cmd_ctrl[cmd][2])
 			return

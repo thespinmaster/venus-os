@@ -45,7 +45,7 @@
             "program": "__main__.py",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "args": ["--serial", "/dev/ttyUSB0", "--debug_lin"]
+            "args": ["--serial", "/dev/ttyUSB0"] 
         },
         {
             "name": "dbus-inetbox-orig (ttyUSB0)",
@@ -100,7 +100,7 @@
             "presentation": { "group": "dbus-ne-shunt"},
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/services/dbus-ne-shunt/src/opt/victronenergy/dbus-ne-shunt/main.py",
+            "program": "${workspaceFolder}/services/dbus-ne-shunt/src/opt/victronenergy/dbus-ne-shunt/__main__.py",
             "console": "integratedTerminal",
             "args": ["--serial", "/dev/ttyACM0", "--debug"]
         },

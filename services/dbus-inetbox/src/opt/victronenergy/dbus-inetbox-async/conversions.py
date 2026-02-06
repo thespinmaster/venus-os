@@ -166,4 +166,14 @@ def clock_to_string(clock):
 	m = int(clock / 256)
 	h = int(clock - (m * 256))
 	return f"{h:02}:{m:02}"
+
+def string_to_clock(string):
+	parts = string.split(":")
+	if len(parts) != 2:
+		raise ValueError(f"Invalid clock string: {string}")
+	h = int(parts[0])
+	m = int(parts[1])
+	if h < 0 or h > 23 or m < 0 or m > 59:
+		raise ValueError(f"Invalid clock time: {string}")
+	return (m * 256) + h
 			

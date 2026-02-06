@@ -28,33 +28,35 @@ class dbus_base_service(object):
 		"""
 		Unregister the dbus service.
 		"""
+		 
 		if self._dbusservice:
 			self._dbusservice.__del__()
 			self._dbusservice = None
 			logging.debug("Unregistered %s" % (self._dbusservice))
 		else:
 			logging.debug("No dbus service to unregister")
-	
-	
-		  
+ 
 	def _registerCore(self, port, classAndVrmInstance, paths, onValueChanged = None):
 		
 		logging.debug("_registerCore in")
-
-		portName = os.path.basename(port) # convert from /dev/ttyxxx to ttyxxx
+		  
 		classAndVrmInstanceParts = classAndVrmInstance.split(':')
-		className = classAndVrmInstanceParts[0]
 		deviceInstance = int(classAndVrmInstanceParts[1]) #!IMPORTANT MUST BE AN INT
- 
-		serviceName = f"com.victronenergy.{dbus_constants.SAFE_PRODUCT_NAME}.{portName}"
 
-		self._dbusservice = VeDbusService(serviceName, bus=dbusconnection(), register=False)
+		portName=None
+		serviceName=None
   
-		self._paths = paths
-		self._dbusservice
- 
-		logging.debug(f"{serviceName} /DeviceInstance = {classAndVrmInstance}")
+		if port:
+			portName = os.path.basename(port) # convert from /dev/ttyxxx to ttyxxx
 
+		if portName:
+			serviceName = f"com.victronenergy.{dbus_constants.SAFE_PRODUCT_NAME}.{portName}"
+		else:
+			serviceName = f"com.victronenergy.{dbus_constants.SAFE_PRODUCT_NAME}"
+   
+		self._dbusservice = VeDbusService(serviceName, bus=dbusconnection(), register=False)   
+		self._paths = paths
+ 
 		# Create the management objects, as specified in the ccgx dbus-api document
 		self._dbusservice.add_mandatory_paths(__file__,
 			'Unknown version, and running on Python ' + platform.python_version(),

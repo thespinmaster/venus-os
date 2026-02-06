@@ -11,5 +11,4 @@ class dbus_constants:
 	DEFAULT_DEVICE_INSTANCE = 817
 	PATH_SETTING_INITIAL="initial"
 	PATH_SETTING_WRITABLE="writable"
-
 	

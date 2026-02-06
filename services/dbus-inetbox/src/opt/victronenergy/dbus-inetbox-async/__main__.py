@@ -13,9 +13,9 @@ import os
 from tools import set_app_name
 
 def main():
-	appname='dbus-inetbox-async'
-	set_app_name(b"dbus-inetbox-a")
-	GLib.set_application_name(appname)
+	#appname='dbus-inetbox-async'
+	#set_app_name(b"dbus-inetbox")
+	#GLib.set_application_name(appname)
  
 	log = logging.getLogger("main")
 
