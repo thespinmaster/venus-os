@@ -96,8 +96,9 @@ __log_set_indent() {
 }
 
 init_logging_to_file() {
-  exec &> "$1"
-  echo "*** $(date +%y/%m/%d_%H:%M:%S) ***"
+  #exec &> "$1"
+  OPKGH_LOG_FILE="$1"
+  echo "*** $(date +%y/%m/%d_%H:%M:%S) ***" > "$1"
 }
 
 if [[ "${1:-}" == "init_logging" ]]; then

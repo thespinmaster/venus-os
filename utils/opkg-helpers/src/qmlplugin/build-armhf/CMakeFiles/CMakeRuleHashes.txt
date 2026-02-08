@@ -1,0 +1,4 @@
+# Hashes of file build rules.
+25afc0e904d8398f7a877ddf01e012c5 CMakeFiles/opkghelpersplugin_autogen
+25afc0e904d8398f7a877ddf01e012c5 CMakeFiles/opkghelpersplugin_autogen_timestamp_deps
+e7a9c5a1544cd4592343a505b17030fa opkghelpersplugin_autogen/timestamp

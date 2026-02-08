@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root="$(cd "$(dirname "$0")/.." && pwd)"
+plugin_src="$repo_root/utils/opkg-helpers/src/qmlplugin"
+plugin_build="$plugin_src/build"
+qt_major="auto"
+armhf_build=false
+
+for arg in "$@"; do
+	case "$arg" in
+		armhf)
+			armhf_build=true
+			;;
+		qt6)
+			qt_major="6"
+			;;
+		qt5)
+			qt_major="5"
+			;;
+		*)
+			echo "Unknown argument: $arg" >&2
+			exit 1
+			;;
+	esac
+done
+
+
+if $armhf_build; then
+	plugin_build="$plugin_src/build-armhf"
+	export CC=arm-linux-gnueabihf-gcc
+	export CXX=arm-linux-gnueabihf-g++
+	export PKG_CONFIG_LIBDIR=/usr/lib/arm-linux-gnueabihf/pkgconfig:/usr/share/pkgconfig
+	export PKG_CONFIG_SYSROOT_DIR=/
+
+	cmake_args=(
+		-DCMAKE_BUILD_TYPE=Release
+		-DCMAKE_SYSTEM_NAME=Linux
+		-DCMAKE_SYSTEM_PROCESSOR=arm
+		-DCMAKE_SYSROOT=/
+		-DCMAKE_FIND_ROOT_PATH=/usr/arm-linux-gnueabihf
+		-DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=ONLY
+		-DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY
+		-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY
+	)
+else
+	cmake_args=()
+fi
+
+if [[ "$qt_major" != "auto" ]]; then
+	cmake_args+=("-DQMLPLUGIN_QT_MAJOR=$qt_major")
+fi
+
+mkdir -p "$plugin_build"
+cmake -S "$plugin_src" -B "$plugin_build" "${cmake_args[@]}"
+cmake --build "$plugin_build"

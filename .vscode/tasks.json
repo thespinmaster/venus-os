@@ -40,5 +40,64 @@
         "echo": false
       },
     },
+    {
+      "label": "build qmlplugin",
+      "type": "shell",
+      "problemMatcher":[],
+      "command": "${workspaceFolder}/tasks/build-qmlplugin",
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "always",
+        "focus": true,
+        "showReuseMessage": false,
+        "clear": true,
+        "close": false
+      }
+    },
+    {
+      "label": "build qmlplugin qt6",
+      "type": "shell",
+      "problemMatcher":[],
+      "command": "${workspaceFolder}/tasks/build-qmlplugin",
+      "args": ["qt6"],
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "always",
+        "focus": true,
+        "showReuseMessage": false,
+        "clear": true,
+        "close": false
+      }
+    },
+    {
+      "label": "build qmlplugin armhf",
+      "type": "shell",
+      "problemMatcher":[],
+      "command": "${workspaceFolder}/tasks/build-qmlplugin",
+      "args": ["armhf"],
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "always",
+        "focus": true,
+        "showReuseMessage": false,
+        "clear": true,
+        "close": false
+      }
+    },
+    {
+      "label": "build qmlplugin armhf qt6",
+      "type": "shell",
+      "problemMatcher":[],
+      "command": "${workspaceFolder}/tasks/build-qmlplugin",
+      "args": ["armhf", "qt6"],
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "always",
+        "focus": true,
+        "showReuseMessage": false,
+        "clear": true,
+        "close": false
+      }
+    },
   ]
 }

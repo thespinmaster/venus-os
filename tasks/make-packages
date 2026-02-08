@@ -9,7 +9,11 @@ if [[ -z "${1}" ]]; then
 elif [[ "${1}" == "-c" ]]; then
   comment="${2}"
   shift 2
+else
+build="${@}"
 fi
+
+build="opkg-helpers"
 
 declare -a build_items=()
 declare -a folders=("../services" "../utils")
@@ -27,7 +31,7 @@ if [[ "$build" == "all" ]]; then
 elif [[ "$build" == "package" ]]; then
   build_feed_package
 else
-  build_items=("${@}")
+  build_items=("${build}")
   #build_items=("opkg-helpers" "test-service")
   declare -i found=0 i 
   declare f
@@ -56,16 +60,25 @@ stage_source_byref() {
   local -n _staging_path="${3}"
 
   [[ "$src_path" =~ ^(\.\./)+(.*)$ ]]
-    dest_path="$build_path/${BASH_REMATCH[2]}"
- 
-  #--exclude=*-v? means exclude [filename-v2 | filename-v2] etc
+  dest_path="$build_path/${BASH_REMATCH[2]}"
+
   options=(--exclude=*.bak --exclude=.git --exclude=*.tmp --exclude=tests/)
   options+=(--exclude=*-v[0-9] --exclude=*.old)
+
+  # Exclude directories containing .opkg-ignore
+  while IFS= read -r rel_dir; do
+    options+=(--exclude="$rel_dir/")
+  done < <(
+    find "$src_path" -type f -name ".opkg-ignore" -printf '%P\n' |
+    xargs -r -n1 dirname
+  )
 
   rsync -a --mkpath "$src_path/" "$dest_path" "${options[@]}" || return 1
   _staging_path="$dest_path"
   return 0
 }
+
+
 
 build_package() {
   

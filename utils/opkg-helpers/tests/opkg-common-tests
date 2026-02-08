@@ -54,6 +54,7 @@ stage_opkg_helpers_installed() {
         [[ "$path" == "$dest_path/data/opkg-helpers/libs" ]] && continue
         [[ "$path" == "$dest_path/data/opkg-helpers/rc.local.d" ]] && continue
         [[ "$path" == "$dest_path/data/opkg-helpers/rc.local.d/1" ]] && continue
+ 
         [[ "$path" == "$dest_path/etc"* ]] && continue
       }
       [[ -L "$path" ]] || { 
@@ -69,13 +70,15 @@ stage_opkg_helpers_installed() {
  
   source_path="$(realpath "$source_path")"
  
-  local paths path new_path
+  local paths path new_path exclude_path2 exclude_path3
  
   mapfile -t paths < <(find "${source_path}")
   exclude_path="$source_path/CONTROL"
+  exclude_path3="$source_path/qmlplugin"
 
   for path in "${paths[@]}"; do 
     [[ "$path" == "$exclude_path"* ]] && continue
+    [[ "$path" == "$exclude_path3"* ]] && continue
 
     new_path="${path/$source_path/$dest_path}"
     
@@ -347,8 +350,9 @@ test_startup_script_executes_script_in_rc_local_d_folder() {
   echo "echo \"my test script\"" > "$opkg_rc_local_d_dir/6/mytest_script1"
   chmod +x "$opkg_rc_local_d_dir/6/mytest_script1"
   
-  [[ -f "$opkg_rc_local_d_dir/startup.log" ]] && rm "$opkg_rc_local_d_dir/startup.log"
-
+  [[ -f "$opkg_rc_local_d_dir/startup.log" ]] && 
+      rm "$opkg_rc_local_d_dir/startup.log"
+ 
   # Action
   stdout=$("$startup_script_file")
   
@@ -356,7 +360,7 @@ test_startup_script_executes_script_in_rc_local_d_folder() {
   assert_file_exists "$opkg_rc_local_d_dir/startup.log"
   assert_eq "$stdout" "my test script"
 }
-
+ 
 test_startup_script_executes_scripts_in_correct_order() {
   # Arrange
   local stdout
@@ -386,7 +390,7 @@ test_startup_script_executes_scripts_in_correct_order() {
 
   assert_eq "$expected_order" "$stdout" 
 }
-
+ 
 test_startup_script_is_run_in_seperate_processes() {
   # Arrange
   local stdout
@@ -413,7 +417,7 @@ test_startup_script_is_run_in_seperate_processes() {
   assert_not_eq "$pid1" "$pid2"
  
 }
- 
+
 test_ensure_package_succeeds_when_custom_packages_conf_does_not_exist() {
 
   # Arrange
@@ -577,6 +581,141 @@ test_ensure_package_when_fs_is_readonly_mount_and_unmount_are_called() {
   assert_exitcode 0
   assert_file_exists "$test_log_file"
   assert_eq "$expected" "$(<$test_log_file)"
+
+}
+
+test_add_feed_fails_invalid_name() {
+
+  # Arrange
+  local stderr=
+  local feed_file_name="${VENUS_ROOT_DIR:-}/etc/opkg/arch.conf"
+  touch "$feed_file_name"
+  assert_file_exists "$feed_file_name" "-"
+
+  # Act
+ 
+  stderr=$(opkg_common_feed_crud "arch.conf" "http://example.com" 2>&1)
+
+  # Assert
+  assert_exitcode 1
+  assert_eq "Invalid name" "$stderr"
+  assert_file_exists "$feed_file_name"
+
+}
+ 
+test_feed_crud_succeeds_add_feed() {
+
+  # Arrange
+  local stderr=
+  local feed_config_file="${VENUS_ROOT_DIR:-}/etc/opkg/opkg-helpers.conf"
+  mkdir -p "$(dirname "$feed_config_file")"
+  [[ -f "$feed_config_file" ]] && rm "$feed_config_file"
+
+  # Act
+  stderr=$(opkg_common_feed_crud "custom_feed" "http://example.com" "" 2>&1)
+
+  # Assert
+  assert_exitcode 0
+  assert_empty "$stderr"
+  assert_file_exists "$feed_config_file"
+  assert_eq 1 "$(grep -c "^src/gz custom_feed http://example.com" "$feed_config_file")"
+
+}
+
+test_feed_crud_fails_missing_name() {
+
+  # Arrange
+  local stderr=
+
+  # Act
+  stderr=$(opkg_common_feed_crud "" "http://example.com" "" 2>&1)
+
+  # Assert
+  assert_exitcode 1
+  assert_eq "Invalid name" "$stderr"
+
+}
+
+test_feed_crud_fails_invalid_name_chars() {
+
+  # Arrange
+  local stderr=
+
+  # Act
+  stderr=$(opkg_common_feed_crud "bad name" "http://example.com" "" 2>&1)
+
+  # Assert
+  assert_exitcode 1
+  assert_eq "Invalid name" "$stderr"
+
+}
+
+test_feed_crud_fails_invalid_old_name_chars() {
+
+  # Arrange
+  local stderr=
+
+  # Act
+  stderr=$(opkg_common_feed_crud "custom_feed" "http://example.com" "bad name" 2>&1)
+
+  # Assert
+  assert_exitcode 1
+  assert_eq "Invalid old name" "$stderr"
+
+}
+
+test_feed_crud_fails_old_name_with_delete() {
+
+  # Arrange
+  local stderr=
+
+  # Act
+  stderr=$(opkg_common_feed_crud "custom_feed" "" "old_feed" 2>&1)
+
+  # Assert
+  assert_exitcode 1
+  assert_eq "Invalid old name" "$stderr"
+
+}
+
+test_feed_crud_delete_removes_exact_match() {
+
+  # Arrange
+  local stderr=
+  local feed_config_file="${VENUS_ROOT_DIR:-}/etc/opkg/opkg-helpers.conf"
+  mkdir -p "$(dirname "$feed_config_file")"
+  cat > "$feed_config_file" <<'EOF'
+src/gz name http://example.com
+src/gz name2 http://example.com
+EOF
+
+  # Act
+  stderr=$(opkg_common_feed_crud "name" "" "" 2>&1)
+
+  # Assert
+  assert_exitcode 0
+  assert_empty "$stderr"
+  assert_eq 0 "$(grep -c "^src/gz name " "$feed_config_file")"
+  assert_eq 1 "$(grep -c "^src/gz name2 " "$feed_config_file")"
+
+}
+
+test_feed_crud_rename_removes_old_and_adds_new() {
+
+  # Arrange
+  local stderr=
+  local feed_config_file="${VENUS_ROOT_DIR:-}/etc/opkg/opkg-helpers.conf"
+  mkdir -p "$(dirname "$feed_config_file")"
+  echo "src/gz old_feed http://old.example.com" > "$feed_config_file"
+
+  # Act
+  stderr=$(opkg_common_feed_crud "new_feed" "http://new.example.com" "old_feed" 2>&1)
+
+  # Assert
+  assert_exitcode 0
+  assert_empty "$stderr"
+  assert_eq 0 "$(grep -c "^src/gz old_feed " "$feed_config_file")"
+  assert_eq 1 "$(grep -c "^src/gz new_feed http://new.example.com" "$feed_config_file")"
 
 }
 

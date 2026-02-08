@@ -5,6 +5,9 @@
 		},
 		{
 			"path": "../../opt/victronenergy/gui/qml"
+		},
+		{
+			"path": "../opkg-helpers"
 		}
 	],
 	"settings": {
