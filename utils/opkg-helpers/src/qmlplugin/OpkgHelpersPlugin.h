@@ -1,3 +1,4 @@
+#include "FileHelper.h"
 #pragma once
 
 #include <QQmlExtensionPlugin>

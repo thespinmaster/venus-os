@@ -184,6 +184,12 @@
 	"HEADERS" : 
 	[
 		[
+			"/home/admin/dev/repos/venus-os/utils/opkg-helpers/src/qmlplugin/FileHelper.h",
+			"MU",
+			"EWIEGA46WW/moc_FileHelper.cpp",
+			null
+		],
+		[
 			"/home/admin/dev/repos/venus-os/utils/opkg-helpers/src/qmlplugin/OpkgHelpersPlugin.h",
 			"MU",
 			"EWIEGA46WW/moc_OpkgHelpersPlugin.cpp",
@@ -263,6 +269,11 @@
 	"SETTINGS_FILE" : "/home/admin/dev/repos/venus-os/utils/opkg-helpers/src/qmlplugin/build-armhf/CMakeFiles/opkghelpersplugin_autogen.dir/AutogenUsed.txt",
 	"SOURCES" : 
 	[
+		[
+			"/home/admin/dev/repos/venus-os/utils/opkg-helpers/src/qmlplugin/FileHelper.cpp",
+			"MU",
+			null
+		],
 		[
 			"/home/admin/dev/repos/venus-os/utils/opkg-helpers/src/qmlplugin/OpkgHelpersPlugin.cpp",
 			"MU",

@@ -66,8 +66,10 @@ log() {
 
   if [[ -v "OPKGH_LOG_FILE" && -f "${OPKGH_LOG_FILE}" ]]; then
     echo "${LOG_INDENT}${prefix}${1}" >> "${OPKGH_LOG_FILE}"
-  else
+  elif (( LOGLEVEL == LOGLEVEL_ERROR )); then
     echo "${LOG_INDENT}${prefix}${1}" >&2
+  else
+    echo "${LOG_INDENT}${prefix}${1}" >&1
   fi
 
 return 0

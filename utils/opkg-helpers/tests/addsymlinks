@@ -1,0 +1,30 @@
+#!/bin/bash
+
+set -o nounset
+
+declare this_path; this_path="$(dirname "${BASH_SOURCE[0]}")"
+
+QML_TARGET_PATH="/opt/victronenergy/gui/qml"
+QML_SOURCE_PATH=$this_path/../src/opt/victronenergy/gui/qml
+ 
+QML_ICONS_TARGET_PATH="/opt/victronenergy/themes/ccgx/icons"
+QML_ICONS_SOURCE_PATH="$this_path/../src/opt/victronenergy/themes/ccgx/icons"
+ 
+
+ln -s $QML_SOURCE_PATH/OverviewInetbox.qml $QML_TARGET_PATH/OverviewInetbox.qml
+ln -s $QML_SOURCE_PATH/ButtonGroupControl.qml $QML_TARGET_PATH/ButtonGroupControl.qml
+ln -s $QML_SOURCE_PATH/PageSettingsInetbox.qml $QML_TARGET_PATH/PageSettingsInetbox.qml
+ln -s $QML_SOURCE_PATH/PageSettingsOPKG.qml $QML_TARGET_PATH/PageSettingsOPKG.qml
+ln -s $QML_SOURCE_PATH/PageSettingsOPKGPackageInstall.qml $QML_TARGET_PATH/PageSettingsOPKGPackageInstall.qml
+ln -s $QML_SOURCE_PATH/PageSettingsOPKGSettings.qml $QML_TARGET_PATH/PageSettingsOPKGSettings.qml
+ln -s $QML_SOURCE_PATH/PageSettingsOPKGFeeds.qml $QML_TARGET_PATH/PageSettingsOPKGFeeds.qml
+ln -s $QML_SOURCE_PATH/PageSettingsOPKGFeedEdit.qml $QML_TARGET_PATH/PageSettingsOPKGFeedEdit.qml
+ln -s $QML_SOURCE_PATH/OpkgPackageItem.qml $QML_TARGET_PATH/OpkgPackageItem.qml
+
+#cp /data/dev/utils/opkg-helpers/src/opt/victronenergy/themes/ccgx/icons/icon-opkg-helpers-tick.svg ./icon-opkg-helpers-tick.svg
+ln -s $QML_ICONS_SOURCE_PATH/icon-opkg-helpers-tick.svg  $QML_ICONS_TARGET_PATH/icon-opkg-helpers-tick.svg
+
+ln -s $QML_TARGET_PATH/PageSettings.qml $this_path/PageSettings.qml
+
+ln -s $QML_SOURCE_PATH/qml/OpkgHelpers $QML_TARGET_PATH/OpkgHelpers
+

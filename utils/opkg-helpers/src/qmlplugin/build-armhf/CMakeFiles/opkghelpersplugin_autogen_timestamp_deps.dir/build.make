@@ -66,9 +66,9 @@ include CMakeFiles/opkghelpersplugin_autogen_timestamp_deps.dir/compiler_depend.
 # Include the progress variables for this target.
 include CMakeFiles/opkghelpersplugin_autogen_timestamp_deps.dir/progress.make
 
+CMakeFiles/opkghelpersplugin_autogen_timestamp_deps: /usr/lib/arm-linux-gnueabihf/libQt6Core.so.6.4.2
 CMakeFiles/opkghelpersplugin_autogen_timestamp_deps: /usr/lib/arm-linux-gnueabihf/libQt6Qml.so.6.4.2
 CMakeFiles/opkghelpersplugin_autogen_timestamp_deps: /usr/lib/qt6/libexec/moc
-CMakeFiles/opkghelpersplugin_autogen_timestamp_deps: /usr/lib/arm-linux-gnueabihf/libQt6Core.so.6.4.2
 
 opkghelpersplugin_autogen_timestamp_deps: CMakeFiles/opkghelpersplugin_autogen_timestamp_deps
 opkghelpersplugin_autogen_timestamp_deps: CMakeFiles/opkghelpersplugin_autogen_timestamp_deps.dir/build.make

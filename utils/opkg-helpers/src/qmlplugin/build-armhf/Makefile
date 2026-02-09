@@ -155,6 +155,30 @@ opkghelpersplugin_autogen/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/opkghelpersplugin_autogen.dir/build.make CMakeFiles/opkghelpersplugin_autogen.dir/build
 .PHONY : opkghelpersplugin_autogen/fast
 
+FileHelper.o: FileHelper.cpp.o
+.PHONY : FileHelper.o
+
+# target to build an object file
+FileHelper.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/opkghelpersplugin.dir/build.make CMakeFiles/opkghelpersplugin.dir/FileHelper.cpp.o
+.PHONY : FileHelper.cpp.o
+
+FileHelper.i: FileHelper.cpp.i
+.PHONY : FileHelper.i
+
+# target to preprocess a source file
+FileHelper.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/opkghelpersplugin.dir/build.make CMakeFiles/opkghelpersplugin.dir/FileHelper.cpp.i
+.PHONY : FileHelper.cpp.i
+
+FileHelper.s: FileHelper.cpp.s
+.PHONY : FileHelper.s
+
+# target to generate assembly for a file
+FileHelper.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/opkghelpersplugin.dir/build.make CMakeFiles/opkghelpersplugin.dir/FileHelper.cpp.s
+.PHONY : FileHelper.cpp.s
+
 OpkgHelpersPlugin.o: OpkgHelpersPlugin.cpp.o
 .PHONY : OpkgHelpersPlugin.o
 
@@ -238,6 +262,9 @@ help:
 	@echo "... opkghelpersplugin_autogen"
 	@echo "... opkghelpersplugin_autogen_timestamp_deps"
 	@echo "... opkghelpersplugin"
+	@echo "... FileHelper.o"
+	@echo "... FileHelper.i"
+	@echo "... FileHelper.s"
 	@echo "... OpkgHelpersPlugin.o"
 	@echo "... OpkgHelpersPlugin.i"
 	@echo "... OpkgHelpersPlugin.s"

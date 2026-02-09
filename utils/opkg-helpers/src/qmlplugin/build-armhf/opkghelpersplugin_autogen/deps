@@ -1,5 +1,7 @@
 opkghelpersplugin_autogen/timestamp: \
 	/home/admin/dev/repos/venus-os/utils/opkg-helpers/src/qmlplugin/CMakeLists.txt \
+	/home/admin/dev/repos/venus-os/utils/opkg-helpers/src/qmlplugin/FileHelper.cpp \
+	/home/admin/dev/repos/venus-os/utils/opkg-helpers/src/qmlplugin/FileHelper.h \
 	/home/admin/dev/repos/venus-os/utils/opkg-helpers/src/qmlplugin/OpkgHelpersPlugin.cpp \
 	/home/admin/dev/repos/venus-os/utils/opkg-helpers/src/qmlplugin/OpkgHelpersPlugin.h \
 	/home/admin/dev/repos/venus-os/utils/opkg-helpers/src/qmlplugin/ProcessRunner.cpp \
@@ -7,6 +9,7 @@ opkghelpersplugin_autogen/timestamp: \
 	/home/admin/dev/repos/venus-os/utils/opkg-helpers/src/qmlplugin/build-armhf/CMakeFiles/3.28.3/CMakeCXXCompiler.cmake \
 	/home/admin/dev/repos/venus-os/utils/opkg-helpers/src/qmlplugin/build-armhf/CMakeFiles/3.28.3/CMakeSystem.cmake \
 	/home/admin/dev/repos/venus-os/utils/opkg-helpers/src/qmlplugin/build-armhf/opkghelpersplugin_autogen/moc_predefs.h \
+	/mnt/storage/dev/repos/venus-os/utils/opkg-helpers/src/qmlplugin/FileHelper.h \
 	/usr/arm-linux-gnueabihf/include/asm-generic/errno-base.h \
 	/usr/arm-linux-gnueabihf/include/asm-generic/errno.h \
 	/usr/arm-linux-gnueabihf/include/asm/errno.h \
@@ -81,7 +84,9 @@ opkghelpersplugin_autogen/timestamp: \
 	/usr/arm-linux-gnueabihf/include/c++/13/arm-linux-gnueabihf/bits/ctype_inline.h \
 	/usr/arm-linux-gnueabihf/include/c++/13/arm-linux-gnueabihf/bits/gthr-default.h \
 	/usr/arm-linux-gnueabihf/include/c++/13/arm-linux-gnueabihf/bits/gthr.h \
+	/usr/arm-linux-gnueabihf/include/c++/13/arm-linux-gnueabihf/bits/messages_members.h \
 	/usr/arm-linux-gnueabihf/include/c++/13/arm-linux-gnueabihf/bits/os_defines.h \
+	/usr/arm-linux-gnueabihf/include/c++/13/arm-linux-gnueabihf/bits/time_members.h \
 	/usr/arm-linux-gnueabihf/include/c++/13/array \
 	/usr/arm-linux-gnueabihf/include/c++/13/atomic \
 	/usr/arm-linux-gnueabihf/include/c++/13/backward/auto_ptr.h \
@@ -102,6 +107,8 @@ opkghelpersplugin_autogen/timestamp: \
 	/usr/arm-linux-gnueabihf/include/c++/13/bits/c++0x_warning.h \
 	/usr/arm-linux-gnueabihf/include/c++/13/bits/char_traits.h \
 	/usr/arm-linux-gnueabihf/include/c++/13/bits/charconv.h \
+	/usr/arm-linux-gnueabihf/include/c++/13/bits/chrono.h \
+	/usr/arm-linux-gnueabihf/include/c++/13/bits/codecvt.h \
 	/usr/arm-linux-gnueabihf/include/c++/13/bits/concept_check.h \
 	/usr/arm-linux-gnueabihf/include/c++/13/bits/cpp_type_traits.h \
 	/usr/arm-linux-gnueabihf/include/c++/13/bits/cxxabi_forced.h \
@@ -111,6 +118,10 @@ opkghelpersplugin_autogen/timestamp: \
 	/usr/arm-linux-gnueabihf/include/c++/13/bits/exception.h \
 	/usr/arm-linux-gnueabihf/include/c++/13/bits/exception_defines.h \
 	/usr/arm-linux-gnueabihf/include/c++/13/bits/exception_ptr.h \
+	/usr/arm-linux-gnueabihf/include/c++/13/bits/fs_dir.h \
+	/usr/arm-linux-gnueabihf/include/c++/13/bits/fs_fwd.h \
+	/usr/arm-linux-gnueabihf/include/c++/13/bits/fs_ops.h \
+	/usr/arm-linux-gnueabihf/include/c++/13/bits/fs_path.h \
 	/usr/arm-linux-gnueabihf/include/c++/13/bits/functexcept.h \
 	/usr/arm-linux-gnueabihf/include/c++/13/bits/functional_hash.h \
 	/usr/arm-linux-gnueabihf/include/c++/13/bits/hash_bytes.h \
@@ -120,8 +131,11 @@ opkghelpersplugin_autogen/timestamp: \
 	/usr/arm-linux-gnueabihf/include/c++/13/bits/list.tcc \
 	/usr/arm-linux-gnueabihf/include/c++/13/bits/locale_classes.h \
 	/usr/arm-linux-gnueabihf/include/c++/13/bits/locale_classes.tcc \
+	/usr/arm-linux-gnueabihf/include/c++/13/bits/locale_conv.h \
 	/usr/arm-linux-gnueabihf/include/c++/13/bits/locale_facets.h \
 	/usr/arm-linux-gnueabihf/include/c++/13/bits/locale_facets.tcc \
+	/usr/arm-linux-gnueabihf/include/c++/13/bits/locale_facets_nonio.h \
+	/usr/arm-linux-gnueabihf/include/c++/13/bits/locale_facets_nonio.tcc \
 	/usr/arm-linux-gnueabihf/include/c++/13/bits/localefwd.h \
 	/usr/arm-linux-gnueabihf/include/c++/13/bits/max_size_type.h \
 	/usr/arm-linux-gnueabihf/include/c++/13/bits/memory_resource.h \
@@ -138,6 +152,7 @@ opkghelpersplugin_autogen/timestamp: \
 	/usr/arm-linux-gnueabihf/include/c++/13/bits/postypes.h \
 	/usr/arm-linux-gnueabihf/include/c++/13/bits/predefined_ops.h \
 	/usr/arm-linux-gnueabihf/include/c++/13/bits/ptr_traits.h \
+	/usr/arm-linux-gnueabihf/include/c++/13/bits/quoted_string.h \
 	/usr/arm-linux-gnueabihf/include/c++/13/bits/range_access.h \
 	/usr/arm-linux-gnueabihf/include/c++/13/bits/ranges_algo.h \
 	/usr/arm-linux-gnueabihf/include/c++/13/bits/ranges_algobase.h \
@@ -191,12 +206,14 @@ opkghelpersplugin_autogen/timestamp: \
 	/usr/arm-linux-gnueabihf/include/c++/13/climits \
 	/usr/arm-linux-gnueabihf/include/c++/13/clocale \
 	/usr/arm-linux-gnueabihf/include/c++/13/cmath \
+	/usr/arm-linux-gnueabihf/include/c++/13/codecvt \
 	/usr/arm-linux-gnueabihf/include/c++/13/compare \
 	/usr/arm-linux-gnueabihf/include/c++/13/concepts \
 	/usr/arm-linux-gnueabihf/include/c++/13/cstddef \
 	/usr/arm-linux-gnueabihf/include/c++/13/cstdint \
 	/usr/arm-linux-gnueabihf/include/c++/13/cstdlib \
 	/usr/arm-linux-gnueabihf/include/c++/13/cstring \
+	/usr/arm-linux-gnueabihf/include/c++/13/ctime \
 	/usr/arm-linux-gnueabihf/include/c++/13/cwchar \
 	/usr/arm-linux-gnueabihf/include/c++/13/cwctype \
 	/usr/arm-linux-gnueabihf/include/c++/13/debug/assertions.h \
@@ -209,13 +226,16 @@ opkghelpersplugin_autogen/timestamp: \
 	/usr/arm-linux-gnueabihf/include/c++/13/ext/numeric_traits.h \
 	/usr/arm-linux-gnueabihf/include/c++/13/ext/string_conversions.h \
 	/usr/arm-linux-gnueabihf/include/c++/13/ext/type_traits.h \
+	/usr/arm-linux-gnueabihf/include/c++/13/filesystem \
 	/usr/arm-linux-gnueabihf/include/c++/13/functional \
 	/usr/arm-linux-gnueabihf/include/c++/13/initializer_list \
+	/usr/arm-linux-gnueabihf/include/c++/13/iomanip \
 	/usr/arm-linux-gnueabihf/include/c++/13/ios \
 	/usr/arm-linux-gnueabihf/include/c++/13/iosfwd \
 	/usr/arm-linux-gnueabihf/include/c++/13/iterator \
 	/usr/arm-linux-gnueabihf/include/c++/13/limits \
 	/usr/arm-linux-gnueabihf/include/c++/13/list \
+	/usr/arm-linux-gnueabihf/include/c++/13/locale \
 	/usr/arm-linux-gnueabihf/include/c++/13/map \
 	/usr/arm-linux-gnueabihf/include/c++/13/memory \
 	/usr/arm-linux-gnueabihf/include/c++/13/new \
@@ -227,11 +247,13 @@ opkghelpersplugin_autogen/timestamp: \
 	/usr/arm-linux-gnueabihf/include/c++/13/pstl/glue_algorithm_defs.h \
 	/usr/arm-linux-gnueabihf/include/c++/13/pstl/glue_memory_defs.h \
 	/usr/arm-linux-gnueabihf/include/c++/13/pstl/glue_numeric_defs.h \
+	/usr/arm-linux-gnueabihf/include/c++/13/ratio \
 	/usr/arm-linux-gnueabihf/include/c++/13/stdexcept \
 	/usr/arm-linux-gnueabihf/include/c++/13/stdlib.h \
 	/usr/arm-linux-gnueabihf/include/c++/13/streambuf \
 	/usr/arm-linux-gnueabihf/include/c++/13/string \
 	/usr/arm-linux-gnueabihf/include/c++/13/string_view \
+	/usr/arm-linux-gnueabihf/include/c++/13/system_error \
 	/usr/arm-linux-gnueabihf/include/c++/13/tr1/bessel_function.tcc \
 	/usr/arm-linux-gnueabihf/include/c++/13/tr1/beta_function.tcc \
 	/usr/arm-linux-gnueabihf/include/c++/13/tr1/ell_integral.tcc \
@@ -257,6 +279,7 @@ opkghelpersplugin_autogen/timestamp: \
 	/usr/arm-linux-gnueabihf/include/features.h \
 	/usr/arm-linux-gnueabihf/include/gnu/stubs-hard.h \
 	/usr/arm-linux-gnueabihf/include/gnu/stubs.h \
+	/usr/arm-linux-gnueabihf/include/libintl.h \
 	/usr/arm-linux-gnueabihf/include/linux/errno.h \
 	/usr/arm-linux-gnueabihf/include/locale.h \
 	/usr/arm-linux-gnueabihf/include/pthread.h \
@@ -272,10 +295,13 @@ opkghelpersplugin_autogen/timestamp: \
 	/usr/arm-linux-gnueabihf/include/unistd.h \
 	/usr/arm-linux-gnueabihf/include/wchar.h \
 	/usr/arm-linux-gnueabihf/include/wctype.h \
+	/usr/include/arm-linux-gnueabihf/qt6/QtCore/QFile \
+	/usr/include/arm-linux-gnueabihf/qt6/QtCore/QIODevice \
 	/usr/include/arm-linux-gnueabihf/qt6/QtCore/QObject \
 	/usr/include/arm-linux-gnueabihf/qt6/QtCore/QProcess \
 	/usr/include/arm-linux-gnueabihf/qt6/QtCore/QString \
 	/usr/include/arm-linux-gnueabihf/qt6/QtCore/QStringList \
+	/usr/include/arm-linux-gnueabihf/qt6/QtCore/QTextStream \
 	/usr/include/arm-linux-gnueabihf/qt6/QtCore/QUrl \
 	/usr/include/arm-linux-gnueabihf/qt6/QtCore/q20algorithm.h \
 	/usr/include/arm-linux-gnueabihf/qt6/QtCore/q20functional.h \
@@ -307,6 +333,8 @@ opkghelpersplugin_autogen/timestamp: \
 	/usr/include/arm-linux-gnueabihf/qt6/QtCore/qdatastream.h \
 	/usr/include/arm-linux-gnueabihf/qt6/QtCore/qdatetime.h \
 	/usr/include/arm-linux-gnueabihf/qt6/QtCore/qdebug.h \
+	/usr/include/arm-linux-gnueabihf/qt6/QtCore/qfile.h \
+	/usr/include/arm-linux-gnueabihf/qt6/QtCore/qfiledevice.h \
 	/usr/include/arm-linux-gnueabihf/qt6/QtCore/qflags.h \
 	/usr/include/arm-linux-gnueabihf/qt6/QtCore/qforeach.h \
 	/usr/include/arm-linux-gnueabihf/qt6/QtCore/qgenericatomic.h \

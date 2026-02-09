@@ -2,9 +2,8 @@ CMakeFiles/opkghelpersplugin.dir/OpkgHelpersPlugin.cpp.o: \
  /home/admin/dev/repos/venus-os/utils/opkg-helpers/src/qmlplugin/OpkgHelpersPlugin.cpp \
  /usr/arm-linux-gnueabihf/include/stdc-predef.h \
  /home/admin/dev/repos/venus-os/utils/opkg-helpers/src/qmlplugin/OpkgHelpersPlugin.h \
- /usr/include/arm-linux-gnueabihf/qt6/QtQml/QQmlExtensionPlugin \
- /usr/include/arm-linux-gnueabihf/qt6/QtQml/qqmlextensionplugin.h \
- /usr/include/arm-linux-gnueabihf/qt6/QtCore/qplugin.h \
+ /home/admin/dev/repos/venus-os/utils/opkg-helpers/src/qmlplugin/FileHelper.h \
+ /usr/include/arm-linux-gnueabihf/qt6/QtCore/QObject \
  /usr/include/arm-linux-gnueabihf/qt6/QtCore/qobject.h \
  /usr/include/arm-linux-gnueabihf/qt6/QtCore/qobjectdefs.h \
  /usr/include/arm-linux-gnueabihf/qt6/QtCore/qnamespace.h \
@@ -347,6 +346,53 @@ CMakeFiles/opkghelpersplugin.dir/OpkgHelpersPlugin.cpp.o: \
  /usr/arm-linux-gnueabihf/include/c++/13/bits/chrono.h \
  /usr/arm-linux-gnueabihf/include/c++/13/ratio \
  /usr/arm-linux-gnueabihf/include/c++/13/ctime \
+ /usr/include/arm-linux-gnueabihf/qt6/QtCore/QString \
+ /usr/include/arm-linux-gnueabihf/qt6/QtCore/qstring.h \
+ /usr/include/arm-linux-gnueabihf/qt6/QtCore/QFile \
+ /usr/include/arm-linux-gnueabihf/qt6/QtCore/qfile.h \
+ /usr/include/arm-linux-gnueabihf/qt6/QtCore/qfiledevice.h \
+ /usr/include/arm-linux-gnueabihf/qt6/QtCore/qiodevice.h \
+ /usr/include/arm-linux-gnueabihf/qt6/QtCore/qobject.h \
+ /usr/arm-linux-gnueabihf/include/c++/13/filesystem \
+ /usr/arm-linux-gnueabihf/include/c++/13/bits/fs_fwd.h \
+ /usr/arm-linux-gnueabihf/include/c++/13/bits/fs_path.h \
+ /usr/arm-linux-gnueabihf/include/c++/13/locale \
+ /usr/arm-linux-gnueabihf/include/c++/13/bits/locale_facets.h \
+ /usr/arm-linux-gnueabihf/include/c++/13/cwctype \
+ /usr/arm-linux-gnueabihf/include/wctype.h \
+ /usr/arm-linux-gnueabihf/include/bits/wctype-wchar.h \
+ /usr/arm-linux-gnueabihf/include/c++/13/arm-linux-gnueabihf/bits/ctype_base.h \
+ /usr/arm-linux-gnueabihf/include/c++/13/arm-linux-gnueabihf/bits/ctype_inline.h \
+ /usr/arm-linux-gnueabihf/include/c++/13/bits/locale_facets.tcc \
+ /usr/arm-linux-gnueabihf/include/c++/13/bits/locale_facets_nonio.h \
+ /usr/arm-linux-gnueabihf/include/c++/13/arm-linux-gnueabihf/bits/time_members.h \
+ /usr/arm-linux-gnueabihf/include/c++/13/arm-linux-gnueabihf/bits/messages_members.h \
+ /usr/arm-linux-gnueabihf/include/libintl.h \
+ /usr/arm-linux-gnueabihf/include/c++/13/bits/codecvt.h \
+ /usr/arm-linux-gnueabihf/include/c++/13/bits/locale_facets_nonio.tcc \
+ /usr/arm-linux-gnueabihf/include/c++/13/bits/locale_conv.h \
+ /usr/arm-linux-gnueabihf/include/c++/13/iomanip \
+ /usr/arm-linux-gnueabihf/include/c++/13/bits/quoted_string.h \
+ /usr/arm-linux-gnueabihf/include/c++/13/sstream \
+ /usr/arm-linux-gnueabihf/include/c++/13/istream \
+ /usr/arm-linux-gnueabihf/include/c++/13/ios \
+ /usr/arm-linux-gnueabihf/include/c++/13/bits/basic_ios.h \
+ /usr/arm-linux-gnueabihf/include/c++/13/bits/basic_ios.tcc \
+ /usr/arm-linux-gnueabihf/include/c++/13/ostream \
+ /usr/arm-linux-gnueabihf/include/c++/13/bits/ostream.tcc \
+ /usr/arm-linux-gnueabihf/include/c++/13/bits/istream.tcc \
+ /usr/arm-linux-gnueabihf/include/c++/13/bits/sstream.tcc \
+ /usr/arm-linux-gnueabihf/include/c++/13/codecvt \
+ /usr/arm-linux-gnueabihf/include/c++/13/bits/fs_dir.h \
+ /usr/arm-linux-gnueabihf/include/c++/13/bits/fs_ops.h \
+ /usr/include/arm-linux-gnueabihf/qt6/QtCore/QIODevice \
+ /usr/include/arm-linux-gnueabihf/qt6/QtCore/qiodevice.h \
+ /usr/include/arm-linux-gnueabihf/qt6/QtCore/QTextStream \
+ /usr/include/arm-linux-gnueabihf/qt6/QtCore/qtextstream.h \
+ /usr/include/arm-linux-gnueabihf/qt6/QtCore/qstringconverter_base.h \
+ /usr/include/arm-linux-gnueabihf/qt6/QtQml/QQmlExtensionPlugin \
+ /usr/include/arm-linux-gnueabihf/qt6/QtQml/qqmlextensionplugin.h \
+ /usr/include/arm-linux-gnueabihf/qt6/QtCore/qplugin.h \
  /usr/include/arm-linux-gnueabihf/qt6/QtCore/qpointer.h \
  /usr/include/arm-linux-gnueabihf/qt6/QtCore/qsharedpointer.h \
  /usr/include/arm-linux-gnueabihf/qt6/QtCore/qshareddata.h \
@@ -360,7 +406,6 @@ CMakeFiles/opkghelpersplugin.dir/OpkgHelpersPlugin.cpp.o: \
  /usr/include/arm-linux-gnueabihf/qt6/QtCore/qvariant.h \
  /usr/include/arm-linux-gnueabihf/qt6/QtCore/qdebug.h \
  /usr/include/arm-linux-gnueabihf/qt6/QtCore/qtextstream.h \
- /usr/include/arm-linux-gnueabihf/qt6/QtCore/qstringconverter_base.h \
  /usr/include/arm-linux-gnueabihf/qt6/QtCore/qcontiguouscache.h \
  /usr/lib/gcc-cross/arm-linux-gnueabihf/13/include/limits.h \
  /usr/lib/gcc-cross/arm-linux-gnueabihf/13/include/syslimits.h \
@@ -392,13 +437,8 @@ CMakeFiles/opkghelpersplugin.dir/OpkgHelpersPlugin.cpp.o: \
  /usr/include/arm-linux-gnueabihf/qt6/QtNetwork/qtnetworkexports.h \
  /usr/include/arm-linux-gnueabihf/qt6/QtQml/qtqmlexports.h \
  /home/admin/dev/repos/venus-os/utils/opkg-helpers/src/qmlplugin/ProcessRunner.h \
- /usr/include/arm-linux-gnueabihf/qt6/QtCore/QObject \
- /usr/include/arm-linux-gnueabihf/qt6/QtCore/qobject.h \
  /usr/include/arm-linux-gnueabihf/qt6/QtCore/QProcess \
  /usr/include/arm-linux-gnueabihf/qt6/QtCore/qprocess.h \
- /usr/include/arm-linux-gnueabihf/qt6/QtCore/qiodevice.h \
- /usr/include/arm-linux-gnueabihf/qt6/QtCore/QString \
- /usr/include/arm-linux-gnueabihf/qt6/QtCore/qstring.h \
  /usr/include/arm-linux-gnueabihf/qt6/QtCore/QStringList \
  /usr/include/arm-linux-gnueabihf/qt6/QtCore/qstringlist.h \
  /usr/include/arm-linux-gnueabihf/qt6/QtQml/qqml.h \

@@ -9,6 +9,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "" "opkghelpersplugin_autogen/timestamp" "custom" "opkghelpersplugin_autogen/deps"
+  "/home/admin/dev/repos/venus-os/utils/opkg-helpers/src/qmlplugin/FileHelper.cpp" "CMakeFiles/opkghelpersplugin.dir/FileHelper.cpp.o" "gcc" "CMakeFiles/opkghelpersplugin.dir/FileHelper.cpp.o.d"
   "/home/admin/dev/repos/venus-os/utils/opkg-helpers/src/qmlplugin/OpkgHelpersPlugin.cpp" "CMakeFiles/opkghelpersplugin.dir/OpkgHelpersPlugin.cpp.o" "gcc" "CMakeFiles/opkghelpersplugin.dir/OpkgHelpersPlugin.cpp.o.d"
   "/home/admin/dev/repos/venus-os/utils/opkg-helpers/src/qmlplugin/ProcessRunner.cpp" "CMakeFiles/opkghelpersplugin.dir/ProcessRunner.cpp.o" "gcc" "CMakeFiles/opkghelpersplugin.dir/ProcessRunner.cpp.o.d"
   "/home/admin/dev/repos/venus-os/utils/opkg-helpers/src/qmlplugin/build-armhf/opkghelpersplugin_autogen/mocs_compilation.cpp" "CMakeFiles/opkghelpersplugin.dir/opkghelpersplugin_autogen/mocs_compilation.cpp.o" "gcc" "CMakeFiles/opkghelpersplugin.dir/opkghelpersplugin_autogen/mocs_compilation.cpp.o.d"

@@ -27,6 +27,8 @@ endif()
 add_library(opkghelpersplugin MODULE
 	OpkgHelpersPlugin.cpp
 	ProcessRunner.cpp
+	FileHelper.cpp
+	FileHelper.h
 )
 
 target_include_directories(opkghelpersplugin PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})

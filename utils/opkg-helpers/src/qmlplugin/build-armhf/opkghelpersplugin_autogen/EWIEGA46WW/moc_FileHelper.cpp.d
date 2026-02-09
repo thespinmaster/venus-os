@@ -1,6 +1,5 @@
-/home/admin/dev/repos/venus-os/utils/opkg-helpers/src/qmlplugin/build-armhf/opkghelpersplugin_autogen/EWIEGA46WW/moc_OpkgHelpersPlugin.cpp: /home/admin/dev/repos/venus-os/utils/opkg-helpers/src/qmlplugin/OpkgHelpersPlugin.h \
+/home/admin/dev/repos/venus-os/utils/opkg-helpers/src/qmlplugin/build-armhf/opkghelpersplugin_autogen/EWIEGA46WW/moc_FileHelper.cpp: /home/admin/dev/repos/venus-os/utils/opkg-helpers/src/qmlplugin/FileHelper.h \
   /home/admin/dev/repos/venus-os/utils/opkg-helpers/src/qmlplugin/build-armhf/opkghelpersplugin_autogen/moc_predefs.h \
-  /mnt/storage/dev/repos/venus-os/utils/opkg-helpers/src/qmlplugin/FileHelper.h \
   /usr/arm-linux-gnueabihf/include/asm-generic/errno-base.h \
   /usr/arm-linux-gnueabihf/include/asm-generic/errno.h \
   /usr/arm-linux-gnueabihf/include/asm/errno.h \
@@ -291,9 +290,6 @@
   /usr/include/arm-linux-gnueabihf/qt6/QtCore/QObject \
   /usr/include/arm-linux-gnueabihf/qt6/QtCore/QString \
   /usr/include/arm-linux-gnueabihf/qt6/QtCore/QTextStream \
-  /usr/include/arm-linux-gnueabihf/qt6/QtCore/QUrl \
-  /usr/include/arm-linux-gnueabihf/qt6/QtCore/q20algorithm.h \
-  /usr/include/arm-linux-gnueabihf/qt6/QtCore/q20functional.h \
   /usr/include/arm-linux-gnueabihf/qt6/QtCore/qalgorithms.h \
   /usr/include/arm-linux-gnueabihf/qt6/QtCore/qanystringview.h \
   /usr/include/arm-linux-gnueabihf/qt6/QtCore/qarraydata.h \
@@ -307,9 +303,6 @@
   /usr/include/arm-linux-gnueabihf/qt6/QtCore/qbytearrayalgorithms.h \
   /usr/include/arm-linux-gnueabihf/qt6/QtCore/qbytearraylist.h \
   /usr/include/arm-linux-gnueabihf/qt6/QtCore/qbytearrayview.h \
-  /usr/include/arm-linux-gnueabihf/qt6/QtCore/qcalendar.h \
-  /usr/include/arm-linux-gnueabihf/qt6/QtCore/qcborcommon.h \
-  /usr/include/arm-linux-gnueabihf/qt6/QtCore/qcborvalue.h \
   /usr/include/arm-linux-gnueabihf/qt6/QtCore/qchar.h \
   /usr/include/arm-linux-gnueabihf/qt6/QtCore/qcompare.h \
   /usr/include/arm-linux-gnueabihf/qt6/QtCore/qcompare_impl.h \
@@ -318,10 +311,7 @@
   /usr/include/arm-linux-gnueabihf/qt6/QtCore/qcontainerfwd.h \
   /usr/include/arm-linux-gnueabihf/qt6/QtCore/qcontainerinfo.h \
   /usr/include/arm-linux-gnueabihf/qt6/QtCore/qcontainertools_impl.h \
-  /usr/include/arm-linux-gnueabihf/qt6/QtCore/qcontiguouscache.h \
   /usr/include/arm-linux-gnueabihf/qt6/QtCore/qdatastream.h \
-  /usr/include/arm-linux-gnueabihf/qt6/QtCore/qdatetime.h \
-  /usr/include/arm-linux-gnueabihf/qt6/QtCore/qdebug.h \
   /usr/include/arm-linux-gnueabihf/qt6/QtCore/qfile.h \
   /usr/include/arm-linux-gnueabihf/qt6/QtCore/qfiledevice.h \
   /usr/include/arm-linux-gnueabihf/qt6/QtCore/qflags.h \
@@ -329,18 +319,13 @@
   /usr/include/arm-linux-gnueabihf/qt6/QtCore/qgenericatomic.h \
   /usr/include/arm-linux-gnueabihf/qt6/QtCore/qglobal.h \
   /usr/include/arm-linux-gnueabihf/qt6/QtCore/qglobalstatic.h \
-  /usr/include/arm-linux-gnueabihf/qt6/QtCore/qhash.h \
   /usr/include/arm-linux-gnueabihf/qt6/QtCore/qhashfunctions.h \
   /usr/include/arm-linux-gnueabihf/qt6/QtCore/qiodevice.h \
   /usr/include/arm-linux-gnueabihf/qt6/QtCore/qiodevicebase.h \
   /usr/include/arm-linux-gnueabihf/qt6/QtCore/qiterable.h \
   /usr/include/arm-linux-gnueabihf/qt6/QtCore/qiterator.h \
-  /usr/include/arm-linux-gnueabihf/qt6/QtCore/qjsonobject.h \
-  /usr/include/arm-linux-gnueabihf/qt6/QtCore/qjsonvalue.h \
   /usr/include/arm-linux-gnueabihf/qt6/QtCore/qlist.h \
-  /usr/include/arm-linux-gnueabihf/qt6/QtCore/qlocale.h \
   /usr/include/arm-linux-gnueabihf/qt6/QtCore/qlogging.h \
-  /usr/include/arm-linux-gnueabihf/qt6/QtCore/qmap.h \
   /usr/include/arm-linux-gnueabihf/qt6/QtCore/qmath.h \
   /usr/include/arm-linux-gnueabihf/qt6/QtCore/qmetacontainer.h \
   /usr/include/arm-linux-gnueabihf/qt6/QtCore/qmetatype.h \
@@ -351,18 +336,10 @@
   /usr/include/arm-linux-gnueabihf/qt6/QtCore/qobjectdefs.h \
   /usr/include/arm-linux-gnueabihf/qt6/QtCore/qobjectdefs_impl.h \
   /usr/include/arm-linux-gnueabihf/qt6/QtCore/qpair.h \
-  /usr/include/arm-linux-gnueabihf/qt6/QtCore/qplugin.h \
-  /usr/include/arm-linux-gnueabihf/qt6/QtCore/qpointer.h \
   /usr/include/arm-linux-gnueabihf/qt6/QtCore/qprocessordetection.h \
   /usr/include/arm-linux-gnueabihf/qt6/QtCore/qrefcount.h \
-  /usr/include/arm-linux-gnueabihf/qt6/QtCore/qregularexpression.h \
   /usr/include/arm-linux-gnueabihf/qt6/QtCore/qscopedpointer.h \
   /usr/include/arm-linux-gnueabihf/qt6/QtCore/qscopeguard.h \
-  /usr/include/arm-linux-gnueabihf/qt6/QtCore/qset.h \
-  /usr/include/arm-linux-gnueabihf/qt6/QtCore/qshareddata.h \
-  /usr/include/arm-linux-gnueabihf/qt6/QtCore/qshareddata_impl.h \
-  /usr/include/arm-linux-gnueabihf/qt6/QtCore/qsharedpointer.h \
-  /usr/include/arm-linux-gnueabihf/qt6/QtCore/qsharedpointer_impl.h \
   /usr/include/arm-linux-gnueabihf/qt6/QtCore/qstring.h \
   /usr/include/arm-linux-gnueabihf/qt6/QtCore/qstringalgorithms.h \
   /usr/include/arm-linux-gnueabihf/qt6/QtCore/qstringconverter_base.h \
@@ -381,21 +358,8 @@
   /usr/include/arm-linux-gnueabihf/qt6/QtCore/qtextstream.h \
   /usr/include/arm-linux-gnueabihf/qt6/QtCore/qtmetamacros.h \
   /usr/include/arm-linux-gnueabihf/qt6/QtCore/qtypeinfo.h \
-  /usr/include/arm-linux-gnueabihf/qt6/QtCore/qurl.h \
   /usr/include/arm-linux-gnueabihf/qt6/QtCore/qutf8stringview.h \
-  /usr/include/arm-linux-gnueabihf/qt6/QtCore/quuid.h \
-  /usr/include/arm-linux-gnueabihf/qt6/QtCore/qvariant.h \
-  /usr/include/arm-linux-gnueabihf/qt6/QtCore/qvarlengtharray.h \
   /usr/include/arm-linux-gnueabihf/qt6/QtCore/qversiontagging.h \
-  /usr/include/arm-linux-gnueabihf/qt6/QtNetwork/qtnetwork-config.h \
-  /usr/include/arm-linux-gnueabihf/qt6/QtNetwork/qtnetworkexports.h \
-  /usr/include/arm-linux-gnueabihf/qt6/QtNetwork/qtnetworkglobal.h \
-  /usr/include/arm-linux-gnueabihf/qt6/QtQml/QQmlExtensionPlugin \
-  /usr/include/arm-linux-gnueabihf/qt6/QtQml/qqmlextensioninterface.h \
-  /usr/include/arm-linux-gnueabihf/qt6/QtQml/qqmlextensionplugin.h \
-  /usr/include/arm-linux-gnueabihf/qt6/QtQml/qtqml-config.h \
-  /usr/include/arm-linux-gnueabihf/qt6/QtQml/qtqmlexports.h \
-  /usr/include/arm-linux-gnueabihf/qt6/QtQml/qtqmlglobal.h \
   /usr/lib/gcc-cross/arm-linux-gnueabihf/13/include/limits.h \
   /usr/lib/gcc-cross/arm-linux-gnueabihf/13/include/stdarg.h \
   /usr/lib/gcc-cross/arm-linux-gnueabihf/13/include/stdbool.h \

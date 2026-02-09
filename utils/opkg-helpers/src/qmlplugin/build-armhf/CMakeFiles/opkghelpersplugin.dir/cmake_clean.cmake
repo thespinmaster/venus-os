@@ -4,6 +4,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/opkghelpersplugin_autogen.dir/AutogenUsed.txt"
   "CMakeFiles/opkghelpersplugin_autogen.dir/ParseCache.txt"
   "opkghelpersplugin_autogen"
+  "CMakeFiles/opkghelpersplugin.dir/FileHelper.cpp.o"
+  "CMakeFiles/opkghelpersplugin.dir/FileHelper.cpp.o.d"
   "CMakeFiles/opkghelpersplugin.dir/OpkgHelpersPlugin.cpp.o"
   "CMakeFiles/opkghelpersplugin.dir/OpkgHelpersPlugin.cpp.o.d"
   "CMakeFiles/opkghelpersplugin.dir/ProcessRunner.cpp.o"

@@ -2,9 +2,11 @@
 
 #include <QByteArray>
 
+
 ProcessRunner::ProcessRunner(QObject *parent)
 	: QObject(parent)
 	, m_helperPath("/data/opkg-helpers/opkg-common")
+	, m_operationName("")
 {
 	m_process.setProcessChannelMode(QProcess::SeparateChannels);
 
@@ -14,6 +16,18 @@ ProcessRunner::ProcessRunner(QObject *parent)
 			QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
 			this,
 			&ProcessRunner::handleFinished);
+}
+QString ProcessRunner::operationName() const
+{
+	return m_operationName;
+}
+
+void ProcessRunner::setOperationName(const QString &name)
+{
+	if (m_operationName == name)
+		return;
+	m_operationName = name;
+	emit operationNameChanged();
 }
 
 QString ProcessRunner::helperPath() const
@@ -85,6 +99,10 @@ void ProcessRunner::handleFinished(int exitCode, QProcess::ExitStatus exitStatus
 
 	emit finished(exitCode, static_cast<int>(exitStatus));
 	emit runningChanged();
+	// Reset operationName after completion
+	if (!m_operationName.isEmpty()) {
+		setOperationName("");
+	}
 }
 
 void ProcessRunner::emitLines(QByteArray &buffer, const QByteArray &chunk, bool isError)

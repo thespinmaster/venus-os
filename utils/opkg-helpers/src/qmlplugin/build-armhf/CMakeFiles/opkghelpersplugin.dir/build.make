@@ -117,11 +117,26 @@ CMakeFiles/opkghelpersplugin.dir/ProcessRunner.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/opkghelpersplugin.dir/ProcessRunner.cpp.s"
 	/usr/bin/arm-linux-gnueabihf-g++ --sysroot=/ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/admin/dev/repos/venus-os/utils/opkg-helpers/src/qmlplugin/ProcessRunner.cpp -o CMakeFiles/opkghelpersplugin.dir/ProcessRunner.cpp.s
 
+CMakeFiles/opkghelpersplugin.dir/FileHelper.cpp.o: CMakeFiles/opkghelpersplugin.dir/flags.make
+CMakeFiles/opkghelpersplugin.dir/FileHelper.cpp.o: /home/admin/dev/repos/venus-os/utils/opkg-helpers/src/qmlplugin/FileHelper.cpp
+CMakeFiles/opkghelpersplugin.dir/FileHelper.cpp.o: CMakeFiles/opkghelpersplugin.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/admin/dev/repos/venus-os/utils/opkg-helpers/src/qmlplugin/build-armhf/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/opkghelpersplugin.dir/FileHelper.cpp.o"
+	/usr/bin/arm-linux-gnueabihf-g++ --sysroot=/ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/opkghelpersplugin.dir/FileHelper.cpp.o -MF CMakeFiles/opkghelpersplugin.dir/FileHelper.cpp.o.d -o CMakeFiles/opkghelpersplugin.dir/FileHelper.cpp.o -c /home/admin/dev/repos/venus-os/utils/opkg-helpers/src/qmlplugin/FileHelper.cpp
+
+CMakeFiles/opkghelpersplugin.dir/FileHelper.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/opkghelpersplugin.dir/FileHelper.cpp.i"
+	/usr/bin/arm-linux-gnueabihf-g++ --sysroot=/ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/admin/dev/repos/venus-os/utils/opkg-helpers/src/qmlplugin/FileHelper.cpp > CMakeFiles/opkghelpersplugin.dir/FileHelper.cpp.i
+
+CMakeFiles/opkghelpersplugin.dir/FileHelper.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/opkghelpersplugin.dir/FileHelper.cpp.s"
+	/usr/bin/arm-linux-gnueabihf-g++ --sysroot=/ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/admin/dev/repos/venus-os/utils/opkg-helpers/src/qmlplugin/FileHelper.cpp -o CMakeFiles/opkghelpersplugin.dir/FileHelper.cpp.s
+
 # Object files for target opkghelpersplugin
 opkghelpersplugin_OBJECTS = \
 "CMakeFiles/opkghelpersplugin.dir/opkghelpersplugin_autogen/mocs_compilation.cpp.o" \
 "CMakeFiles/opkghelpersplugin.dir/OpkgHelpersPlugin.cpp.o" \
-"CMakeFiles/opkghelpersplugin.dir/ProcessRunner.cpp.o"
+"CMakeFiles/opkghelpersplugin.dir/ProcessRunner.cpp.o" \
+"CMakeFiles/opkghelpersplugin.dir/FileHelper.cpp.o"
 
 # External object files for target opkghelpersplugin
 opkghelpersplugin_EXTERNAL_OBJECTS =
@@ -129,12 +144,13 @@ opkghelpersplugin_EXTERNAL_OBJECTS =
 /home/admin/dev/repos/venus-os/utils/opkg-helpers/src/data/opkg-helpers/qml/OpkgHelpers/libopkghelpersplugin.so: CMakeFiles/opkghelpersplugin.dir/opkghelpersplugin_autogen/mocs_compilation.cpp.o
 /home/admin/dev/repos/venus-os/utils/opkg-helpers/src/data/opkg-helpers/qml/OpkgHelpers/libopkghelpersplugin.so: CMakeFiles/opkghelpersplugin.dir/OpkgHelpersPlugin.cpp.o
 /home/admin/dev/repos/venus-os/utils/opkg-helpers/src/data/opkg-helpers/qml/OpkgHelpers/libopkghelpersplugin.so: CMakeFiles/opkghelpersplugin.dir/ProcessRunner.cpp.o
+/home/admin/dev/repos/venus-os/utils/opkg-helpers/src/data/opkg-helpers/qml/OpkgHelpers/libopkghelpersplugin.so: CMakeFiles/opkghelpersplugin.dir/FileHelper.cpp.o
 /home/admin/dev/repos/venus-os/utils/opkg-helpers/src/data/opkg-helpers/qml/OpkgHelpers/libopkghelpersplugin.so: CMakeFiles/opkghelpersplugin.dir/build.make
 /home/admin/dev/repos/venus-os/utils/opkg-helpers/src/data/opkg-helpers/qml/OpkgHelpers/libopkghelpersplugin.so: /usr/lib/arm-linux-gnueabihf/libQt6Qml.so.6.4.2
 /home/admin/dev/repos/venus-os/utils/opkg-helpers/src/data/opkg-helpers/qml/OpkgHelpers/libopkghelpersplugin.so: /usr/lib/arm-linux-gnueabihf/libQt6Network.so.6.4.2
 /home/admin/dev/repos/venus-os/utils/opkg-helpers/src/data/opkg-helpers/qml/OpkgHelpers/libopkghelpersplugin.so: /usr/lib/arm-linux-gnueabihf/libQt6Core.so.6.4.2
 /home/admin/dev/repos/venus-os/utils/opkg-helpers/src/data/opkg-helpers/qml/OpkgHelpers/libopkghelpersplugin.so: CMakeFiles/opkghelpersplugin.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/admin/dev/repos/venus-os/utils/opkg-helpers/src/qmlplugin/build-armhf/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Linking CXX shared module /home/admin/dev/repos/venus-os/utils/opkg-helpers/src/data/opkg-helpers/qml/OpkgHelpers/libopkghelpersplugin.so"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/admin/dev/repos/venus-os/utils/opkg-helpers/src/qmlplugin/build-armhf/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Linking CXX shared module /home/admin/dev/repos/venus-os/utils/opkg-helpers/src/data/opkg-helpers/qml/OpkgHelpers/libopkghelpersplugin.so"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/opkghelpersplugin.dir/link.txt --verbose=$(VERBOSE)
 	/usr/bin/cmake -E copy /home/admin/dev/repos/venus-os/utils/opkg-helpers/src/qmlplugin/qmldir /home/admin/dev/repos/venus-os/utils/opkg-helpers/src/qmlplugin/../data/opkg-helpers/qml/OpkgHelpers/qmldir
 

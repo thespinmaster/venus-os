@@ -5,11 +5,13 @@
 #include <QString>
 #include <QStringList>
 
+
 class ProcessRunner : public QObject
 {
 	Q_OBJECT
 	Q_PROPERTY(QString helperPath READ helperPath WRITE setHelperPath NOTIFY helperPathChanged)
 	Q_PROPERTY(bool running READ running NOTIFY runningChanged)
+	Q_PROPERTY(QString operationName READ operationName WRITE setOperationName NOTIFY operationNameChanged)
 
 public:
 	explicit ProcessRunner(QObject *parent = nullptr);
@@ -18,6 +20,9 @@ public:
 	void setHelperPath(const QString &path);
 
 	bool running() const;
+
+	QString operationName() const;
+	void setOperationName(const QString &name);
 
 	Q_INVOKABLE void start(const QStringList &args);
 	Q_INVOKABLE void stop();
@@ -28,6 +33,7 @@ signals:
 	void outputLine(const QString &line);
 	void errorLine(const QString &line);
 	void finished(int exitCode, int exitStatus);
+	void operationNameChanged();
 
 private slots:
 	void handleStdout();
@@ -39,6 +45,7 @@ private:
 
 	QProcess m_process;
 	QString m_helperPath;
+	QString m_operationName;
 	QByteArray m_stdoutBuffer;
 	QByteArray m_stderrBuffer;
 };

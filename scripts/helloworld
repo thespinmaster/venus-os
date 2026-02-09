@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-echo "Hello world from helloworld.sh!"
+echo "Hello world from helloworld.sh!" > /data/test.log

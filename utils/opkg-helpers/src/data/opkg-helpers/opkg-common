@@ -23,6 +23,25 @@ dry_run=
 
 declare __this_path; __this_path="$(dirname "${BASH_SOURCE[0]}")"
 . "${__this_path}/libs/log-lib"
+ 
+opkg_get_feeds() {
+  local feeds_file="${OPKG_FEED_CONFIG_FILE}"
+  local first=1
+  printf '['
+  if [[ -f "$feeds_file" ]]; then
+    while IFS= read -r line; do
+      [[ -z "$line" || "$line" == \#* ]] && continue
+      [[ "$line" != src/gz* ]] && continue
+      set -- $line
+      local name="$2"
+      local url="$3"
+      if [[ $first -eq 0 ]]; then printf ','; fi
+      printf '{"name":"%s","url":"%s"}' "${name}" "${url}"
+      first=0
+    done < "$feeds_file"
+  fi
+  printf ']\n'
+}
 
 # Expand rootfs and make it writable
 opkg_common_expand_root_fs() {
@@ -122,6 +141,25 @@ opkg_common_feed_crud() {
   else
     log "feed content:\"src/gz ${feed_name} ${feed_url} >> ${OPKG_FEED_CONFIG_FILE}\""
   fi
+}
+
+# Helper to install a package and log output/errors
+opkg_common_install_package() {
+  local package_name="$1"
+  shift
+  if [[ -z "$package_name" ]]; then
+    log_error "install-package: package name not supplied"
+    return 1
+  fi
+  echo "Installing $package_name $*"
+  opkg install "$package_name" "$@"
+  local status=$?
+  if [ $status -eq 0 ]; then
+    echo "install_package: $package_name installed successfully"
+  else
+    log_error "install_package: failed to install $package_name (status $status)"
+  fi
+  return $status
 }
 
 opkg_common_ensure_feed() {
@@ -426,11 +464,14 @@ opkg_common_list_packages() {
   local now=0
   local cache_ttl=5
 
+  echo "opkg_common_list_packages" > "/data/opkg.log"
+
   # If 'update' argument is supplied, run opkg update first
   if [[ "${1:-}" == "update" ]]; then
+    echo "update" >> "/data/opkg.log"
     opkg update
   fi
-
+  
   feeds=()
 
   if [[ -f "${OPKG_FEED_CONFIG_FILE}" ]]; then
@@ -473,7 +514,7 @@ opkg_common_list_packages() {
   if [[ -f "${cache_file}" ]]; then
     cache_mtime=$(stat -c %Y "${cache_file}" 2>/dev/null || echo 0)
     if (( cache_mtime >= latest_mtime )); then
-      cat "${cache_file}"
+      echo "${cache_file}"
       return 0
     fi
   fi
@@ -518,12 +559,13 @@ opkg_common_list_packages() {
           printf ","
         }
         printed = 1
-        printf "{\"name\":\"%s\",\"description\":\"%s\",\"version\":\"%s\",\"feed\":\"%s\",\"installed\":%s}", \
-          __json_escape(name), \
-          __json_escape(description), \
-          __json_escape(version), \
-          __json_escape(feed), \
-          ((name in installed) ? "true" : "false")
+        # Output installedVersion as a string (empty if not installed)
+        printf "{\"name\":\"%s\",\"description\":\"%s\",\"version\":\"%s\",\"feed\":\"%s\",\"installedVersion\":\"%s\"}", \
+          json_escape(name), \
+          json_escape(description), \
+          json_escape(version), \
+          json_escape(feed), \
+          ((name in installed) ? json_escape(installed[name]) : "")
       }
       name = ""
       version = ""
@@ -538,20 +580,24 @@ opkg_common_list_packages() {
       desc_active = 0
 
       if (installed_mode == "status") {
+        # Parse /usr/lib/opkg/status for installed packages and their versions
+        pkg = ""; ver = ""
         while ((getline line < installed_file) > 0) {
           if (line ~ /^Package: /) {
             pkg = substr(line, 10)
-            if (pkg != "") {
-              installed[pkg] = 1
-            }
+          } else if (line ~ /^Version: / && pkg != "") {
+            ver = substr(line, 10)
+            installed[pkg] = ver
+            pkg = ""; ver = ""
           }
         }
         close(installed_file)
       } else if (installed_mode == "list") {
+        # Parse output of opkg list-installed (format: name - version - description)
         while ((getline line < installed_file) > 0) {
-          split(line, parts, /[[:space:]]+/)
-          if (parts[1] != "") {
-            installed[parts[1]] = 1
+          split(line, parts, /[[:space:]]+-[[:space:]]+/)
+          if (parts[1] != "" && parts[2] != "") {
+            installed[parts[1]] = parts[2]
           }
         }
         close(installed_file)
@@ -601,22 +647,13 @@ opkg_common_list_packages() {
   printf ']\n' >> "${cache_tmp}"
 
   mv "${cache_tmp}" "${cache_file}"
-  cat "${cache_file}"
+  echo "${cache_file}"
 
   [[ -n "${tmp_installed_file}" ]] && rm -f "${tmp_installed_file}"
+  
+  return 0
 }
 
-__json_escape() {
-  local s="${1}"
-  s="$(printf '%s' "${s}" | tr -d '\000-\010\013\014\016-\037')"
-  s="${s//\\/\\\\}"
-  s="${s//"/\\"}"
-  s="${s//$'\n'/\\n}"
-  s="${s//$'\r'/}"
-  s="${s//$'\t'/\\t}"
-  printf '%s' "${s}"
-}
- 
 case "${1:-}" in
   opkg_common_ensure_installed)
     if [[ "${2:-}" == "--dry-run" ]]; then
@@ -625,6 +662,11 @@ case "${1:-}" in
     fi
     opkg_common_ensure_installed
     ;;
+  install-package)
+    shift
+    opkg_common_install_package "$@"
+    ;;
+
   edit-feed)
     opkg_common_feed_crud "${2:-}" "${3:-}" "${4:-}"
     ;;
@@ -632,10 +674,11 @@ case "${1:-}" in
     opkg_common_feed_crud "${2:-}" "" ""
     ;;
   list-packages)
-    opkg_common_list_packages
+    opkg_common_list_packages "${2:-}"
     ;;
-  list-feeds)
-    opkg_list_feeds
+    
+  get-feeds)
+    opkg_get_feeds
     ;;
 esac
- #opkg_common_list_packages > /data/dev/aaa.json
+ 
