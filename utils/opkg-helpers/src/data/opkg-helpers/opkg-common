@@ -114,6 +114,7 @@ opkg_common_feed_crud() {
 
   [[ -z "${feed_name}" ]] && { log_error "Invalid name"; exit 1; }
   [[ "${feed_name}" =~ [^a-zA-Z0-9_] ]] && { log_error "Invalid name"; exit 1; }
+  [[ "${feed_name}" == "${OPKG_DEFAULT_FEED_NAME}" ]] && { log_error "Invalid name"; exit 1; }
 
   if [[ -n "${feed_old_name}" ]] && [[ "${feed_old_name}" =~ [^a-zA-Z0-9_] ]]; then
     log_error "Invalid old name"
@@ -141,25 +142,6 @@ opkg_common_feed_crud() {
   else
     log "feed content:\"src/gz ${feed_name} ${feed_url} >> ${OPKG_FEED_CONFIG_FILE}\""
   fi
-}
-
-# Helper to install a package and log output/errors
-opkg_common_install_package() {
-  local package_name="$1"
-  shift
-  if [[ -z "$package_name" ]]; then
-    log_error "install-package: package name not supplied"
-    return 1
-  fi
-  echo "Installing $package_name $*"
-  opkg install "$package_name" "$@"
-  local status=$?
-  if [ $status -eq 0 ]; then
-    echo "install_package: $package_name installed successfully"
-  else
-    log_error "install_package: failed to install $package_name (status $status)"
-  fi
-  return $status
 }
 
 opkg_common_ensure_feed() {
@@ -409,14 +391,49 @@ opkg_common_unregister_package() {
 
 }
  
+# Helper to install a package and log output/errors
+opkg_common_install_package() {
+  local package_name="$1"
+  shift
+  if [[ -z "$package_name" ]]; then
+    log_error "install-package: package name not supplied"
+    return 1
+  fi
+  log "Installing $package_name $*"
+  opkg install "$package_name" "$@"
+  local status=$?
+  if [ $status -eq 0 ]; then
+    log "install_package: $package_name installed successfully"
+  else
+    log_error "install_package: failed to install $package_name (status $status)"
+  fi
+  return $status
+}
+
+opkg_common_upgrade_package() {
+  local package_name="$1"
+  shift
+  if [[ -z "$package_name" ]]; then
+    log_error "update-package: package name not supplied"
+    return 1
+  fi
+  log "Upgrade $package_name $*"
+  opkg upgrade "$package_name" "$@"
+  local status=$?
+  if [ $status -eq 0 ]; then
+    log "update-package: $package_name updated successfully"
+  else
+    log_error "update-package: failed to updated $package_name (status $status)"
+  fi
+  return $status
+}
+
 opkg_common_remove_package() {
-
-  log "__opkg_common_try_install_package"
-
-  local package_name="${1:-}"
-
-  if [[ -z "${package_name}" ]]; then
-    log "package name not supplied"
+ 
+  local package_name="$1"
+  shift
+  if [[ -z "$package_name" ]]; then
+    log_error "remove-package: package name not supplied"
     return 1
   fi
 
@@ -424,26 +441,21 @@ opkg_common_remove_package() {
   # list-installed only returns an exact match
   local installed; installed=$(opkg list-installed "${package_name}")
 
-  # if already installed then exit
-  if [[ -n "${installed}" ]]; then
-    log "Already Installed ${package_name}, exiting"
+  # if not installed then exit
+  if [[ -z "${installed}" ]]; then
+    log "Not Installed ${package_name}, exiting"
     return 0
   fi
 
   __init_root_fs_for_writing
   __init_opkg
-
-  log "Removing... ${package_name}"
-  if [ ! $dry_run ]; then
-    opkg remove "${package_name}"
-  fi
-
+ 
+  opkg remove "${package_name}"
+ 
   __restore_previous_fs_access
 
   log_pop_indent
-
-  log "opkg_common_ensure_installed: done"
-
+ 
   return 0
 }
 
@@ -662,19 +674,26 @@ case "${1:-}" in
     fi
     opkg_common_ensure_installed
     ;;
+  list-packages)
+    opkg_common_list_packages "${2:-}"
+    ;;
   install-package)
     shift
     opkg_common_install_package "$@"
     ;;
-
+  remove-package)
+    shift
+    opkg_common_remove_package "$@"
+    ;;
+  upgrade-package)
+    shift
+    opkg_common_upgrade_package "$@"
+    ;;
   edit-feed)
     opkg_common_feed_crud "${2:-}" "${3:-}" "${4:-}"
     ;;
   remove-feed)
     opkg_common_feed_crud "${2:-}" "" ""
-    ;;
-  list-packages)
-    opkg_common_list_packages "${2:-}"
     ;;
     
   get-feeds)

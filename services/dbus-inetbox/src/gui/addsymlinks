@@ -1,6 +1,0 @@
-#!/bin/bash
-
-ln ./OverviewInetbox.qml ../OverviewInetbox.qml
-ln ./ButtonGroupControl.qml ../ButtonGroupControl.qml
-ln ./PageSettingsInetbox.qml ../PageSettingsInetbox.qml
-ln ./PageSettingsInetboxTheme.qml ../PageSettingsInetboxTheme.qml

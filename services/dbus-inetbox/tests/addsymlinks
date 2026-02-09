@@ -1,0 +1,18 @@
+#!/bin/bash
+
+set -o nounset
+
+declare this_path; this_path="$(dirname "${BASH_SOURCE[0]}")"
+
+QML_TARGET_PATH="/opt/victronenergy/gui/qml"
+QML_SOURCE_PATH=$this_path/../src/opt/victronenergy/gui/qml
+ 
+QML_ICONS_TARGET_PATH="/opt/victronenergy/themes/ccgx/icons"
+QML_ICONS_SOURCE_PATH="$this_path/../src/opt/victronenergy/themes/ccgx/icons"
+ 
+ln -s $QML_SOURCE_PATH/OverviewInetbox.qml $QML_TARGET_PATH/OverviewInetbox.qml
+ln -s $QML_SOURCE_PATH/ButtonGroupControl.qml $QML_TARGET_PATH/ButtonGroupControl.qml
+ln -s $QML_SOURCE_PATH/PageSettingsInetbox.qml $QML_TARGET_PATH/PageSettingsInetbox.qml
+ 
+ln -s $QML_TARGET_PATH/main.qml $this_path/main.qml
+

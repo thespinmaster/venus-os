@@ -15,35 +15,62 @@ MbPage {
 	}
 	property bool installInProgress: installRunner.operationName !== ""
 	pageToolbarHandler: ToolbarHandler {
-		
-		centerText: {
-			var item = root.selectedPackage;
+
+		leftText: {
+			var item = root.selectedPackage
 			if (item) {
-				var hasInstalled = item.installedVersion && item.installedVersion.length > 0;
-				var hasAvailable = item.version && item.version.length > 0;
+				var hasInstalled = item.installedVersion && item.installedVersion.length > 0
+				var hasAvailable = item.version && item.version.length > 0
 				if (hasInstalled && hasAvailable) {
-					return qsTr("Update");
+					return qsTr("Upgrade")
 				} else if (!hasInstalled && hasAvailable) {
-					return qsTr("Install");
+					return qsTr("Install")
 				}
 			}
 		}
-		function centerAction() {
-			if (!root.selectedPackage || !root.selectedPackage.name || !root.logAreaRef) {
+		function leftAction() {
+			var item = root.selectedPackage
+			var action=""
+			if (item) {
+				var hasInstalled = item.installedVersion && item.installedVersion.length > 0
+				var hasAvailable = item.version && item.version.length > 0
+				if (hasInstalled && hasAvailable) {
+					action = "upgrade"
+				} else if (!hasInstalled && hasAvailable) {
+					action = "install"
+				}
+			}
+
+			doAction(action) 
+		}
+
+		rightText: {
+        var item = root.selectedPackage;
+        if (item && item.installedVersion) {
+						return qsTr("Remove");
+				}
+        return qsTr("");
+		}
+ 
+		function rightAction() { doAction("remove") }
+
+		function doAction(action)
+		{
+			if (action == "" || !root.selectedPackage || !root.selectedPackage.name || !root.logAreaRef) {
 				return;
 			}
+
 			// Clear log area
 			root.logAreaRef.logLines = [];
-			root.logAreaRef.addLogLine("--- Starting install for: " + root.selectedPackage.name + " ---");
+			root.logAreaRef.addLogLine("--- Starting " + action + " for: " + root.selectedPackage.name + " ---");
 
-			// Use VBusItem for NoAction setting
 			var noAction = noActionSetting.valid && noActionSetting.value !== undefined && noActionSetting.value !== null ? !!noActionSetting.value : false;
 
-			var args = ["install-package", root.selectedPackage.name];
+			var args = [action + "-package", root.selectedPackage.name];
 			if (noAction) {
 				args.push("--noaction");
 			}
-			installRunner.operationName = "install-package";
+			installRunner.operationName = action;
 			installRunner.start(args);
 		}
 	}
@@ -59,9 +86,7 @@ MbPage {
 		}
 		onFinished: function(exitCode, exitStatus) {
 			if (root.logAreaRef) {
-				if (installRunner.operationName == "install-package") {
-			 		root.logAreaRef.addLogLine("--- Install finished. Exit code: " + exitCode + ", status: " + exitStatus + " ---"); 
-				}
+				root.logAreaRef.addLogLine("--- Finished " + installRunner.operationName + ". Exit code: " + exitCode + ", status: " + exitStatus + " ---"); 
 			}
 			installRunner.operationName = "";
 			root.selectedPackage.installedVersion = root.selectedPackage.version

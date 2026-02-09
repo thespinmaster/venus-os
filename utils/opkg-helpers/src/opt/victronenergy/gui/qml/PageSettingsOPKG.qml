@@ -39,23 +39,11 @@ MbPage {
 
 	pageToolbarHandler: ToolbarHandler {
  
-   
-		rightText: {
-        var item = root.selectedPackage;
-        if (item && item.installedVersion) {
-						return qsTr("Remove");
-				}
-        return qsTr("");
-		}
-		function rightAction() {
-
-		}
- 
-		function leftAction() {
+		function centerAction() {
 			loadPackages("list-packages-update", "update")
 		}
 
-		leftText: qsTr("Refresh Feeds")  
+		centerText: qsTr("Refresh Feeds")  
 
 	}
 	id: root
