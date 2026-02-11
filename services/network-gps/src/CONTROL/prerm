@@ -20,8 +20,8 @@ if [ -f "/var/log/${service_name}" ]; then
   rm -R "/var/log/${service_name}"
 fi
  
-# shellcheck source=../../../../utils/opkg-helpers/src/data/opkg-helpers/opkg-common
-. "${VENUS_ROOT_DIR:-}/data/opkg-helpers/opkg-common"
+# shellcheck source=../../../../utils/opkg-manager/src/data/opkg-manager/opkg-common
+. "${VENUS_ROOT_DIR:-}/data/opkg-manager/opkg-common"
 opkg_common_unregister_package "${package_name}"
 
 echo "${package_name}" removed

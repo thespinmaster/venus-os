@@ -12,9 +12,7 @@ elif [[ "${1}" == "-c" ]]; then
 else
 build="${@}"
 fi
-
-build="opkg-helpers"
-
+ 
 declare -a build_items=()
 declare -a folders=("../services" "../utils")
 declare pwd_old=$PWD
@@ -32,7 +30,7 @@ elif [[ "$build" == "package" ]]; then
   build_feed_package
 else
   build_items=("${build}")
-  #build_items=("opkg-helpers" "test-service")
+  #build_items=("opkg-manager" "test-service")
   declare -i found=0 i 
   declare f
  

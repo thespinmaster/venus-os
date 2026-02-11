@@ -1,0 +1,45 @@
+#!/bin/bash
+
+set -o nounset
+ 
+declare this_path; this_path="$(dirname "${BASH_SOURCE[0]}")"
+
+QML_TARGET_PATH="/opt/victronenergy/gui/qml"
+QML_SOURCE_PATH=$this_path/../src/opt/victronenergy/gui/qml
+ 
+QML_ICONS_TARGET_PATH="/opt/victronenergy/themes/ccgx/icons"
+QML_ICONS_SOURCE_PATH="$this_path/../src/opt/victronenergy/themes/ccgx/icons"
+ 
+QML_FILES=(
+	OverviewInetbox.qml
+	ButtonGroupControl.qml
+	PageSettingsInetbox.qml
+	PageSettingsOPKG.qml
+	PageSettingsOPKGPackageInstall.qml
+	PageSettingsOPKGSettings.qml
+	PageSettingsOPKGFeeds.qml
+	PageSettingsOPKGFeedEdit.qml
+	OpkgPackageItem.qml
+)
+
+for file in "${QML_FILES[@]}"; do
+  rm "$QML_TARGET_PATH/$file"
+	ln -s "$QML_SOURCE_PATH/$file" "$QML_TARGET_PATH/$file"
+done
+
+# Icons
+QML_ICONS_FILES=(
+	icon-opkg-manager-tick.svg
+)
+
+for icon in "${QML_ICONS_FILES[@]}"; do
+  rm "$QML_ICONS_TARGET_PATH/$icon"
+	ln -s "$QML_ICONS_SOURCE_PATH/$icon" "$QML_ICONS_TARGET_PATH/$icon"
+done
+ 
+ln -s $QML_TARGET_PATH/PageSettings.qml $this_path/PageSettings.qml
+
+# OpkgHelpers directory
+rm "$QML_TARGET_PATH/OpkgHelpers"
+ln -s "$QML_SOURCE_PATH/qml/OpkgHelpers" "$QML_TARGET_PATH/OpkgHelpers"
+

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-source /data/opkg-helpers/opkg-common.sh
+source /data/opkg-manager/opkg-common.sh
 PACKAGE_NAME=$(basename "${0%.*}") #get file name without path
 
 # Remove service from serial starter conf file

@@ -2,7 +2,7 @@
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "$0")/.." && pwd)"
-plugin_src="$repo_root/utils/opkg-helpers/src/qmlplugin"
+plugin_src="$repo_root/utils/opkg-manager/src/qmlplugin"
 plugin_build="$plugin_src/build"
 qt_major="auto"
 armhf_build=false

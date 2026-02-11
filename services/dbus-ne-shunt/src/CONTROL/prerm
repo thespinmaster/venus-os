@@ -8,10 +8,10 @@
  
 declare package_name="dbus-ne-shunt"
 
-source "${VENUS_ROOT_DIR:-}/data/opkg-helpers/opkg-common"
+source "${VENUS_ROOT_DIR:-}/data/opkg-manager/opkg-common"
 opkg_common_unregister_package "${package_name}"
 
-source "${VENUS_ROOT_DIR:-}/data/opkg-helpers/serial-device-installer"
+source "${VENUS_ROOT_DIR:-}/data/opkg-manager/serial-device-installer"
 serial_device_installer_remove
 
 serial_device_installer_stop_and_remove_service

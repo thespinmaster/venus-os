@@ -62,7 +62,7 @@ fi
 
 echo "setting up environment (bash aliases, nanorc config)"
 (
-  . /data/opkg-helpers/opkg-common
+  . /data/opkg-manager/opkg-common
   # priority 3 to execute after mount-shares
   declare rc_local_d_path=3
   opkg_common_ensure_rc_local_d rc_local_d_path

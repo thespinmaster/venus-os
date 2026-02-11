@@ -8,4 +8,4 @@ License: MIT
 Architecture: all
 OE: dbus-ne-shunt
 Source: https://github.com/thespinmaster/venus-os/tree/main/feed/dbus-ne-shunt
-Depends: opkg-helpers, python3
+Depends: opkg-manager, python3

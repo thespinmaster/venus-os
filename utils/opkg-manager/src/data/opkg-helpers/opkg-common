@@ -1,0 +1,703 @@
+#!/usr/bin/env bash
+
+set -o nounset
+
+readonly rc_local_file="${VENUS_ROOT_DIR:-}/data/rc.local"
+readonly opkg_helpers_path="${VENUS_ROOT_DIR:-}/data/opkg-manager"
+readonly opkg_registered_packages_file="${opkg_helpers_path}/registered-packages.conf"
+# shellcheck disable=SC2034
+readonly opkg_rc_local_d_dir="${opkg_helpers_path}/rc.local.d"
+readonly resize2fs_file="$/opt/victronenergy/swupdate-scripts/resize2fs.sh"
+
+declare OPKG_FEED_NAME="opkg-manager.conf"
+declare OPKG_DEFAULT_FEED_NAME=thespinmaster
+declare OPKG_FEED_URL="https://github.com/${OPKG_DEFAULT_FEED_NAME}/venus-os/raw/refs/heads/main/feed"
+declare OPKG_FEED_PATH="${VENUS_ROOT_DIR:-}/etc/opkg"
+declare OPKG_FEED_CONFIG_FILE="${OPKG_FEED_PATH}/${OPKG_FEED_NAME}"
+
+#readonly LOG=${opkg_helpers_path}/log
+
+___is_fs_readonly=
+init_opkg_helpers=
+dry_run=
+
+declare __this_path; __this_path="$(dirname "${BASH_SOURCE[0]}")"
+. "${__this_path}/libs/log-lib"
+ 
+opkg_get_feeds() {
+  local feeds_file="${OPKG_FEED_CONFIG_FILE}"
+  local first=1
+  printf '['
+  if [[ -f "$feeds_file" ]]; then
+    while IFS= read -r line; do
+      [[ -z "$line" || "$line" == \#* ]] && continue
+      [[ "$line" != src/gz* ]] && continue
+      set -- $line
+      local name="$2"
+      local url="$3"
+      if [[ $first -eq 0 ]]; then printf ','; fi
+      printf '{"name":"%s","url":"%s"}' "${name}" "${url}"
+      first=0
+    done < "$feeds_file"
+  fi
+  printf ']\n'
+}
+
+# Expand rootfs and make it writable
+opkg_common_expand_root_fs() {
+  
+  log "expanding root fs"
+  if [ ! $dry_run ]; then
+    $resize2fs_file
+  fi
+}
+
+# mount the rootfs as read/write
+__root_fs_readwrite() {
+  log "mounting fs as read write"
+  if [ ! $dry_run ]; then
+    mount -o remount,rw /
+  fi
+}
+
+# mount the rootfs as read/write
+__mount_root_fs_readonly() {
+  log "mounting fs as readonly"
+
+  if [ ! $dry_run ]; then
+    mount -o remount,ro /
+  fi
+
+}
+
+# pass initial state of ___is_fs_readonly
+# if initial state is empty but ___is_fs_readonly now
+# has a value then we restore back to readonly.
+__restore_previous_fs_access() {
+  
+  log "restoring previous fs state"
+
+  if [[ "${___is_fs_readonly}" = 1 ]]; then
+    __mount_root_fs_readonly
+  else
+    log "previous state was readwrite; nothing to restore"
+  fi
+  ___is_fs_readonly=
+
+}
+
+__opkg_common_remove_feed_line() {
+  local name="${1:-}"
+
+  if [[ ! -f "${OPKG_FEED_CONFIG_FILE}" ]]; then
+    return 0
+  fi
+
+  if [ ! $dry_run ]; then
+    local tmp_file
+    tmp_file=$(mktemp)
+    awk -v name="${name}" 'BEGIN { pattern = "^src/gz[[:space:]]+" name "[[:space:]]" }
+      $0 ~ pattern { next }
+      { print }' "${OPKG_FEED_CONFIG_FILE}" > "${tmp_file}"
+    mv "${tmp_file}" "${OPKG_FEED_CONFIG_FILE}"
+  else
+    log "remove feed line: ${name}"
+  fi
+}
+
+opkg_common_feed_crud() {
+  log "opkg feed crud"
+
+  local feed_name="${1:-}"
+  local feed_url="${2:-}"
+  local feed_old_name="${3:-}"
+
+  [[ -z "${feed_name}" ]] && { log_error "Invalid name"; exit 1; }
+  [[ "${feed_name}" =~ [^a-zA-Z0-9_] ]] && { log_error "Invalid name"; exit 1; }
+  [[ "${feed_name}" == "${OPKG_DEFAULT_FEED_NAME}" ]] && { log_error "Invalid name"; exit 1; }
+
+  if [[ -n "${feed_old_name}" ]] && [[ "${feed_old_name}" =~ [^a-zA-Z0-9_] ]]; then
+    log_error "Invalid old name"
+    exit 1
+  fi
+
+  if [[ -z "${feed_url}" ]]; then
+    if [[ -n "${feed_old_name}" ]]; then
+      log_error "Invalid old name"
+      exit 1
+    fi
+    __opkg_common_remove_feed_line "${feed_name}"
+    return 0
+  fi
+
+  if [[ -n "${feed_old_name}" ]]; then
+    __opkg_common_remove_feed_line "${feed_old_name}"
+  fi
+
+  __opkg_common_remove_feed_line "${feed_name}"
+
+  if [ ! $dry_run ]; then
+    mkdir -p "${OPKG_FEED_PATH}"
+    printf 'src/gz %s %s\n' "${feed_name}" "${feed_url}" >> "${OPKG_FEED_CONFIG_FILE}"
+  else
+    log "feed content:\"src/gz ${feed_name} ${feed_url} >> ${OPKG_FEED_CONFIG_FILE}\""
+  fi
+}
+
+opkg_common_ensure_feed() {
+
+  log "ensure opkg feed"
+  opkg_common_feed_crud "${OPKG_DEFAULT_FEED_NAME}" "${OPKG_FEED_URL}" ""
+}
+
+__ensure_rc_local() {
+  log "__ensure_rc_local"
+  if [[ ! -f "${rc_local_file}" ]]; then
+    log "rc.local does not exist; creating..."
+    if [[ ! $dry_run ]]; then
+      touch "${rc_local_file}"  
+    fi
+  fi
+  if [[ ! $dry_run ]]; then
+    chmod +x "${rc_local_file}"
+  fi
+}
+
+# placed in separate function: easier to override for testing
+__is_fs_readonly() {
+  grep -q "[[:space:]]ro[[:space:],]" /proc/mounts
+}
+
+# sets the rootfs for writing
+# sets the flag ___is_fs_readonly
+__init_root_fs_for_writing() {
+
+  log "__init_root_fs_for_writing"
+
+  if [[ -z "${___is_fs_readonly}" ]]; then
+
+    # make sure the file system is writeable
+    if __is_fs_readonly; then
+      ___is_fs_readonly=1
+    else
+      ___is_fs_readonly=0
+    fi
+ 
+    if [[ "${___is_fs_readonly}" = 1 ]]; then
+      __root_fs_readwrite
+    fi
+
+    log "fs is readonly:${___is_fs_readonly}"
+
+  else
+    log "___is_fs_readonly already initialized"
+  fi
+
+}
+
+# ensures the opkg feed is setup
+# calls opkg update
+# sets init_opkg_helpers flag so
+# only done once
+__init_opkg() {
+
+  ((init_opkg_helpers)) && {
+    log "__init_opkg: already initialzed"
+    return;
+  }
+
+  log "__init_opkg: initializing"
+
+  opkg_common_ensure_feed
+  if [ ! $dry_run ]; then
+    opkg update
+  fi
+
+  init_opkg_helpers=1
+ 
+}
+
+__opkg_common_try_install_package() {
+
+  log "__opkg_common_try_install_package"
+
+  local package_name="${1:-}"
+
+  if [[ -z "${package_name}" ]]; then
+    log "package name not supplied"
+    return 1
+  fi
+
+  # see if the ipk is installed
+  # list-installed only returns an exact match
+  local installed; installed=$(opkg list-installed "${package_name}")
+
+  # if already installed then exit
+  if [[ -n "${installed}" ]]; then
+    log "Already Installed ${package_name}, exiting"
+    return 0
+  fi
+
+  __init_root_fs_for_writing
+  __init_opkg
+
+  log "Installing... ${package_name}"
+  if [ ! $dry_run ]; then
+    opkg install "${package_name}"
+  fi
+}
+
+# ensures the rc.local.d folder exists
+# {1} [in,out]: in, a number between 0 and 99,
+#               out the full path to the folder
+opkg_common_ensure_rc_local_d() {
+  local -n __path="${1}"
+  if [[ "$__path" -ge 0 ]] && [[ "$__path" -le 99 ]]; then 
+    mkdir -p "${opkg_rc_local_d_dir}/${__path}" && {
+        __path="${opkg_rc_local_d_dir}/${__path}"
+      return 0
+    }
+  else
+    log_error "ERROR: invalid arg. arg1 should be a number between 0 and 99"
+  fi
+  return 1
+}
+
+# loops through all the lines in
+# the opkg_registered_packages_file 
+# and proceeds to install each
+# package.
+# takes care of read write access
+opkg_common_ensure_installed() {
+
+  [[ -f "$opkg_registered_packages_file" ]] || {
+     log "opkg_registered_packages_file does not exist"; return 0; }
+
+  log "opkg_common_ensure_installed"
+ 
+  log_push_indent
+  
+  while IFS= read -r line
+  do
+    # ignore comments and empty lines
+    [[ -z "${line//[[:space:]]/}" || $line == \#* ]]  && continue
+ 
+    __opkg_common_try_install_package "${line}"
+
+  done < "${opkg_registered_packages_file}"
+
+  __restore_previous_fs_access
+
+  log_pop_indent
+
+  log "opkg_common_ensure_installed: done"
+
+  return 0
+}
+ 
+# adds script to the rc_local file
+# args: ${1} the script to add
+# this script can be multiple lines
+opkg_common_add_script_to_rc_local() {
+
+  [[ -z "${1:-}" ]] && { log_error "ERROR: no script supplied" ; return 1; }
+
+  __ensure_rc_local
+  
+  local thispath; thispath="$(dirname "${BASH_SOURCE[0]}")"
+  . "$thispath/libs/string-lib"
+
+  #local found=
+  #string_lib_multiline_find_replace "${1}" --find-only --break-on-first < "$rc_local_file"
+  local found; found=$(string_lib_multiline_find_replace "${1}" --find-only --break-on-first < "$rc_local_file")
+  
+  if [[ -z $found ]]; then
+    log "adding custom script to ${rc_local_file}"
+    if [ ! $dry_run ]; then
+      echo "${1}" >> "${rc_local_file}"
+    fi
+  else
+    log "custom script already added"
+  fi
+  return 0
+}
+
+# removes the script from the rc_local file
+# args: ${1} the script to add
+# this script can be multiple lines
+opkg_common_remove_script_from_rc_local() {
+
+  [[ -z "${1:-}" ]] && { log_error "ERROR: no script supplied" ; return 1; }
+  [[ -f "${rc_local_file}" ]] || return 0
+
+  log "removing custom script from ${rc_local_file}"
+
+  # reads from ${rc_local_file} removes ${1} and saves back to ${rc_local_file}
+  # string_lib_multiline_find_replace "${1}" --trim-lines < "${rc_local_file}" > "${rc_local_file}"
+
+  if [ ! $dry_run ]; then
+  
+  thispath="$(dirname "${BASH_SOURCE[0]}")"
+  . "$thispath/libs/string-lib"
+    
+    # TODO add inplace option to string_lib_multiline_find_replace
+    local tmp; tmp=$(mktemp)
+    string_lib_multiline_find_replace "${1}" --trim-lines < "${rc_local_file}" > "$tmp" && {
+      mv "$tmp" "${rc_local_file}"
+    }
+     
+  fi
+
+}
+
+# adds an opkg package name to the custom packages file
+# the custom packages file is read when a new firmware
+# has been installed
+# args: ${1} the name of the package
+opkg_common_register_package() {
+
+  [[ -z "${1:-}" ]] && { log_error "ERROR: no package name supplied" ; return 1; }
+
+  local package_name="${1:-}"
+  
+  if [[ ! -f "${opkg_registered_packages_file}" ]] || ! grep -q "^${package_name}$" "${opkg_registered_packages_file}" ; then
+    log "adding ${package_name} to ${opkg_registered_packages_file}"
+    if [ ! $dry_run ]; then
+      echo "${package_name}" >> "${opkg_registered_packages_file}"
+    fi
+  else
+    log "package ${package_name} already added"
+  fi
+
+}
+
+# removes an opkg package name to the custom packages file
+# args: ${1} the name of the opkg package to remove
+opkg_common_unregister_package() {
+
+  [[ -z "${1:-}" ]] && { log_error "ERROR: no package name supplied" ; return 1; }
+  [[ -f "${opkg_registered_packages_file}" ]] || return 0
+
+  local package_name="${1:-}"
+
+  if grep -q "^${package_name}$" "${opkg_registered_packages_file}" ; then
+    log "Removing ${package_name} from ${opkg_registered_packages_file}"
+    if [ ! $dry_run ]; then
+      sed -i "/^$package_name/d" "${opkg_registered_packages_file}"
+    fi
+  else
+    log "package '${package_name}' not found"
+  fi
+
+}
+ 
+# Helper to install a package and log output/errors
+opkg_common_install_package() {
+  local package_name="$1"
+  shift
+  if [[ -z "$package_name" ]]; then
+    log_error "install-package: package name not supplied"
+    return 1
+  fi
+  log "Installing $package_name $*"
+  opkg install "$package_name" "$@"
+  local status=$?
+  if [ $status -eq 0 ]; then
+    log "install_package: $package_name installed successfully"
+  else
+    log_error "install_package: failed to install $package_name (status $status)"
+  fi
+  return $status
+}
+
+opkg_common_upgrade_package() {
+  local package_name="$1"
+  shift
+  if [[ -z "$package_name" ]]; then
+    log_error "update-package: package name not supplied"
+    return 1
+  fi
+  log "Upgrade $package_name $*"
+  opkg upgrade "$package_name" "$@"
+  local status=$?
+  if [ $status -eq 0 ]; then
+    log "update-package: $package_name updated successfully"
+  else
+    log_error "update-package: failed to updated $package_name (status $status)"
+  fi
+  return $status
+}
+
+opkg_common_remove_package() {
+ 
+  local package_name="$1"
+  shift
+  if [[ -z "$package_name" ]]; then
+    log_error "remove-package: package name not supplied"
+    return 1
+  fi
+
+  # see if the ipk is installed
+  # list-installed only returns an exact match
+  local installed; installed=$(opkg list-installed "${package_name}")
+
+  # if not installed then exit
+  if [[ -z "${installed}" ]]; then
+    log "Not Installed ${package_name}, exiting"
+    return 0
+  fi
+
+  __init_root_fs_for_writing
+  __init_opkg
+ 
+  opkg remove "${package_name}"
+ 
+  __restore_previous_fs_access
+
+  log_pop_indent
+ 
+  return 0
+}
+
+opkg_common_list_packages() {
+  local -A feeds
+  local line
+  local feed
+  local list_file
+  local installed_source=""
+  local installed_mode=""
+  local tmp_installed_file=""
+  local -a list_files=()
+  local cache_file="/tmp/opkg-common-list-packages.json"
+  local cache_tmp=""
+  local latest_mtime=0
+  local mtime=0
+  local cache_mtime=0
+  local now=0
+  local cache_ttl=5
+
+  echo "opkg_common_list_packages" > "/data/opkg.log"
+
+  # If 'update' argument is supplied, run opkg update first
+  if [[ "${1:-}" == "update" ]]; then
+    echo "update" >> "/data/opkg.log"
+    opkg update
+  fi
+  
+  feeds=()
+
+  if [[ -f "${OPKG_FEED_CONFIG_FILE}" ]]; then
+    while IFS= read -r line; do
+      [[ -z "${line}" || "${line}" == \#* ]] && continue
+      [[ "${line}" != src/gz* ]] && continue
+      set -- ${line}
+      [[ -n "${2:-}" ]] && feeds["${2}"]=1
+    done < "${OPKG_FEED_CONFIG_FILE}"
+
+    mtime=$(stat -c %Y "${OPKG_FEED_CONFIG_FILE}" 2>/dev/null || echo 0)
+    (( mtime > latest_mtime )) && latest_mtime=${mtime}
+  fi
+
+  if [[ "${#feeds[@]}" -eq 0 ]]; then
+    printf '[]'
+    return 0
+  fi
+
+  for feed in "${!feeds[@]}"; do
+    list_file="/usr/lib/opkg/lists/${feed}"
+    [[ -f "${list_file}" ]] || continue
+    list_files+=("${list_file}")
+
+    mtime=$(stat -c %Y "${list_file}" 2>/dev/null || echo 0)
+    (( mtime > latest_mtime )) && latest_mtime=${mtime}
+  done
+
+  if [[ "${#list_files[@]}" -eq 0 ]]; then
+    [[ -n "${tmp_installed_file}" ]] && rm -f "${tmp_installed_file}"
+    printf '[]'
+    return 0
+  fi
+
+  if [[ -f "/usr/lib/opkg/status" ]]; then
+    mtime=$(stat -c %Y "/usr/lib/opkg/status" 2>/dev/null || echo 0)
+    (( mtime > latest_mtime )) && latest_mtime=${mtime}
+  fi
+
+  if [[ -f "${cache_file}" ]]; then
+    cache_mtime=$(stat -c %Y "${cache_file}" 2>/dev/null || echo 0)
+    if (( cache_mtime >= latest_mtime )); then
+      echo "${cache_file}"
+      return 0
+    fi
+  fi
+
+  if [[ -f "/usr/lib/opkg/status" ]]; then
+    installed_source="/usr/lib/opkg/status"
+    installed_mode="status"
+  else
+    if [[ -f "${cache_file}" ]]; then
+      now=$(date +%s)
+      cache_mtime=$(stat -c %Y "${cache_file}" 2>/dev/null || echo 0)
+      if (( now - cache_mtime < cache_ttl )); then
+        cat "${cache_file}"
+        return 0
+      fi
+    fi
+
+    tmp_installed_file=$(mktemp)
+    installed_source="${tmp_installed_file}"
+    installed_mode="list"
+    opkg list-installed > "${installed_source}"
+  fi
+
+  cache_tmp=$(mktemp)
+  printf '[' > "${cache_tmp}"
+  awk \
+    -v installed_file="${installed_source}" \
+    -v installed_mode="${installed_mode}" \
+    '
+    function json_escape(s, i, c, out) {
+      gsub(/[\001-\010\013\014\016-\037]/, "", s)
+      gsub(/\\/, "\\\\", s)
+      gsub(/"/, "\\\"", s)
+      gsub(/\t/, "\\t", s)
+      gsub(/\r/, "", s)
+      gsub(/\n/, "\\n", s)
+      return s
+    }
+    function flush_entry() {
+      if (name != "") {
+        if (printed) {
+          printf ","
+        }
+        printed = 1
+        # Output installedVersion as a string (empty if not installed)
+        printf "{\"name\":\"%s\",\"description\":\"%s\",\"version\":\"%s\",\"feed\":\"%s\",\"installedVersion\":\"%s\"}", \
+          json_escape(name), \
+          json_escape(description), \
+          json_escape(version), \
+          json_escape(feed), \
+          ((name in installed) ? json_escape(installed[name]) : "")
+      }
+      name = ""
+      version = ""
+      description = ""
+      desc_active = 0
+    }
+    BEGIN {
+      printed = 0
+      name = ""
+      version = ""
+      description = ""
+      desc_active = 0
+
+      if (installed_mode == "status") {
+        # Parse /usr/lib/opkg/status for installed packages and their versions
+        pkg = ""; ver = ""
+        while ((getline line < installed_file) > 0) {
+          if (line ~ /^Package: /) {
+            pkg = substr(line, 10)
+          } else if (line ~ /^Version: / && pkg != "") {
+            ver = substr(line, 10)
+            installed[pkg] = ver
+            pkg = ""; ver = ""
+          }
+        }
+        close(installed_file)
+      } else if (installed_mode == "list") {
+        # Parse output of opkg list-installed (format: name - version - description)
+        while ((getline line < installed_file) > 0) {
+          split(line, parts, /[[:space:]]+-[[:space:]]+/)
+          if (parts[1] != "" && parts[2] != "") {
+            installed[parts[1]] = parts[2]
+          }
+        }
+        close(installed_file)
+      }
+    }
+    FNR == 1 {
+      if (NR != 1) {
+        flush_entry()
+      }
+      n = split(FILENAME, path_parts, "/")
+      feed = path_parts[n]
+    }
+    {
+      line = $0
+      if (line == "") {
+        flush_entry()
+        next
+      }
+
+      if (line ~ /^ / && desc_active == 1) {
+        description = description " " substr(line, 2)
+        next
+      }
+
+      if (line ~ /^Package: /) {
+        name = substr(line, 10)
+        next
+      }
+
+      if (line ~ /^Version: /) {
+        version = substr(line, 10)
+        next
+      }
+
+      if (line ~ /^Description: /) {
+        description = substr(line, 14)
+        desc_active = 1
+        next
+      }
+
+      desc_active = 0
+    }
+    END {
+      flush_entry()
+    }
+    ' "${list_files[@]}" >> "${cache_tmp}"
+  printf ']\n' >> "${cache_tmp}"
+
+  mv "${cache_tmp}" "${cache_file}"
+  echo "${cache_file}"
+
+  [[ -n "${tmp_installed_file}" ]] && rm -f "${tmp_installed_file}"
+  
+  return 0
+}
+
+case "${1:-}" in
+  opkg_common_ensure_installed)
+    if [[ "${2:-}" == "--dry-run" ]]; then
+      dry_run=1
+      log "*** DRY RUN ***"
+    fi
+    opkg_common_ensure_installed
+    ;;
+  list-packages)
+    opkg_common_list_packages "${2:-}"
+    ;;
+  install-package)
+    shift
+    opkg_common_install_package "$@"
+    ;;
+  remove-package)
+    shift
+    opkg_common_remove_package "$@"
+    ;;
+  upgrade-package)
+    shift
+    opkg_common_upgrade_package "$@"
+    ;;
+  edit-feed)
+    opkg_common_feed_crud "${2:-}" "${3:-}" "${4:-}"
+    ;;
+  remove-feed)
+    opkg_common_feed_crud "${2:-}" "" ""
+    ;;
+    
+  get-feeds)
+    opkg_get_feeds
+    ;;
+esac
+ 

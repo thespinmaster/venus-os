@@ -1,0 +1,5 @@
+/home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/build-armhf/CMakeFiles/opkghelpersplugin.dir
+/home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/build-armhf/CMakeFiles/edit_cache.dir
+/home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/build-armhf/CMakeFiles/rebuild_cache.dir
+/home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/build-armhf/CMakeFiles/opkghelpersplugin_autogen_timestamp_deps.dir
+/home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/build-armhf/CMakeFiles/opkghelpersplugin_autogen.dir

@@ -23,7 +23,7 @@
             "request": "launch",
             "name": "Bash - defined script",
             "cwd": "${workspaceFolder}",
-            "program": "${workspaceFolder}/utils/opkg-helpers/tests/serial-device-installer-tests",
+            "program": "${workspaceFolder}/utils/opkg-manager/tests/serial-device-installer-tests",
             "terminalKind": "integrated",
             "args": []
         },

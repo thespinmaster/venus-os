@@ -8,7 +8,7 @@ if [[ -f $new_file.bak ]]; then
   mv $new_file.mountshares $new_file
 fi
 
-source "${VE_ROOT_DIR:-}/data/opkg-helpers/opkg-common"
+source "${VE_ROOT_DIR:-}/data/opkg-manager/opkg-common"
 opkg_common_unregister_package "${package_name}"
 
 echo "successfully removed ${package_name}"

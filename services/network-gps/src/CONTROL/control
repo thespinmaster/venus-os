@@ -8,4 +8,4 @@ License: MIT
 Architecture: all
 OE: network-gps
 Source: https://github.com/thespinmaster/venus-os/tree/main/feed/network-gps
-Depends: opkg-helpers
+Depends: opkg-manager

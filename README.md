@@ -32,15 +32,15 @@ chmod +x /data/dev-setup
      libatomic1 (required by Python 3)  
 
 #### Install custom packages
-     opkg-helpers: A package for installing custom opkg packages on the Venus OS which will automatically get re-installed after firmware updates  
+     opkg-manager: A package for installing custom opkg packages on the Venus OS which will automatically get re-installed after firmware updates  
      mount-shares: A package for mounting nfs and cfs shares  
 
 
-## Install opkg-helpers only
+## Install opkg-manager only
 ```
 echo "src/gz thespinmaster https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feed" > "/etc/opkg/thespinmaster.conf"
 opkg update
-opkg install opkg-helpers
+opkg install opkg-manager
 
 ```
 
