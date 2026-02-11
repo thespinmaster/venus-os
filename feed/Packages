@@ -78,7 +78,7 @@ OE: network-gps
 License: MIT
 Priority: optional
 
-Package: opkg-helpers
+Package: opkg-manager
 Version: 1.0.1
 Section: utilities
 Architecture: all
@@ -86,7 +86,7 @@ Maintainer: thespinmaster@github.com
 MD5Sum: 62ea7a3197d308a2c98b3aa071a15774
 Size: 50248
 Filename: opkg-helpers_1.0.1_all.ipk
-Source: https://github.com/thespinmaster/venus-os/tree/main/feed/opkg-helpers
+Source: https://github.com/thespinmaster/venus-os/tree/main/feed/opkg-manager
 Description: Adds helper scripts for installing opkg packages on the Venus OS
  Adds helper scripts for installing opkg packages on the Venus OS
 OE: einstine
