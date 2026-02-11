@@ -9,12 +9,14 @@ readonly opkg_registered_packages_file="${opkg_helpers_path}/registered-packages
 readonly opkg_rc_local_d_dir="${opkg_helpers_path}/rc.local.d"
 readonly resize2fs_file="$/opt/victronenergy/swupdate-scripts/resize2fs.sh"
 
-declare OPKG_FEED_NAME="opkg-manager.conf"
-declare OPKG_DEFAULT_FEED_NAME=thespinmaster
-declare OPKG_FEED_URL="https://github.com/${OPKG_DEFAULT_FEED_NAME}/venus-os/raw/refs/heads/main/feed"
-declare OPKG_FEED_PATH="${VENUS_ROOT_DIR:-}/etc/opkg"
-declare OPKG_FEED_CONFIG_FILE="${OPKG_FEED_PATH}/${OPKG_FEED_NAME}"
+declare OPKG_MANAGER_FEED_NAME="opkg-manager"
+declare OPKG_DEFAULT_FEED_NAME="thespinmaster"
 
+declare OPKG_FEED_PATH="${VENUS_ROOT_DIR:-}/etc/opkg"
+declare OPKG_FEED_LOCAL_CONFIG_FILE="${opkg_helpers_path}/opkg-manager.conf"
+declare OPKG_FEED_CONFIG_FILE="${OPKG_FEED_PATH}/opkg-manager.conf"
+declare OPKG_FEED_BASE_URL="https://github.com/${OPKG_DEFAULT_FEED_NAME}/venus-os/raw/refs/heads/main/feeds"
+ 
 #readonly LOG=${opkg_helpers_path}/log
 
 ___is_fs_readonly=
@@ -98,8 +100,8 @@ __opkg_common_remove_feed_line() {
     tmp_file=$(mktemp)
     awk -v name="${name}" 'BEGIN { pattern = "^src/gz[[:space:]]+" name "[[:space:]]" }
       $0 ~ pattern { next }
-      { print }' "${OPKG_FEED_CONFIG_FILE}" > "${tmp_file}"
-    mv "${tmp_file}" "${OPKG_FEED_CONFIG_FILE}"
+      { print }' "${OPKG_FEED_LOCAL_CONFIG_FILE}" > "${tmp_file}"
+    mv "${tmp_file}" "${OPKG_FEED_LOCAL_CONFIG_FILE}"
   else
     log "remove feed line: ${name}"
   fi
@@ -114,13 +116,13 @@ opkg_common_feed_crud() {
 
   [[ -z "${feed_name}" ]] && { log_error "Invalid name"; exit 1; }
   [[ "${feed_name}" =~ [^a-zA-Z0-9_] ]] && { log_error "Invalid name"; exit 1; }
-  [[ "${feed_name}" == "${OPKG_DEFAULT_FEED_NAME}" ]] && { log_error "Invalid name"; exit 1; }
+  [[ "${feed_name}" == "${OPKG_MANAGER_FEED_NAME}" ]] && { log_error "Cannot edit the Opkg Manager feed"; exit 1; }
 
   if [[ -n "${feed_old_name}" ]] && [[ "${feed_old_name}" =~ [^a-zA-Z0-9_] ]]; then
     log_error "Invalid old name"
     exit 1
   fi
-
+  
   if [[ -z "${feed_url}" ]]; then
     if [[ -n "${feed_old_name}" ]]; then
       log_error "Invalid old name"
@@ -137,17 +139,30 @@ opkg_common_feed_crud() {
   __opkg_common_remove_feed_line "${feed_name}"
 
   if [ ! $dry_run ]; then
-    mkdir -p "${OPKG_FEED_PATH}"
-    printf 'src/gz %s %s\n' "${feed_name}" "${feed_url}" >> "${OPKG_FEED_CONFIG_FILE}"
+    
+    printf 'src/gz %s %s\n' "${feed_name}" "${feed_url}" >> "${OPKG_FEED_LOCAL_CONFIG_FILE}"
   else
-    log "feed content:\"src/gz ${feed_name} ${feed_url} >> ${OPKG_FEED_CONFIG_FILE}\""
+    log "feed content:\"src/gz ${feed_name} ${feed_url} >> ${OPKG_FEED_LOCAL_CONFIG_FILE}\""
   fi
 }
 
 opkg_common_ensure_feed() {
 
   log "ensure opkg feed"
-  opkg_common_feed_crud "${OPKG_DEFAULT_FEED_NAME}" "${OPKG_FEED_URL}" ""
+  
+  local -i include_default_feed=0
+
+  if [[ ! -f "${OPKG_FEED_CONFIG_FILE}" ]]; then
+    include_default_feed=1
+  fi
+ 
+  opkg_common_feed_crud "${OPKG_MANAGER_FEED_NAME}" "${OPKG_FEED_BASE_URL}/${OPKG_MANAGER_FEED_NAME}" ""
+  if ((include_default_feed)); then
+    opkg_common_feed_crud "${OPKG_DEFAULT_FEED_NAME}" "${OPKG_FEED_BASE_URL}/${OPKG_MANAGER_FEED_NAME}" ""
+  fi
+
+  log "creating opkg feed symlink"
+  ln -sf "$OPKG_FEED_LOCAL_CONFIG_FILE" "$OPKG_FEED_CONFIG_FILE"
 }
 
 __ensure_rc_local() {
@@ -486,15 +501,15 @@ opkg_common_list_packages() {
   
   feeds=()
 
-  if [[ -f "${OPKG_FEED_CONFIG_FILE}" ]]; then
+  if [[ -f "${OPKG_FEED_LOCAL_CONFIG_FILE}" ]]; then
     while IFS= read -r line; do
       [[ -z "${line}" || "${line}" == \#* ]] && continue
       [[ "${line}" != src/gz* ]] && continue
-      set -- ${line}
+      set -- "${line}"
       [[ -n "${2:-}" ]] && feeds["${2}"]=1
-    done < "${OPKG_FEED_CONFIG_FILE}"
+    done < "${OPKG_FEED_LOCAL_CONFIG_FILE}"
 
-    mtime=$(stat -c %Y "${OPKG_FEED_CONFIG_FILE}" 2>/dev/null || echo 0)
+    mtime=$(stat -c %Y "${OPKG_FEED_LOCAL_CONFIG_FILE}" 2>/dev/null || echo 0)
     (( mtime > latest_mtime )) && latest_mtime=${mtime}
   fi
 
@@ -695,7 +710,6 @@ case "${1:-}" in
   remove-feed)
     opkg_common_feed_crud "${2:-}" "" ""
     ;;
-    
   get-feeds)
     opkg_get_feeds
     ;;

@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
- 
+
+which opkg-build &>/dev/null || { echo "ERROR: opkg-build not installed"; exit 1; }
+
 this_path="$(dirname "${BASH_SOURCE[0]}")"
 
 declare comment=
@@ -10,24 +12,32 @@ elif [[ "${1}" == "-c" ]]; then
   comment="${2}"
   shift 2
 else
-build="${@}"
+  build="${@}"
 fi
  
 declare -a build_items=()
 declare -a folders=("../services" "../utils")
 declare pwd_old=$PWD
-
-cd "${this_path}/../feed" || exit 1
-
-build_feed_package() {
+declare -A update_feeds=()
+ 
+build_feed_index() {
+  cd "${1}" || exit 1
   opkg-make-index -p Packages ./ 1>/dev/null
-  echo "feed updated"
+  echo "feed ${1} updated"
+}
+
+build_feed_indexes() {
+  # Loop through all values in update_feeds and call build_feed_index
+  for feed_path in "${update_feeds[@]}"; do
+    build_feed_index "$feed_path"
+  done
 }
 
 if [[ "$build" == "all" ]]; then
-  mapfile -t build_items < <(find "${folders[@]}" -mindepth 1 -maxdepth 1 -type d)
+  #mapfile -t build_items < <(find "${folders[@]}" -mindepth 1 -maxdepth 1 -type d)
+  mapfile -t build_items < <(find "${folders[@]}" -mindepth 1 -maxdepth 1 -type d -exec realpath {} +)
 elif [[ "$build" == "package" ]]; then
-  build_feed_package
+  build_feed_index "${2}"
 else
   build_items=("${build}")
   #build_items=("opkg-manager" "test-service")
@@ -76,12 +86,28 @@ stage_source_byref() {
   return 0
 }
 
+set_feed_directory() {
 
+  local name="${1}"
+  local feed_name=
+
+  if [[ "$name" == "opkg-manager" ]]; then
+    feed_name="opkg-manager"
+  else
+    feed_name="main"
+  fi
+
+  update_feeds["${feed_name}"]="${this_path}/../feeds/${feed_name}"
+  cd "${this_path}/../feeds/${feed_name}" || exit 1
+
+}
 
 build_package() {
-  
-  path="${1}/src"
-  name="$(basename "${1}")"
+
+  local path="${1}/src"
+  local name; name="$(basename "${1}")"
+ 
+  set_feed_directory "$name"
 
   echo "building ${name}"
  
@@ -101,8 +127,8 @@ for pkg in "${build_items[@]}"; do
   build_package "$pkg"
 done
 
-build_feed_package
-
+build_feed_indexes
+ 
 if [[ -n "$comment" ]]; then
   git add .
   git commit -am "${comment}"

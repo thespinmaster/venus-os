@@ -19,7 +19,12 @@ MbPage {
 			}
 			opkgPending = true
 			opkgErrorLine = ""
-			opkgRunner.start(["edit-feed", feedName, feedUrl, feedNameOld])
+			if (feedIndex == -1) {
+				opkgRunner.start(["add-feed", feedName, feedUrl])
+			} else {
+				opkgRunner.start(["edit-feed", feedName, feedUrl, feedNameOld])
+			}
+			
 		}
 	}
 

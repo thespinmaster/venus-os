@@ -8,13 +8,16 @@ MbPage {
 		property string feedsOutput: ""
 	id: pageRoot
 	title: qsTr("Feeds")
-	property alias feedModel: feedModelStore
+	property var feedModel: []
 	property int opkgRemoveIndex: -1
 	property string opkgErrorLine: ""
 	property int packageDetailsFontPixelSize: 14
 
 		leftText: qsTr("Add")
-		rightText: qsTr("Remove")
+		rightText: {
+			if feed
+			qsTr("Remove")
+		}
 		function leftAction() {
 			if (opkgRunner.running) {
 				return
@@ -25,29 +28,33 @@ MbPage {
 			if (opkgRunner.running) {
 				return
 			}
+
 			opkgRemoveIndex = index
 			opkgErrorLine = ""
 			opkgRunner.operationName = "remove-feed"
+			var name = feedModel[index].name
+			toast.createToast(name)
 			opkgRunner.start(["remove-feed", name])
 	}
 
-	ListModel {
-		id: feedModelStore
-	}
+
 
 	function addFeed(name, url) {
-		feedModelStore.append({ name: name, url: url })
+		pageRoot.feedModel.push({ name: name, url: url })
+		pageRoot.feedModel = pageRoot.feedModel.slice(); // trigger QML update
 	}
 	function removeFeed(index) {
-		if (index >= 0 && index < feedModelStore.count) {
-			feedModelStore.remove(index)
+		if (index >= 0 && index < pageRoot.feedModel.length) {
+			pageRoot.feedModel.splice(index, 1)
+			pageRoot.feedModel = pageRoot.feedModel.slice();
 		}
 	}
 
 	function updateFeed(index, name, url) {
-		if (index >= 0 && index < feedModelStore.count) {
-			feedModelStore.setProperty(index, "name", name)
-			feedModelStore.setProperty(index, "url", url)
+		if (index >= 0 && index < pageRoot.feedModel.length) {
+			pageRoot.feedModel[index].name = name
+			pageRoot.feedModel[index].url = url
+			pageRoot.feedModel = pageRoot.feedModel.slice();
 		}
 	}
 
@@ -60,12 +67,10 @@ MbPage {
 	}
 
 	function loadFeedsFromJson(jsonText) {
-		feedModelStore.clear()
 		var feeds = JSON.parse(jsonText)
-		for (var i = 0; i < feeds.length; i++) {
-			var feed = feeds[i]
-			addFeed(feed.name, feed.url)
-		}
+		pageRoot.feedModel = feeds.map(function(feed) {
+			return { name: feed.name, url: feed.url }
+		})
 	}
 
 	Component.onCompleted: {
@@ -73,7 +78,8 @@ MbPage {
 		opkgRunner.start(["get-feeds"])
 	}
 
-	model: feedModelStore
+
+	model: feedModel
 
 	delegate: MbItem {
 		editable: true
