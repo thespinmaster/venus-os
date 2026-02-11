@@ -1,3 +1,19 @@
+# Ignore build and generated files in qmlplugin
+utils/opkg-manager/src/qmlplugin/build*/
+utils/opkg-manager/src/qmlplugin/*.o
+utils/opkg-manager/src/qmlplugin/*.so
+utils/opkg-manager/src/qmlplugin/*.a
+utils/opkg-manager/src/qmlplugin/*.user
+utils/opkg-manager/src/qmlplugin/*.pro.user
+utils/opkg-manager/src/qmlplugin/.qmake.stash
+utils/opkg-manager/src/qmlplugin/.qmake.cache
+utils/opkg-manager/src/qmlplugin/.qt/
+utils/opkg-manager/src/qmlplugin/Makefile
+utils/opkg-manager/src/qmlplugin/CMakeFiles/
+utils/opkg-manager/src/qmlplugin/CMakeCache.txt
+utils/opkg-manager/src/qmlplugin/cmake_install.cmake
+utils/opkg-manager/src/qmlplugin/*.autosave
+utils/opkg-manager/src/qmlplugin/*_autogen/
 **/tests/output/
 
 # Python virtual environments (global)

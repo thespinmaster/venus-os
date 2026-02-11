@@ -2,7 +2,7 @@ import QtQuick 2
 
 import com.victron.velib 1.0
 import net.connman 0.1
-import OpkgHelpers 1.0
+import OpkgManager 1.0
 import "utils.js" as Utils
 import QtQuick.Controls
 
@@ -61,7 +61,7 @@ MbPage {
 
 	VBusItem {
 		id: compactSetting
-		bind: Utils.path("com.victronenergy.settings", "/Settings/OpkgHelpers/ShowCompact")
+		bind: Utils.path("com.victronenergy.settings", "/Settings/OpkgManager/ShowCompact")
 	}
  
 	Component.onCompleted: {

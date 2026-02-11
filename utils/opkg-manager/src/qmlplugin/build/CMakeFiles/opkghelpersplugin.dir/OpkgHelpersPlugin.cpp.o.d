@@ -1,7 +1,7 @@
-CMakeFiles/opkghelpersplugin.dir/OpkgHelpersPlugin.cpp.o: \
- /home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/OpkgHelpersPlugin.cpp \
+CMakeFiles/OpkgManagerplugin.dir/OpkgManagerPlugin.cpp.o: \
+ /home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/OpkgManagerPlugin.cpp \
  /usr/include/stdc-predef.h \
- /home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/OpkgHelpersPlugin.h \
+ /home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/OpkgManagerPlugin.h \
  /usr/include/aarch64-linux-gnu/qt5/QtQml/QQmlExtensionPlugin \
  /usr/include/aarch64-linux-gnu/qt5/QtQml/qqmlextensionplugin.h \
  /usr/include/aarch64-linux-gnu/qt5/QtCore/qplugin.h \

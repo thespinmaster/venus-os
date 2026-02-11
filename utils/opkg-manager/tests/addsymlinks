@@ -5,13 +5,15 @@ set -o nounset
 declare this_path; this_path="$(dirname "${BASH_SOURCE[0]}")"
  
 QML_TARGET_PATH="/opt/victronenergy/gui/qml"
-QML_SOURCE_PATH="$this_path/../src/opt${QML_TARGET_PATH}"
+QML_SOURCE_PATH="$this_path/../src${QML_TARGET_PATH}"
  
 [[ -d "${QML_TARGET_PATH}" ]] || { echo "Wrong Server! (path not found ${QML_TARGET_PATH})"; exit 1; }
  
 QML_ICONS_TARGET_PATH="/opt/victronenergy/themes/ccgx/icons"
 QML_ICONS_SOURCE_PATH="$this_path/../src${QML_ICONS_TARGET_PATH}"
- 
+
+QML_PLUGIN_SOURCE_PATH="$QML_TARGET_PATH/OpkgHelpers"
+
 QML_FILES=(
 	PageSettingsOPKG.qml
 	PageSettingsOPKGPackageInstall.qml
@@ -34,8 +36,9 @@ for icon in "${QML_ICONS_FILES[@]}"; do
 	ln -sf "$QML_ICONS_SOURCE_PATH/$icon" "$QML_ICONS_TARGET_PATH/$icon"
 done
  
-ln -sf $QML_TARGET_PATH/PageSettings.qml "$this_path/PageSettings.qml"
+ln -sf "$QML_TARGET_PATH/PageSettings.qml" "$this_path/PageSettings.qml"
 
 # OpkgHelpers directory
-ln -sf "$QML_SOURCE_PATH/qml/OpkgHelpers" "$QML_TARGET_PATH/OpkgHelpers"
+ln -sf "$QML_SOURCE_PATH/OpkgManager" "$QML_TARGET_PATH/OpkgManager"
 
+echo "done"

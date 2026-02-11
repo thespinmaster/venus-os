@@ -11,7 +11,7 @@ MbPage {
 	property var logAreaRef: null
 	VBusItem {
 		id: noActionSetting
-		bind: Utils.path("com.victronenergy.settings", "/Settings/OpkgHelpers/NoAction")
+		bind: Utils.path("com.victronenergy.settings", "/Settings/OpkgManager/NoAction")
 	}
 	property bool installInProgress: installRunner.operationName !== ""
 	pageToolbarHandler: ToolbarHandler {

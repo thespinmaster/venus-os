@@ -1,2 +1,2 @@
 # CMAKE generated file: DO NOT EDIT!
-# Timestamp file for custom commands dependencies management for opkghelpersplugin_autogen.
+# Timestamp file for custom commands dependencies management for OpkgManagerplugin_autogen.

@@ -117,74 +117,74 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named opkghelpersplugin
+# Target rules for targets named OpkgManagerplugin
 
 # Build rule for target.
-opkghelpersplugin: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 opkghelpersplugin
-.PHONY : opkghelpersplugin
+OpkgManagerplugin: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 OpkgManagerplugin
+.PHONY : OpkgManagerplugin
 
 # fast build rule for target.
-opkghelpersplugin/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/opkghelpersplugin.dir/build.make CMakeFiles/opkghelpersplugin.dir/build
-.PHONY : opkghelpersplugin/fast
+OpkgManagerplugin/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerplugin.dir/build.make CMakeFiles/OpkgManagerplugin.dir/build
+.PHONY : OpkgManagerplugin/fast
 
 #=============================================================================
-# Target rules for targets named opkghelpersplugin_autogen_timestamp_deps
+# Target rules for targets named OpkgManagerplugin_autogen_timestamp_deps
 
 # Build rule for target.
-opkghelpersplugin_autogen_timestamp_deps: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 opkghelpersplugin_autogen_timestamp_deps
-.PHONY : opkghelpersplugin_autogen_timestamp_deps
+OpkgManagerplugin_autogen_timestamp_deps: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 OpkgManagerplugin_autogen_timestamp_deps
+.PHONY : OpkgManagerplugin_autogen_timestamp_deps
 
 # fast build rule for target.
-opkghelpersplugin_autogen_timestamp_deps/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/opkghelpersplugin_autogen_timestamp_deps.dir/build.make CMakeFiles/opkghelpersplugin_autogen_timestamp_deps.dir/build
-.PHONY : opkghelpersplugin_autogen_timestamp_deps/fast
+OpkgManagerplugin_autogen_timestamp_deps/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerplugin_autogen_timestamp_deps.dir/build.make CMakeFiles/OpkgManagerplugin_autogen_timestamp_deps.dir/build
+.PHONY : OpkgManagerplugin_autogen_timestamp_deps/fast
 
 #=============================================================================
-# Target rules for targets named opkghelpersplugin_autogen
+# Target rules for targets named OpkgManagerplugin_autogen
 
 # Build rule for target.
-opkghelpersplugin_autogen: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 opkghelpersplugin_autogen
-.PHONY : opkghelpersplugin_autogen
+OpkgManagerplugin_autogen: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 OpkgManagerplugin_autogen
+.PHONY : OpkgManagerplugin_autogen
 
 # fast build rule for target.
-opkghelpersplugin_autogen/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/opkghelpersplugin_autogen.dir/build.make CMakeFiles/opkghelpersplugin_autogen.dir/build
-.PHONY : opkghelpersplugin_autogen/fast
+OpkgManagerplugin_autogen/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerplugin_autogen.dir/build.make CMakeFiles/OpkgManagerplugin_autogen.dir/build
+.PHONY : OpkgManagerplugin_autogen/fast
 
-OpkgHelpersPlugin.o: OpkgHelpersPlugin.cpp.o
-.PHONY : OpkgHelpersPlugin.o
+OpkgManagerPlugin.o: OpkgManagerPlugin.cpp.o
+.PHONY : OpkgManagerPlugin.o
 
 # target to build an object file
-OpkgHelpersPlugin.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/opkghelpersplugin.dir/build.make CMakeFiles/opkghelpersplugin.dir/OpkgHelpersPlugin.cpp.o
-.PHONY : OpkgHelpersPlugin.cpp.o
+OpkgManagerPlugin.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerplugin.dir/build.make CMakeFiles/OpkgManagerplugin.dir/OpkgManagerPlugin.cpp.o
+.PHONY : OpkgManagerPlugin.cpp.o
 
-OpkgHelpersPlugin.i: OpkgHelpersPlugin.cpp.i
-.PHONY : OpkgHelpersPlugin.i
+OpkgManagerPlugin.i: OpkgManagerPlugin.cpp.i
+.PHONY : OpkgManagerPlugin.i
 
 # target to preprocess a source file
-OpkgHelpersPlugin.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/opkghelpersplugin.dir/build.make CMakeFiles/opkghelpersplugin.dir/OpkgHelpersPlugin.cpp.i
-.PHONY : OpkgHelpersPlugin.cpp.i
+OpkgManagerPlugin.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerplugin.dir/build.make CMakeFiles/OpkgManagerplugin.dir/OpkgManagerPlugin.cpp.i
+.PHONY : OpkgManagerPlugin.cpp.i
 
-OpkgHelpersPlugin.s: OpkgHelpersPlugin.cpp.s
-.PHONY : OpkgHelpersPlugin.s
+OpkgManagerPlugin.s: OpkgManagerPlugin.cpp.s
+.PHONY : OpkgManagerPlugin.s
 
 # target to generate assembly for a file
-OpkgHelpersPlugin.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/opkghelpersplugin.dir/build.make CMakeFiles/opkghelpersplugin.dir/OpkgHelpersPlugin.cpp.s
-.PHONY : OpkgHelpersPlugin.cpp.s
+OpkgManagerPlugin.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerplugin.dir/build.make CMakeFiles/OpkgManagerplugin.dir/OpkgManagerPlugin.cpp.s
+.PHONY : OpkgManagerPlugin.cpp.s
 
 ProcessRunner.o: ProcessRunner.cpp.o
 .PHONY : ProcessRunner.o
 
 # target to build an object file
 ProcessRunner.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/opkghelpersplugin.dir/build.make CMakeFiles/opkghelpersplugin.dir/ProcessRunner.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerplugin.dir/build.make CMakeFiles/OpkgManagerplugin.dir/ProcessRunner.cpp.o
 .PHONY : ProcessRunner.cpp.o
 
 ProcessRunner.i: ProcessRunner.cpp.i
@@ -192,7 +192,7 @@ ProcessRunner.i: ProcessRunner.cpp.i
 
 # target to preprocess a source file
 ProcessRunner.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/opkghelpersplugin.dir/build.make CMakeFiles/opkghelpersplugin.dir/ProcessRunner.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerplugin.dir/build.make CMakeFiles/OpkgManagerplugin.dir/ProcessRunner.cpp.i
 .PHONY : ProcessRunner.cpp.i
 
 ProcessRunner.s: ProcessRunner.cpp.s
@@ -200,32 +200,32 @@ ProcessRunner.s: ProcessRunner.cpp.s
 
 # target to generate assembly for a file
 ProcessRunner.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/opkghelpersplugin.dir/build.make CMakeFiles/opkghelpersplugin.dir/ProcessRunner.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerplugin.dir/build.make CMakeFiles/OpkgManagerplugin.dir/ProcessRunner.cpp.s
 .PHONY : ProcessRunner.cpp.s
 
-opkghelpersplugin_autogen/mocs_compilation.o: opkghelpersplugin_autogen/mocs_compilation.cpp.o
-.PHONY : opkghelpersplugin_autogen/mocs_compilation.o
+OpkgManagerplugin_autogen/mocs_compilation.o: OpkgManagerplugin_autogen/mocs_compilation.cpp.o
+.PHONY : OpkgManagerplugin_autogen/mocs_compilation.o
 
 # target to build an object file
-opkghelpersplugin_autogen/mocs_compilation.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/opkghelpersplugin.dir/build.make CMakeFiles/opkghelpersplugin.dir/opkghelpersplugin_autogen/mocs_compilation.cpp.o
-.PHONY : opkghelpersplugin_autogen/mocs_compilation.cpp.o
+OpkgManagerplugin_autogen/mocs_compilation.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerplugin.dir/build.make CMakeFiles/OpkgManagerplugin.dir/OpkgManagerplugin_autogen/mocs_compilation.cpp.o
+.PHONY : OpkgManagerplugin_autogen/mocs_compilation.cpp.o
 
-opkghelpersplugin_autogen/mocs_compilation.i: opkghelpersplugin_autogen/mocs_compilation.cpp.i
-.PHONY : opkghelpersplugin_autogen/mocs_compilation.i
+OpkgManagerplugin_autogen/mocs_compilation.i: OpkgManagerplugin_autogen/mocs_compilation.cpp.i
+.PHONY : OpkgManagerplugin_autogen/mocs_compilation.i
 
 # target to preprocess a source file
-opkghelpersplugin_autogen/mocs_compilation.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/opkghelpersplugin.dir/build.make CMakeFiles/opkghelpersplugin.dir/opkghelpersplugin_autogen/mocs_compilation.cpp.i
-.PHONY : opkghelpersplugin_autogen/mocs_compilation.cpp.i
+OpkgManagerplugin_autogen/mocs_compilation.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerplugin.dir/build.make CMakeFiles/OpkgManagerplugin.dir/OpkgManagerplugin_autogen/mocs_compilation.cpp.i
+.PHONY : OpkgManagerplugin_autogen/mocs_compilation.cpp.i
 
-opkghelpersplugin_autogen/mocs_compilation.s: opkghelpersplugin_autogen/mocs_compilation.cpp.s
-.PHONY : opkghelpersplugin_autogen/mocs_compilation.s
+OpkgManagerplugin_autogen/mocs_compilation.s: OpkgManagerplugin_autogen/mocs_compilation.cpp.s
+.PHONY : OpkgManagerplugin_autogen/mocs_compilation.s
 
 # target to generate assembly for a file
-opkghelpersplugin_autogen/mocs_compilation.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/opkghelpersplugin.dir/build.make CMakeFiles/opkghelpersplugin.dir/opkghelpersplugin_autogen/mocs_compilation.cpp.s
-.PHONY : opkghelpersplugin_autogen/mocs_compilation.cpp.s
+OpkgManagerplugin_autogen/mocs_compilation.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerplugin.dir/build.make CMakeFiles/OpkgManagerplugin.dir/OpkgManagerplugin_autogen/mocs_compilation.cpp.s
+.PHONY : OpkgManagerplugin_autogen/mocs_compilation.cpp.s
 
 # Help Target
 help:
@@ -235,18 +235,18 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
-	@echo "... opkghelpersplugin_autogen"
-	@echo "... opkghelpersplugin_autogen_timestamp_deps"
-	@echo "... opkghelpersplugin"
-	@echo "... OpkgHelpersPlugin.o"
-	@echo "... OpkgHelpersPlugin.i"
-	@echo "... OpkgHelpersPlugin.s"
+	@echo "... OpkgManagerplugin_autogen"
+	@echo "... OpkgManagerplugin_autogen_timestamp_deps"
+	@echo "... OpkgManagerplugin"
+	@echo "... OpkgManagerPlugin.o"
+	@echo "... OpkgManagerPlugin.i"
+	@echo "... OpkgManagerPlugin.s"
 	@echo "... ProcessRunner.o"
 	@echo "... ProcessRunner.i"
 	@echo "... ProcessRunner.s"
-	@echo "... opkghelpersplugin_autogen/mocs_compilation.o"
-	@echo "... opkghelpersplugin_autogen/mocs_compilation.i"
-	@echo "... opkghelpersplugin_autogen/mocs_compilation.s"
+	@echo "... OpkgManagerplugin_autogen/mocs_compilation.o"
+	@echo "... OpkgManagerplugin_autogen/mocs_compilation.i"
+	@echo "... OpkgManagerplugin_autogen/mocs_compilation.s"
 .PHONY : help
 
 

@@ -1,7 +1,7 @@
 import QtQuick 2
 import QtQuick.Controls 2.15
 import com.victron.velib 1.0
-import OpkgHelpers 1.0
+import OpkgManager 1.0
  
 
 MbPage {
@@ -15,7 +15,6 @@ MbPage {
 
 		leftText: qsTr("Add")
 		rightText: {
-			if feed
 			qsTr("Remove")
 		}
 		function leftAction() {

@@ -9,12 +9,12 @@ MbPage {
   model: VisibleItemModel {
     MbSwitch {
       name: qsTr("Compact rows")
-      bind: Utils.path("com.victronenergy.settings", "/Settings/OpkgHelpers/ShowCompact")
+      bind: Utils.path("com.victronenergy.settings", "/Settings/OpkgManager/ShowCompact")
     }
     MbSwitch {
       name: qsTr("No Action")
       // description: "For testing installs, does not install" // Removed, MbSwitch does not have a description property
-      bind: Utils.path("com.victronenergy.settings", "/Settings/OpkgHelpers/NoAction")
+      bind: Utils.path("com.victronenergy.settings", "/Settings/OpkgManager/NoAction")
     }
     MbSubMenu {
       description: qsTr("Feeds")

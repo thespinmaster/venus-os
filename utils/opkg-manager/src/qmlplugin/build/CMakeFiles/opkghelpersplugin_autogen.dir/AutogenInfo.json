@@ -1,5 +1,5 @@
 {
-	"BUILD_DIR" : "/home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/build/opkghelpersplugin_autogen",
+	"BUILD_DIR" : "/home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/build/OpkgManagerplugin_autogen",
 	"CMAKE_BINARY_DIR" : "/home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/build",
 	"CMAKE_CURRENT_BINARY_DIR" : "/home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/build",
 	"CMAKE_CURRENT_SOURCE_DIR" : "/home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin",
@@ -54,14 +54,14 @@
 		"/usr/lib/aarch64-linux-gnu/cmake/Qt5Qml/Qt5QmlConfigExtras.cmake"
 	],
 	"CMAKE_SOURCE_DIR" : "/home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin",
-	"DEP_FILE" : "/home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/build/opkghelpersplugin_autogen/deps",
-	"DEP_FILE_RULE_NAME" : "opkghelpersplugin_autogen/timestamp",
+	"DEP_FILE" : "/home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/build/OpkgManagerplugin_autogen/deps",
+	"DEP_FILE_RULE_NAME" : "OpkgManagerplugin_autogen/timestamp",
 	"HEADERS" : 
 	[
 		[
-			"/home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/OpkgHelpersPlugin.h",
+			"/home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/OpkgManagerPlugin.h",
 			"MU",
-			"EWIEGA46WW/moc_OpkgHelpersPlugin.cpp",
+			"EWIEGA46WW/moc_OpkgManagerPlugin.cpp",
 			null
 		],
 		[
@@ -72,15 +72,15 @@
 		]
 	],
 	"HEADER_EXTENSIONS" : [ "h", "hh", "h++", "hm", "hpp", "hxx", "in", "txx" ],
-	"INCLUDE_DIR" : "/home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/build/opkghelpersplugin_autogen/include",
-	"MOC_COMPILATION_FILE" : "/home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/build/opkghelpersplugin_autogen/mocs_compilation.cpp",
+	"INCLUDE_DIR" : "/home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/build/OpkgManagerplugin_autogen/include",
+	"MOC_COMPILATION_FILE" : "/home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/build/OpkgManagerplugin_autogen/mocs_compilation.cpp",
 	"MOC_DEFINITIONS" : 
 	[
 		"QT_CORE_LIB",
 		"QT_NETWORK_LIB",
 		"QT_NO_DEBUG",
 		"QT_QML_LIB",
-		"opkghelpersplugin_EXPORTS"
+		"OpkgManagerplugin_EXPORTS"
 	],
 	"MOC_DEPEND_FILTERS" : 
 	[
@@ -116,21 +116,21 @@
 		"-c",
 		"/usr/share/cmake-3.28/Modules/CMakeCXXCompilerABI.cpp"
 	],
-	"MOC_PREDEFS_FILE" : "/home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/build/opkghelpersplugin_autogen/moc_predefs.h",
+	"MOC_PREDEFS_FILE" : "/home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/build/OpkgManagerplugin_autogen/moc_predefs.h",
 	"MOC_RELAXED_MODE" : false,
 	"MOC_SKIP" : [],
 	"MULTI_CONFIG" : false,
 	"PARALLEL" : 1,
-	"PARSE_CACHE_FILE" : "/home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/build/CMakeFiles/opkghelpersplugin_autogen.dir/ParseCache.txt",
+	"PARSE_CACHE_FILE" : "/home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/build/CMakeFiles/OpkgManagerplugin_autogen.dir/ParseCache.txt",
 	"QT_MOC_EXECUTABLE" : "/usr/lib/qt5/bin/moc",
 	"QT_UIC_EXECUTABLE" : "",
 	"QT_VERSION_MAJOR" : 5,
 	"QT_VERSION_MINOR" : 15,
-	"SETTINGS_FILE" : "/home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/build/CMakeFiles/opkghelpersplugin_autogen.dir/AutogenUsed.txt",
+	"SETTINGS_FILE" : "/home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/build/CMakeFiles/OpkgManagerplugin_autogen.dir/AutogenUsed.txt",
 	"SOURCES" : 
 	[
 		[
-			"/home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/OpkgHelpersPlugin.cpp",
+			"/home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/OpkgManagerPlugin.cpp",
 			"MU",
 			null
 		],

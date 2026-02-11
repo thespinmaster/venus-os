@@ -8,7 +8,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
-  "" "opkghelpersplugin_autogen/timestamp" "custom" "opkghelpersplugin_autogen/deps"
+  "" "OpkgManagerplugin_autogen/timestamp" "custom" "OpkgManagerplugin_autogen/deps"
   )
 
 # Targets to which this target links which contain Fortran sources.

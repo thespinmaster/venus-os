@@ -1,4 +1,4 @@
-CMakeFiles/opkghelpersplugin.dir/ProcessRunner.cpp.o: \
+CMakeFiles/OpkgManagerplugin.dir/ProcessRunner.cpp.o: \
  /home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/ProcessRunner.cpp \
  /usr/include/stdc-predef.h \
  /home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/ProcessRunner.h \

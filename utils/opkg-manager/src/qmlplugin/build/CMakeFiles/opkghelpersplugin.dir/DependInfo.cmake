@@ -8,10 +8,10 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
-  "" "opkghelpersplugin_autogen/timestamp" "custom" "opkghelpersplugin_autogen/deps"
-  "/home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/OpkgHelpersPlugin.cpp" "CMakeFiles/opkghelpersplugin.dir/OpkgHelpersPlugin.cpp.o" "gcc" "CMakeFiles/opkghelpersplugin.dir/OpkgHelpersPlugin.cpp.o.d"
-  "/home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/ProcessRunner.cpp" "CMakeFiles/opkghelpersplugin.dir/ProcessRunner.cpp.o" "gcc" "CMakeFiles/opkghelpersplugin.dir/ProcessRunner.cpp.o.d"
-  "/home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/build/opkghelpersplugin_autogen/mocs_compilation.cpp" "CMakeFiles/opkghelpersplugin.dir/opkghelpersplugin_autogen/mocs_compilation.cpp.o" "gcc" "CMakeFiles/opkghelpersplugin.dir/opkghelpersplugin_autogen/mocs_compilation.cpp.o.d"
+  "" "OpkgManagerplugin_autogen/timestamp" "custom" "OpkgManagerplugin_autogen/deps"
+  "/home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/OpkgManagerPlugin.cpp" "CMakeFiles/OpkgManagerplugin.dir/OpkgManagerPlugin.cpp.o" "gcc" "CMakeFiles/OpkgManagerplugin.dir/OpkgManagerPlugin.cpp.o.d"
+  "/home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/ProcessRunner.cpp" "CMakeFiles/OpkgManagerplugin.dir/ProcessRunner.cpp.o" "gcc" "CMakeFiles/OpkgManagerplugin.dir/ProcessRunner.cpp.o.d"
+  "/home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/build/OpkgManagerplugin_autogen/mocs_compilation.cpp" "CMakeFiles/OpkgManagerplugin.dir/OpkgManagerplugin_autogen/mocs_compilation.cpp.o" "gcc" "CMakeFiles/OpkgManagerplugin.dir/OpkgManagerplugin_autogen/mocs_compilation.cpp.o.d"
   )
 
 # Targets to which this target links which contain Fortran sources.

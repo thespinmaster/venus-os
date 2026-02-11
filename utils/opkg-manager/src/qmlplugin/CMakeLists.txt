@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.12)
 
-project(OpkgHelpersQmlPlugin LANGUAGES CXX)
+project(OpkgManagerQmlPlugin LANGUAGES CXX)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
@@ -24,27 +24,28 @@ else()
 	endif()
 endif()
 
-add_library(opkghelpersplugin MODULE
-	OpkgHelpersPlugin.cpp
+add_library(OpkgManagerplugin MODULE
+	OpkgManagerPlugin.cpp
 	ProcessRunner.cpp
 	FileHelper.cpp
 	FileHelper.h
 )
 
-target_include_directories(opkghelpersplugin PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(OpkgManagerplugin PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
-target_link_libraries(opkghelpersplugin PRIVATE ${QT_LIBS})
+target_link_libraries(OpkgManagerplugin PRIVATE ${QT_LIBS})
 
-target_compile_features(opkghelpersplugin PRIVATE cxx_std_11)
+target_compile_features(OpkgManagerplugin PRIVATE cxx_std_11)
 
-set_target_properties(opkghelpersplugin PROPERTIES
-	LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../data/opkg-manager/qml/OpkgHelpers"
-	RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../data/opkg-manager/qml/OpkgHelpers"
+
+set_target_properties(OpkgManagerplugin PROPERTIES
+	LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../opt/victronenergy/gui/qml/OpkgManager"
+	RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../opt/victronenergy/gui/qml/OpkgManager"
 )
 
 add_custom_command(
-	TARGET opkghelpersplugin POST_BUILD
+	TARGET OpkgManagerplugin POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E copy
 		"${CMAKE_CURRENT_SOURCE_DIR}/qmldir"
-		"${CMAKE_CURRENT_SOURCE_DIR}/../data/opkg-manager/qml/OpkgHelpers/qmldir"
+		"${CMAKE_CURRENT_SOURCE_DIR}/../opt/victronenergy/gui/qml/OpkgManager/qmldir"
 )

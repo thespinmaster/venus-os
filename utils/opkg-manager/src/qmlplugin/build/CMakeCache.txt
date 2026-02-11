@@ -122,7 +122,7 @@ CMAKE_PROJECT_DESCRIPTION:STATIC=
 CMAKE_PROJECT_HOMEPAGE_URL:STATIC=
 
 //Value Computed by CMake
-CMAKE_PROJECT_NAME:STATIC=OpkgHelpersQmlPlugin
+CMAKE_PROJECT_NAME:STATIC=OpkgManagerQmlPlugin
 
 //Path to a program.
 CMAKE_RANLIB:FILEPATH=/usr/bin/ranlib
@@ -190,13 +190,13 @@ CMAKE_TAPI:FILEPATH=CMAKE_TAPI-NOTFOUND
 CMAKE_VERBOSE_MAKEFILE:BOOL=FALSE
 
 //Value Computed by CMake
-OpkgHelpersQmlPlugin_BINARY_DIR:STATIC=/home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/build
+OpkgManagerQmlPlugin_BINARY_DIR:STATIC=/home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/build
 
 //Value Computed by CMake
-OpkgHelpersQmlPlugin_IS_TOP_LEVEL:STATIC=ON
+OpkgManagerQmlPlugin_IS_TOP_LEVEL:STATIC=ON
 
 //Value Computed by CMake
-OpkgHelpersQmlPlugin_SOURCE_DIR:STATIC=/home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin
+OpkgManagerQmlPlugin_SOURCE_DIR:STATIC=/home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin
 
 //The directory containing a CMake configuration file for Qt5Core.
 Qt5Core_DIR:PATH=/usr/lib/aarch64-linux-gnu/cmake/Qt5Core

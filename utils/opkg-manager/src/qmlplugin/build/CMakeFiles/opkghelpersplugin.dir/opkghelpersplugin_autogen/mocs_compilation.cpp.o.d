@@ -1,7 +1,7 @@
-CMakeFiles/opkghelpersplugin.dir/opkghelpersplugin_autogen/mocs_compilation.cpp.o: \
- /home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/build/opkghelpersplugin_autogen/mocs_compilation.cpp \
+CMakeFiles/OpkgManagerplugin.dir/OpkgManagerplugin_autogen/mocs_compilation.cpp.o: \
+ /home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/build/OpkgManagerplugin_autogen/mocs_compilation.cpp \
  /usr/include/stdc-predef.h \
- /home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/build/opkghelpersplugin_autogen/EWIEGA46WW/moc_OpkgHelpersPlugin.cpp \
+ /home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/build/OpkgManagerplugin_autogen/EWIEGA46WW/moc_OpkgManagerPlugin.cpp \
  /usr/include/c++/13/memory /usr/include/c++/13/bits/memoryfwd.h \
  /usr/include/aarch64-linux-gnu/c++/13/bits/c++config.h \
  /usr/include/aarch64-linux-gnu/c++/13/bits/os_defines.h \
@@ -116,7 +116,7 @@ CMakeFiles/opkghelpersplugin.dir/opkghelpersplugin_autogen/mocs_compilation.cpp.
  /usr/include/c++/13/backward/auto_ptr.h \
  /usr/include/c++/13/pstl/glue_memory_defs.h \
  /usr/include/c++/13/pstl/execution_defs.h \
- /home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/build/opkghelpersplugin_autogen/EWIEGA46WW/../../../OpkgHelpersPlugin.h \
+ /home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/build/OpkgManagerplugin_autogen/EWIEGA46WW/../../../OpkgManagerPlugin.h \
  /usr/include/aarch64-linux-gnu/qt5/QtQml/QQmlExtensionPlugin \
  /usr/include/aarch64-linux-gnu/qt5/QtQml/qqmlextensionplugin.h \
  /usr/include/aarch64-linux-gnu/qt5/QtCore/qplugin.h \
@@ -280,8 +280,8 @@ CMakeFiles/opkghelpersplugin.dir/opkghelpersplugin_autogen/mocs_compilation.cpp.
  /usr/include/aarch64-linux-gnu/qt5/QtQml/qtqml-config.h \
  /usr/include/aarch64-linux-gnu/qt5/QtNetwork/qtnetworkglobal.h \
  /usr/include/aarch64-linux-gnu/qt5/QtNetwork/qtnetwork-config.h \
- /home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/build/opkghelpersplugin_autogen/EWIEGA46WW/moc_ProcessRunner.cpp \
- /home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/build/opkghelpersplugin_autogen/EWIEGA46WW/../../../ProcessRunner.h \
+ /home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/build/OpkgManagerplugin_autogen/EWIEGA46WW/moc_ProcessRunner.cpp \
+ /home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/build/OpkgManagerplugin_autogen/EWIEGA46WW/../../../ProcessRunner.h \
  /usr/include/aarch64-linux-gnu/qt5/QtCore/QObject \
  /usr/include/aarch64-linux-gnu/qt5/QtCore/qobject.h \
  /usr/include/aarch64-linux-gnu/qt5/QtCore/QProcess \
