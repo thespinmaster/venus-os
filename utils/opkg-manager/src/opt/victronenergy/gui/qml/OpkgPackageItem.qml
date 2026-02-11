@@ -9,7 +9,6 @@ MbItem {
     property string version: ""
     property string feed: ""
     property string installedVersion: ""
-    property color itemTextColor: ListView.isCurrentItem ? mbStyle.textColorSelected : mbStyle.textColor
     property int index: -1
     property int detailsFontPixelSize: 14
     property bool showCompact: false
@@ -48,7 +47,7 @@ MbItem {
 
             MbIcon {
                 id: nameIcon
-                iconId: packageItem.iconId
+                iconId: packageItem.iconId + (packageItem.ListView.isCurrentItem ? "-active" : "")   
                 display: packageItem.installedVersion.length > 0 && packageItem.iconId.length > 0
                 z: 1
             }
@@ -97,6 +96,6 @@ MbItem {
             right: parent.right; rightMargin: mbStyle.marginDefault
             verticalCenter: parent.verticalCenter
         }
-        iconId: "icon-toolbar-enter" + (ListView.isCurrentItem ? "-active" : "")
+        iconId: "icon-toolbar-enter" + (packageItem.ListView.isCurrentItem ? "-active" : "")   
     }
 }

@@ -5,17 +5,27 @@ import OpkgManager 1.0
  
 
 MbPage {
-		property string feedsOutput: ""
+	property string feedsOutput: ""
 	id: pageRoot
 	title: qsTr("Feeds")
 	property var feedModel: []
 	property int opkgRemoveIndex: -1
 	property string opkgErrorLine: ""
 	property int packageDetailsFontPixelSize: 14
-
+	
+	pageToolbarHandler: ToolbarHandler {
 		leftText: qsTr("Add")
 		rightText: {
-			qsTr("Remove")
+		  var index = pageStack.currentPage.currentIndex
+			if (index >= 0 && index < pageRoot.feedModel.length) {
+ 
+				var builtIn = feedModel[index].builtin
+				console.debug("aaa:" + String(builtIn))
+				if (!builtIn) {
+					return qsTr("Remove")
+				}
+			}
+			return qsTr("")
 		}
 		function leftAction() {
 			if (opkgRunner.running) {
@@ -27,16 +37,15 @@ MbPage {
 			if (opkgRunner.running) {
 				return
 			}
-
+			var index = pageStack.currentPage.currentIndex
 			opkgRemoveIndex = index
 			opkgErrorLine = ""
 			opkgRunner.operationName = "remove-feed"
 			var name = feedModel[index].name
 			toast.createToast(name)
 			opkgRunner.start(["remove-feed", name])
+		}
 	}
-
-
 
 	function addFeed(name, url) {
 		pageRoot.feedModel.push({ name: name, url: url })
@@ -67,8 +76,9 @@ MbPage {
 
 	function loadFeedsFromJson(jsonText) {
 		var feeds = JSON.parse(jsonText)
+ 
 		pageRoot.feedModel = feeds.map(function(feed) {
-			return { name: feed.name, url: feed.url }
+			return { name: feed.name, url: feed.url, builtin: feed.builtin }
 		})
 	}
 
@@ -76,21 +86,18 @@ MbPage {
 		opkgRunner.operationName = "get-feeds"
 		opkgRunner.start(["get-feeds"])
 	}
-
-
+ 
 	model: feedModel
 
 	delegate: MbItem {
 		editable: true
 		property int verticalMargin: 8
 		height: contentColumn.implicitHeight + verticalMargin
-		subpage: Component {
-			PageSettingsOPKGFeedEdit {
-				feedIndex: index
-				feedName: name
-				feedUrl: url
-				updateFeed: pageRoot.saveFeed
-			}
+		subpage: {
+    	if (!pageRoot.feedModel[index].builtin) {
+        return Qt.createComponent("PageSettingsOPKGFeedEdit.qml");
+    	}
+    	return undefined;
 		}
 		Column {
 			id: contentColumn
@@ -99,15 +106,15 @@ MbPage {
 			spacing: 2
 			Item { height: verticalMargin; width: 1 } // top margin
 			Text {
-				text: name
+				text: modelData.name
 				font.bold: true
-				color: "#FFFFFF"
+				color: pageStack.currentPage.currentIndex == index ? mbStyle.textColorSelected : mbStyle.textColor
 				wrapMode: Text.WordWrap
 				width: contentColumn.width
 			}
 			Text {
-				text: url
-				color: "#FFFFFF"
+				text: modelData.url
+				color: pageStack.currentPage.currentIndex == index ? mbStyle.textColorSelected : mbStyle.textColor
 				wrapMode: Text.WrapAnywhere
 				font.pixelSize: packageDetailsFontPixelSize
 				width: contentColumn.width-subpageIcon.implicitWidth
@@ -116,12 +123,12 @@ MbPage {
 		}
 		MbIcon {
 				id: subpageIcon
-        display: packageItem.hasSubpage
+        display: pageRoot.feedModel[index].name != "opkg-manager"
         anchors {
             right: parent.right; rightMargin: mbStyle.marginDefault
             verticalCenter: parent.verticalCenter
         }
-        iconId: "icon-toolbar-enter" + (ListView.isCurrentItem ? "-active" : "")
+        iconId: "icon-toolbar-enter" + (pageStack.currentPage.currentIndex == index ? "-active" : "")
     }
 	}
 
@@ -138,16 +145,17 @@ MbPage {
 		id: opkgRunner
 		helperPath: "/data/dev/utils/opkg-manager/src/data/opkg-manager/opkg-common"
 		
-		onOutputLine: {
+		onOutputLine: function(line) {
 			if (opkgRunner.operationName === "get-feeds") {
 				feedsOutput = line
 			}
 		}
-		onErrorLine: {
+		onErrorLine: function(line) {
 			opkgErrorLine = line
 		}
-		onFinished: {
+		onFinished: function(exitCode, exitStatus) {
 			if (exitCode === 0) {
+				console.debug(feedsOutput)
 				if (opkgRunner.operationName === "get-feeds") {
 					loadFeedsFromJson(feedsOutput)
 					feedsOutput = ""

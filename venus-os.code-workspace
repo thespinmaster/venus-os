@@ -8,6 +8,12 @@
 		},
 		{
 			"path": "../opkg-manager"
+		},
+		{
+			"path": "../../tmp"
+		},
+		{
+			"path": "../../opt/victronenergy/themes/ccgx/icons"
 		}
 	],
 	"settings": {

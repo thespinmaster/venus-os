@@ -9,6 +9,7 @@ import QtQuick.Controls
 MbPage {
 	// Version comparison helper
 	function versionGreaterThan(v1, v2) {
+		if (!v2 && v1) return true;
 		if (!v1 || !v2) return false;
 		var a = v1.split('.').map(Number);
 		var b = v2.split('.').map(Number);
@@ -28,13 +29,11 @@ MbPage {
  
 			if (selectedIndex > 0  && selectedIndex < packageItems.count) {
 					selectedPackage = packageItems.get(selectedIndex)
-					console.debug("onSelectedIndexChanged:" + selectedPackage.name)
-					
+					// console.debug("aa:" + selectedPackage.name + ", " + selectedPackage.installedVersion + ", " + selectedPackage.version)
 			} else {
-					console.debug("selectedPackage:null")
-		
 					selectedPackage = null
 			}
+			
 	}
 
 	pageToolbarHandler: ToolbarHandler {
@@ -107,9 +106,11 @@ MbPage {
 
 	function loadPackagesFromJson(jsonText) {
 		packageModel.clear()
+		
 		var packages = JSON.parse(jsonText)
 		for (var i = 0; i < packages.length; i++) {
 			var pkg = packages[i]
+			
 			packageModel.append({
 				name: pkg.name || "",
 				description: pkg.description || "",
@@ -126,7 +127,7 @@ MbPage {
 		try {
 			var jsonText = FileHelper.readFile(filePath);
 			if (!jsonText || jsonText.length === 0) {
-				toast.createToast(qsTr("Failed to read package list file: ") + filePath);
+				toast.createToast(qsTr("Failed to read package list file 1: ") + filePath);
 				return;
 			}
 			loadPackagesFromJson(jsonText);
@@ -136,7 +137,7 @@ MbPage {
 			selectedPackage=null
 		} catch (err) {
 			console.debug("ERROR reading package list file:", err);
-			toast.createToast(qsTr("Failed to read package list file: ") + filePath);
+			toast.createToast(qsTr("Failed to read package list file 2: ") + filePath);
 		}
 	}
 
@@ -152,7 +153,7 @@ MbPage {
 			description: qsTr("Settings")
 			subpage: Component { PageSettingsOPKGSettings {} }
 
-				onIsCurrentItemChanged: {
+			onIsCurrentItemChanged: {
 				if (ListView.isCurrentItem) {
 						root.selectedIndex = 0
 				}

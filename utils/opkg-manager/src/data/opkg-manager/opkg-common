@@ -37,8 +37,12 @@ opkg_get_feeds() {
       set -- $line
       local name="$2"
       local url="$3"
+      local builtin=false
+      if [[ "$name" == "$OPKG_MANAGER_FEED_NAME" ]]; then
+        builtin=true
+      fi
       if [[ $first -eq 0 ]]; then printf ','; fi
-      printf '{"name":"%s","url":"%s"}' "${name}" "${url}"
+      printf '{"name":"%s","url":"%s","builtin":%s}' "${name}" "${url}" "$builtin"
       first=0
     done < "$feeds_file"
   fi
@@ -108,42 +112,64 @@ __opkg_common_remove_feed_line() {
 }
 
 opkg_common_feed_crud() {
-  log "opkg feed crud"
+  [[ "$@" == "opkg-manager" ]] && { echo "The opkg-manager cannot be removed/edited"; exit 1; }
+  __opkg_common_feed_crud "$@"
+}
 
-  local feed_name="${1:-}"
-  local feed_url="${2:-}"
-  local feed_old_name="${3:-}"
+__opkg_common_feed_crud() {
+  # Usage:
+  #   opkg_common_feed_crud <mode> <feed_name> <feed_url> [old_feed_name]
+  #   mode: add, edit, remove
+  #   For add:   feed_name, feed_url required
+  #   For edit:  feed_name, feed_url, old_feed_name required
+  #   For remove: feed_name required
 
+  local mode="${1:-}"
+  local feed_name="${2:-}"
+  local feed_url="${3:-}"
+  local old_feed_name="${4:-}"
+
+  log "opkg feed crud: mode=$mode, feed_name=$feed_name, feed_url=$feed_url, old_feed_name=$old_feed_name"
+
+  # Validate feed_name
   [[ -z "${feed_name}" ]] && { log_error "Invalid name"; exit 1; }
-  [[ "${feed_name}" =~ [^a-zA-Z0-9_] ]] && { log_error "Invalid name"; exit 1; }
-  [[ "${feed_name}" == "${OPKG_MANAGER_FEED_NAME}" ]] && { log_error "Cannot edit the Opkg Manager feed"; exit 1; }
-
-  if [[ -n "${feed_old_name}" ]] && [[ "${feed_old_name}" =~ [^a-zA-Z0-9_] ]]; then
+  [[ "${feed_name}" =~ [^a-zA-Z0-9_-] ]] && { log_error "Invalid name"; exit 1; }
+  
+  # Validate old_feed_name if present
+  if [[ -n "${old_feed_name}" ]] && [[ "${old_feed_name}" =~ [^a-zA-Z0-9_] ]]; then
     log_error "Invalid old name"
     exit 1
   fi
-  
-  if [[ -z "${feed_url}" ]]; then
-    if [[ -n "${feed_old_name}" ]]; then
-      log_error "Invalid old name"
+
+  case "$mode" in
+    add)
+      [[ -z "${feed_url}" ]] && { log_error "add: feed_url required"; exit 1; }
+      __opkg_common_remove_feed_line "${feed_name}"
+      if [ ! $dry_run ]; then
+        printf 'src/gz %s %s\n' "${feed_name}" "${feed_url}" >> "${OPKG_FEED_LOCAL_CONFIG_FILE}"
+      else
+        log "feed content:\"src/gz ${feed_name} ${feed_url} >> ${OPKG_FEED_LOCAL_CONFIG_FILE}\""
+      fi
+      ;;
+    edit)
+      [[ -z "${feed_url}" ]] && { log_error "edit: feed_url required"; exit 1; }
+      [[ -z "${old_feed_name}" ]] && { log_error "edit: old_feed_name required"; exit 1; }
+      __opkg_common_remove_feed_line "${old_feed_name}"
+      __opkg_common_remove_feed_line "${feed_name}"
+      if [ ! $dry_run ]; then
+        printf 'src/gz %s %s\n' "${feed_name}" "${feed_url}" >> "${OPKG_FEED_LOCAL_CONFIG_FILE}"
+      else
+        log "feed content:\"src/gz ${feed_name} ${feed_url} >> ${OPKG_FEED_LOCAL_CONFIG_FILE}\""
+      fi
+      ;;
+    remove)
+      __opkg_common_remove_feed_line "${feed_name}"
+      ;;
+    *)
+      log_error "Unknown mode: $mode"
       exit 1
-    fi
-    __opkg_common_remove_feed_line "${feed_name}"
-    return 0
-  fi
-
-  if [[ -n "${feed_old_name}" ]]; then
-    __opkg_common_remove_feed_line "${feed_old_name}"
-  fi
-
-  __opkg_common_remove_feed_line "${feed_name}"
-
-  if [ ! $dry_run ]; then
-    
-    printf 'src/gz %s %s\n' "${feed_name}" "${feed_url}" >> "${OPKG_FEED_LOCAL_CONFIG_FILE}"
-  else
-    log "feed content:\"src/gz ${feed_name} ${feed_url} >> ${OPKG_FEED_LOCAL_CONFIG_FILE}\""
-  fi
+      ;;
+  esac
 }
 
 opkg_common_ensure_feed() {
@@ -156,9 +182,9 @@ opkg_common_ensure_feed() {
     include_default_feed=1
   fi
  
-  opkg_common_feed_crud "${OPKG_MANAGER_FEED_NAME}" "${OPKG_FEED_BASE_URL}/${OPKG_MANAGER_FEED_NAME}" ""
+  __opkg_common_feed_crud "add" "${OPKG_MANAGER_FEED_NAME}" "${OPKG_FEED_BASE_URL}/${OPKG_MANAGER_FEED_NAME}" ""
   if ((include_default_feed)); then
-    opkg_common_feed_crud "${OPKG_DEFAULT_FEED_NAME}" "${OPKG_FEED_BASE_URL}/${OPKG_MANAGER_FEED_NAME}" ""
+    __opkg_common_feed_crud "add" "${OPKG_DEFAULT_FEED_NAME}" "${OPKG_FEED_BASE_URL}/${OPKG_MANAGER_FEED_NAME}" ""
   fi
 
   log "creating opkg feed symlink"
@@ -501,11 +527,17 @@ opkg_common_list_packages() {
   
   feeds=()
 
+  if [[ ! -f "${OPKG_FEED_LOCAL_CONFIG_FILE}" ]]; then
+    opkg_common_ensure_feed
+    opkg update
+    rm -f "${tmp_installed_file}"
+  fi
+
   if [[ -f "${OPKG_FEED_LOCAL_CONFIG_FILE}" ]]; then
     while IFS= read -r line; do
       [[ -z "${line}" || "${line}" == \#* ]] && continue
       [[ "${line}" != src/gz* ]] && continue
-      set -- "${line}"
+      set -- ${line} # DONT QUOTE set -- splits on whitespace
       [[ -n "${2:-}" ]] && feeds["${2}"]=1
     done < "${OPKG_FEED_LOCAL_CONFIG_FILE}"
 
@@ -514,8 +546,9 @@ opkg_common_list_packages() {
   fi
 
   if [[ "${#feeds[@]}" -eq 0 ]]; then
-    printf '[]'
-    return 0
+    printf '[]' > "${cache_file}"
+    echo "No feeds" >&2
+    return 1
   fi
 
   for feed in "${!feeds[@]}"; do
@@ -529,8 +562,9 @@ opkg_common_list_packages() {
 
   if [[ "${#list_files[@]}" -eq 0 ]]; then
     [[ -n "${tmp_installed_file}" ]] && rm -f "${tmp_installed_file}"
-    printf '[]'
-    return 0
+    printf '[]' > "${cache_file}"
+    echo "No feed files" >&2
+    return 1
   fi
 
   if [[ -f "/usr/lib/opkg/status" ]]; then
@@ -704,14 +738,16 @@ case "${1:-}" in
     shift
     opkg_common_upgrade_package "$@"
     ;;
+  add-feed)
+    opkg_common_feed_crud "add" "${2:-}" "${3:-}" "${4:-}"
+    ;;
   edit-feed)
-    opkg_common_feed_crud "${2:-}" "${3:-}" "${4:-}"
+    opkg_common_feed_crud "edit" "${2:-}" "${3:-}" "${4:-}"
     ;;
   remove-feed)
-    opkg_common_feed_crud "${2:-}" "" ""
+    opkg_common_feed_crud "remove" "${2:-}" "" ""
     ;;
   get-feeds)
     opkg_get_feeds
     ;;
 esac
- 

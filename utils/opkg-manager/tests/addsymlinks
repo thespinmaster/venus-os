@@ -30,6 +30,7 @@ done
 # Icons
 QML_ICONS_FILES=(
 	icon-opkg-manager-tick.svg
+  icon-opkg-manager-tick-active.svg
 )
 
 for icon in "${QML_ICONS_FILES[@]}"; do
