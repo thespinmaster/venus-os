@@ -5,37 +5,33 @@ import net.connman 0.1
 import OpkgManager 1.0
 import "utils.js" as Utils
 import QtQuick.Controls
+import QtQuick.Layouts 1.0
 
 MbPage {
-	// Version comparison helper
-	function versionGreaterThan(v1, v2) {
-		if (!v2 && v1) return true;
-		if (!v1 || !v2) return false;
-		var a = v1.split('.').map(Number);
-		var b = v2.split('.').map(Number);
-		for (var i = 0; i < Math.max(a.length, b.length); i++) {
-			var n1 = a[i] || 0;
-			var n2 = b[i] || 0;
-			if (n1 > n2) return true;
-			if (n1 < n2) return false;
-		}
-		return false;
+  
+	// "√✔⚠✘✗★☆⬤●▲▼►◄" useful symbols
+
+ 	property string packagesOutput: ""
+	property string packagesErrorLine: ""
+	property bool showCompact: compactSetting.valid && compactSetting.value !== 0
+ 
+	property bool installInProgress: packageRunner.operationName !== ""
+	property var logAreaRef
+  property var selectedPackage
+
+	id: root
+	title: qsTr("Open Package Manager")
+
+	VBusItem {
+		id: compactSetting
+		bind: Utils.path("com.victronenergy.settings", "/Settings/OpkgManager/ShowCompact")
+	}
+	ListModel { id: packageModel}
+
+	Component.onCompleted: {
+		loadPackages("list-packages", "")
 	}
  
-	property int selectedIndex: -1
-	property var selectedPackage: null
-
-	onSelectedIndexChanged: {
- 
-			if (selectedIndex > 0  && selectedIndex < packageItems.count) {
-					selectedPackage = packageItems.get(selectedIndex)
-					// console.debug("aa:" + selectedPackage.name + ", " + selectedPackage.installedVersion + ", " + selectedPackage.version)
-			} else {
-					selectedPackage = null
-			}
-			
-	}
-
 	pageToolbarHandler: ToolbarHandler {
  
 		function centerAction() {
@@ -45,81 +41,33 @@ MbPage {
 		centerText: qsTr("Refresh Feeds")  
 
 	}
-	id: root
-	title: qsTr("Open Package Manager")
-		property string packageIconId: "icon-opkg-manager-tick"
-		property int packageDetailsFontPixelSize: 14
-
-	ListModel {
-		id: packageModel
-	}
-	property string packagesOutput: ""
-	property string packagesErrorLine: ""
-	property bool showCompact: compactSetting.valid && compactSetting.value !== 0
-	property int subpageIconReserveWidth: 24
-
-	VBusItem {
-		id: compactSetting
-		bind: Utils.path("com.victronenergy.settings", "/Settings/OpkgManager/ShowCompact")
-	}
- 
-	Component.onCompleted: {
-		loadPackages("list-packages", "")
-	}
 
 	function loadPackages(operationName, args) {
- 
 		if (packageRunner.running) {
 			return
 		}
-
 		packageModel.clear()
-		packageItems.clear()
-		 
 		packagesOutput = ""
 		packagesErrorLine = ""
-
 		packageRunner.operationName = operationName
 		packageRunner.start(["list-packages", args])
- 
-	}
-
-	function refreshPackageItems() {
-		packageItems.clear()
-		var setupItem = setupItemFactory.createObject(packageItems)
-		packageItems.append(setupItem)
-		var offset = 1  // because of "Setup" item
-		for (var i = 0; i < packageModel.count; i++) {
-			var pkg = packageModel.get(i)
-			var item = packageItemFactory.createObject(packageItems, {
-				"name": pkg.name,
-				"description": pkg.description,
-				"version": pkg.version,
-				"feed": pkg.feed,
-				"installedVersion": pkg.installedVersion,
-				"iconId" : "icon-opkg-manager-tick",
-				"index" : i + offset
-			})
-			packageItems.append(item)
-		}
 	}
 
 	function loadPackagesFromJson(jsonText) {
 		packageModel.clear()
-		
 		var packages = JSON.parse(jsonText)
 		for (var i = 0; i < packages.length; i++) {
 			var pkg = packages[i]
-			
 			packageModel.append({
 				name: pkg.name || "",
-				description: pkg.description || "",
+				description_short: pkg.description_short || "",
+				description_long: pkg.description_long || "",
 				version: pkg.version || "",
 				feed: pkg.feed || "",
 				installedVersion: pkg.installedVersion || ""
 			})
 		}
-		refreshPackageItems()
+		// No need to call refreshPackageItems
 	}
 
 	// load packages from a JSON file using FileHelper.readFile
@@ -132,63 +80,179 @@ MbPage {
 			}
 			loadPackagesFromJson(jsonText);
 			if (packageRunner.operationName === "list-packages-update") {
-			    toast.createToast(qsTr("Refresh completed")); }
-			selectedIndex=0
-			selectedPackage=null
+				toast.createToast(qsTr("Refresh completed"));
+			}
+ 
 		} catch (err) {
 			console.debug("ERROR reading package list file:", err);
 			toast.createToast(qsTr("Failed to read package list file 2: ") + filePath);
 		}
 	}
 
-	model: packageItems
+	model: packageModel
 
-	VisibleItemModel {
-		id: packageItems
+	function getDescription(modelData) {
+			if (showCompact)
+				return
+				
+			var installed = modelData.installedVersion.length > 0
+			return modelData.description_short + "\n" +
+					"Installed: " + (installed ? modelData.installedVersion : " - ")  + 
+					"  Available: " + modelData.version + 
+					"  Feed: " + modelData.feed
+	}
+	function getDetailDescription(modelData) {
+		return getDescription(modelData)
 	}
 
-	Component {
-		id: setupItemFactory
-		MbSubMenu {
-			description: qsTr("Settings")
-			subpage: Component { PageSettingsOPKGSettings {} }
+	delegate: OpkgHeaderDescritionItem {
+		id: packageItem
+		header: (model.installedVersion.length > 0 ? "✔ " : "") + model.name
+		description: root.getDescription(modelData)
+		showCompact: root.showCompact
+		hasSubpage: true
+		property bool showAvailable: root.versionGreaterThan(model.version, model.installedVersion)
+		property var modelData: model
 
-			onIsCurrentItemChanged: {
-				if (ListView.isCurrentItem) {
-						root.selectedIndex = 0
+		subpage: Component {
+			
+			MbPage {
+				id: mypage
+				title: qsTr("Details")
+				anchors.fill: parent
+				ColumnLayout {
+					anchors.fill: parent
+					spacing: 0
+					OpkgHeaderDescritionItem {
+						id: packageDetails
+						header: packageItem.header
+						description: root.getDetailDescription(packageItem.modelData)
+
+					}
+					Item {
+						id: logArea
+						Layout.fillWidth: true
+						Layout.fillHeight: true
+						property var logLines: ["logs...."]
+						function addLogLine(line) {
+							logLines.push(line)
+							logText.text = logLines.join("\n")
+							logFlickable.contentY = logFlickable.contentHeight - logFlickable.height
+						}
+						Component.onCompleted: {
+							root.logAreaRef = logArea;
+						}
+						Rectangle {
+							anchors.fill: parent
+							color: "#ced9dd"
+							border.color: "#cccccc"
+							radius: 6
+							
+							Flickable {
+								id: logFlickable
+								anchors.fill: parent
+								contentWidth: logText.width
+								contentHeight: logText.height
+								clip: true
+								Column {
+									width: logFlickable.width - 12
+									spacing: 0
+									anchors.left: parent.left
+									anchors.right: parent.right
+									anchors.top: parent.top
+									anchors.margins: 6
+									Text {
+										id: logText
+										text: logArea.logLines.join("\n")
+										font.pixelSize: 13
+										color: "#000000"
+										wrapMode: Text.Wrap
+										width: logFlickable.width - 12
+										horizontalAlignment: Text.AlignLeft
+										verticalAlignment: Text.AlignTop
+
+									}
+									Rectangle {
+										width: logFlickable.width - 12
+										height: 10 // bottom padding to prevent clipping
+										color: "transparent"
+									}
+								}
+							}
+						}
+					}
 				}
+
+				pageToolbarHandler: ToolbarHandler {
+
+				leftText: {
+					var item = packageItem.modelData
+					if (item) {
+						console.debug("yep")
+					} else {
+						console.debug("nope")
+					}
+					return qsTr("hello")
+					if (item) {
+						var hasInstalled = item.installedVersion && item.installedVersion.length > 0
+						var hasAvailable = item.version && item.version.length > 0
+						if (hasInstalled && hasAvailable) {
+							return qsTr("Upgrade")
+						} else if (!hasInstalled && hasAvailable) {
+							return qsTr("Install")
+						}
+					}
+					return qsTr("")
+				}
+				function leftAction() {
+					var item = root.selectedPackage
+					var action=""
+					if (item) {
+						var hasInstalled = item.installedVersion && item.installedVersion.length > 0
+						var hasAvailable = item.version && item.version.length > 0
+						if (hasInstalled && hasAvailable) {
+							action = "upgrade"
+						} else if (!hasInstalled && hasAvailable) {
+							action = "install"
+						}
+					}
+
+					doAction(action) 
+				}
+
+				rightText: {
+						var item = root.selectedPackage;
+						if (item && item.installedVersion) {
+								return qsTr("Remove");
+						}
+						return qsTr("");
+				}
+		
+				function rightAction() { doAction("remove") }
+
+				function doAction(action)
+				{
+					if (action == "" || !root.selectedPackage || !root.selectedPackage.name || !root.logAreaRef) {
+						return;
+					}
+
+					// Clear log area
+					root.logAreaRef.logLines = [];
+					root.logAreaRef.addLogLine("--- Starting " + action + " for: " + root.selectedPackage.name + " ---");
+
+					var noAction = noActionSetting.valid && noActionSetting.value !== undefined && noActionSetting.value !== null ? !!noActionSetting.value : false;
+
+					var args = [action + "-package", root.selectedPackage.name];
+					if (noAction) {
+						args.push("--noaction");
+					}
+					installRunner.operationName = action;
+					installRunner.start(args);
+				}
+			}
 			}
 		}
-	}
 
-	Component {
-		id: packageItemFactory
-		OpkgPackageItem {
-			iconId: iconId
-			name: name
-			description: description
-			version: version
-			feed: feed
-			installedVersion: installedVersion
-			index: index
-			detailsFontPixelSize: root.packageDetailsFontPixelSize
-			showCompact: root.showCompact
-			subpageIconReserveWidth: root.subpageIconReserveWidth
-			hasSubpage: true
-			// Only show available version if it is greater than installedVersion
-			property bool showAvailable: root.versionGreaterThan(version, installedVersion)
-			subpage: Component {
-				PageSettingsOPKGPackageInstall {
-					selectedPackage: root.selectedPackage
-					property bool showUpgrade: root.versionGreaterThan(selectedPackage ? selectedPackage.version : "", selectedPackage ? selectedPackage.installedVersion : "")
-				}
-			}
-			onIsCurrentItemChanged: {
-				if (ListView.isCurrentItem) {
-					root.selectedIndex = index
-				}
-			}
-		}
 	}
 
 	ProcessRunner {
@@ -223,5 +287,19 @@ MbPage {
 			}
 			packageRunner.operationName = "";
 		}
+	}
+		// Version comparison helper
+	function versionGreaterThan(v1, v2) {
+		if (!v2 && v1) return true;
+		if (!v1 || !v2) return false;
+		var a = v1.split('.').map(Number);
+		var b = v2.split('.').map(Number);
+		for (var i = 0; i < Math.max(a.length, b.length); i++) {
+			var n1 = a[i] || 0;
+			var n2 = b[i] || 0;
+			if (n1 > n2) return true;
+			if (n1 < n2) return false;
+		}
+		return false;
 	}
 }

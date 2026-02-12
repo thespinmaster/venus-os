@@ -621,23 +621,27 @@ opkg_common_list_packages() {
         }
         printed = 1
         # Output installedVersion as a string (empty if not installed)
-        printf "{\"name\":\"%s\",\"description\":\"%s\",\"version\":\"%s\",\"feed\":\"%s\",\"installedVersion\":\"%s\"}", \
+        desc_long_out = (description_long != "" && description_long != description_short) ? description_long : ""
+        printf "{\"name\":\"%s\",\"description_short\":\"%s\",\"description_long\":\"%s\",\"version\":\"%s\",\"feed\":\"%s\",\"installedVersion\":\"%s\"}", \
           json_escape(name), \
-          json_escape(description), \
+          json_escape(description_short), \
+          json_escape(desc_long_out), \
           json_escape(version), \
           json_escape(feed), \
           ((name in installed) ? json_escape(installed[name]) : "")
       }
       name = ""
       version = ""
-      description = ""
+      description_short = ""
+      description_long = ""
       desc_active = 0
     }
     BEGIN {
       printed = 0
       name = ""
       version = ""
-      description = ""
+      description_short = ""
+      description_long = ""
       desc_active = 0
 
       if (installed_mode == "status") {
@@ -679,7 +683,12 @@ opkg_common_list_packages() {
       }
 
       if (line ~ /^ / && desc_active == 1) {
-        description = description " " substr(line, 2)
+        next_line = substr(line, 2)
+        if (description_long == "") {
+          description_long = next_line
+        } else {
+          description_long = description_long " " next_line
+        }
         next
       }
 
@@ -694,7 +703,8 @@ opkg_common_list_packages() {
       }
 
       if (line ~ /^Description: /) {
-        description = substr(line, 14)
+        description_short = substr(line, 14)
+        description_long = ""
         desc_active = 1
         next
       }

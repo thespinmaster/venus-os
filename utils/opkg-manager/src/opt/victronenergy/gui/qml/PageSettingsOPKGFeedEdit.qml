@@ -35,7 +35,7 @@ MbPage {
 	property var updateFeed
 	property bool opkgPending: false
 	property string opkgErrorLine: ""
-
+ 
 	function setItemValue(item, value) {
 		if (item && value !== undefined && value !== null) {
 			item.value = String(value)

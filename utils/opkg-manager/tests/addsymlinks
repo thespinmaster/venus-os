@@ -20,7 +20,7 @@ QML_FILES=(
 	PageSettingsOPKGSettings.qml
 	PageSettingsOPKGFeeds.qml
 	PageSettingsOPKGFeedEdit.qml
-	OpkgPackageItem.qml
+	OpkgHeaderDescritionItem.qml
 )
 
 for file in "${QML_FILES[@]}"; do
@@ -37,7 +37,7 @@ for icon in "${QML_ICONS_FILES[@]}"; do
 	ln -sf "$QML_ICONS_SOURCE_PATH/$icon" "$QML_ICONS_TARGET_PATH/$icon"
 done
  
-ln -sf "$QML_TARGET_PATH/PageSettings.qml" "$this_path/PageSettings.qml"
+ln -sf "$QML_TARGET_PATH/PageSettings.qml" "$QML_SOURCE_PATH/PageSettings.qml"
 
 # OpkgHelpers directory
 ln -sf "$QML_SOURCE_PATH/OpkgManager" "$QML_TARGET_PATH/OpkgManager"

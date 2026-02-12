@@ -5,15 +5,11 @@ import "utils.js" as Utils
 MbPage {
 	id: root
 	title: qsTr("Package details")
-
 	property var selectedPackage
-
-	property var logAreaRef: null
-	VBusItem {
-		id: noActionSetting
-		bind: Utils.path("com.victronenergy.settings", "/Settings/OpkgManager/NoAction")
-	}
+	property var name
 	property bool installInProgress: installRunner.operationName !== ""
+	property var logAreaRef
+
 	pageToolbarHandler: ToolbarHandler {
 
 		leftText: {
@@ -27,6 +23,7 @@ MbPage {
 					return qsTr("Install")
 				}
 			}
+			return qsTr("")
 		}
 		function leftAction() {
 			var item = root.selectedPackage
@@ -74,38 +71,28 @@ MbPage {
 			installRunner.start(args);
 		}
 	}
-	ProcessRunner {
-		id: installRunner
-		helperPath: "/data/dev/utils/opkg-manager/src/data/opkg-manager/opkg-common"
- 
-		onOutputLine: function(line) {
-			if (root.logAreaRef) root.logAreaRef.addLogLine(line);
-		}
-		onErrorLine: function(line) {
-			if (root.logAreaRef) root.logAreaRef.addLogLine("ERROR: " + line);
-		}
-		onFinished: function(exitCode, exitStatus) {
-			if (root.logAreaRef) {
-				root.logAreaRef.addLogLine("--- Finished " + installRunner.operationName + ". Exit code: " + exitCode + ", status: " + exitStatus + " ---"); 
-			}
-			installRunner.operationName = "";
-			root.selectedPackage.installedVersion = root.selectedPackage.version
-		}
-	}
+  model: packageModel
 
+	Component.onCompleted: {
+		 //packageDetails.name="bbb"
+		 if (selectedPackage) {
+		 	console.debug("alive")
+		 } else {
+		  console.debug("onCompleted:null")
+		}
+		console.debug("name:" + selectedPackage)
+		console.debug("name2:" + name)
+	}
+ 
 	OpkgPackageItem {
 		id: packageDetails
 		name: root.selectedPackage.name
-		description: root.selectedPackage.description
-		version: root.selectedPackage.version
-		feed: root.selectedPackage.feed
-		installedVersion: root.selectedPackage.installedVersion
 		detailsFontPixelSize: 14
 		showCompact: false
 		hasSubpage: false
 		editable: false
 	}
-
+ 
 	// Non-selectable, scrollable log area (direct child of MbPage)
 	Item {
 		id: logArea
@@ -158,6 +145,25 @@ MbPage {
 					}
 				}
 			}
+		}
+	}
+
+	ProcessRunner {
+		id: installRunner
+		helperPath: "/data/dev/utils/opkg-manager/src/data/opkg-manager/opkg-common"
+ 
+		onOutputLine: function(line) {
+			if (root.logAreaRef) root.logAreaRef.addLogLine(line);
+		}
+		onErrorLine: function(line) {
+			if (root.logAreaRef) root.logAreaRef.addLogLine("ERROR: " + line);
+		}
+		onFinished: function(exitCode, exitStatus) {
+			if (root.logAreaRef) {
+				root.logAreaRef.addLogLine("--- Finished " + installRunner.operationName + ". Exit code: " + exitCode + ", status: " + exitStatus + " ---"); 
+			}
+			installRunner.operationName = "";
+			root.selectedPackage.installedVersion = root.selectedPackage.version
 		}
 	}
 }

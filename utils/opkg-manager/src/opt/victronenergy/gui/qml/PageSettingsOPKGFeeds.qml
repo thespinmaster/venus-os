@@ -16,11 +16,9 @@ MbPage {
 	pageToolbarHandler: ToolbarHandler {
 		leftText: qsTr("Add")
 		rightText: {
-		  var index = pageStack.currentPage.currentIndex
+		  var index = pageRoot.currentIndex
 			if (index >= 0 && index < pageRoot.feedModel.length) {
- 
 				var builtIn = feedModel[index].builtin
-				console.debug("aaa:" + String(builtIn))
 				if (!builtIn) {
 					return qsTr("Remove")
 				}
@@ -37,7 +35,7 @@ MbPage {
 			if (opkgRunner.running) {
 				return
 			}
-			var index = pageStack.currentPage.currentIndex
+			var index = pageRoot.currentIndex
 			opkgRemoveIndex = index
 			opkgErrorLine = ""
 			opkgRunner.operationName = "remove-feed"
@@ -95,7 +93,14 @@ MbPage {
 		height: contentColumn.implicitHeight + verticalMargin
 		subpage: {
     	if (!pageRoot.feedModel[index].builtin) {
-        return Qt.createComponent("PageSettingsOPKGFeedEdit.qml");
+        var page=Qt.createComponent("PageSettingsOPKGFeedEdit.qml");
+				var selectedItem=pageRoot.feedModel[index]
+				page.name=selectedItem.name
+				page.feedName=selectedItem.name
+				page.feedUrl=selectedItem.url
+				page.feedNameOld=selectedItem.name
+				console.debug("zzzz")
+				return page
     	}
     	return undefined;
 		}
@@ -104,22 +109,22 @@ MbPage {
 			width: parent.width - 2 * verticalMargin
 			anchors.horizontalCenter: parent.horizontalCenter
 			spacing: 2
-			Item { height: verticalMargin; width: 1 } // top margin
+ 
 			Text {
 				text: modelData.name
 				font.bold: true
-				color: pageStack.currentPage.currentIndex == index ? mbStyle.textColorSelected : mbStyle.textColor
+				color: pageRoot.currentIndex == index ? mbStyle.textColorSelected : mbStyle.textColor
 				wrapMode: Text.WordWrap
 				width: contentColumn.width
 			}
 			Text {
 				text: modelData.url
-				color: pageStack.currentPage.currentIndex == index ? mbStyle.textColorSelected : mbStyle.textColor
+				color: pageRoot.currentIndex == index ? mbStyle.textColorSelected : mbStyle.textColor
 				wrapMode: Text.WrapAnywhere
 				font.pixelSize: packageDetailsFontPixelSize
 				width: contentColumn.width-subpageIcon.implicitWidth
 			}
-			Item { height: verticalMargin; width: 1 } // bottom margin
+ 
 		}
 		MbIcon {
 				id: subpageIcon
@@ -128,7 +133,7 @@ MbPage {
             right: parent.right; rightMargin: mbStyle.marginDefault
             verticalCenter: parent.verticalCenter
         }
-        iconId: "icon-toolbar-enter" + (pageStack.currentPage.currentIndex == index ? "-active" : "")
+        iconId: "icon-toolbar-enter" + (pageRoot.currentIndex == index ? "-active" : "")
     }
 	}
 
