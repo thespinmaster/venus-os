@@ -95,7 +95,7 @@ __restore_previous_fs_access() {
 __opkg_common_remove_feed_line() {
   local name="${1:-}"
 
-  if [[ ! -f "${OPKG_FEED_LOCAL_CONFIG_FILE}" ]]; then
+  if [[ ! -f "${OPKG_FEED_CONFIG_FILE}" ]]; then
     return 0
   fi
 
@@ -178,13 +178,13 @@ opkg_common_ensure_feeds() {
   
   local -i include_default_feed=0
 
-  if [[ ! -f "${OPKG_FEED_LOCAL_CONFIG_FILE}" ]]; then
+  if [[ ! -f "${OPKG_FEED_CONFIG_FILE}" ]]; then
     include_default_feed=1
   fi
  
   __opkg_common_feed_crud "add" "${OPKG_MANAGER_FEED_NAME}" "${OPKG_FEED_BASE_URL}/${OPKG_MANAGER_FEED_NAME}" ""
   if ((include_default_feed)); then
-    __opkg_common_feed_crud "add" "${OPKG_DEFAULT_FEED_NAME}" "${OPKG_FEED_BASE_URL}/${OPKG_MANAGER_FEED_NAME}" ""
+    __opkg_common_feed_crud "add" "${OPKG_DEFAULT_FEED_NAME}" "${OPKG_FEED_BASE_URL}/main" ""
   fi
 
   log "creating opkg feed symlink"
@@ -516,21 +516,24 @@ opkg_common_list_packages() {
   local cache_mtime=0
   local now=0
   local cache_ttl=5
+  local updateCalled=0
 
   # echo "opkg_common_list_packages" > "/data/opkg.log"
-
-  # If 'update' argument is supplied, run opkg update first
-  if [[ "${1:-}" == "update" ]]; then
-    #echo "update" >> "/data/opkg.log"
-    opkg update
-  fi
-  
+   
   feeds=()
+
+  [[ "${1:-}" == "update" ]] && callUpdate=1
 
   if [[ ! -f "${OPKG_FEED_LOCAL_CONFIG_FILE}" ]]; then
     opkg_common_ensure_feeds
-    opkg update
+    callUpdate=1
     rm -f "${tmp_installed_file}"
+  else if [[ ! -f "${OPKG_FEED_LOCAL_CONFIG_FILE}" ]]; then
+    callUpdate=1
+  fi
+ 
+  if [[ callUpdate == 1 ]]; then
+    opkg update
   fi
 
   if [[ -f "${OPKG_FEED_LOCAL_CONFIG_FILE}" ]]; then
@@ -760,6 +763,7 @@ case "${1:-}" in
   get-feeds)
     opkg_get_feeds
     ;;
+  ensure-feeds)
+    opkg_common_ensure_feeds
+    ;;
 esac
-
-opkg_common_ensure_feeds
