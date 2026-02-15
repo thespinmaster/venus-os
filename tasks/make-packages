@@ -12,7 +12,7 @@ elif [[ "${1}" == "-c" ]]; then
   comment="${2}"
   shift 2
 else
-  build="${@}"
+  build="${*}"
 fi
  
 declare -a build_items=()
@@ -39,7 +39,8 @@ if [[ "$build" == "all" ]]; then
 elif [[ "$build" == "package" ]]; then
   build_feed_index "${2}"
 else
-  build_items=("${build}")
+  # shellcheck disable=SC2206
+  build_items=(${build})
   #build_items=("opkg-manager" "test-service")
   declare -i found=0 i 
   declare f
@@ -52,7 +53,7 @@ else
         break;
       fi
     done
-    (( found==0)) && { echo "invalid package:${build_items[$i]}" >&2; return 1; }
+    (( found==0)) && { echo "invalid package:${build_items[$i]}" >&2; exit 1; }
     found=0
   done
  

@@ -95,7 +95,7 @@ __restore_previous_fs_access() {
 __opkg_common_remove_feed_line() {
   local name="${1:-}"
 
-  if [[ ! -f "${OPKG_FEED_CONFIG_FILE}" ]]; then
+  if [[ ! -f "${OPKG_FEED_LOCAL_CONFIG_FILE}" ]]; then
     return 0
   fi
 
@@ -178,7 +178,7 @@ opkg_common_ensure_feeds() {
   
   local -i include_default_feed=0
 
-  if [[ ! -f "${OPKG_FEED_CONFIG_FILE}" ]]; then
+  if [[ ! -f "${OPKG_FEED_LOCAL_CONFIG_FILE}" ]]; then
     include_default_feed=1
   fi
  
@@ -761,3 +761,5 @@ case "${1:-}" in
     opkg_get_feeds
     ;;
 esac
+
+opkg_common_ensure_feeds

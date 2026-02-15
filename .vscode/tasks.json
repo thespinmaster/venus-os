@@ -99,5 +99,47 @@
         "close": false
       }
     },
+    {
+      "label": "build all opkg packages",
+      "type": "shell",
+      "command": "bash ${workspaceFolder}/tasks/make-packages",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "shared",
+        "showReuseMessage": false,
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "run all venus-os tests",
+      "type": "shell",
+      "command": "bash ${workspaceFolder}/tasks/run-tests",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "shared",
+        "showReuseMessage": false,
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "build opkg-manager mount-shares packages",
+      "type": "shell",
+      "command": "bash ${workspaceFolder}/tasks/make-packages opkg-manager mount-shares",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "shared",
+        "showReuseMessage": false,
+        "clear": true
+      },
+      "problemMatcher": []
+    }
   ]
 }

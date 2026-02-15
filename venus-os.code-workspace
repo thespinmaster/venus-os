@@ -14,6 +14,12 @@
 		},
 		{
 			"path": "../../opt/victronenergy/themes/ccgx/icons"
+		},
+		{
+			"path": "../../etc/opkg"
+		},
+		{
+			"path": ".."
 		}
 	],
 	"settings": {
