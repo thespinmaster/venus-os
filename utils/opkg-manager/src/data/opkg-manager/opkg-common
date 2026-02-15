@@ -112,7 +112,7 @@ __opkg_common_remove_feed_line() {
 }
 
 opkg_common_feed_crud() {
-  [[ "$@" == "opkg-manager" ]] && { echo "The opkg-manager cannot be removed/edited"; exit 1; }
+  [[ "${2}" == "opkg-manager" ]] && { echo "The opkg-manager cannot be removed/edited"; exit 1; }
   __opkg_common_feed_crud "$@"
 }
 
@@ -172,7 +172,7 @@ __opkg_common_feed_crud() {
   esac
 }
 
-opkg_common_ensure_feed() {
+opkg_common_ensure_feeds() {
 
   log "ensure opkg feed"
   
@@ -249,7 +249,7 @@ __init_opkg() {
 
   log "__init_opkg: initializing"
 
-  opkg_common_ensure_feed
+  opkg_common_ensure_feeds
   if [ ! $dry_run ]; then
     opkg update
   fi
@@ -517,18 +517,18 @@ opkg_common_list_packages() {
   local now=0
   local cache_ttl=5
 
-  echo "opkg_common_list_packages" > "/data/opkg.log"
+  # echo "opkg_common_list_packages" > "/data/opkg.log"
 
   # If 'update' argument is supplied, run opkg update first
   if [[ "${1:-}" == "update" ]]; then
-    echo "update" >> "/data/opkg.log"
+    #echo "update" >> "/data/opkg.log"
     opkg update
   fi
   
   feeds=()
 
   if [[ ! -f "${OPKG_FEED_LOCAL_CONFIG_FILE}" ]]; then
-    opkg_common_ensure_feed
+    opkg_common_ensure_feeds
     opkg update
     rm -f "${tmp_installed_file}"
   fi

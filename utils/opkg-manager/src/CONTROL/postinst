@@ -11,7 +11,10 @@ ${VE_ROOT_DIR:-}/data/${package_name}/rc.local.d/startup
 
 opkg_common_add_script_to_rc_local "${rc_local_script}"
 
+
 opkg_common_register_package "${package_name}"
+
+opkg_common_ensure_feeds
 
 echo "successfully installed ${package_name}"
 

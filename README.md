@@ -38,10 +38,10 @@ chmod +x /data/dev-setup
 
 ## Install opkg-manager only
 ```
-echo "src/gz thespinmaster https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feeds/opkg-manager" > "/etc/opkg/thespinmaster.conf"
+echo "src/gz opkg-manager https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feeds/opkg-manager" > "/etc/opkg/opkg-manager-tmp.conf"
 opkg update
 opkg install opkg-manager
-
+rm /etc/opkg/opkg-manager-tmp.conf
 ```
 
 In Visual Studio use remote debugging 
