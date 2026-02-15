@@ -178,7 +178,7 @@ opkg_common_ensure_feeds() {
   
   local -i include_default_feed=0
 
-  if [[ ! -f "${OPKG_FEED_CONFIG_FILE}" ]]; then
+  if [[ ! -f "${OPKG_FEED_LOCAL_CONFIG_FILE}" ]]; then
     include_default_feed=1
   fi
  
@@ -186,14 +186,21 @@ opkg_common_ensure_feeds() {
   if ((include_default_feed)); then
     __opkg_common_feed_crud "add" "${OPKG_DEFAULT_FEED_NAME}" "${OPKG_FEED_BASE_URL}/main" ""
   fi
-
+ 
   log "creating opkg feed symlink"
   ln -sf "$OPKG_FEED_LOCAL_CONFIG_FILE" "$OPKG_FEED_CONFIG_FILE"
+
+  # remove_feed_symlink removes the symlink only if the 
+  # target does not exist
+  # if the target does not exist opkg throws errors
+  opkg_common_remove_feed_symlink
 }
 
 opkg_common_remove_feed_symlink() {
-  if [ -L "$target" ]; then
-    rm "$OPKG_FEED_CONFIG_FILE"
+  if [[ ! -f "${OPKG_FEED_LOCAL_CONFIG_FILE}" ]]; then
+    if [ -L "$target" ]; then
+      rm "$OPKG_FEED_CONFIG_FILE"
+    fi
   fi
 }
 
