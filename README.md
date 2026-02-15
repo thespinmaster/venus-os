@@ -38,7 +38,7 @@ chmod +x /data/dev-setup
 
 ## Install opkg-manager only
 ```
-echo "src/gz thespinmaster https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feed" > "/etc/opkg/thespinmaster.conf"
+echo "src/gz thespinmaster https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feeds/opkg-manager" > "/etc/opkg/thespinmaster.conf"
 opkg update
 opkg install opkg-manager
 
@@ -49,6 +49,7 @@ root@192.xxx.xxx.xxx
 open remote folder in /data/dev/projects  
 may need to remove .env folder from project  
 debug code...  
+
 
 
 
