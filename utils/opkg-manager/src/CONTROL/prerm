@@ -13,4 +13,6 @@ opkg_common_remove_script_from_rc_local "${rc_local_script}"
 
 opkg_common_unregister_package "${package_name}"
 
+opkg_common_remove_feed_symlink
+
 echo "successfully removed ${package_name}"

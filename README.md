@@ -42,6 +42,7 @@ echo "src/gz opkg-manager https://github.com/thespinmaster/venus-os/raw/refs/hea
 opkg update
 opkg install opkg-manager
 rm /etc/opkg/opkg-manager-tmp.conf
+
 ```
 
 In Visual Studio use remote debugging 

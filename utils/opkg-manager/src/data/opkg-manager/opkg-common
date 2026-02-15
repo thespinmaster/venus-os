@@ -191,6 +191,12 @@ opkg_common_ensure_feeds() {
   ln -sf "$OPKG_FEED_LOCAL_CONFIG_FILE" "$OPKG_FEED_CONFIG_FILE"
 }
 
+opkg_common_remove_feed_symlink() {
+  if [ -L "$target" ]; then
+    rm "$OPKG_FEED_CONFIG_FILE"
+  fi
+}
+
 __ensure_rc_local() {
   log "__ensure_rc_local"
   if [[ ! -f "${rc_local_file}" ]]; then
@@ -765,5 +771,8 @@ case "${1:-}" in
     ;;
   ensure-feeds)
     opkg_common_ensure_feeds
+    ;;
+  remove-feed-symlink)
+    opkg_common_remove_feed_symlink
     ;;
 esac
