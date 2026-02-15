@@ -5,28 +5,6 @@ import OpkgManager 1.0
 MbPage {
 	id: root
 	title: qsTr("Feed")
-	pageToolbarHandler: ToolbarHandler {
-		leftIcon: "icon-toolbar-cancel"
-		rightIcon: "icon-toolbar-ok"
-
-		function leftAction() {
-			pageStack.pop()
-		}
-
-		function rightAction() {
-			if (opkgRunner.running) {
-				return
-			}
-			opkgPending = true
-			opkgErrorLine = ""
-			if (feedIndex == -1) {
-				opkgRunner.start(["add-feed", feedName, feedUrl])
-			} else {
-				opkgRunner.start(["edit-feed", feedName, feedUrl, feedNameOld])
-			}
-			
-		}
-	}
 
 	property int feedIndex: -1
 	property string feedName: ""
@@ -37,43 +15,45 @@ MbPage {
 	property string opkgErrorLine: ""
  
 	function setItemValue(item, value) {
+		console.log("setItemValue" + value)
 		if (item && value !== undefined && value !== null) {
 			item.value = String(value)
 		}
 	}
 
 	function refreshFeed() {
-		setItemValue(nameEdit.item, feedName)
-		setItemValue(urlEdit.item, feedUrl)
-	}
-
-	Component.onCompleted: {
-		Qt.callLater(refreshFeed)
-		feedNameOld = feedName
+		setItemValue(feedNameEdit.item, feedName)
+		setItemValue(feedUrlEdit.item, feedUrl)
 	}
  
 	function onFeedIndexChanged() {
 		refreshFeed()
-		feedNameOld = feedName
 	}
-
+ 
 	model: VisibleItemModel {
 		MbEditBox {
-			id: nameEdit
+			id: feedNameEdit
 			description: qsTr("Name")
 			maximumLength: 64
 			enableSpaceBar: false
+			item.value: feedName
 			onEditDone: {
+				if (!feedNameOld || feedNameOld=="")
+					feedNameOld=feedName
 				feedName = newValue
 			}
 		}
 
-		MbEditBox {
-			id: urlEdit
-			description: qsTr("URL")
+		OpkgEditBoxLargeText {
+			id: feedUrlEdit
+			description: qsTr("Url")
 			maximumLength: 256
-			matchString: "0123456789 abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ~!@#$%^&*()-_=+[]{}\\;:|/.,<>?"
+			matchString: "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ~!@#$%^&*()-_=+[]{}\\;:|/.,<>?"
 			enableSpaceBar: false
+ 
+			//textInput.width:200
+			item.value: feedUrl
+			
 			onEditDone: {
 				feedUrl = newValue
 			}
@@ -103,5 +83,28 @@ MbPage {
 		}
 	}
 
-	// Toolbar icons handle cancel/ok actions.
+	
+	pageToolbarHandler: ToolbarHandler {
+		leftIcon: "icon-toolbar-cancel"
+		rightIcon: "icon-toolbar-ok"
+
+		function leftAction() {
+			pageStack.pop()
+		}
+
+		function rightAction() {
+			if (opkgRunner.running) {
+				return
+			}
+			opkgPending = true
+			opkgErrorLine = ""
+			if (feedIndex == -1) {
+				opkgRunner.start(["add-feed", feedName, feedUrl])
+			} else {
+				opkgRunner.start(["edit-feed", feedName, feedUrl, feedNameOld])
+			}
+			
+		}
+	}
+
 }

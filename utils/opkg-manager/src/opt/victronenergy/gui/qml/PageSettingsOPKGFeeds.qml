@@ -6,19 +6,49 @@ import OpkgManager 1.0
 
 MbPage {
 	property string feedsOutput: ""
-	id: pageRoot
+	id: root
 	title: qsTr("Feeds")
-	property var feedModel: []
+	property var feedsModel: []
 	property int opkgRemoveIndex: -1
 	property string opkgErrorLine: ""
 	property int packageDetailsFontPixelSize: 14
+ 
+	model: feedsModel
+	
+	Component.onCompleted: {
+		opkgRunner.operationName = "get-feeds"
+		opkgRunner.start(["get-feeds"])
+	}
+
+	delegate: OpkgHeaderDescriptionItem {
+		editable: true
+		header: root.feedsModel[index].name
+		description: "Url: " + root.feedsModel[index].url
+		descriptionWrapMode: Text.WrapAtWordBoundaryOrAnywhere
+		subpage: {
+    	if (!model.builtin) {
+        var component=Qt.createComponent("PageSettingsOPKGFeedEdit.qml");
+				var feedModel = feedsModel[index]
+				console.log("feedName:" + feedModel.name)
+				var page = component.createObject(parent, {
+						feedIndex: index,
+						feedName: feedModel.name,
+						feedUrl: feedModel.url,
+						feedNameOld: ""
+				});
+				return page;
+    	}
+    	return undefined;
+		}
+	 
+	}
 	
 	pageToolbarHandler: ToolbarHandler {
 		leftText: qsTr("Add")
 		rightText: {
-		  var index = pageRoot.currentIndex
-			if (index >= 0 && index < pageRoot.feedModel.length) {
-				var builtIn = feedModel[index].builtin
+		  var index = root.currentIndex
+			if (index >= 0 && index < feedsModel.length) {
+				var builtIn = feedsModel[index].builtin
 				if (!builtIn) {
 					return qsTr("Remove")
 				}
@@ -35,32 +65,36 @@ MbPage {
 			if (opkgRunner.running) {
 				return
 			}
-			var index = pageRoot.currentIndex
+			var index = root.currentIndex
 			opkgRemoveIndex = index
 			opkgErrorLine = ""
 			opkgRunner.operationName = "remove-feed"
-			var name = feedModel[index].name
+			var name = feedsModel[index].name
 			toast.createToast(name)
 			opkgRunner.start(["remove-feed", name])
 		}
 	}
 
+//////////////////
+// methods
+
 	function addFeed(name, url) {
-		pageRoot.feedModel.push({ name: name, url: url })
-		pageRoot.feedModel = pageRoot.feedModel.slice(); // trigger QML update
+		feedsModel.push({ name: name, url: url })
+		feedsModel = feedsModel.slice(); // trigger QML update
 	}
 	function removeFeed(index) {
-		if (index >= 0 && index < pageRoot.feedModel.length) {
-			pageRoot.feedModel.splice(index, 1)
-			pageRoot.feedModel = pageRoot.feedModel.slice();
+		if (index >= 0 && index < feedsModel.length) {
+			feedsModel.splice(index, 1)
+			feedsModel = feedsModel.slice();
 		}
 	}
 
 	function updateFeed(index, name, url) {
-		if (index >= 0 && index < pageRoot.feedModel.length) {
-			pageRoot.feedModel[index].name = name
-			pageRoot.feedModel[index].url = url
-			pageRoot.feedModel = pageRoot.feedModel.slice();
+		if (index >= 0 && index < feedsModel.length) {
+			
+			feedsModel[index].name = name
+			feedsModel[index].url = url
+			feedsModel = feedsModel.slice();
 		}
 	}
 
@@ -75,75 +109,9 @@ MbPage {
 	function loadFeedsFromJson(jsonText) {
 		var feeds = JSON.parse(jsonText)
  
-		pageRoot.feedModel = feeds.map(function(feed) {
+		feedsModel = feeds.map(function(feed) {
 			return { name: feed.name, url: feed.url, builtin: feed.builtin }
 		})
-	}
-
-	Component.onCompleted: {
-		opkgRunner.operationName = "get-feeds"
-		opkgRunner.start(["get-feeds"])
-	}
- 
-	model: feedModel
-
-	delegate: MbItem {
-		editable: true
-		property int verticalMargin: 8
-		height: contentColumn.implicitHeight + verticalMargin
-		subpage: {
-    	if (!pageRoot.feedModel[index].builtin) {
-        var page=Qt.createComponent("PageSettingsOPKGFeedEdit.qml");
-				var selectedItem=pageRoot.feedModel[index]
-				page.name=selectedItem.name
-				page.feedName=selectedItem.name
-				page.feedUrl=selectedItem.url
-				page.feedNameOld=selectedItem.name
-				console.debug("zzzz")
-				return page
-    	}
-    	return undefined;
-		}
-		Column {
-			id: contentColumn
-			width: parent.width - 2 * verticalMargin
-			anchors.horizontalCenter: parent.horizontalCenter
-			spacing: 2
- 
-			Text {
-				text: modelData.name
-				font.bold: true
-				color: pageRoot.currentIndex == index ? mbStyle.textColorSelected : mbStyle.textColor
-				wrapMode: Text.WordWrap
-				width: contentColumn.width
-			}
-			Text {
-				text: modelData.url
-				color: pageRoot.currentIndex == index ? mbStyle.textColorSelected : mbStyle.textColor
-				wrapMode: Text.WrapAnywhere
-				font.pixelSize: packageDetailsFontPixelSize
-				width: contentColumn.width-subpageIcon.implicitWidth
-			}
- 
-		}
-		MbIcon {
-				id: subpageIcon
-        display: pageRoot.feedModel[index].name != "opkg-manager"
-        anchors {
-            right: parent.right; rightMargin: mbStyle.marginDefault
-            verticalCenter: parent.verticalCenter
-        }
-        iconId: "icon-toolbar-enter" + (pageRoot.currentIndex == index ? "-active" : "")
-    }
-	}
-
-	Component {
-		PageSettingsOPKGFeedEdit {
-			feedIndex: -1
-			feedName: ""
-			feedUrl: ""
-			updateFeed: pageRoot.saveFeed
-		}
 	}
 
 	ProcessRunner {

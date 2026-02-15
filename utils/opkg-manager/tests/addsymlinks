@@ -15,31 +15,35 @@ QML_ICONS_SOURCE_PATH="$this_path/../src${QML_ICONS_TARGET_PATH}"
 QML_PLUGIN_SOURCE_PATH="$QML_TARGET_PATH/OpkgHelpers"
 
 QML_FILES=(
+	
+	OpkgManager 
+
+	OpkgHeaderDescriptionItem.qml
+	OpkgEditBoxLargeText.qml
+	
 	PageSettingsOPKG.qml
-	PageSettingsOPKGPackageInstall.qml
-	PageSettingsOPKGSettings.qml
+		PageSettingsOPKGPackages.qml
+		PageSettingsOPKGPackages.js
+			PageSettingsOPKGPackageInstall.qml
+
 	PageSettingsOPKGFeeds.qml
-	PageSettingsOPKGFeedEdit.qml
-	OpkgHeaderDescritionItem.qml
+		PageSettingsOPKGFeedEdit.qml
+	
 )
-
-for file in "${QML_FILES[@]}"; do
-	ln -sf "$QML_SOURCE_PATH/$file" "$QML_TARGET_PATH/$file"
-done
-
 # Icons
 QML_ICONS_FILES=(
 	icon-opkg-manager-tick.svg
   icon-opkg-manager-tick-active.svg
 )
 
+for file in "${QML_FILES[@]}"; do
+	ln -sf "$QML_SOURCE_PATH/$file" "$QML_TARGET_PATH/$file"
+done
+ 
 for icon in "${QML_ICONS_FILES[@]}"; do
 	ln -sf "$QML_ICONS_SOURCE_PATH/$icon" "$QML_ICONS_TARGET_PATH/$icon"
 done
  
 ln -sf "$QML_TARGET_PATH/PageSettings.qml" "$QML_SOURCE_PATH/PageSettings.qml"
-
-# OpkgHelpers directory
-ln -sf "$QML_SOURCE_PATH/OpkgManager" "$QML_TARGET_PATH/OpkgManager"
 
 echo "done"

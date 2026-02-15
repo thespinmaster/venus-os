@@ -16,7 +16,7 @@ else
 fi
  
 declare -a build_items=()
-declare -a folders=("../services" "../utils")
+declare -a folders=("services" "utils")
 declare pwd_old=$PWD
 declare -A update_feeds=()
  
