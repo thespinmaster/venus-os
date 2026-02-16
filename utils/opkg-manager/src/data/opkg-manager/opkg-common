@@ -11,6 +11,7 @@ readonly resize2fs_file="$/opt/victronenergy/swupdate-scripts/resize2fs.sh"
 
 declare OPKG_MANAGER_FEED_NAME="opkg-manager"
 declare OPKG_DEFAULT_FEED_NAME="thespinmaster"
+declare OPKG_DEFAULT_FEED_PATH="main"
 
 declare OPKG_FEED_PATH="${VENUS_ROOT_DIR:-}/etc/opkg"
 declare OPKG_FEED_LOCAL_CONFIG_FILE="${opkg_helpers_path}/opkg-manager.conf"
@@ -184,7 +185,7 @@ opkg_common_ensure_feeds() {
  
   __opkg_common_feed_crud "add" "${OPKG_MANAGER_FEED_NAME}" "${OPKG_FEED_BASE_URL}/${OPKG_MANAGER_FEED_NAME}" ""
   if ((include_default_feed)); then
-    __opkg_common_feed_crud "add" "${OPKG_DEFAULT_FEED_NAME}" "${OPKG_FEED_BASE_URL}/main" ""
+    __opkg_common_feed_crud "add" "${OPKG_DEFAULT_FEED_NAME}" "${OPKG_FEED_BASE_URL}/${OPKG_DEFAULT_FEED_PATH}" ""
   fi
  
   log "creating opkg feed symlink"
