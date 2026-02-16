@@ -46,4 +46,6 @@ done
  
 ln -sf "$QML_TARGET_PATH/PageSettings.qml" "$QML_SOURCE_PATH/PageSettings.qml"
 
+ln -sf "$this_path/../src/data/opkg-manager/opkg-common" "/data/opkg-manager/opkg-common"
+ 
 echo "done"

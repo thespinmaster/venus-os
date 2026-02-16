@@ -140,6 +140,16 @@
         "clear": true
       },
       "problemMatcher": []
+    },
+    {
+      "label": "Restart Venus-GUI Service",
+      "type": "shell",
+      "command": "svc -t /service/gui",
+        "presentation": {
+          "reveal": "never",
+          "panel": "shared"
+        },
+      "problemMatcher": []
     }
   ]
 }

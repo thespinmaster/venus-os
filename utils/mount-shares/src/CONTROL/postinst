@@ -28,7 +28,7 @@ source "${VE_ROOT_DIR:-}/data/opkg-manager/opkg-common"
 opkg_common_register_package "${package_name}"
 
 # call mount all incase existing mountpoints.conf file exists
-/data/${package_name}/mount-common "mount-all" &
+/data/${package_name}/mount-common "mount-all"
 
 echo "successfully installed ${package_name}"
 

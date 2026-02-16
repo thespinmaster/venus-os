@@ -62,6 +62,7 @@ MbPage {
 		helperPath: "/data/dev/utils/opkg-manager/src/data/opkg-manager/opkg-common"
  
 		property string lastOutputLine: ""
+		property string packagesErrorLine: ""
 		property var logCallback
 
 		onOutputLine: function(line) {
@@ -112,8 +113,8 @@ MbPage {
 				}
 				processRunner.operationName = "";
 			} catch (err) {
-				console.debug(err);
-				toast.createToast(qsTr(err));
+				console.log("ERROR:" + err.message);
+				toast.createToast(qsTr(err.message));
 			}
 		}
 

@@ -602,7 +602,7 @@ opkg_common_list_packages() {
   local cache_mtime=0
   local now=0
   local cache_ttl=5
-  local updateCalled=0
+  local -i callUpdate=0
 
   # echo "opkg_common_list_packages" > "/data/opkg.log"
    
@@ -618,7 +618,7 @@ opkg_common_list_packages() {
     callUpdate=1
   fi
  
-  if [[ $callUpdate == 1 ]]; then
+  if (($callUpdate)); then
     opkg update
   fi
 

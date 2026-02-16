@@ -11,18 +11,18 @@ else
   . "$__this_path/../../../../opkg-manager/src/data/opkg-manager/libs/log-lib"
 fi
 
-readonly mount_helpers_path="${VENUS_ROOT_DIR:-}/data/mount-shares"
-readonly mountpoint_conf_file="${mount_helpers_path}/mountpoints.conf"
+readonly mount_common_path="${VENUS_ROOT_DIR:-}/data/mount-shares"
+readonly mountpoint_conf_file="${mount_common_path}/mountpoints.conf"
 declare -i mount_point_ping_tries=10
 
 # exposed so can override for mocking
 # overriding read callin bashdb fails
-__mount_helpers___read() {
+__mount_common___read() {
   # shellcheck disable=SC2162
   read "$@"
 }
 
-__mount_helpers_is_server_up() {
+__mount_common_is_server_up() {
   local -i count=0
   local server="${1}"
 
@@ -156,7 +156,7 @@ __update_mount_settings() {
 # {1} mount point: [reqiured] the mount point directory to check
 # {2} tries: [optional] the number of tries before returning 
 #     with a failure. The default is 10 tries (5 seconds aprox)
-mount_helpers_wait_on_mount_point() {
+mount_common_wait_on_mount_point() {
   
   local mount_point="${1}"
   local -i count=0 tries="${2:-10}"
@@ -179,7 +179,7 @@ mount_helpers_wait_on_mount_point() {
 # reads the mountpoint_conf_file and remounts
 # the share
 # no args
-mount_helpers_mount_all() {
+mount_common_mount_all() {
 
   log "mount_all"
 
@@ -198,7 +198,7 @@ mount_helpers_mount_all() {
 
     IFS='|' read -r name type username password source target options <<< "$line"
     # call in backbround thread
-    (mount_helpers_mount_server "$type" "$username" "$password" "$source" "$target" "$options" &) &&
+    (mount_common_mount_server "$type" "$username" "$password" "$source" "$target" "$options" &) &&
       mount_found=1  
  
   done <"${mountpoint_conf_file}"
@@ -225,7 +225,7 @@ mount_helpers_mount_all() {
 #  {5} password | [optional] The password used to access the source.
 #  {6} options  | [optional] Any additional options. i.e. ",someoption -rw"
 #############################################################################
-mount_helpers_mount_server() {
+mount_common_mount_server() {
 
   log "mount_server"
 
@@ -252,7 +252,7 @@ mount_helpers_mount_server() {
 
   log "not mounted...mounting"
   
-  __mount_helpers_is_server_up "${host}" || {
+  __mount_common_is_server_up "${host}" || {
     
     log_error "ERROR: server is down: ${host}"
     return 1
@@ -309,7 +309,7 @@ mount_helpers_mount_server() {
 #    --password | -p : The password used to access the source.
 #    --options  | -o : any additional options. i.e. ",someoption -rw"
 #############################################################################
-mount_helpers_mount_cifs() {
+mount_common_mount_cifs() {
 
   printhelp() {
     cat <<EOF
@@ -374,14 +374,14 @@ EOF
     shift
   done
   
-  [[ -z "${name}" ]] && __mount_helpers___read -r -p "Enter the name for the mount point: " name
+  [[ -z "${name}" ]] && __mount_common___read -r -p "Enter the name for the mount point: " name
   [[ "${name}" =~ ^[A-Za-z0-9_]+$ && "${name}" =~ [A-Za-z0-9] ]] || {
     log_error "ERROR: Invalid name: Only alpha numeric characters with underscores allowed"; return 1; }
 
-  [[ -z "${source}" ]] && __mount_helpers___read -r -p "Enter server ip/host address and path: " source
-  [[ -z "${target}" ]] && __mount_helpers___read -r -p "Enter local mount point folder: " target
-  [[ -z "${username}" ]] && __mount_helpers___read -r -p "Enter username for share: " username
-  [[ -z "${password}" ]] && __mount_helpers___read -r -s -p "Enter password for share: " password
+  [[ -z "${source}" ]] && __mount_common___read -r -p "Enter server ip/host address and path: " source
+  [[ -z "${target}" ]] && __mount_common___read -r -p "Enter local mount point folder: " target
+  [[ -z "${username}" ]] && __mount_common___read -r -p "Enter username for share: " username
+  [[ -z "${password}" ]] && __mount_common___read -r -s -p "Enter password for share: " password
  
   if [[ -z "${source}" ]] || [[ -z "${target}" ]]; then
     log_error "ERROR: required args missing"
@@ -394,7 +394,7 @@ EOF
   __validate_mount_settings "${type}" "${username:-}" "${password:-}" \
     "${source}" "${target}" "${options:-}" || return 1
 
-  mount_helpers_mount_server "${type}" "${username:-}" "${password:-}" \
+  mount_common_mount_server "${type}" "${username:-}" "${password:-}" \
     "${source}" "${target}" "${options:-}" && {
 
       mount_settings="${name}|${type}|${username}|${password}|${source}|${target}|${options}"
@@ -408,7 +408,7 @@ EOF
  
 }
 
-mount_helpers_remove_mount()
+mount_common_remove_mount()
 {
   [[ -f "${mountpoint_conf_file}" ]] || return 0
   
@@ -420,11 +420,15 @@ mount_helpers_remove_mount()
 
 if [[ "${1:-}" == "mount_server" ]]; then
   shift
-  mount_helpers_mount_server "$@"
+  mount_common_mount_server "$@"
 elif [[ "${1:-}" == "mount_cifs" ]]; then
   shift
-  mount_helpers_mount_cifs "$@"
+  mount_common_mount_cifs "$@"
 elif [[ "${1:-}" == "waitformount" ]]; then
   shift
-  mount_helpers_wait_on_mount_point "$@"
+  mount_common_wait_on_mount_point "$@"
+elif [[ "${1:-}" == "mount-all" ]]; then
+  mount_common_mount_all
+elif [[ -n "${1:-}" ]]; then
+ echo "invalid command: ${1:-}"
 fi

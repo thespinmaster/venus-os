@@ -53,7 +53,7 @@ opkg install mount-shares
 
   #source, username and password will be prompted for
   # store mnt under /data and not /mnt as mnt may be readonly 
-  mount_helpers_mount_cifs --target="/data/mnt/dev"
+  mount_common_mount_cifs --target="/data/mnt/dev"
 )
 
 if [[ ! -L "/data/dev" ]]; then
@@ -73,7 +73,7 @@ echo "setting up environment (bash aliases, nanorc config)"
 
 # setup enviroment (do not edit)
 . /data/mount-shares/mount-helpers
-mount_helpers_wait_on_mount_point \"/data/mnt/dev/\" &&
+mount_common_wait_on_mount_point \"/data/mnt/dev/\" &&
   cp /data/dev/projects/venus-os/tasks/setup-environment /data
   exec /data/setup-environment
 " > "$rc_local_d_path/setup-environment"
