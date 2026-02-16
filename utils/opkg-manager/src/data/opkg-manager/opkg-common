@@ -197,17 +197,14 @@ opkg_common_ensure_feeds() {
   opkg_common_remove_feed_symlink
 }
 opkg_common_update() {
-  sleep 1
-
-  opkg update
-  r=$?
-  if [[ ! r == 0 ]] then
-    sleep 1
-    opkg clean
+  (
+    while [ -e /run/opkg.lock ]; do
+      sleep 0.5
+    done
     opkg update
-  fi
-  
+  ) &
 }
+
 opkg_common_remove_feed_symlink() {
   if [[ ! -f "${OPKG_FEED_LOCAL_CONFIG_FILE}" ]]; then
     if [ -L "$target" ]; then
