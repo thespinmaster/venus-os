@@ -196,7 +196,18 @@ opkg_common_ensure_feeds() {
   # if the target does not exist opkg throws errors
   opkg_common_remove_feed_symlink
 }
+opkg_common_update() {
+  sleep 1
 
+  opkg update
+  r=$?
+  if [[ ! r == 0 ]] then
+    sleep 1
+    opkg clean
+    opkg update
+  fi
+  
+}
 opkg_common_remove_feed_symlink() {
   if [[ ! -f "${OPKG_FEED_LOCAL_CONFIG_FILE}" ]]; then
     if [ -L "$target" ]; then
