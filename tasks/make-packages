@@ -14,9 +14,9 @@ elif [[ "${1}" == "-c" ]]; then
 else
   build="${*}"
 fi
- 
+
 declare -a build_items=()
-declare -a folders=("services" "utils")
+declare -a folders=("../services" "../utils")
 declare pwd_old=$PWD
 declare -A update_feeds=()
  
@@ -44,11 +44,11 @@ else
   #build_items=("opkg-manager" "test-service")
   declare -i found=0 i 
   declare f
- 
+  
   for i in "${!build_items[@]}"; do
     for f in "${folders[@]}"; do
-      if [[ -d "${f}/${build_items[$i]}" ]]; then
-        build_items[i]="$f/${build_items[$i]}"
+      if [[ -d "$this_path/${f}/${build_items[$i]}" ]]; then
+        build_items[i]="$this_path/$f/${build_items[$i]}"
         found=1
         break;
       fi

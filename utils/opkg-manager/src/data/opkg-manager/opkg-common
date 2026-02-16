@@ -542,11 +542,11 @@ opkg_common_list_packages() {
     opkg_common_ensure_feeds
     callUpdate=1
     rm -f "${tmp_installed_file}"
-  else if [[ ! -f "${OPKG_FEED_LOCAL_CONFIG_FILE}" ]]; then
+  elif [[ ! -f "${OPKG_FEED_LOCAL_CONFIG_FILE}" ]]; then
     callUpdate=1
   fi
  
-  if [[ callUpdate == 1 ]]; then
+  if [[ $callUpdate == 1 ]]; then
     opkg update
   fi
 
