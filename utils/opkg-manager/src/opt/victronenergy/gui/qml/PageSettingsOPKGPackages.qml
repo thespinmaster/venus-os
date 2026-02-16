@@ -22,12 +22,7 @@ MbPage {
 	}
    
 	Component.onCompleted: {
-		//packageModel.append({ subpage: "setup", description: "Options"})
-		//packageModel.append({index:1, header: "Item 2", description: "Some text\nSome more text" , version: "1.0.1", installedVersion: "1.0.0"})
-		//packageModel.append({index:2, header: "Item 3", description: "Some text\nSome more text" , version: "2.0.1", installedVersion: "2.0.0"})
- 
 		Vm.loadPackages(processRunner, packageModel, "list-packages", "")
- 
 	}
 
 	Component { id: opkgPackageInstallComponentFactory; PageSettingsOPKGPackageInstall {} }
@@ -38,8 +33,9 @@ MbPage {
 			description: Vm.getDescription(model, showCompact, false)
 			showCompact: root.showCompact
 			subpage: { 
-				return opkgPackageInstallComponentFactory
-									.createObject(parent, { model: model, processRunner: processRunner });
+				if (opkgPackageInstallComponentFactory)
+					return opkgPackageInstallComponentFactory.createObject(parent, { model: model, processRunner: processRunner });
+				return null;
 			}
 		}
 	}
@@ -50,7 +46,7 @@ MbPage {
 			Vm.loadPackages(processRunner, packageModel, "list-packages-update", "update")
 		}
 
-		centerText: qsTr("Refresh Feeds")  
+		centerText: qsTr("Refresh")  
 
 	}
  
@@ -59,7 +55,7 @@ MbPage {
 
 	ProcessRunner {
 		id: processRunner
-		helperPath: "/data/dev/utils/opkg-manager/src/data/opkg-manager/opkg-common"
+		helperPath: "/data/dev/utils/opkg-manager/src/data/opkg-manager/opkg-qml"
  
 		property string lastOutputLine: ""
 		property string packagesErrorLine: ""
@@ -74,6 +70,7 @@ MbPage {
 		}
 
 		onErrorLine: function(line) {
+			console.error("PageSettingsOPKGPackages:" + line)
 			if (logCallback) {
 				logCallback(line)
 				return
@@ -83,7 +80,7 @@ MbPage {
 		// Now expects the helper to output the file path of the JSON file
 		onFinished: function(exitCode, exitStatus) {
 			try {
-				console.debug("exitCode=" + String(exitCode) + ", exitStatus=" + String(exitStatus))
+				
 				if (exitCode === 0 && exitStatus === 0) {
 					switch (processRunner.operationName) {
 						case "list-packages":
@@ -101,7 +98,7 @@ MbPage {
 						case "remove":
 							// handle remove if needed
 							if (logCallback)
-								logCallback.addLogLine("--- Finished " + processRunner.operationName + ". Exit code: " + exitCode + ", status: " + exitStatus + " ---"); 
+								logCallback("--- Finished " + processRunner.operationName + ". Exit code: " + exitCode + ", status: " + exitStatus + " ---"); 
 							logCallback = undefined
 							break;
 						default:

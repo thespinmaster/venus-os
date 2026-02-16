@@ -18,16 +18,22 @@ function versionGreaterThan(v1, v2) {
 
 function getDescription(model, showCompact, longDesc) {
   if (!model || showCompact )
-    return
+    return ""
+  
+  //console.log("getDescription:" + model + "," + model.description_short + "," + model.description_long)
 
-  var desc = ((longDesc && model.description_long.length > 0)) ? model.description_long : model.description_short 
   if (model.subpage)
-    return desc // for options
+    return model.description_short || "" // for options
+ 
+  var desc = ((longDesc && model.description_long?.length > 0)) 
+                ? model.description_long 
+                : model.description_short || ""
 
-  var installed = model.installedVersion.length > 0
+  var installed = model.installedVersion?.length > 0
+  var available = versionGreaterThan(model.version, model.installedVersion)
   return desc + "\n" +
-      "Installed: " + (installed ? model.installedVersion : " - ")  + 
-      "  Available: " + model.version + 
+      (installed ? "Installed: " + model.installedVersion + "  ": "")  + 
+      (available ? "Available: " + model.version + "  ": "")  + 
       "  Feed: " + model.feed
 }
  
@@ -36,12 +42,12 @@ function doInstllerAction(packageRunner, action, packageName, noAction) {
   if (noAction)
     args.push("--noaction")
   
-  console.console("doInstllerAction:" + args)
+  console.log("doInstllerAction:" + args)
 
   packageRunner.logCallback("--- Starting " + action + " for: " + packageName + " ---")
  
-  //packageRunner.operationName = action;
-  //packageRunner.start(args);
+  packageRunner.operationName = action;
+  packageRunner.start(args);
 }
  
 function loadPackages(packageRunner, packageModel, operationName, args) {
@@ -54,8 +60,7 @@ function loadPackages(packageRunner, packageModel, operationName, args) {
 }
  
 function loadPackagesFromFile(file, fileHelper, packageModel) {
-  console.log("loadPackagesFromFile")
-  
+ 
   var filePath = file.trim();
   if (filePath.length == 0) {
     throw new Error("No package list file path returned");

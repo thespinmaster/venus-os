@@ -26,11 +26,11 @@ MbItem {
         }
  
         MbTextDescription {
-            id: header
-            text: root.header ? root.header : ""
+            id: header 
+            text: root.header || ""
             isCurrentItem: root.ListView.isCurrentItem
-            visible: root.header
-            font.bold: !(model && model.header)
+            visible: root.header || !root.showCompact
+            font.bold: !root.showCompact
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.leftMargin: mbStyle.marginDefault

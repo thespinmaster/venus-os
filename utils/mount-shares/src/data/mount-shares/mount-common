@@ -432,3 +432,20 @@ elif [[ "${1:-}" == "mount-all" ]]; then
 elif [[ -n "${1:-}" ]]; then
  echo "invalid command: ${1:-}"
 fi
+
+case "${1:-}" in
+  mount_server)
+    shift
+    mount_common_mount_server "$@"
+    ;;
+  mount-cifs)
+    shift
+    mount_common_mount_cifs "$@"
+    ;;
+  mount-all)
+    mount_common_mount_all
+    ;;
+  *)
+    [[ -n "${1:-}" ]] && echo "invalid command: ${1:-}"
+    ;;
+esac

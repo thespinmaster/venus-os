@@ -21,7 +21,7 @@ MbPage {
 
 		OpkgHeaderDescriptionItem {
 			id: packageDetails
-			header: root.model ? root.model.name : ""
+			header: (root.model?.name) || ""
 			description: Vm.getDescription(model, false, true)
 			showCompact: false
 			hasSubpage: false
@@ -31,6 +31,7 @@ MbPage {
 		// Non-selectable, scrollable log area (direct child of MbPage)
 		Item {
 			id: logArea
+			
 			anchors.top: packageDetails.bottom
 			anchors.left: parent.left
 			anchors.right: parent.right
@@ -38,16 +39,20 @@ MbPage {
 			anchors.bottomMargin: 0 // adjust this value to match your toolbar height
 			property var logLines: []
 			function addLogLine(line) {
+
 				logLines.push(line)
 				logText.text = logLines.join("\n")
-				logFlickable.contentY = logFlickable.contentHeight - logFlickable.height
+
+				if (logFlickable.contentHeight > logArea.height)
+					logFlickable.contentY = logFlickable.contentHeight - logFlickable.height
 			}
 	
 			Rectangle {
 				anchors.fill: parent
+				anchors.rightMargin: 2
 				color: "#f8f8f8"
-				border.color: "#cccccc"
-				radius: 4
+				border.color: "#767676"
+				radius: 8
 				Flickable {
 					id: logFlickable
 					anchors.fill: parent
@@ -86,11 +91,12 @@ MbPage {
 		leftText: {
 			var item = root.model
 			if (item) {
-				var hasInstalled = item.installedVersion && item.installedVersion.length > 0
-				var hasAvailable = item.version && item.version.length > 0
-				if (hasInstalled && hasAvailable) {
+				var hasInstalled = item.installedVersion?.length > 0
+				var hasUpgrade = Vm.versionGreaterThan(item.version, item.version)
+				//console.log(hasInstalled + ", " + hasUpgrade)
+				if (hasUpgrade) {
 					return qsTr("Upgrade")
-				} else if (!hasInstalled && hasAvailable) {
+				} else if (!hasInstalled) {
 					return qsTr("Install")
 				}
 			}
@@ -100,11 +106,11 @@ MbPage {
 			var item = root.model
 			var action=""
 			if (item) {
-				var hasInstalled = item.installedVersion && item.installedVersion.length > 0
-				var hasAvailable = item.version && item.version.length > 0
-				if (hasInstalled && hasAvailable) {
+				var hasInstalled = item.installedVersion?.length > 0
+				var hasUpgrade = Vm.versionGreaterThan(item.version, item.version)
+				if (hasUpgrade) {
 					action = "upgrade"
-				} else if (!hasInstalled && hasAvailable) {
+				} else if (!hasInstalled) {
 					action = "install"
 				}
 			}

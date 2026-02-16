@@ -5,7 +5,7 @@
 
 ProcessRunner::ProcessRunner(QObject *parent)
 	: QObject(parent)
-	, m_helperPath("/data/opkg-manager/opkg-common")
+	, m_helperPath("/data/opkg-manager/opkg-qml")
 	, m_operationName("")
 {
 	m_process.setProcessChannelMode(QProcess::SeparateChannels);

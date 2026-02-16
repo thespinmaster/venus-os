@@ -27,9 +27,11 @@ MbPage {
 		descriptionWrapMode: Text.WrapAtWordBoundaryOrAnywhere
 		subpage: {
     	if (!model.builtin) {
-        var component=Qt.createComponent("PageSettingsOPKGFeedEdit.qml");
+        
+				if (!feedsModel)
+					return null
+				var component=Qt.createComponent("PageSettingsOPKGFeedEdit.qml");
 				var feedModel = feedsModel[index]
-				console.log("feedName:" + feedModel.name)
 				var page = component.createObject(parent, {
 						feedIndex: index,
 						feedName: feedModel.name,
@@ -70,14 +72,13 @@ MbPage {
 			opkgErrorLine = ""
 			opkgRunner.operationName = "remove-feed"
 			var name = feedsModel[index].name
-			toast.createToast(name)
 			opkgRunner.start(["remove-feed", name])
 		}
 	}
 
 //////////////////
 // methods
-
+	
 	function addFeed(name, url) {
 		feedsModel.push({ name: name, url: url })
 		feedsModel = feedsModel.slice(); // trigger QML update
@@ -116,7 +117,7 @@ MbPage {
 
 	ProcessRunner {
 		id: opkgRunner
-		helperPath: "/data/dev/utils/opkg-manager/src/data/opkg-manager/opkg-common"
+		helperPath: "/data/dev/utils/opkg-manager/src/data/opkg-manager/opkg-qml"
 		
 		onOutputLine: function(line) {
 			if (opkgRunner.operationName === "get-feeds") {
@@ -128,14 +129,27 @@ MbPage {
 		}
 		onFinished: function(exitCode, exitStatus) {
 			if (exitCode === 0) {
-				console.debug(feedsOutput)
-				if (opkgRunner.operationName === "get-feeds") {
-					loadFeedsFromJson(feedsOutput)
-					feedsOutput = ""
-				} else if (opkgRunner.operationName === "remove-feed") {
-					removeFeed(opkgRemoveIndex)
-					opkgRemoveIndex = -1
-				}
+				//console.debug(feedsOutput)
+					switch (processRunner.operationName) {
+						case "get-feeds":
+							loadFeedsFromJson(feedsOutput)
+							feedsOutput = ""
+							break;
+						case "remove-feed":
+							removeFeed(opkgRemoveIndex)
+							opkgRemoveIndex = -1
+							toast.createToast("remove succeeded")
+							break;
+						case "add-feed":
+							toast.createToast("add succeeded")
+							break;
+						case "edit-feed":
+							toast.createToast("edit succeeded")
+							break;
+						break;
+					}
+ 
+				opkgRemoveIndex = -1
 			} else {
 				let msg = opkgErrorLine.length ? opkgErrorLine : qsTr("Operation failed")
 				toast.createToast(msg)
