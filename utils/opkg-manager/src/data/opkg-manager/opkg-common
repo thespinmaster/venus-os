@@ -111,27 +111,28 @@ __restore_previous_fs_access() {
     log "previous state was readwrite; nothing to restore"
   fi
   ___is_fs_readonly=
+  
+  __opkg_common_remove_feed_line() {
+    local name="${1:-}"
 
+    if [[ ! -f "${OPKG_FEED_CONFIG_FILE}" ]]; then
+      return 0
+    fi
+
+    if [ ! $dry_run ]; then
+      local tmp_file
+      tmp_file=$(mktemp)
+      awk -v name="${name}" 'BEGIN { pattern = "^src/gz[[:space:]]+" name "[[:space:]]" }
+        $0 ~ pattern { next }
+        { print }' "${OPKG_FEED_LOCAL_CONFIG_FILE}" > "${tmp_file}"
+      mv "${tmp_file}" "${OPKG_FEED_LOCAL_CONFIG_FILE}"
+    else
+      log "remove feed line: ${name}"
+    fi
+  }
 }
 
-__opkg_common_remove_feed_line() {
-  local name="${1:-}"
 
-  if [[ ! -f "${OPKG_FEED_CONFIG_FILE}" ]]; then
-    return 0
-  fi
-
-  if [ ! $dry_run ]; then
-    local tmp_file
-    tmp_file=$(mktemp)
-    awk -v name="${name}" 'BEGIN { pattern = "^src/gz[[:space:]]+" name "[[:space:]]" }
-      $0 ~ pattern { next }
-      { print }' "${OPKG_FEED_LOCAL_CONFIG_FILE}" > "${tmp_file}"
-    mv "${tmp_file}" "${OPKG_FEED_LOCAL_CONFIG_FILE}"
-  else
-    log "remove feed line: ${name}"
-  fi
-}
 
 opkg_common_feed_crud() {
   [[ "${2}" == "opkg-manager" ]] && { echo "The opkg-manager cannot be removed/edited"; exit 1; }
@@ -163,29 +164,71 @@ __opkg_common_feed_crud() {
     exit 1
   fi
 
+  local feed_line="src/gz ${feed_name} ${feed_url}"
   case "$mode" in
     add)
       [[ -z "${feed_url}" ]] && { log_error "add: feed_url required"; exit 1; }
-      __opkg_common_remove_feed_line "${feed_name}"
       if [ ! $dry_run ]; then
-        printf 'src/gz %s %s\n' "${feed_name}" "${feed_url}" >> "${OPKG_FEED_LOCAL_CONFIG_FILE}"
+        if ! grep -Fxq "$feed_line" "${OPKG_FEED_LOCAL_CONFIG_FILE}"; then
+          tmp_file=$(mktemp)
+          local added=0
+          while IFS= read -r line; do
+            if [[ "$line" == src\ gz\ ${feed_name}\ * ]]; then
+              echo "$feed_line"
+              added=1
+              continue
+            fi
+            echo "$line"
+          done < "${OPKG_FEED_LOCAL_CONFIG_FILE}" > "$tmp_file"
+          if [[ "$added" == "0" ]]; then
+            echo "$feed_line" >> "$tmp_file"
+          fi
+          mv "$tmp_file" "${OPKG_FEED_LOCAL_CONFIG_FILE}"
+        else
+          log "Feed line already exists: $feed_line"
+        fi
       else
-        log "feed content:\"src/gz ${feed_name} ${feed_url} >> ${OPKG_FEED_LOCAL_CONFIG_FILE}\""
+        log "feed content: \"$feed_line >> ${OPKG_FEED_LOCAL_CONFIG_FILE}\""
       fi
       ;;
     edit)
       [[ -z "${feed_url}" ]] && { log_error "edit: feed_url required"; exit 1; }
       [[ -z "${old_feed_name}" ]] && { log_error "edit: old_feed_name required"; exit 1; }
-      __opkg_common_remove_feed_line "${old_feed_name}"
-      __opkg_common_remove_feed_line "${feed_name}"
       if [ ! $dry_run ]; then
-        printf 'src/gz %s %s\n' "${feed_name}" "${feed_url}" >> "${OPKG_FEED_LOCAL_CONFIG_FILE}"
+        tmp_file=$(mktemp)
+        local added=0
+        while IFS= read -r line; do
+          if [[ "$line" == src\ gz\ ${old_feed_name}\ * ]]; then
+            echo "$feed_line"
+            added=1
+            continue
+          fi
+          echo "$line"
+        done < "${OPKG_FEED_LOCAL_CONFIG_FILE}" > "$tmp_file"
+        if [[ "$added" == "0" ]]; then
+          echo "$feed_line" >> "$tmp_file"
+        fi
+        mv "$tmp_file" "${OPKG_FEED_LOCAL_CONFIG_FILE}"
       else
-        log "feed content:\"src/gz ${feed_name} ${feed_url} >> ${OPKG_FEED_LOCAL_CONFIG_FILE}\""
+        log "edit feed line: $feed_line"
       fi
       ;;
     remove)
-      __opkg_common_remove_feed_line "${feed_name}"
+      if [ ! $dry_run ]; then
+        # Only remove if the exact line exists
+        if grep -Fxq "$feed_line" "${OPKG_FEED_LOCAL_CONFIG_FILE}"; then
+          tmp_file=$(mktemp)
+          while IFS= read -r line; do
+            [[ "$line" == "$feed_line" ]] && continue
+            echo "$line"
+          done < "${OPKG_FEED_LOCAL_CONFIG_FILE}" > "$tmp_file"
+          mv "$tmp_file" "${OPKG_FEED_LOCAL_CONFIG_FILE}"
+        else
+          log "Feed line not found for removal: $feed_line"
+        fi
+      else
+        log "remove feed line: $feed_line"
+      fi
       ;;
     *)
       log_error "Unknown mode: $mode"
@@ -229,7 +272,7 @@ opkg_common_update_packages() {
 
 opkg_common_remove_feed_symlink() {
   if [[ ! -f "${OPKG_FEED_LOCAL_CONFIG_FILE}" ]]; then
-    if [ -L "${OPKG_FEED_CONFIG_FILE" ]; then
+    if [ -L "${OPKG_FEED_CONFIG_FILE}" ]; then
       rm "${OPKG_FEED_CONFIG_FILE}"
     fi
   fi

@@ -3,8 +3,8 @@ Version: 1.0.1
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: 9b62539c409880ba2f8cfbd3d2be9375
-Size: 22458
+MD5Sum: c1c08761c26df3114262c15e4cc490b8
+Size: 22620
 Filename: opkg-manager_1.0.1_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feeds/opkg-manager/opkg-manager
 Description: Adds helper scripts for installing opkg packages on the Venus OS
