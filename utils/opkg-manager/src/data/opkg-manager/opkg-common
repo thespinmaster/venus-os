@@ -17,7 +17,10 @@ declare OPKG_FEED_PATH="${VENUS_ROOT_DIR:-}/etc/opkg"
 declare OPKG_FEED_LOCAL_CONFIG_FILE="${opkg_helpers_path}/opkg-manager.conf"
 declare OPKG_FEED_CONFIG_FILE="${OPKG_FEED_PATH}/opkg-manager.conf"
 declare OPKG_FEED_BASE_URL="https://github.com/${OPKG_DEFAULT_FEED_NAME}/venus-os/raw/refs/heads/main/feeds"
- 
+
+declare OPKG_PACKAGES_JSON_CACHE_FILE="/tmp/opkg-common-list-packages.json"
+declare OPKG_FEEDS_JSON_CACHE_FILE="/tmp/opkg-common-feeds.json"
+
 #readonly LOG=${opkg_helpers_path}/log
 
 ___is_fs_readonly=
@@ -29,8 +32,24 @@ declare __this_path; __this_path="$(dirname "${BASH_SOURCE[0]}")"
  
 opkg_get_feeds() {
   local feeds_file="${OPKG_FEED_CONFIG_FILE}"
+  local cache_file="${OPKG_FEEDS_JSON_CACHE_FILE}"
+  local feeds_mtime=0
+  local cache_mtime=0
+
+  if [[ -f "$feeds_file" ]]; then
+    feeds_mtime=$(stat -c %Y "$feeds_file" 2>/dev/null || echo 0)
+  fi
+  if [[ -f "$cache_file" ]]; then
+    cache_mtime=$(stat -c %Y "$cache_file" 2>/dev/null || echo 0)
+  fi
+
+  if [[ -f "$cache_file" && $cache_mtime -ge $feeds_mtime ]]; then
+    cat "$cache_file"
+    return 0
+  fi
+
   local first=1
-  printf '['
+  printf '[' > "$cache_file"
   if [[ -f "$feeds_file" ]]; then
     while IFS= read -r line; do
       [[ -z "$line" || "$line" == \#* ]] && continue
@@ -42,12 +61,14 @@ opkg_get_feeds() {
       if [[ "$name" == "$OPKG_MANAGER_FEED_NAME" ]]; then
         builtin=true
       fi
-      if [[ $first -eq 0 ]]; then printf ','; fi
-      printf '{"name":"%s","url":"%s","builtin":%s}' "${name}" "${url}" "$builtin"
+      if [[ $first -eq 0 ]]; then printf ',' >> "$cache_file"; fi
+      printf '{"name":"%s","url":"%s","builtin":%s}' "${name}" "${url}" "$builtin" >> "$cache_file"
       first=0
     done < "$feeds_file"
   fi
-  printf ']\n'
+  printf ']\n' >> "$cache_file"
+  cat "$cache_file"
+  return 0
 }
 
 # Expand rootfs and make it writable
@@ -196,7 +217,8 @@ opkg_common_ensure_feeds() {
   # if the target does not exist opkg throws errors
   opkg_common_remove_feed_symlink
 }
-opkg_common_update() {
+
+opkg_common_update_packages() {
   (
     while [ -e /run/opkg.lock ]; do
       sleep 0.5
@@ -207,8 +229,8 @@ opkg_common_update() {
 
 opkg_common_remove_feed_symlink() {
   if [[ ! -f "${OPKG_FEED_LOCAL_CONFIG_FILE}" ]]; then
-    if [ -L "$target" ]; then
-      rm "$OPKG_FEED_CONFIG_FILE"
+    if [ -L "${OPKG_FEED_CONFIG_FILE" ]; then
+      rm "${OPKG_FEED_CONFIG_FILE}"
     fi
   fi
 }
@@ -531,7 +553,6 @@ opkg_common_list_packages() {
   local installed_mode=""
   local tmp_installed_file=""
   local -a list_files=()
-  local cache_file="/tmp/opkg-common-list-packages.json"
   local cache_tmp=""
   local latest_mtime=0
   local mtime=0
@@ -571,7 +592,7 @@ opkg_common_list_packages() {
   fi
 
   if [[ "${#feeds[@]}" -eq 0 ]]; then
-    printf '[]' > "${cache_file}"
+    printf '[]' > "${$OPKG_PACKAGES_JSON_CACHE_FILE}"
     echo "No feeds" >&2
     return 1
   fi
@@ -587,7 +608,7 @@ opkg_common_list_packages() {
 
   if [[ "${#list_files[@]}" -eq 0 ]]; then
     [[ -n "${tmp_installed_file}" ]] && rm -f "${tmp_installed_file}"
-    printf '[]' > "${cache_file}"
+    printf '[]' > "${$OPKG_PACKAGES_JSON_CACHE_FILE}"
     echo "No feed files" >&2
     return 1
   fi
@@ -597,10 +618,10 @@ opkg_common_list_packages() {
     (( mtime > latest_mtime )) && latest_mtime=${mtime}
   fi
 
-  if [[ -f "${cache_file}" ]]; then
-    cache_mtime=$(stat -c %Y "${cache_file}" 2>/dev/null || echo 0)
+  if [[ -f "${$OPKG_PACKAGES_JSON_CACHE_FILE}" ]]; then
+    cache_mtime=$(stat -c %Y "${$OPKG_PACKAGES_JSON_CACHE_FILE}" 2>/dev/null || echo 0)
     if (( cache_mtime >= latest_mtime )); then
-      echo "${cache_file}"
+      echo "${$OPKG_PACKAGES_JSON_CACHE_FILE}"
       return 0
     fi
   fi
@@ -609,11 +630,11 @@ opkg_common_list_packages() {
     installed_source="/usr/lib/opkg/status"
     installed_mode="status"
   else
-    if [[ -f "${cache_file}" ]]; then
+    if [[ -f "${$OPKG_PACKAGES_JSON_CACHE_FILE}" ]]; then
       now=$(date +%s)
-      cache_mtime=$(stat -c %Y "${cache_file}" 2>/dev/null || echo 0)
+      cache_mtime=$(stat -c %Y "${$OPKG_PACKAGES_JSON_CACHE_FILE}" 2>/dev/null || echo 0)
       if (( now - cache_mtime < cache_ttl )); then
-        cat "${cache_file}"
+        cat "${$OPKG_PACKAGES_JSON_CACHE_FILE}"
         return 0
       fi
     fi
@@ -742,8 +763,8 @@ opkg_common_list_packages() {
     ' "${list_files[@]}" >> "${cache_tmp}"
   printf ']\n' >> "${cache_tmp}"
 
-  mv "${cache_tmp}" "${cache_file}"
-  echo "${cache_file}"
+  mv "${cache_tmp}" "${$OPKG_PACKAGES_JSON_CACHE_FILE}"
+  echo "${$OPKG_PACKAGES_JSON_CACHE_FILE}"
 
   [[ -n "${tmp_installed_file}" ]] && rm -f "${tmp_installed_file}"
   
