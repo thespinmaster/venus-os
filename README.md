@@ -38,7 +38,7 @@ chmod +x /data/dev-setup
 
 ## Install opkg-manager only
 ```
-echo "src/gz opkg-manager https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feeds/opkg-manager" > "/etc/opkg/opkg-manager-tmp.conf"
+echo "src/gz opkg-manager-tmp https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feeds/opkg-manager" > "/etc/opkg/opkg-manager-tmp.conf"
 opkg update
 opkg install opkg-manager
 rm /etc/opkg/opkg-manager-tmp.conf

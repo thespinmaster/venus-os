@@ -15,7 +15,7 @@ opkg_common_register_package "${package_name}"
 
 opkg_common_ensure_feeds
 
-opkg update
+#opkg update
 
 echo "successfully installed ${package_name}"
 

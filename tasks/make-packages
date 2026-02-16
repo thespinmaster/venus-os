@@ -137,3 +137,4 @@ if [[ -n "$comment" ]]; then
 fi
 
 cd "$pwd_old" || true
+echo "Completed"
