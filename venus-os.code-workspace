@@ -1,26 +1,35 @@
 {
 	"folders": [
-		{
-			"path": "."
-		},
-		{
-			"path": "../../opt/victronenergy/gui/qml"
-		},
-		{
-			"path": "../opkg-manager"
-		},
-		{
-			"path": "../../tmp"
-		},
-		{
-			"path": "../../opt/victronenergy/themes/ccgx/icons"
-		},
-		{
-			"path": "../../etc/opkg"
-		},
+		{ "path": "."},
 		{
 			"path": ".."
-		}
+		},
+		{
+			"path": "./utils/opkg-manager"
+		},
+		{
+			"path": "./services/dbus-inetbox"
+		},
+		{
+			"path": "/opt/victronenergy/gui/qml"
+			,"name": "qml  (/opt/victronenergy/gui/qml)"
+		},
+		{
+			"path": "../opkg-manager",
+			"name": "opkg-manager (/data)"
+		},
+		{
+			"path": "/tmp"
+			,"name": "tmp  (/data)"
+		},
+		{
+			"path": "/opt/victronenergy/themes/ccgx/icons",
+			"name": "icons  (/opt/victronenergy/themes/ccgx/icons)"
+		},
+		{
+			"path": "/etc/opkg",
+			"name": "opkg  (/etc/opkg)"
+		},
 	],
 	"settings": {
 		"makefile.configureOnOpen": false

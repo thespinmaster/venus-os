@@ -1,7 +1,6 @@
 import QtQuick 2
 
 import com.victron.velib 1.0
-import net.connman 0.1
 import OpkgManager 1.0
 import "utils.js" as Utils
 import QtQuick.Controls
@@ -66,6 +65,7 @@ MbPage {
 				logCallback(line)
 				return
 			}
+			console.log(line)
 			lastOutputLine = line
 		}
 

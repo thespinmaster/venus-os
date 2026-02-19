@@ -45,5 +45,11 @@ MbPage {
 				MbOption { description: qsTr("Light"); value: "light" }
 			]
 		}
+
+    MbSubMenu {
+      description: qsTr("Setup")
+      subpage: Component { PageSettingsInetboxSetup {} }
+    }
+		
 	}
 }

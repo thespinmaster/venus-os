@@ -1,6 +1,4 @@
 
-
-var context
 // Version comparison helper
 function versionGreaterThan(v1, v2) {
   if (!v2 && v1) return true;

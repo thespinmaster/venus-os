@@ -147,8 +147,23 @@
       "command": "svc -t /service/gui",
         "presentation": {
           "reveal": "never",
-          "panel": "shared"
+          "panel": "shared",
+          "close": false
         },
+      "problemMatcher": []
+    },
+    {
+      "label": "Venus UI Logs",
+      "type": "shell",
+      "command": "tail -F /var/log/gui/current | cut -c27-",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": true,
+        "showReuseMessage": false,
+        "clear": false,
+        "close": false
+      },
       "problemMatcher": []
     }
   ]

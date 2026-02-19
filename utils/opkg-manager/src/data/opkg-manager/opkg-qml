@@ -12,20 +12,23 @@ declare OPKG_PACKAGES_JSON_CACHE_FILE="/tmp/opkg-common-list-packages.json"
 declare OPKG_FEEDS_JSON_CACHE_FILE="/tmp/opkg-common-feeds.json"
  
 opkg_get_feeds() {
+  
 	local feeds_file="${OPKG_FEED_CONFIG_FILE}"
 	local cache_file="${OPKG_FEEDS_JSON_CACHE_FILE}"
 	local feeds_mtime=0
 	local cache_mtime=0
 
+  # note use stat -L so it follows symlinks for getting the time
+
 	if [[ -f "$feeds_file" ]]; then
-		feeds_mtime=$(stat -c %Y "$feeds_file" 2>/dev/null || echo 0)
+		feeds_mtime=$(stat -L -c %Y "$feeds_file" 2>/dev/null || echo 0)
 	fi
 	if [[ -f "$cache_file" ]]; then
-		cache_mtime=$(stat -c %Y "$cache_file" 2>/dev/null || echo 0)
+		cache_mtime=$(stat -L -c %Y "$cache_file" 2>/dev/null || echo 0)
 	fi
 
 	if [[ -f "$cache_file" && $cache_mtime -ge $feeds_mtime ]]; then
-		cat "$cache_file"
+		echo "$cache_file"
 		return 0
 	fi
 
@@ -48,7 +51,7 @@ opkg_get_feeds() {
 		done < "$feeds_file"
 	fi
 	printf ']\n' >> "$cache_file"
-	cat "$cache_file"
+	echo "$cache_file"
 	return 0
 }
 
@@ -63,86 +66,92 @@ __opkg_qml_feed_crud() {
 	local feed_url="${3:-}"
 	local old_feed_name="${4:-}"
 
+  #echo "$mode,$feed_name,$feed_url,$old_feed_name" >&2
+  #return 1
+
 	# Validate feed_name
-	[[ -z "${feed_name}" ]] && { echo "Invalid name"; exit 1; }
-	[[ "${feed_name}" =~ [^a-zA-Z0-9_-] ]] && { echo "Invalid name"; exit 1; }
+	[[ -z "${feed_name}" ]] && { echo "Invalid name" >&2; return 1; }
+	[[ "${feed_name}" =~ [^a-zA-Z0-9_-] ]] && { echo "Invalid name" >&2; return 1; }
 	if [[ -n "${old_feed_name}" ]] && [[ "${old_feed_name}" =~ [^a-zA-Z0-9_] ]]; then
-		echo "Invalid old name"
-		exit 1
+		echo "Invalid old name" >&2
+		return 1
 	fi
 
-	local feed_line="src/gz ${feed_name} ${feed_url}"
-	case "$mode" in
-		add)
-			[[ -z "${feed_url}" ]] && { echo "add: feed_url required"; exit 1; }
-			if [ ! $dry_run ]; then
-				if ! grep -Fxq "$feed_line" "${OPKG_FEED_LOCAL_CONFIG_FILE}"; then
-					tmp_file=$(mktemp)
-					local added=0
-					while IFS= read -r line; do
-						if [[ "$line" == src\ gz\ ${feed_name}\ * ]]; then
-							echo "$feed_line"
-							added=1
-							continue
-						fi
-						echo "$line"
-					done < "${OPKG_FEED_LOCAL_CONFIG_FILE}" > "$tmp_file"
-					if [[ "$added" == "0" ]]; then
-						echo "$feed_line" >> "$tmp_file"
-					fi
-					mv "$tmp_file" "${OPKG_FEED_LOCAL_CONFIG_FILE}"
-				else
-					echo "Feed line already exists: $feed_line"
-				fi
-			else
-				echo "feed content: \"$feed_line >> ${OPKG_FEED_LOCAL_CONFIG_FILE}\""
-			fi
-			;;
-		edit)
-			[[ -z "${feed_url}" ]] && { echo "edit: feed_url required"; exit 1; }
-			[[ -z "${old_feed_name}" ]] && { echo "edit: old_feed_name required"; exit 1; }
-			if [ ! $dry_run ]; then
-				tmp_file=$(mktemp)
-				local added=0
-				while IFS= read -r line; do
-					if [[ "$line" == src\ gz\ ${old_feed_name}\ * ]]; then
-						echo "$feed_line"
-						added=1
-						continue
-					fi
-					echo "$line"
-				done < "${OPKG_FEED_LOCAL_CONFIG_FILE}" > "$tmp_file"
-				if [[ "$added" == "0" ]]; then
-					echo "$feed_line" >> "$tmp_file"
-				fi
-				mv "$tmp_file" "${OPKG_FEED_LOCAL_CONFIG_FILE}"
-			else
-				echo "edit feed line: $feed_line"
-			fi
-			;;
-		remove)
-			if [ ! $dry_run ]; then
-				if grep -Fxq "$feed_line" "${OPKG_FEED_LOCAL_CONFIG_FILE}"; then
-					tmp_file=$(mktemp)
-					while IFS= read -r line; do
-						[[ "$line" == "$feed_line" ]] && continue
-						echo "$line"
-					done < "${OPKG_FEED_LOCAL_CONFIG_FILE}" > "$tmp_file"
-					mv "$tmp_file" "${OPKG_FEED_LOCAL_CONFIG_FILE}"
-				else
-					echo "Feed line not found for removal: $feed_line"
-				fi
-			else
-				echo "remove feed line: $feed_line"
-			fi
-			;;
-		*)
-			echo "Unknown mode: $mode"
-			exit 1
-			;;
-	esac
-}
+  [[ ! -f "${OPKG_FEED_LOCAL_CONFIG_FILE}" ]] &&
+    opkg_common_ensure_feeds
+ 
+  local feed_line="src/gz ${feed_name} ${feed_url}"
+ 
+  #for clarity use new var
+  local existing_feed_name=$feed_name;
+  [[ -n $old_feed_name ]] && existing_feed_name=$old_feed_name
+  
+  # echo "$mode,$feed_name,$feed_url,$old_feed_name,$existing_feed_name" >&2
 
+  local -i exists=0
+
+  feedNameExists() {
+    local retval=0
+    local -n _exists=$2
+    _exists=0
+    grep -qE "^src/gz ${1} " "${OPKG_FEED_LOCAL_CONFIG_FILE}"
+    retval=$?; [[ $retval == 0 ]] && _exists=1;
+  }
+
+  feedNameExists ${existing_feed_name} exists
+
+  if [[ $mode == add ]]; then
+    ((exists)) && { 
+      echo "Feed already exists: $feed_name" >&2; return 1; }
+    echo "$feed_line" >> "${OPKG_FEED_LOCAL_CONFIG_FILE}"
+    return 0
+  fi
+ 
+  ((!exists)) && { 
+    echo "Feed not found: $feed_name" >&2; return 1; }
+
+  if [[ $mode == edit ]]; then
+    [[ -z "${feed_url}" ]] && { 
+      echo "edit: feed url required" >&2; return 1; }
+ 
+    [[ -n $old_feed_name && ! $feed_name == $old_feed_name ]] && {
+      # check new feed name does not exist
+      feedNameExists ${feed_name} exists
+      ((exists)) && { 
+        echo "Feed not found: $feed_name" >&2; return 1; }
+    }
+
+  fi
+
+  [[ ${dry_run:-} ]] && { 
+    echo "edit feed line-$mode: $feed_line"; 
+    return 0; }
+ 
+  tmp_file=$(mktemp)
+  local -i found=0
+  
+  while IFS= read -r line; do
+    if [[ "$line" == src/gz\ ${existing_feed_name}\ * ]]; then
+      [[ ! $mode == remove ]] && echo "$feed_line"
+      found=1
+      continue
+    fi
+    echo "$line"
+  done < "${OPKG_FEED_LOCAL_CONFIG_FILE}" > "$tmp_file"
+  ((!found)) && {
+    # not found add to end
+    echo "$feed_line" >> "$tmp_file"
+  }
+
+  local -i retval;
+  mv "$tmp_file" "${OPKG_FEED_LOCAL_CONFIG_FILE}"
+  retval=$?
+  ((retval)) &&
+    echo "Error writing to ${OPKG_FEED_LOCAL_CONFIG_FILE}" >&2
+ 
+  return $retval
+
+}
 
 # Helper to install a package and log output/errors
 opkg_qml_install_package() {
@@ -229,14 +238,11 @@ opkg_qml_list_packages() {
   local cache_ttl=5
   local -i callUpdate=0
  
-  feeds=()
-
   [[ "${1:-}" == "update" ]] && callUpdate=1
 
   if [[ ! -f "${OPKG_FEED_LOCAL_CONFIG_FILE}" ]]; then
     opkg_common_ensure_feeds
     callUpdate=1
-    rm -f "${tmp_installed_file}"
   elif [[ ! -f "${OPKG_FEED_LOCAL_CONFIG_FILE}" ]]; then
     callUpdate=1
   fi
@@ -253,13 +259,14 @@ opkg_qml_list_packages() {
       [[ -n "${2:-}" ]] && feeds["${2}"]=1
     done < "${OPKG_FEED_LOCAL_CONFIG_FILE}"
 
-    mtime=$(stat -c %Y "${OPKG_FEED_LOCAL_CONFIG_FILE}" 2>/dev/null || echo 0)
+    mtime=$(stat -L -c %Y "${OPKG_FEED_LOCAL_CONFIG_FILE}" 2>/dev/null || echo 0)
     (( mtime > latest_mtime )) && latest_mtime=${mtime}
   fi
 
   if [[ "${#feeds[@]}" -eq 0 ]]; then
     printf '[]' > "${OPKG_PACKAGES_JSON_CACHE_FILE}"
     echo "No feeds" >&2
+    echo ""
     return 1
   fi
 
@@ -268,24 +275,24 @@ opkg_qml_list_packages() {
     [[ -f "${list_file}" ]] || continue
     list_files+=("${list_file}")
 
-    mtime=$(stat -c %Y "${list_file}" 2>/dev/null || echo 0)
+    mtime=$(stat -L -c %Y "${list_file}" 2>/dev/null || echo 0)
     (( mtime > latest_mtime )) && latest_mtime=${mtime}
   done
 
   if [[ "${#list_files[@]}" -eq 0 ]]; then
-    [[ -n "${tmp_installed_file}" ]] && rm -f "${tmp_installed_file}"
     printf '[]' > "${OPKG_PACKAGES_JSON_CACHE_FILE}"
     echo "No feed files" >&2
+    echo ""
     return 1
   fi
 
   if [[ -f "/usr/lib/opkg/status" ]]; then
-    mtime=$(stat -c %Y "/usr/lib/opkg/status" 2>/dev/null || echo 0)
+    mtime=$(stat -L -c %Y "/usr/lib/opkg/status" 2>/dev/null || echo 0)
     (( mtime > latest_mtime )) && latest_mtime=${mtime}
   fi
 
   if [[ -f "${OPKG_PACKAGES_JSON_CACHE_FILE}" ]]; then
-    cache_mtime=$(stat -c %Y "${OPKG_PACKAGES_JSON_CACHE_FILE}" 2>/dev/null || echo 0)
+    cache_mtime=$(stat -L -c %Y "${OPKG_PACKAGES_JSON_CACHE_FILE}" 2>/dev/null || echo 0)
     if (( cache_mtime >= latest_mtime )); then
       echo "${OPKG_PACKAGES_JSON_CACHE_FILE}"
       return 0
@@ -298,9 +305,9 @@ opkg_qml_list_packages() {
   else
     if [[ -f "${OPKG_PACKAGES_JSON_CACHE_FILE}" ]]; then
       now=$(date +%s)
-      cache_mtime=$(stat -c %Y "${OPKG_PACKAGES_JSON_CACHE_FILE}" 2>/dev/null || echo 0)
+      cache_mtime=$(stat -L -c %Y "${OPKG_PACKAGES_JSON_CACHE_FILE}" 2>/dev/null || echo 0)
       if (( now - cache_mtime < cache_ttl )); then
-        cat "${OPKG_PACKAGES_JSON_CACHE_FILE}"
+        echo "${OPKG_PACKAGES_JSON_CACHE_FILE}"
         return 0
       fi
     fi
@@ -466,5 +473,11 @@ case "${1:-}" in
     shift
     opkg_qml_upgrade_package "$@"
     ;;
+  *)
+    if [[ -n ${1:-} ]]; then
+      echo "opkg-qml: incorrect command : ${1}" >&2
+    fi
+    ;;
 esac
 
+ #opkg_qml_feed_crud "add" "Test3" "http://aaa.com/abc"

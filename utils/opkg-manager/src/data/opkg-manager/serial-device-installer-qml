@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+
+# . ./serial-device-installer
+
+sdi_get_port() {
+  #echo "sdi_get_port in"
+  sleep 4
+cat <<< '
+[
+  {
+    "port": "ttyUSB0",
+    "vendor_id": "0403",
+    "model_id": "6001",
+    "model": "FT232R_USB_UART",
+    "serial": "FTDI_FT232R_USB_UART_B0001AJ7",
+    "serial_short": "B0001AJ7",
+    "revision": "0600",
+    "vendor": "FTDI",
+    "model_db": "FT232 Serial (UART) IC",
+    "vendor_db": "Future Technology Devices International, Ltd",
+    "InUse": ""
+  }
+]
+
+'
+
+  # echo "ttyUSB0"
+}
+
+sdi_apply_device() {
+  echo "this"
+  sleep 2
+  echo "that"
+  sleep 1
+  echo "done"
+}
+
+case "${1:-}" in
+	get-device)
+
+		sdi_get_port
+		;;
+  apply-device)
+    shift
+    sdi_apply_device "${1}"
+    ;;
+  *)
+    if [[ -n ${1:-} ]]; then
+      echo "serial-device-installer-qml: incorrect command : ${1}" >&2
+    fi
+    ;;
+esac
+ 

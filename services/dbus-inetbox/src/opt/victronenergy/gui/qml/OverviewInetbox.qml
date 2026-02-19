@@ -38,7 +38,7 @@ OverviewPage {
 	VBusItem { id: themeItem; bind: Utils.path(settingsPrefix, "/Settings/Devices/dbus_inetbox/Theme") }
   VBusItem { id: showAirconItem; bind: Utils.path(settingsPrefix, "/Settings/Devices/dbus_inetbox/ShowAircon") }
   VBusItem { id: metricItem; bind: Utils.path(settingsPrefix, "/Settings/Devices/dbus_inetbox/Metric") }
-
+property string settingsPrefix: "com.victronenergy.settings/Settings/Devices/dbus_inetbox/Port"
 	function applyTheme(themeName) {
 		switch (themeName) {
 		case "dark":
