@@ -1,0 +1,10 @@
+Package: themer
+Version: 1.0.0
+Description: Adds basic theming support on the Venus OS
+Section: utilities
+Priority: optional
+Maintainer: thespinmaster@github.com
+License: MIT
+Architecture: all
+OE: einstine
+Source: https://github.com/thespinmaster/venus-os/tree/main/feeds/main/themer

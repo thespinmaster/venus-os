@@ -1,0 +1,17 @@
+#!/bin/bash
+
+if [[ ! -d ./opkg-utils ]]; then
+  git clone https://github.com/shr-project/opkg-utils
+fi
+
+if ! command -v make >/dev/null 2>&1; then
+  opkg update
+  opkg install make
+fi
+
+cur_dir=$PWD
+
+cd ./opkg-utils/
+make install
+
+PWD=$cur_dir

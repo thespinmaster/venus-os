@@ -11,25 +11,29 @@ class ProcessRunner : public QObject
 	Q_OBJECT
 	Q_PROPERTY(QString helperPath READ helperPath WRITE setHelperPath NOTIFY helperPathChanged)
 	Q_PROPERTY(bool running READ running NOTIFY runningChanged)
+	Q_PROPERTY(bool stopping READ stopping NOTIFY stoppingChanged)
 	Q_PROPERTY(QString operationName READ operationName WRITE setOperationName NOTIFY operationNameChanged)
-
+ 
 public:
 	explicit ProcessRunner(QObject *parent = nullptr);
 
 	QString helperPath() const;
 	void setHelperPath(const QString &path);
 
+	bool stopping() const;
 	bool running() const;
-
+	
 	QString operationName() const;
 	void setOperationName(const QString &name);
 
 	Q_INVOKABLE void start(const QStringList &args);
 	Q_INVOKABLE void stop();
+	Q_INVOKABLE void stopAndWait();
 
 signals:
 	void helperPathChanged();
 	void runningChanged();
+	void stoppingChanged();
 	void outputLine(const QString &line);
 	void errorLine(const QString &line);
 	void finished(int exitCode, int exitStatus);
@@ -48,4 +52,5 @@ private:
 	QString m_operationName;
 	QByteArray m_stdoutBuffer;
 	QByteArray m_stderrBuffer;
+	bool m_stopping = false;
 };

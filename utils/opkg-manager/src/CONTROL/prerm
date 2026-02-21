@@ -4,7 +4,7 @@ declare package_name="opkg-manager"
 
 declare rc_local_script="
 # ${package_name} (do not edit)
-${VE_ROOT_DIR:-}/data/${package_name}/rc.local.d/startup
+${VE_ROOT_DIR:-}/data/opkg-manager/rc.local.d/startup
 "
 
 . "${VE_ROOT_DIR:-}/data/${package_name}/opkg-common"

@@ -19,7 +19,10 @@ declare -a build_items=()
 declare -a folders=("../services" "../utils")
 declare pwd_old=$PWD
 declare -A update_feeds=()
- 
+
+
+cd "$this_path"
+
 build_feed_index() {
   cd "${1}" || exit 1
   opkg-make-index -p Packages ./ 1>/dev/null
@@ -35,6 +38,7 @@ build_feed_indexes() {
 
 if [[ "$build" == "all" ]]; then
   #mapfile -t build_items < <(find "${folders[@]}" -mindepth 1 -maxdepth 1 -type d)
+  echo "cur dir: $PWD"
   mapfile -t build_items < <(find "${folders[@]}" -mindepth 1 -maxdepth 1 -type d -exec realpath {} +)
 elif [[ "$build" == "package" ]]; then
   build_feed_index "${2}"
@@ -72,7 +76,7 @@ stage_source_byref() {
   dest_path="$build_path/${BASH_REMATCH[2]}"
 
   options=(--exclude=*.bak --exclude=.git --exclude=*.tmp --exclude=tests/)
-  options+=(--exclude=*-v[0-9] --exclude=*.old)
+  options+=(--exclude=*-v[0-9] --exclude=*.old --exclude=.venv/)
 
   # Exclude directories containing .opkg-ignore
   while IFS= read -r rel_dir; do

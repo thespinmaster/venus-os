@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+__this_path="$(dirname "${BASH_SOURCE[0]}")"
+
+THEMER_CONFIG_FILE="$__this_path/themer.conf"
+QML_FOLDER="${VENUS_ROOT_DIR:-}/opt/victronenergy/gui/qml"
+
+themer_common_apply_patch() {
+ 
+	while IFS='|' read -r filename class_name new_filename; do
+		# Skip empty lines or lines starting with #
+		[[ -z "$filename" || "$filename" =~ ^# ]] && continue
+
+		local file_path="$QML_FOLDER/$filename"
+		local new_file_path="$QML_FOLDER/$new_filename"
+
+		# Check if both files exist
+		if [[ ! -f "$file_path" || ! -f "$new_file_path" ]]; then
+			echo "Missing file: $file_path or $new_file_path"
+			exit 1
+		fi
+
+		# Prepare new class line (strip extension)
+		local new_class_name="${new_filename%%.*}"
+		local new_class_line="$new_class_name {"
+
+		# Process file
+		local tmp_file; tmp_file=$(mktemp)
+		local found=0
+		while IFS= read -r line; do
+			if [[ $found -eq 0 && "$line" == "$class_name {" ]]; then
+				echo "//themer: $line" >> "$tmp_file"
+				echo "$new_class_line" >> "$tmp_file"
+				found=1
+			else
+				echo "$line" >> "$tmp_file"
+			fi
+		done < "$file_path"
+		mv "$tmp_file" "$file_path"
+	done < "$THEMER_CONFIG_FILE"
+}
+
+themer_common_remove_patch() {
+  
+}

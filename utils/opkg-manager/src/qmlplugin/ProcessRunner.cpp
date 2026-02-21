@@ -7,6 +7,7 @@ ProcessRunner::ProcessRunner(QObject *parent)
 	: QObject(parent)
 	, m_helperPath("/data/opkg-manager/opkg-qml")
 	, m_operationName("")
+	, m_stopping(false)
 {
 	m_process.setProcessChannelMode(QProcess::SeparateChannels);
 
@@ -16,6 +17,10 @@ ProcessRunner::ProcessRunner(QObject *parent)
 			QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
 			this,
 			&ProcessRunner::handleFinished);
+}
+bool ProcessRunner::stopping() const
+{
+	return m_stopping;
 }
 QString ProcessRunner::operationName() const
 {
@@ -52,6 +57,8 @@ bool ProcessRunner::running() const
 
 void ProcessRunner::start(const QStringList &args)
 {
+	if (m_stopping)
+		return;
 	if (running()) {
 		return;
 	}
@@ -61,17 +68,33 @@ void ProcessRunner::start(const QStringList &args)
 
 	m_process.setProgram(m_helperPath);
 	m_process.setArguments(args);
+    
 	m_process.start();
 
 	emit runningChanged();
 }
-
 void ProcessRunner::stop()
+{
+	if (m_stopping)
+		return;
+	if (!running())
+		return;
+
+	m_stopping = true;
+	emit stoppingChanged();
+	m_process.terminate();
+}
+
+void ProcessRunner::stopAndWait()
 {
 	if (!running()) {
 		return;
 	}
+	if (m_stopping) 
+		return;
 
+	m_stopping = true;
+	emit stoppingChanged();
 	m_process.terminate();
 	if (!m_process.waitForFinished(2000)) {
 		m_process.kill();
@@ -96,6 +119,9 @@ void ProcessRunner::handleFinished(int exitCode, QProcess::ExitStatus exitStatus
 	if (!m_stderrBuffer.isEmpty()) {
 		emitLines(m_stderrBuffer, QByteArray("\n"), true);
 	}
+
+	m_stopping = false;
+	emit stoppingChanged();
 
 	emit finished(exitCode, static_cast<int>(exitStatus));
 	emit runningChanged();

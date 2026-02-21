@@ -1,0 +1,10 @@
+#!/bin/bash
+ 
+declare package_name="themer"
+
+. "${VE_ROOT_DIR:-}/data/opkg-manager/opkg-common"
+
+opkg_common_register_package "${package_name}"
+
+echo "successfully installed ${package_name}"
+

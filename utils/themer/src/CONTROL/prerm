@@ -1,0 +1,9 @@
+#!/bin/bash
+
+declare package_name="themer"
+
+. "${VE_ROOT_DIR:-}/data/opkg-manager/opkg-common"
+
+opkg_common_unregister_package "${package_name}"
+ 
+echo "successfully removed ${package_name}"

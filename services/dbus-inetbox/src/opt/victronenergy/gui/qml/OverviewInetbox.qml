@@ -7,7 +7,7 @@ OverviewPage {
 		id: root
 
 	property variant sys: theSystem
-	property string settingsPrefix: "com.victronenergy.settings"
+	property string settingsPrefix: "com.victronenergy.settings/Settings/Devices/dbus_inetbox/Port"
 	property string systemPrefix: "com.victronenergy.system"
 	property string platformPrefix: "com.victronenergy.platform"
 	property string inetboxPrefix: "com.victronenergy.dbus_inetbox"
@@ -38,7 +38,7 @@ OverviewPage {
 	VBusItem { id: themeItem; bind: Utils.path(settingsPrefix, "/Settings/Devices/dbus_inetbox/Theme") }
   VBusItem { id: showAirconItem; bind: Utils.path(settingsPrefix, "/Settings/Devices/dbus_inetbox/ShowAircon") }
   VBusItem { id: metricItem; bind: Utils.path(settingsPrefix, "/Settings/Devices/dbus_inetbox/Metric") }
-property string settingsPrefix: "com.victronenergy.settings/Settings/Devices/dbus_inetbox/Port"
+
 	function applyTheme(themeName) {
 		switch (themeName) {
 		case "dark":
@@ -89,73 +89,7 @@ property string settingsPrefix: "com.victronenergy.settings/Settings/Devices/dbu
 		}
 		return num.toFixed(1) + "°C"
 	}
-/*
-	Connections {
-		target: DBusServices
-		
-		function onDbusServiceFound(service) { 
-			console.debug("njka:onDbusServiceFound:" + service.name)
-			findInetboxService(service) 
-		}
-		function onDbusServiceConnected(service) {
-			console.debug("njka:onDbusServiceConnected:" + service.name)
-			findInetboxService(service)
-		}
-		function onDbusServiceDisconnected(service) {
-			console.debug("njka:onDbusServiceDisconnected:" + service.name)
-			if (inetboxPrefix === service.name) {
-				inetboxPrefix = ""
-			}
-		}
-	}
-
-	Component.onCompleted: {
-		discoverServices()
-		inetboxDiscoveryTimer.start()
-	}
-
-	Timer {
-		id: inetboxDiscoveryTimer
-		interval: 1000
-		repeat: true
-		running: false
-		onTriggered: {
-			if (inetboxPrefix === "") {
-				discoverServices()
-			} else {
-				stop()
-			}
-		}
-	}
-
-	function findInetboxService(service) {
-		console.debug("findInetboxService")
-		
-		if (service.name.indexOf("com.victronenergy.dbus_inetbox") === 0) {
-			if (inetboxPrefix === "") {
-				inetboxPrefix = service.name
-				console.debug("Found inetbox service: " + inetboxPrefix)
-				
-			}
-		}
-	}
-
-	function discoverServices() {
-		// Scan existing services for inetbox
-		console.debug("njka:discoverServices:" + DBusServices.count.toString())
-		for (var i = 0; i < DBusServices.count; i++) {
-			
-			var service = DBusServices.at(i)
-			console.debug("njka: service: " + i.toString() + ", " + service.name)
-			if (service.name.indexOf("com.victronenergy.dbus_inetbox") === 0) {
-				inetboxPrefix = service.name
-				console.debug("Discovered inetbox service: " + inetboxPrefix)
-				break
-			}
-		}
-	}
-	
-*/
+ 
 	/*
 	Component.onCompleted: {
 		console.debug("njka:Theme:" + themeItem.value)
