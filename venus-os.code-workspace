@@ -1,41 +1,51 @@
 {
 	"folders": [
 		{
+			"name": "dev",
 			"path": "."
 		},
 		{
+			"name": "data",
 			"path": ".."
 		},
 		{
-			"path": "./utils/opkg-manager"
+			"name": "opkg-manager",
+			"path": "utils/opkg-manager"
 		},
 		{
-			"path": "./services/dbus-inetbox"
+			"name": "dbus-inetbox",
+			"path": "services/dbus-inetbox"
 		},
 		{
-			"path": "/opt/victronenergy/gui/qml",
-			"name": "qml  (/opt/victronenergy/gui/qml)"
+			"name": "themer",
+			"path": "utils/themer"
 		},
 		{
-			"path": "../opkg-manager",
-			"name": "opkg-manager (/data)"
+			"name": "qml  (/opt/victronenergy/gui/qml)",
+			"path": "../../opt/victronenergy/gui/qml"
 		},
 		{
-			"path": "/tmp",
-			"name": "/tmp "
+			"name": "opkg-manager (/data)",
+			"path": "../opkg-manager"
 		},
 		{
-			"path": "/opt/victronenergy/themes/ccgx/icons",
-			"name": "icons  (/opt/victronenergy/themes/ccgx/icons)"
+			"name": "/tmp ",
+			"path": "../../tmp"
 		},
 		{
-			"path": "/etc/opkg",
-			"name": "opkg  (/etc/opkg)"
+			"name": "icons  (/opt/victronenergy/themes/ccgx/icons)",
+			"path": "../../opt/victronenergy/themes/ccgx/icons"
 		},
 		{
+			"name": "opkg  (/etc/opkg)",
+			"path": "../../etc/opkg"
+		},
+		{
+			"name": "venus",
 			"path": "../../etc/venus"
 		},
 		{
+			"name": "rules.d",
 			"path": "../../etc/udev/rules.d"
 		}
 	],

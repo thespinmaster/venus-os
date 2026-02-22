@@ -16,7 +16,7 @@ utils/opkg-manager/src/qmlplugin/*.autosave
 utils/opkg-manager/src/qmlplugin/*_autogen/
 tooling/**/
 **/tests/output/
-
+/data/mnt/dev/repos/GuiMods/**/
 # Python virtual environments (global)
 .venv/
 venv/

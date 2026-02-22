@@ -584,7 +584,6 @@ conf_lib_load_with_schema() {
 # keep looping until the end of the variables end tag
 # finaly add any values not found in the existing file
 #     doing the same as we did with the existing variables
-
 conf_lib_save_with_schema() {
 
   for opt in "$@"; do

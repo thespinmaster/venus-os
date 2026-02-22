@@ -16,7 +16,7 @@ QML_FILES=(
 	OverviewInetbox.qml
 	ButtonGroupControl.qml
 	PageSettingsInetbox.qml
-	PageSettingsInetboxSetup.qml
+	PageSettingsInetboxDeviceSetup.qml
 )
 
 for file in "${QML_FILES[@]}"; do

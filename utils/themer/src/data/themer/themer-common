@@ -1,44 +1,242 @@
 #!/usr/bin/env bash
+
 __this_path="$(dirname "${BASH_SOURCE[0]}")"
 
-THEMER_CONFIG_FILE="$__this_path/themer.conf"
-QML_FOLDER="${VENUS_ROOT_DIR:-}/opt/victronenergy/gui/qml"
+QML_TARGET_FOLDER="${VENUS_ROOT_DIR:-}/opt/victronenergy/gui/qml"
+QML_SOURCE_FOLDER="${VENUS_ROOT_DIR:-}/opt/victronenergy/gui/qml/Theming"
 
-themer_common_apply_patch() {
- 
-	while IFS='|' read -r filename class_name new_filename; do
-		# Skip empty lines or lines starting with #
-		[[ -z "$filename" || "$filename" =~ ^# ]] && continue
+# List of special pages (without .qml)
+special_pages=(MbStyle)
 
-		local file_path="$QML_FOLDER/$filename"
-		local new_file_path="$QML_FOLDER/$new_filename"
-
-		# Check if both files exist
-		if [[ ! -f "$file_path" || ! -f "$new_file_path" ]]; then
-			echo "Missing file: $file_path or $new_file_path"
-			exit 1
-		fi
-
-		# Prepare new class line (strip extension)
-		local new_class_name="${new_filename%%.*}"
-		local new_class_line="$new_class_name {"
-
-		# Process file
-		local tmp_file; tmp_file=$(mktemp)
-		local found=0
-		while IFS= read -r line; do
-			if [[ $found -eq 0 && "$line" == "$class_name {" ]]; then
-				echo "//themer: $line" >> "$tmp_file"
-				echo "$new_class_line" >> "$tmp_file"
-				found=1
-			else
-				echo "$line" >> "$tmp_file"
+themer_common_patch_files() {
+	for srcfile in "$QML_SOURCE_FOLDER"/Themer*.qml; do
+		fname="$(basename "$srcfile" .qml)"
+		targetname="${fname#Themer}"
+		[[ -z "$targetname" ]] && continue
+		targetfile="$QML_TARGET_FOLDER/$targetname.qml"
+		[[ ! -f "$targetfile" ]] && continue
+		# Check if this is a special page
+		is_special=0
+		for sp in "${special_pages[@]}"; do
+			if [[ "$targetname" == "$sp" ]]; then
+				is_special=1
+				break
 			fi
-		done < "$file_path"
-		mv "$tmp_file" "$file_path"
-	done < "$THEMER_CONFIG_FILE"
+		done
+		# Prepare element or property line
+		if [[ $is_special -eq 1 ]]; then
+			prop_line="property ThemerMbStyle themer: ThemerMbStyle {}"
+			# Check if property already exists
+			if grep -qE "^[[:space:]]*$prop_line" "$targetfile"; then
+				continue
+			fi
+		else
+			elem="Themer${targetname}"
+			if grep -qE "^[[:space:]]*$elem[[:space:]]*\{" "$targetfile"; then
+				continue
+			fi
+		fi
+		# Find last closing brace line number
+		last_brace_line=$(awk '/}/ {line=NR} END{print line}' "$targetfile")
+		indent=$(sed -n "${last_brace_line}p" "$targetfile" | grep -o '^[[:space:]]*')
+		newindent="${indent}\t"
+		if [[ $is_special -eq 1 ]]; then
+			insert="${newindent}// themer 1.0\n${newindent}${prop_line}"
+			echo "Patched $targetfile with special property"
+		else
+			insert="${newindent}// themer 1.0\n${newindent}${elem} {}"
+			echo "Patched $targetfile with $elem"
+		fi
+		tmpfile=$(mktemp)
+		awk -v l="$last_brace_line" -v ins="$insert" 'NR==l{print ins} {print}' "$targetfile" > "$tmpfile"
+		mv "$tmpfile" "$targetfile"
+	done
 }
 
-themer_common_remove_patch() {
-  
+themer_common_remove_patch_from_files() {
+	for srcfile in "$QML_SOURCE_FOLDER"/Themer*.qml; do
+		fname="$(basename "$srcfile" .qml)"
+		targetname="${fname#Themer}"
+		[[ -z "$targetname" ]] && continue
+		targetfile="$QML_TARGET_FOLDER/$targetname.qml"
+		[[ ! -f "$targetfile" ]] && continue
+		is_special=0
+		for sp in "${special_pages[@]}"; do
+			if [[ "$targetname" == "$sp" ]]; then
+				is_special=1
+				break
+			fi
+		done
+		tmpfile=$(mktemp)
+		if [[ $is_special -eq 1 ]]; then
+			prop_line="property ThemerMbStyle themer: ThemerMbStyle {}"
+			awk -v prop_line="$prop_line" '
+				BEGIN {skip_next=0; skip_blank=0}
+				/^([[:space:]]*)\/\/ themer 1\.0$/ {skip_next=1; next}
+				skip_next && /^[[:space:]]*" prop_line "$/ {skip_next=0; skip_blank=1; next}
+				skip_next && match($0, /^[[:space:]]*property ThemerMbStyle themerMbStyle: ThemerMbStyle \{\}/) {skip_next=0; skip_blank=1; next}
+				skip_blank && /^\s*$/ {skip_blank=0; next}
+				{skip_next=0; skip_blank=0}
+				{print}
+			' "$targetfile" > "$tmpfile"
+			echo "Removed special property patch from $targetfile if present"
+		else
+			elem="Themer${targetname}"
+			awk -v elem="$elem" '
+				BEGIN {skip_next=0; skip_blank=0}
+				/^([[:space:]]*)\/\/ themer 1\.0$/ {skip_next=1; next}
+				skip_next && /^[[:space:]]*" elem " \{\}/ {skip_next=0; skip_blank=1; next}
+				skip_next && match($0, /^[[:space:]]*" elem " \{\}/) {skip_next=0; skip_blank=1; next}
+				skip_next && match($0, /^[[:space:]]*Themer[[:alnum:]_]+ \{\}/) {skip_next=0; skip_blank=1; next}
+				skip_blank && /^\s*$/ {skip_blank=0; next}
+				{skip_next=0; skip_blank=0}
+				{print}
+			' "$targetfile" > "$tmpfile"
+			echo "Removed patch from $targetfile if present"
+		fi
+		mv "$tmpfile" "$targetfile"
+	done
 }
+# Add import Theming 1.0 after last import if not present
+themer_common_add_import() {
+	local targetfile="$1"
+	local import_line="import Theming 1.0"
+	if grep -q "^$import_line$" "$targetfile"; then
+		return
+	fi
+	# Find last import line
+	last_import_line=$(awk '/^import / {line=NR} END{print line}' "$targetfile")
+	if [[ -z "$last_import_line" || "$last_import_line" -eq 0 ]]; then
+		# No import found, insert at top
+		tmpfile=$(mktemp)
+		echo "$import_line" > "$tmpfile"
+		cat "$targetfile" >> "$tmpfile"
+		mv "$tmpfile" "$targetfile"
+		echo "Added $import_line to $targetfile (top)"
+	else
+		tmpfile=$(mktemp)
+		awk -v l="$last_import_line" -v imp="$import_line" 'NR==l{print $0; print imp; next} {print}' "$targetfile" > "$tmpfile"
+		mv "$tmpfile" "$targetfile"
+		echo "Added $import_line to $targetfile after last import"
+	fi
+}
+
+# Remove import Theming 1.0 if present
+themer_common_remove_import() {
+	local targetfile="$1"
+	local import_line="import Theming 1.0"
+	tmpfile=$(mktemp)
+	grep -v "^$import_line$" "$targetfile" > "$tmpfile"
+	mv "$tmpfile" "$targetfile"
+	echo "Removed $import_line from $targetfile if present"
+}
+
+themer_common_patch_files() {
+
+	if [[ ! -d $QML_SOURCE_FOLDER ]]; then
+		echo "$QML_SOURCE_FOLDER does not exist"
+		return 1
+	fi
+
+	for srcfile in "$QML_SOURCE_FOLDER"/Themer*.qml; do
+		fname="$(basename "$srcfile" .qml)"
+		targetname="${fname#Themer}"
+		[[ -z "$targetname" ]] && continue
+		targetfile="$QML_TARGET_FOLDER/$targetname.qml"
+		[[ ! -f "$targetfile" ]] && continue
+		# Check if this is a special page
+		is_special=0
+		for sp in "${special_pages[@]}"; do
+			if [[ "$targetname" == "$sp" ]]; then
+				is_special=1
+				break
+			fi
+		done
+		# Prepare element or property line
+		if [[ $is_special -eq 1 ]]; then
+			prop_line="property ThemerMbStyle themer: ThemerMbStyle {}"
+			# Check if property already exists
+			if grep -qE "^[[:space:]]*$prop_line" "$targetfile"; then
+				continue
+			fi
+		else
+			elem="Themer${targetname}"
+			if grep -qE "^[[:space:]]*$elem[[:space:]]*\{" "$targetfile"; then
+				continue
+			fi
+		fi
+		# Find last closing brace line number
+		last_brace_line=$(awk '/}/ {line=NR} END{print line}' "$targetfile")
+		indent=$(sed -n "${last_brace_line}p" "$targetfile" | grep -o '^[[:space:]]*')
+		newindent="${indent}\t"
+		if [[ $is_special -eq 1 ]]; then
+			insert="${newindent}// themer 1.0\n${newindent}${prop_line}"
+			echo "Patched $targetfile with special property"
+		else
+			insert="${newindent}// themer 1.0\n${newindent}${elem} {}"
+			echo "Patched $targetfile with $elem"
+		fi
+		tmpfile=$(mktemp)
+		awk -v l="$last_brace_line" -v ins="$insert" 'NR==l{print ins} {print}' "$targetfile" > "$tmpfile"
+		mv "$tmpfile" "$targetfile"
+		# Add import Theming 1.0
+		themer_common_add_import "$targetfile"
+	done
+}
+
+themer_common_remove_patch_from_files() {
+	
+	if [[ ! -d $QML_SOURCE_FOLDER ]]; then
+		echo "$QML_SOURCE_FOLDER does not exist"
+		return 1
+	fi
+
+	for srcfile in "$QML_SOURCE_FOLDER"/Themer*.qml; do
+		fname="$(basename "$srcfile" .qml)"
+		targetname="${fname#Themer}"
+		[[ -z "$targetname" ]] && continue
+		targetfile="$QML_TARGET_FOLDER/$targetname.qml"
+		[[ ! -f "$targetfile" ]] && continue
+		is_special=0
+		for sp in "${special_pages[@]}"; do
+			if [[ "$targetname" == "$sp" ]]; then
+				is_special=1
+				break
+			fi
+		done
+		tmpfile=$(mktemp)
+		if [[ $is_special -eq 1 ]]; then
+			prop_line="property ThemerMbStyle themer: ThemerMbStyle {}"
+			awk -v prop_line="$prop_line" '
+				BEGIN {skip_next=0; skip_blank=0}
+				/^([[:space:]]*)\/\/ themer 1\.0$/ {skip_next=1; next}
+				skip_next && /^[[:space:]]*" prop_line "$/{skip_next=0; skip_blank=1; next}
+				skip_next && match($0, /^[[:space:]]*property ThemerMbStyle themerMbStyle: ThemerMbStyle \{\}/) {skip_next=0; skip_blank=1; next}
+				skip_blank && /^\s*$/ {skip_blank=0; next}
+				{skip_next=0; skip_blank=0}
+				{print}
+			' "$targetfile" > "$tmpfile"
+			echo "Removed special property patch from $targetfile if present"
+		else
+			elem="Themer${targetname}"
+			awk -v elem="$elem" '
+				BEGIN {skip_next=0; skip_blank=0}
+				/^([[:space:]]*)\/\/ themer 1\.0$/ {skip_next=1; next}
+				skip_next && /^[[:space:]]*" elem " \{\}/ {skip_next=0; skip_blank=1; next}
+				skip_next && match($0, /^[[:space:]]*" elem " \{\}/) {skip_next=0; skip_blank=1; next}
+				skip_next && match($0, /^[[:space:]]*Themer[[:alnum:]_]+ \{\}/) {skip_next=0; skip_blank=1; next}
+				skip_blank && /^\s*$/ {skip_blank=0; next}
+				{skip_next=0; skip_blank=0}
+				{print}
+			' "$targetfile" > "$tmpfile"
+			echo "Removed patch from $targetfile if present"
+		fi
+		mv "$tmpfile" "$targetfile"
+		# Remove import Theming 1.0
+		themer_common_remove_import "$targetfile"
+	done
+}
+
+
+themer_common_patch_files
+#themer_common_remove_patch_from_files

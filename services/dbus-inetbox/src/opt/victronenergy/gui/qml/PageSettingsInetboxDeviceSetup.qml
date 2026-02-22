@@ -3,10 +3,10 @@ import com.victron.velib 1.0
 import "utils.js" as Utils
 import OpkgManager 1.0
 import QtQuick.Controls
-
+ 
 MbPage {
 	id: root
-	title: qsTr("Inetbox Setup")
+	title: qsTr("Inetbox Device Setup")
  
 	property string settingsPrefix: "com.victronenergy.settings/Settings/Devices/dbus_inetbox"
 	property string currentPort: ""
@@ -42,7 +42,7 @@ MbPage {
  
 		Rectangle {
 			id: usbDeviceRect
-			color: portText.mbStyle.themeBackgroundColor2 || "#cecece"
+			color: header.mbStyle.themer?.backgroundColor2 || "#cecece"
 			radius: 4
 			anchors {
 				top: portText.bottom; topMargin: portText.mbStyle.marginDefault
@@ -67,7 +67,7 @@ MbPage {
 		}
 		Rectangle {
 			id: outputLog
-			color: portText.mbStyle.themeBackgroundColor2 || "#cecece"
+			color: header.mbStyle.themer?.backgroundColor2 || "#cecece"
 			radius: 4
 			anchors {
 				top: usbDeviceRect.bottom; topMargin: portText.mbStyle.marginDefault
@@ -190,6 +190,7 @@ MbPage {
 	}
  
 	function showApply() {
+		return true
 	 	if (root.step != "detect-device-done")
 			return false
 		if (root.step == "cancelling")
@@ -228,17 +229,10 @@ MbPage {
 
 			if (step == "" && processRunner.running) {
 				root.step="canceling"
-				console.log("hello")
 				outputLog.startIsWorking("Canceling")
 				processRunner.operationName = root.step
 				processRunner.stop()
 			}
- 
-			//if (running) {
-			//	console.log("Canceled")
-			//	outputLog.baseWorking="Canceled!"
-			//	outputLog.stopIsWorking(running)
-			//}
 			break
 		case "detect-device":
 			if (processRunner.operationName)
@@ -253,6 +247,7 @@ MbPage {
 			if (processRunner.operationName)
 				return
 			processRunner.operationName = step
+			outputLog.clear()
 			processRunner.start([step])
 			break
 		default:
@@ -361,7 +356,7 @@ MbPage {
 					}
 				} else {
 					let msg = packagesErrorLine.length ? packagesErrorLine : qsTr("Operation failed");
-					usbDeviceInfo.stopIsWorking = false;
+					outputLog.stopIsWorking = false;
 					toast.createToast(msg);
 					root.doStep()
 				}

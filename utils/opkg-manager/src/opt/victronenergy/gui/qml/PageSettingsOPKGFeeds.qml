@@ -197,7 +197,7 @@ MbPage {
 
 	ProcessRunner {
 		id: opkgRunner
-		helperPath: "/data/dev/utils/opkg-manager/src/data/opkg-manager/serial-device-installer-qml"
+		helperPath: "/data/dev/utils/opkg-manager/src/data/opkg-manager/opkg-qml"
 		
 		property string feedName: ""
 		property string feedUrl: ""
@@ -217,7 +217,8 @@ MbPage {
 			}
 		}
 		onErrorLine: function(line) {
-			opkgErrorLine = line
+			console.log(line)
+			//opkgErrorLine = line
 		}
 		onFinished: function(exitCode, exitStatus) {
 			//console.log("onFinished:" + exitCode)

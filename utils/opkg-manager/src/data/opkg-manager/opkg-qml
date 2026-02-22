@@ -31,6 +31,7 @@ opkg_get_feeds() {
 		echo "$cache_file"
 		return 0
 	fi
+  echo "Feeds" >&2
 
 	local first=1
 	printf '[' > "$cache_file"

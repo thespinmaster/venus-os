@@ -48,7 +48,7 @@ MbPage {
 
     MbSubMenu {
       description: qsTr("Setup")
-      subpage: Component { PageSettingsInetboxSetup {} }
+      subpage: Component { PageSettingsInetboxDeviceSetup {} }
     }
 		
 	}

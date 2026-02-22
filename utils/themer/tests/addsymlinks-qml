@@ -14,10 +14,11 @@ QML_ICONS_SOURCE_PATH="$this_path/../src${QML_ICONS_TARGET_PATH}"
  
 QML_FILES=(
 	
-	TmMbStyle.qml
-	TmPageStackWindow.qml
-	TmOverviewConnectionEnd.qml
-	 
+	Theming
+
+	Tm_OverviewConnectionEnd.qml
+	Tm_main.qml
+ 
 )
 
 # Icons

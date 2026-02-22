@@ -12,7 +12,8 @@ QML_SOURCE_PATH="$this_path/../src${QML_TARGET_PATH}"
 QML_ICONS_TARGET_PATH="/opt/victronenergy/themes/ccgx/icons"
 QML_ICONS_SOURCE_PATH="$this_path/../src${QML_ICONS_TARGET_PATH}"
 
-QML_PLUGIN_SOURCE_PATH="$QML_TARGET_PATH/OpkgHelpers"
+QML_PLUGIN_SOURCE_PATH="$QML_SOURCE_PATH/OpkgHelpers"
+QML_PLUGIN_TARGET_PATH="$QML_TARGET_PATH/OpkgHelpers"
 
 QML_FILES=(
 	
@@ -45,7 +46,7 @@ for icon in "${QML_ICONS_FILES[@]}"; do
 done
  
 ln -sf "$QML_TARGET_PATH/PageSettings.qml" "$QML_SOURCE_PATH/PageSettings.qml"
-
+ 
 ln -sf "$this_path/../src/data/opkg-manager/opkg-common" "/data/opkg-manager/opkg-common"
  
 echo "done"

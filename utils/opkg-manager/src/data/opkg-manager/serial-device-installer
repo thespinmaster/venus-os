@@ -335,9 +335,8 @@ __add_rule_to_serial_starter_rules_file() {
   }
   
   if grep -qF "${serial_starter_rule}" "${SERIAL_STARTER_RULES_FILE}"; then
-    log "Rule already exists in the file."
+    log "✓ Serial starter rule already exists in the file."
     return 0
- 
   fi
 
   local rule_with_comment; rule_with_comment="# ${SERVICE_NAME}"$'\n'"${serial_starter_rule}"$'\n'
@@ -372,7 +371,7 @@ __add_rule_to_serial_starter_rules_file() {
     log_error "ERROR adding rule to ${SERIAL_STARTER_RULES_FILE}" 
     return 1
   }
-  log "Rule added successfully."
+  log "✓ Rule added successfully."
   return 0
 }
 
@@ -385,7 +384,7 @@ __remove_rule_from_serial_starter_rules_file() {
   local serial_starter_rule="${1}"
 
   [[ -n "${serial_starter_rule}" ]] || { 
-    log_error "serial starter rule not set, nothing to do"; return 0; }
+    log "✓ Serial starter rule not set, nothing to do"; return 0; }
   
   [[ -f "${SERIAL_STARTER_RULES_FILE}" ]] || {
     log_error "ERROR: file not found, SERIAL_STARTER_RULES_FILE:$SERIAL_STARTER_RULES_FILE"; return 1; }
@@ -400,7 +399,7 @@ __remove_rule_from_serial_starter_rules_file() {
     echo -e "${new_rules}" > "${SERIAL_STARTER_RULES_FILE}"
     new_rules="${new_rules/${comment}/}"
     
-    log "successfully removed rule from ${SERIAL_STARTER_RULES_FILE}"
+    log "✓ Successfully removed rule from ${SERIAL_STARTER_RULES_FILE}"
   fi
 
   return 0
@@ -428,10 +427,11 @@ __add_ve_service_config_file_mapping() {
   find_pattern="^[[:space:]]*service[[:space:]]+${service_mapping_name}[[:space:]]+${SERVICE_NAME}[[:space:]]*$"
  
   if ! grep -Eq "${find_pattern}" "${SERIAL_STARTER_CONFIG_FILE}"; then
-    log "adding ve service mapping config to ${SERIAL_STARTER_CONFIG_FILE}"
+    
     sed -i '1s/^/'"${entry}"'\n/' "${SERIAL_STARTER_CONFIG_FILE}"
+    log "✓ Successfully added ve service mapping config to ${SERIAL_STARTER_CONFIG_FILE}"
   else
-    log "ve service mapping already exists"
+    log "✓ ve service mapping already exists"
   fi
 
 }
@@ -460,7 +460,7 @@ __remove_ve_service_config_file_mapping() {
     rm "$tmp"
   else
     mv "$tmp" "$SERIAL_STARTER_CONFIG_FILE"
-    log "Sucessfully removed ve service mapping:${log_info}"
+    log "✓ Sucessfully removed ve service mapping:${log_info}"
   fi
 }
 
