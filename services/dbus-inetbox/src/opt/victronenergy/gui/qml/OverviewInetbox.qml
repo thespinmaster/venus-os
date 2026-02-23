@@ -7,7 +7,7 @@ OverviewPage {
 		id: root
 
 	property variant sys: theSystem
-	property string settingsPrefix: "com.victronenergy.settings/Settings/Devices/dbus_inetbox/Port"
+	property string settingsPrefix: "com.victronenergy.settings/Settings/Devices/dbus_inetbox/"
 	property string systemPrefix: "com.victronenergy.system"
 	property string platformPrefix: "com.victronenergy.platform"
 	property string inetboxPrefix: "com.victronenergy.dbus_inetbox"
@@ -16,6 +16,7 @@ OverviewPage {
   property int headerFont: 20
 	property int groupFont: 12
   property int textFont: 12
+
 	property color selectedColor: "#6491CC"
 	property color selectedTextColor: "#FFFFFF"
 	property color backgroundColor: "#171820"
@@ -35,44 +36,47 @@ OverviewPage {
 	VBusItem { id: airconFanSpeedItem; bind: Utils.path(inetboxPrefix, "/Values/AirconFanSpeed") }
 	VBusItem { id: airconTargetTempItem; bind: Utils.path(inetboxPrefix, "/Values/AirconTargetTemp") }
 	VBusItem { id: airconCurrentTempItem; bind: Utils.path(inetboxPrefix, "/Values/AirconCurrentTemp") }
-	VBusItem { id: themeItem; bind: Utils.path(settingsPrefix, "/Settings/Devices/dbus_inetbox/Theme") }
-  VBusItem { id: showAirconItem; bind: Utils.path(settingsPrefix, "/Settings/Devices/dbus_inetbox/ShowAircon") }
-  VBusItem { id: metricItem; bind: Utils.path(settingsPrefix, "/Settings/Devices/dbus_inetbox/Metric") }
+	VBusItem { id: themeItem; bind: Utils.path(settingsPrefix, "Theme") }
+  VBusItem { id: showAirconItem; bind: Utils.path(settingsPrefix, "ShowAircon") }
+  VBusItem { id: metricItem; bind: Utils.path(settingsPrefix, "Metric") }
 
 	function applyTheme(themeName) {
+
+		console.log("applyTheme:" + themeName)
+
 		switch (themeName) {
 		case "dark":
-			backgroundColor = "#171820"
+			backgroundColor = "#181818"
 			fontColor = "#FFFFFF"
-			groupBackgroundColor = "#1C3749"
+			groupBackgroundColor = "#313131"//"#1C3749"
 			headerFontColor = "#FFFFFF"
-			selectedColor = "#6491CC"
+			selectedColor = "#4790d0"
 			selectedTextColor = "#FFFFFF"
 			break
 		case "veBlue1":
-			backgroundColor = "#4891CC"
+			backgroundColor = "#4790d0"
 			fontColor = "#4891CC"
 			groupBackgroundColor = "#f0f2f5"
 			headerFontColor = "#FFFFFF"
-			selectedColor = "#4891CC"
+			selectedColor = "#4790d0"
 			selectedTextColor = "#FFFFFF"
 			break
 		case "veBlue2":
 			backgroundColor = "#FFFFFF"
 			fontColor = "#FFFFFF"
-			groupBackgroundColor = "#4891CC"
+			groupBackgroundColor = "#4790d0"
 			headerFontColor = "#4891CC"
 			selectedColor = "#FFFFFF"
-			selectedTextColor = "#4891CC"
+			selectedTextColor = "#4790d0"
 			break
 		case "light":
 		default:
 			backgroundColor = "#FFFFFF"
 			fontColor = "#FFFFFF"
-			groupBackgroundColor = "#4891CC"
-			headerFontColor = "#4891CC"
+			groupBackgroundColor = "#4790d0"
+			headerFontColor = "#4790d0"
 			selectedColor = "#FFFFFF"
-			selectedTextColor = "#4891CC"
+			selectedTextColor = "#4790d0"
 			break
 		
 		
@@ -102,9 +106,12 @@ OverviewPage {
 	Connections {
 		target: themeItem
 		function onValueChanged() {
-			applyTheme(themeItem.value)
+			if (themeItem.valid && themeItem.value.length > 0)
+				applyTheme(themeItem.value)
 		}
 	}
+
+	property MbStyle mbStyle: MbStyle {}
 
 	Rectangle {
 			id: rectangle

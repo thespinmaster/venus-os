@@ -1,6 +1,6 @@
 Package: opkg-manager
 Version: 1.0.1
-Description: Adds helper scripts for installing opkg packages on the Venus OS
+Description: A manager for installing opkg packages on the Venus OS
 Section: utilities
 Priority: optional
 Maintainer: thespinmaster@github.com

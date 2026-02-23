@@ -12,6 +12,7 @@ QtObject {
 	property VBusItem background2ColorItem: VBusItem { bind: "com.victronenergy.settings/Settings/Themes/BackgroundColor2" }
 	property VBusItem iconSuffixNormalItem: VBusItem { bind: "com.victronenergy.settings/Settings/Themes/IconSuffixNormal" }
  	property VBusItem iconSuffixSelectedItem: VBusItem { bind: "com.victronenergy.settings/Settings/Themes/IconSuffixSelected" }
+ 	property VBusItem borderColoItem: VBusItem { bind: "com.victronenergy.settings/Settings/Themes/BorderColor" }
  
 	property string textColor: resolveColor(textColorItem, "#FFFFFF", "#000000")
  
@@ -20,10 +21,12 @@ QtObject {
 	
 	property string iconSuffixNormal: iconSuffixNormalItem.valid ? (iconSuffixNormalItem.value.length > 0 ? "-" + iconSuffixNormalItem.value : "") : ""
 	property string iconSuffixSelected: iconSuffixSelectedItem.valid ? (iconSuffixSelectedItem.value.length > 0 ? "-" + iconSuffixSelectedItem.value : "") : "-active"
+	property string borderColor: resolveColor(borderColoItem, "#ddd", "#2B2B2B")
+
  
   function resolveColor(item, defaultLight, defaultDark) {
 		return item.valid ? item.value : 
 				(darkModeItem.valid && darkModeItem.value == 1 ? defaultLight : defaultDark ) 
 	}
- 
+
 }

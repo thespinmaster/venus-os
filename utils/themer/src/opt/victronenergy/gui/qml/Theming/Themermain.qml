@@ -9,15 +9,19 @@ Rectangle {
   property var rootWindow
 
   property VBusItem customPages: VBusItem { bind: "com.victronenergy.settings/Settings/Themes/CustomOverviewPages" }
-
-  Component.onCompleted: {
-    if (!customPages.valid || customPages.value.length === 0)
-      return
- 
-    addRemoveCustomOverviewPages(VBusItem.value)
-  }
+	
+	Connections {
+		target: customPages
+		function onValueChanged() {
+			if (!customPages.valid || customPages.value.length === 0)
+				return;
+			addRemoveCustomOverviewPages(customPages.value);
+		}
+	}
  
 	function addRemoveCustomOverviewPages(customPages) {
+		if (customPages == undefined)
+			return
 		// sample data
 		//var customPages = "OverviewInetbox:1,-OverviewTiles";
 		var items = customPages.split(",");

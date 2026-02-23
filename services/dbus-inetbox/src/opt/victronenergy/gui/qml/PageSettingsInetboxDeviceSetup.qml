@@ -15,12 +15,12 @@ MbPage {
   property string devicePort
   property string applyingDeviceLog
 	property var deviceModel: null
-  
+  property var theme:
+	
 	VBusItem { id: portName; bind: Utils.path(settingsPrefix, "/Port") }
  
 	Component.onCompleted: getPortState()
-
-
+ 
 	MbItem {
 		id:header
 		height: root.height

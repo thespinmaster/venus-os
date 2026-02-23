@@ -16,9 +16,10 @@ MbPage {
 		bind: Utils.path("com.victronenergy.settings", "/Settings/OpkgManager/NoAction")
 	}
 
- Item {
+ MbItem {
+		id: itm
     anchors.fill: parent
-
+		
 		OpkgHeaderDescriptionItem {
 			id: packageDetails
 			header: (root.model?.name) || ""
@@ -26,17 +27,23 @@ MbPage {
 			showCompact: false
 			hasSubpage: false
 			editable: false
+			anchors.left: parent.left
+			anchors.right: parent.right
+			anchors.leftMargin: itm.mbStyle.marginDefault
+			anchors.rightMargin: itm.mbStyle.marginDefault
 		}
 	
 		// Non-selectable, scrollable log area (direct child of MbPage)
 		Item {
 			id: logArea
-			
-			anchors.top: packageDetails.bottom
-			anchors.left: parent.left
-			anchors.right: parent.right
-			anchors.bottom: parent.bottom
-			anchors.bottomMargin: 0 // adjust this value to match your toolbar height
+			anchors {
+				top: packageDetails.bottom
+				left: parent.left
+				right: parent.right
+				bottom: parent.bottom
+				bottomMargin: 0 // adjust this value to match your toolbar height
+			}
+
 			property var logLines: []
 			function addLogLine(line) {
 
@@ -49,8 +56,10 @@ MbPage {
 	
 			Rectangle {
 				anchors.fill: parent
-				anchors.rightMargin: 2
-				color: "#f8f8f8"
+				anchors.leftMargin: itm.mbStyle.marginDefault
+				anchors.rightMargin: itm.mbStyle.marginDefault
+
+				color: itm.mbStyle.themer?.backgroundColor2 || "#cecece"
 				border.color: "#767676"
 				radius: 8
 				Flickable {
