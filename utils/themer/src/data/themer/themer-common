@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-__this_path="$(dirname "${BASH_SOURCE[0]}")"
+# this_path="$(dirname "${BASH_SOURCE[0]}")"
 
 QML_TARGET_FOLDER="${VENUS_ROOT_DIR:-}/opt/victronenergy/gui/qml"
 QML_SOURCE_FOLDER="${VENUS_ROOT_DIR:-}/opt/victronenergy/gui/qml/Theming"
@@ -184,59 +184,35 @@ themer_common_patch_files() {
 	done
 }
 
-themer_common_remove_patch_from_files() {
-	
-	if [[ ! -d $QML_SOURCE_FOLDER ]]; then
-		echo "$QML_SOURCE_FOLDER does not exist"
-		return 1
-	fi
 
-	for srcfile in "$QML_SOURCE_FOLDER"/Themer*.qml; do
-		fname="$(basename "$srcfile" .qml)"
-		targetname="${fname#Themer}"
-		[[ -z "$targetname" ]] && continue
-		targetfile="$QML_TARGET_FOLDER/$targetname.qml"
-		[[ ! -f "$targetfile" ]] && continue
-		is_special=0
-		for sp in "${special_pages[@]}"; do
-			if [[ "$targetname" == "$sp" ]]; then
-				is_special=1
-				break
-			fi
-		done
-		tmpfile=$(mktemp)
-		if [[ $is_special -eq 1 ]]; then
-			prop_line="property ThemerMbStyle themer: ThemerMbStyle {}"
-			awk -v prop_line="$prop_line" '
-				BEGIN {skip_next=0; skip_blank=0}
-				/^([[:space:]]*)\/\/ themer 1\.0$/ {skip_next=1; next}
-				skip_next && /^[[:space:]]*" prop_line "$/{skip_next=0; skip_blank=1; next}
-				skip_next && match($0, /^[[:space:]]*property ThemerMbStyle themerMbStyle: ThemerMbStyle \{\}/) {skip_next=0; skip_blank=1; next}
-				skip_blank && /^\s*$/ {skip_blank=0; next}
-				{skip_next=0; skip_blank=0}
-				{print}
-			' "$targetfile" > "$tmpfile"
-			echo "Removed special property patch from $targetfile if present"
-		else
-			elem="Themer${targetname}"
-			awk -v elem="$elem" '
-				BEGIN {skip_next=0; skip_blank=0}
-				/^([[:space:]]*)\/\/ themer 1\.0$/ {skip_next=1; next}
-				skip_next && /^[[:space:]]*" elem " \{\}/ {skip_next=0; skip_blank=1; next}
-				skip_next && match($0, /^[[:space:]]*" elem " \{\}/) {skip_next=0; skip_blank=1; next}
-				skip_next && match($0, /^[[:space:]]*Themer[[:alnum:]_]+ \{\}/) {skip_next=0; skip_blank=1; next}
-				skip_blank && /^\s*$/ {skip_blank=0; next}
-				{skip_next=0; skip_blank=0}
-				{print}
-			' "$targetfile" > "$tmpfile"
-			echo "Removed patch from $targetfile if present"
-		fi
-		mv "$tmpfile" "$targetfile"
-		# Remove import Theming 1.0
-		themer_common_remove_import "$targetfile"
-	done
+__themer_command_get_dbus_settings() {
+	local -n __settings="$1"
+	__settings='
+		Theme:s:0:0:"dark"
+		TextColor:s:0:0:"#ffffff"
+		BackgroundColor:s:0:0:"#1f1f1f"
+		BackgroundColor2:s:0:0:"#313131"
+		IconSuffixNormal:s:0:0:"active"
+		IconSuffixSelected:s:0:0:"active"
+		BorderColor:s:0:0:"#3c3c3c"
+		Enabled:i:0:1:1
+	'
 }
+ 
+themer_common_add_remove_debus_settings() {
+	local settings=
+	local -i remove=${1:-0}
+ 
+	. "${VENUS_ROOT_DIR:-}/data/opkg-manager/dbus-common"
 
-
-themer_common_patch_files
+	__themer_command_get_dbus_settings settings
+	echo "s:$settings" 
+	dbus_common_add_remove_debus_settings $remove "Themes" "$settings"
+ 
+}
+ 
+#themer_common_patch_files
 #themer_common_remove_patch_from_files
+
+VENUS_ROOT_DIR=/data/dev/utils/opkg-manager/src
+themer_common_add_remove_debus_settings 1

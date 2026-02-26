@@ -167,5 +167,22 @@
       },
       "problemMatcher": []
     }
+    ,
+    {
+      "label": "Build opkg-manager Blind Install",
+      "type": "shell",
+      "command": "bash utils/opkg-manager/blind-install/build_tgz",
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    }
   ]
 }

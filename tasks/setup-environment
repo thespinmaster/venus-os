@@ -4,10 +4,10 @@
 
 ####################################################
 reload_bash=
-alias_file=/etc/profile.d/my-alias.sh
+alias_file=/etc/profile.d/my-alias
 if [ ! -L "${alias_file}" ]; then
   echo "creating ${alias_file} symbolic link"
-  ln -s /data/dev/projects/venus-os/scripts/my-alias.sh "${alias_file}"
+  ln -s /data/dev/projects/venus-os/scripts/my-alias "${alias_file}"
   echo "reloading bash"
   reload_bash=1
 fi

@@ -24,3 +24,9 @@
 			showAccessLevel: User.AccessService
 		}
 ====
+@findbackwards
+}
+====
+@insertbefore
+// opkg-manager
+  OpkgMainHook

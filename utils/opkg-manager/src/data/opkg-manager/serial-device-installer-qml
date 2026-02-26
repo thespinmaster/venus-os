@@ -36,6 +36,7 @@ sdi_detect_usb_device() {
 : '
 {
   "port": "ttyUSB0",
+  "serial_starter_probing:"false"
   "ID_MODEL":"Intetbox",
   "ID_SERIAL":"FTDI_Intetbox_BG02CS2X",
   "ID_MODEL_ID":"6001",
@@ -47,8 +48,14 @@ sdi_detect_usb_device() {
   "ID_VENDOR":"FTDI"
 }
 ' 
+  
+  local serial_starter_probing=false
+  [[ $process_name == "serial_starter_probing" ]] && serial_starter_probing=true
+    
   usb_props["port"]="$tty"
   usb_props["process"]="$process_name"
+  usb_props["serial_starter_probing"]="$serial_starter_probing"
+  
   _sdi_array_to_json_object usb_props
 
   return 0
@@ -121,7 +128,7 @@ _sdi_cleanup_udevadm() {
   # and run the trap handler, so the process can be stopped gracefully.
   # The loop only exits if the FIFO is removed or closed.
   # ---
-
+  
   while true; do
     if read -r -t 0.5 line < "$fifo"; then
       if [[ "$line" =~ ^UDEV\ .*[\[][0-9]*\.[0-9]*[]]\ add\  ]]; then
@@ -221,12 +228,16 @@ sdi_get_tty_process() {
   [[ -z "$tty" ]] && { echo ""; return 0; }
  
   # Poll fuser 7 times at 0.5s intervals (3 seconds)
+  # This is to check if the serial_starter continually probing
+
   for ((i=1; i<=7; i++)); do
     current_output=$(fuser "$fuser_path" 2>/dev/null | tr -s ' ')
     if [[ $i -eq 1 ]]; then
       first_output="$current_output"
     else
-      [[ "$current_output" != "$first_output" ]] && { echo ""; return 0; }
+
+      [[ "$current_output" != "$first_output" ]] && { 
+        echo "serial_starter_probing"; return 0; } # An educated guess ;-)
     fi
     sleep 0.5
   done

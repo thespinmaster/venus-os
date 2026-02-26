@@ -1,0 +1,69 @@
+#!/bin/bash
+
+# dbus-common: Functions for managing dbus settings for Venus OS themes
+
+set -o nounset
+
+
+# Function: dbus_common_add_debus_settings
+# Adds dbus settings for a group.
+# Arguments:
+#   $1 - group name (string)
+#   $2 - dbus_settings (string, lines formatted as name:type:min:max:value)
+# type should be: 'i' (integer), 'f' (float) and 's' (string)
+# Each line in dbus_settings is parsed and sent to dbus as a setting.
+dbus_common_add_debus_settings() {
+
+	local basePath="com.victronenergy.settings"
+	local group="$1"
+	local dbus_settings="$2"
+
+	# For each line in dbus_settings, parse fields and add setting
+	while IFS=: read -r name type min max value; do
+		# Trim leading whitespace from name
+		name="${name#"${name%%[![:space:]]*}"}"
+		# Skip blank lines and comments
+		[[ -z "$name" || "$name" =~ ^[[:space:]]*# ]] && continue
+		dbus -y $basePath /Settings AddSetting $group "$name" "$value" "$type" $min $max
+	done <<< "$dbus_settings"
+}
+
+ # Function: dbus_common_remove_dbus_settings
+ # Removes dbus settings for a group.
+ # Arguments:
+ #   $1 - group name (string)
+ #   $2 - dbus_settings (string, lines formatted as just name or name:type:min:max:value) 
+ # Removes all settings listed in dbus_settings for the group.
+ dbus_common_remove_dbus_settings() {
+	local basePath="com.victronenergy.settings"
+	local group="$1"
+	local dbus_settings="$2"
+	local all_values=""
+	while IFS=: read -r name _ _ _ _; do
+		# Trim leading whitespace from name
+		name="${name#"${name%%[![:space:]]*}"}"
+		# Skip blank lines and comments
+		[[ -z "$name" || "$name" =~ ^[[:space:]]*# ]] && continue
+		[[ -z "$all_values" ]] && all_values="'$name'" || all_values+=", '$name'"
+	done <<< "$dbus_settings"
+	echo "removing values $all_values from /Settings/$group"
+	dbus -y $basePath /Settings/$group RemoveSettings "%[$all_values]"
+}
+
+ # Function: dbus_common_add_remove_debus_settings
+ # Adds or removes dbus settings for the Themer group.
+ # Arguments:
+ #   $1 - remove flag (integer, 1 to remove, 0 to add)
+ # Uses __themer_command_get_dbus_settings to get settings.
+ dbus_common_add_remove_debus_settings() {
+	
+	local -i remove=${1}
+	local group="${2}"
+  local settings="${3}"
+	if ((remove)); then
+		dbus_common_remove_dbus_settings "$group" "$settings"
+	else
+		dbus_common_add_debus_settings "$group" "$settings"
+	fi
+}
+ 

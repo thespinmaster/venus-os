@@ -38,10 +38,12 @@ MbPage {
 			}
 		}
 
+\*
 		MbSubMenu {
 			description: qsTr("Remote Console")
 			subpage: Component { PageSettingsRemoteConsole {} }
 		}
+*/
 
 		MbSubMenu {
 			id: systemSetupItem
@@ -179,6 +181,8 @@ MbPage {
 		}
 		*/
 
+// test line 1
+// test line 2
 		MbSubMenu {
 			description: qsTr("Venus OS Large features")
 			subpage: Component { PageSettingsLarge {} }
@@ -186,24 +190,12 @@ MbPage {
 			property VBusItem nodeRed: VBusItem { bind: "com.victronenergy.platform/Services/NodeRed/Mode" }
 			show: signalK.valid || nodeRed.valid
 		}
-
-        MbSubMenu {
-			description: qsTr("Ne-shunt")
-			subpage: Component {
-				PageSettingsFirmware {
-					title: qsTr("Ne-shunt")
-				}
-			}
-        }
-
-/*
 /*
 		MbSubMenu {
 			description: "Debug"
 			subpage: Component { PageDebug {} }
 			showAccessLevel: User.AccessService
 		}
-*/
 */
 
 	}

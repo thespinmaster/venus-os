@@ -30,6 +30,7 @@ QML_FILES=(
 	PageSettingsOPKGFeeds.qml
 		PageSettingsOPKGFeedEdit.qml
 	
+	OpkgObjectCustomOverviewPages.qml
 )
 # Icons
 QML_ICONS_FILES=(

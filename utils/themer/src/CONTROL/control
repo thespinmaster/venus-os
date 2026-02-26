@@ -8,3 +8,4 @@ License: MIT
 Architecture: all
 OE: einstine
 Source: https://github.com/thespinmaster/venus-os/tree/main/feeds/main/themer
+Depends: opkg-manager

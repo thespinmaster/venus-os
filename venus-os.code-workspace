@@ -17,6 +17,10 @@
 			"path": "services/dbus-inetbox"
 		},
 		{
+			"name": "dbus-ne-shunt",
+			"path": "services/dbus-ne-shunt"
+		},
+		{
 			"name": "themer",
 			"path": "utils/themer"
 		},

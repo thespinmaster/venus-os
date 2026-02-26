@@ -11,7 +11,8 @@ ensure_feed() {
     rm $feed_config_file
   fi
   echo "adding opkg feed"
-  local feed_url="https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feed"
+  local feed_url="https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feeds/main"
+  local feed_url="https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feeds/opkg-manager"
   echo "src/gz thespinmaster $feed_url" > "$feed_config_file"
   
 }
@@ -66,8 +67,7 @@ echo "setting up environment (bash aliases, nanorc config)"
   # priority 3 to execute after mount-shares
   declare rc_local_d_path=3
   opkg_common_ensure_rc_local_d rc_local_d_path
-  
-  
+
   # shellcheck disable=SC2217
   echo "#!/bin/bash
 

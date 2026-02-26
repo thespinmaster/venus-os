@@ -59,8 +59,8 @@ MbPage {
 				anchors.leftMargin: itm.mbStyle.marginDefault
 				anchors.rightMargin: itm.mbStyle.marginDefault
 
-				color: itm.mbStyle.themer?.backgroundColor2 || "#cecece"
-				border.color: "#767676"
+				color: itm.mbStyle.themer?.backgroundColor2 || "transparent"
+				border.color: itm.mbStyle.themer?.borderColor || itm.mbStyle.valueColor
 				radius: 8
 				Flickable {
 					id: logFlickable
@@ -75,7 +75,7 @@ MbPage {
 							id: logText
 							text: logArea.logLines.join("\n")
 							font.pixelSize: 13
-							color: "#333"
+							color: itm.mbStyle.themer?.textColor || itm.mbStyle.textColor
 							wrapMode: Text.Wrap
 							width: logFlickable.width - 12
 							horizontalAlignment: Text.AlignLeft

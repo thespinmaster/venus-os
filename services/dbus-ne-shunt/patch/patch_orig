@@ -8,6 +8,7 @@ ACTION_INSERT_AFTER="@insertafter"
 ACTION_REMOVE="@remove"
 ACTION_FIND="@find"
 
+
 # Read file into array FILE_LINES
 # $1: the file to read the files from
 read_file_lines() {
