@@ -30,8 +30,7 @@ build_feed_index() {
   opkg-make-index -p Packages ./ 1>/dev/null
   echo "feed ${1} updated"
 }
-build_feed_index "/data/dev/feeds/opkg-manager"
-exit
+
 build_feed_indexes() {
   # Loop through all values in update_feeds and call build_feed_index
   for feed_path in "${update_feeds[@]}"; do

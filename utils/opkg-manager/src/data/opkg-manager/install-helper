@@ -40,7 +40,7 @@ __add_remove_dbus_settings() {
  
 }
  
-install_helepr_post_install() {
+install_helper_post_install() {
 
   (
     local rc_local_script="
