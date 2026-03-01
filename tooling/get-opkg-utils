@@ -4,7 +4,6 @@ if [[ ! -d ./opkg-utils ]]; then
   git clone https://github.com/shr-project/opkg-utils
 else
   echo "opkg-utils exists"
-  return
 fi
 
 if ! command -v make >/dev/null 2>&1; then

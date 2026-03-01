@@ -1,0 +1,25 @@
+@openfile
+====
+/data/victronenergy/qml/main.qml
+====
+@findbackwards
+====
+}
+====
+$insertbefore
+====
+  //opkg-manager 1.0
+  OpkgObjectCustomOverviewPages {}
+====
+@openfile
+====
+/data/victronenergy/qml/PageSettings.qml
+====
+@findbackwards
+====
+}
+====
+$insertbefore
+  //opkg-manager 1.0
+  OpkgPageSettingsCustomMenus {}
+====

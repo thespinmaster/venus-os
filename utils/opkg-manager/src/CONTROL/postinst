@@ -1,21 +1,7 @@
 #!/bin/bash
- 
-declare package_name="opkg-manager"
 
-declare rc_local_script="
-# ${package_name} (do not edit)
-${VE_ROOT_DIR:-}/data/opkg-manager/rc.local.d/startup
-"
+. "${VE_ROOT_DIR:-}/data/opkg-manager/install-helper"
 
-. "${VE_ROOT_DIR:-}/data/${package_name}/opkg-common"
+install_helper_post_install
 
-opkg_common_add_script_to_rc_local "${rc_local_script}"
- 
-opkg_common_register_package "${package_name}"
-
-opkg_common_ensure_feeds
-
-opkg_common_update_packages
-
-echo "successfully installed ${package_name}"
-
+echo "successfully installed ${opkg-manager}"

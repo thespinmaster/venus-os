@@ -1,13 +1,8 @@
 #!/bin/bash
  
-declare package_name="themer"
+. "${VE_ROOT_DIR:-}/data/themer/install-helper"
 
-. "${VE_ROOT_DIR:-}/data/opkg-manager/opkg-common"
-
-opkg_common_register_package "${package_name}"
-
-. /data/themer/themer-common
-themer_common_patch_files
-
-echo "successfully installed ${package_name}"
+install_helper_post_install "themer"
+ 
+echo "successfully installed themer"
 

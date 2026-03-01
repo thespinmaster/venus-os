@@ -304,7 +304,7 @@ MbPage {
 
 	ProcessRunner {
 		id: processRunner
-		helperPath: "/data/dev/utils/opkg-manager/src/data/opkg-manager/serial-device-installer-qml"
+		helperPath: "/data/dev/utils/opkg-manager/src/data/opkg-manager/qml/serial-device-installer"
  
 		property string jsonString: ""
 		property string packagesErrorLine: ""

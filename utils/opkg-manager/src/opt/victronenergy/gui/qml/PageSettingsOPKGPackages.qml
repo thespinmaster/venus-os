@@ -54,7 +54,7 @@ MbPage {
 
 	ProcessRunner {
 		id: processRunner
-		helperPath: "/data/dev/utils/opkg-manager/src/data/opkg-manager/opkg-qml"
+		helperPath: "/data/dev/utils/opkg-manager/src/data/opkg-manager/qml/opkg"
  
 		property string lastOutputLine: ""
 		property string packagesErrorLine: ""

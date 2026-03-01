@@ -104,6 +104,15 @@
             "console": "integratedTerminal",
             "args": ["--serial", "/dev/ttyACM0", "--debug"]
         },
+        {
+            "type": "debugpy",
+            "presentation": { "group": "python" },
+            "request": "launch",
+            "name": "Python - opkg-make-index",
+            "cwd": "${workspaceFolder}/feeds/main",
+            "program": "${workspaceFolder}/tooling/opkg-utils/opkg-make-index",
+            "args": ["-p", "Packages", "./"]
+        },
     ],
     "compounds": [
         {
@@ -124,5 +133,6 @@
             ],
             "stopAll": true
         }
-    ]
+    ],
+    
 }

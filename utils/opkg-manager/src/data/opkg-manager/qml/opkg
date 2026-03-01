@@ -6,7 +6,7 @@ set -o nounset
 
 declare __this_path=$(dirname "${BASH_SOURCE[0]}")
 
-. $__this_path/opkg-common
+. $__this_path/../opkg-common
  
 declare OPKG_PACKAGES_JSON_CACHE_FILE="/tmp/opkg-common-list-packages.json"
 declare OPKG_FEEDS_JSON_CACHE_FILE="/tmp/opkg-common-feeds.json"

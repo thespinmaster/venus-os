@@ -14,5 +14,5 @@ QtObject {
 		
 		themer = Themer
 	}
-
+ 
 }

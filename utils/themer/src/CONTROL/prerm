@@ -1,12 +1,7 @@
 #!/bin/bash
+ 
+. "${VE_ROOT_DIR:-}/data/themer/install-helper"
 
-declare package_name="themer"
+install_helper_pre_remove
 
-. "${VE_ROOT_DIR:-}/data/opkg-manager/opkg-common"
-
-opkg_common_unregister_package "${package_name}"
-
-. /data/themer/themer-common
-themer_common_remove_patch_from_files
-
-echo "successfully removed ${package_name}"
+echo "successfully removed themer"

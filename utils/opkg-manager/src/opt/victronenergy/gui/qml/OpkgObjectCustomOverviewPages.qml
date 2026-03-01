@@ -1,19 +1,57 @@
 import QtQuick 2
 import ".."
+import "opkg-utils.js" as OpkgUtils
 
 QtObject {
 
-  property VBusItem customPages: VBusItem { bind: "com.victronenergy.settings/Settings/Themes/CustomOverviewPages" }
-	
-	Connections {
+  property VBusItem customPages: VBusItem { bind: "com.victronenergy.settings/Settings/OpkgManager/CustomOverviewPages" }
+
+	property Connections connections: Connections{
 		target: customPages
 		function onValueChanged() {
-			if (!customPages.valid || customPages.value.length === 0)
+			if (!customPages.valid || customPages.value?.length === 0) {
+				console.log("onValueChanged:exit")
 				return;
-			addRemoveCustomOverviewPages(customPages.value);
+			}
+			
+			OpkgUtils.addRemoveCustomModelItems(customPages, getPageIndex, addRemoveItem);
+			
 		}
 	}
+	
+	//Component.onCompleted: {
  
+	//}
+
+	function addRemoveItem(action, index, pageFileName) {
+ 
+		if (action==="-") {
+			overviewModel.remove(index)
+			return
+		}
+		if (action==="*") { // replace
+			overviewModel.get(index).pageSource === pageFileName
+			return
+		}
+ 
+		overviewModel.append({"pageSource": pageFileName})
+		if (index==-2) { 
+			return // add to end
+		}
+ 
+		// Then move all the pages behind index
+		overviewModel.move(index, overviewModel.count - 2, overviewModel.count - 2)
+ 
+	}
+
+	function getPageIndex(page)
+	{
+		for (var i = 0; i < overviewModel.count; i++)
+			if (overviewModel.get(i).pageSource === page)
+				return i
+		return -1
+	}
+	
 	function addRemoveCustomOverviewPages(customPages) {
 		if (customPages == undefined)
 			return
@@ -58,11 +96,12 @@ QtObject {
 				index = undefined;
 			}
 			// Add .qml if not present
-			if (pageName.indexOf(".qml") === -1) {
+			if (! pageName.endsWith(".qml")) {
 				pageName = pageName + ".qml";
 			}
 			extraOverview(pageName, show, index);
 		}
 
 	}
+ 
 }

@@ -1,18 +1,7 @@
 #!/bin/bash
 
-declare package_name="opkg-manager"
+. "${VE_ROOT_DIR:-}/data/opkg-manager/install-helper"
 
-declare rc_local_script="
-# ${package_name} (do not edit)
-${VE_ROOT_DIR:-}/data/opkg-manager/rc.local.d/startup
-"
+install_helper_pre_remove
 
-. "${VE_ROOT_DIR:-}/data/${package_name}/opkg-common"
-
-opkg_common_remove_script_from_rc_local "${rc_local_script}"
-
-opkg_common_unregister_package "${package_name}"
-
-opkg_common_remove_feed_symlink
-
-echo "successfully removed ${package_name}"
+echo "successfully removed opkg-manager"

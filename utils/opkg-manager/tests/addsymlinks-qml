@@ -31,6 +31,14 @@ QML_FILES=(
 		PageSettingsOPKGFeedEdit.qml
 	
 	OpkgObjectCustomOverviewPages.qml
+	OpkgPageSettingsCustomMenus.qml
+	OpkgPageSettingsSubMenu.qml
+	
+	opkg-utils.js
+
+	MySubMenu.qml
+	MyCustomOverviewPage.qml
+
 )
 # Icons
 QML_ICONS_FILES=(

@@ -38,7 +38,6 @@ __count_of_filled_props_byref() {
   return 0
 }
 
-
 # requires: UDEVADM_PROPS
 # args_byref props
 # optional args_byref count

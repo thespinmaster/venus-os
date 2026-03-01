@@ -64,12 +64,12 @@ sdi_detect_usb_device() {
 sdi_apply_device() {
   
   local this_path=$(dirname "${BASH_SOURCE[0]}")
-  . $this_path/serial-device-installer
-  . $this_path/libs/conf-lib
+  . $this_path/../serial-device-installer
+  . $this_path/../libs/conf-lib
   INTERACTIVE=0
 
-  local confFile=/data/dev/services/dbus-inetbox/src/data/dbus-inetbox/dbus-inetbox.conf
-  conf_lib_load_with_schema "$confFile"
+  local conf_file=/data/dev/services/dbus-inetbox/src/data/dbus-inetbox/dbus-inetbox.conf
+  conf_lib_load_with_schema "$conf_file"
  
   TTY=ttyACM0 # todo get tty from json
  

@@ -194,7 +194,7 @@ _open_command() {
 # reads the commands in a <name>.patch file and applys the result to the supplied file
 # $1: the file to apply the patch commands too
 # $2: the file containing the patch commands to apply.  
-apply_patch() { 
+file_patcher_apply_patch() { 
   
     local patchfile="$1"
     local filename="${2:-}"
@@ -280,12 +280,12 @@ apply_patch() {
 # reverts the changes that were applied using the apply_patch method
 # $1: the file to apply the patch commands too
 # $2: the file containing the patch commands to revert.  
-revert_patch() {
+file_patcher_revert_patch() {
     local filename="$1"
     local patchfile="$2"
     local -i file_start file_end
     local -i patch_start patch_end
-    local -i insert_at_file_pos insert_patch_start 
+    local -i insert_at_file_pos 
     local -i p=0 isFileOpen=0
 
     _read_patch_lines "$patchfile"
@@ -306,26 +306,22 @@ revert_patch() {
 
         case "${PATCH_LINES[$p]}" in
         @remove)  
-            p=$((p+1))
-            # shellcheck disable=SC2086
-            _file 1 file_start file_end patch_start patch_end
-            if [[ $file_start -gt -1 ]] && [[ "${FILE_LINES[$file_start]}" == "/*" ]] ; then
-                # shellcheck disable=SC2086
+
+            _getCommandBounds $p patch_start patch_end
+            _find 1 file_start file_end patch_start patch_end
+            if ((file_start!=-1)) && [[ "${FILE_LINES[$file_start]}" == "/*" ]] ; then
                 _remove_range $file_end $((file_end))
-                # shellcheck disable=SC2086
                 _remove_range $file_start $((file_start))
             fi
-        
+
             file_start=-1; file_end=-1; patch_start=-1; patch_end=-1
             ;;
         @insertbefore | @insertafter)
 
             # search FILE_LINES for matching lines contained in PATCH_LINES (upto end ''===='')
-            p=$((p+1))
-            # shellcheck disable=SC2086
+            _getCommandBounds $p patch_start patch_end
             _file 1 file_start file_end patch_start patch_end
-            if [[ $file_start -gt -1 ]] ; then
-                # shellcheck disable=SC2086
+            if ((file_start!=-1)); then
                 _remove_range $file_start $file_end
             fi
         
@@ -353,9 +349,9 @@ revert_patch() {
 # Main
 # shellcheck disable=SC2317
 if [ "$1" = "apply" ]; then
-    apply_patch "$2" "$3"
+    file_patcher_apply_patch "$2" "$3"
 elif [ "$1" = "revert" ]; then
-    revert_patch "$2" "$3"
+    file_patcher_revert_patch "$2" "$3"
 else
     echo "Usage: $0 apply|revert <file_to_patch> <patch_file>"
     exit 1
