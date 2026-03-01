@@ -1,3 +1,8 @@
+Version: none
+MD5Sum: df5245e8b0e5a7d05cb12564bb10ebe1
+Size: 68368
+Filename: mount-shares_1.0.1_all.ipk
+
 Package: dbus-inetbox
 Version: 0.0.1
 Depends: opkg-manager, python3
@@ -40,21 +45,6 @@ Filename: dbus-relay-board_1.0.0_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feeds/main/dbus-relay-board
 Description:  Add support to RS485, RS232 and TTL232 relay boards
 OE: dbus-relay-board
-License: MIT
-Priority: optional
-
-Package: mount-shares
-Version: 1.0.1
-Depends: opkg-manager
-Section: utilities
-Architecture: all
-Maintainer: thespinmaster@github.com
-MD5Sum: 118caf432691c44daf9bd3be2a7b7496
-Size: 68630
-Filename: mount-shares_1.0.1_all.ipk
-Source: https://github.com/thespinmaster/venus-os/tree/main/feeds/main/mount-shares
-Description:  Adds support for nfs and cifs shares to Venus OS
-OE: mount-shares
 License: MIT
 Priority: optional
 

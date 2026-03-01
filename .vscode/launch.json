@@ -109,7 +109,7 @@
             "presentation": { "group": "python" },
             "request": "launch",
             "name": "Python - opkg-make-index",
-            "cwd": "${workspaceFolder}/feeds/main",
+            "cwd": "${workspaceFolder}/feeds/opkg-manager",
             "program": "${workspaceFolder}/tooling/opkg-utils/opkg-make-index",
             "args": ["-p", "Packages", "./"]
         },

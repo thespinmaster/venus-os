@@ -4,6 +4,8 @@ which opkg-build &>/dev/null || { echo "ERROR: opkg-build not installed"; exit 1
 
 this_path="$(dirname "${BASH_SOURCE[0]}")"
  
+
+
 declare comment=
 
 if [[ -z "${1}" ]]; then
@@ -25,10 +27,11 @@ cd "$this_path"
 
 build_feed_index() {
   cd "${1}" || exit 1
-  opkg-make-index -p Packages ./ ##1>/dev/null
+  opkg-make-index -p Packages ./ 1>/dev/null
   echo "feed ${1} updated"
 }
-
+build_feed_index "/data/dev/feeds/opkg-manager"
+exit
 build_feed_indexes() {
   # Loop through all values in update_feeds and call build_feed_index
   for feed_path in "${update_feeds[@]}"; do
