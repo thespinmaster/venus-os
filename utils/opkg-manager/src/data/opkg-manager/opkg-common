@@ -9,17 +9,17 @@ readonly opkg_registered_packages_file="${opkg_helpers_path}/registered-packages
 readonly opkg_rc_local_d_dir="${opkg_helpers_path}/rc.local.d"
 readonly resize2fs_file="$/opt/victronenergy/swupdate-scripts/resize2fs.sh"
 
-declare OPKG_MANAGER_FEED_NAME="opkg-manager"
-declare OPKG_DEFAULT_FEED_NAME="thespinmaster"
-declare OPKG_DEFAULT_FEED_PATH="main"
+OPKG_MANAGER_FEED_NAME="opkg-manager"
+OPKG_MAIN_FEED_NAME="thespinmaster"
+OPKG_MAIN_FEED_PATH="main"
 
-declare OPKG_FEED_PATH="${VENUS_ROOT_DIR:-}/etc/opkg"
-declare OPKG_FEED_LOCAL_CONFIG_FILE="${opkg_helpers_path}/opkg-manager.conf"
-declare OPKG_FEED_CONFIG_FILE="${OPKG_FEED_PATH}/opkg-manager.conf"
-declare OPKG_FEED_BASE_URL="https://github.com/${OPKG_DEFAULT_FEED_NAME}/venus-os/raw/refs/heads/main/feeds"
+OPKG_FEED_PATH="${VENUS_ROOT_DIR:-}/etc/opkg"
+OPKG_FEED_LOCAL_CONFIG_FILE="${opkg_helpers_path}/opkg-manager.conf"
+OPKG_FEED_CONFIG_FILE="${OPKG_FEED_PATH}/opkg-manager.conf"
+OPKG_FEED_BASE_URL="https://github.com/${OPKG_MAIN_FEED_NAME}/venus-os/raw/refs/heads/main/feeds"
 
-declare OPKG_PACKAGES_JSON_CACHE_FILE="/tmp/opkg-common-list-packages.json"
-declare OPKG_FEEDS_JSON_CACHE_FILE="/tmp/opkg-common-feeds.json"
+OPKG_PACKAGES_JSON_CACHE_FILE="/tmp/opkg-common-list-packages.json"
+OPKG_FEEDS_JSON_CACHE_FILE="/tmp/opkg-common-feeds.json"
 
 #readonly LOG=${opkg_helpers_path}/log
 
@@ -76,42 +76,46 @@ __restore_previous_fs_access() {
 opkg_common_ensure_feeds() {
 
   log "ensure opkg feed"
-  
-  local -i include_default_feed=0
+ 
+  local feed_manager="src/gz ${OPKG_MANAGER_FEED_NAME} ${OPKG_FEED_BASE_URL}/${OPKG_MANAGER_FEED_NAME}"
 
   if [[ ! -f "${OPKG_FEED_LOCAL_CONFIG_FILE}" ]]; then
-    include_default_feed=1
-  fi
+    echo "$feed_manager" > "${OPKG_FEED_LOCAL_CONFIG_FILE}" 
+
+    local feed_main="src/gz ${OPKG_MAIN_FEED_NAME} ${OPKG_FEED_BASE_URL}/${OPKG_MAIN_FEED_PATH}"
+    echo "$feed_main" >> "${OPKG_FEED_LOCAL_CONFIG_FILE}" 
  
-  __opkg_common_feed_crud "add" "${OPKG_MANAGER_FEED_NAME}" "${OPKG_FEED_BASE_URL}/${OPKG_MANAGER_FEED_NAME}" ""
-  if ((include_default_feed)); then
-    __opkg_common_feed_crud "add" "${OPKG_DEFAULT_FEED_NAME}" "${OPKG_FEED_BASE_URL}/${OPKG_DEFAULT_FEED_PATH}" ""
+  elif ! grep -q "$feed_manager" "$OPKG_FEED_LOCAL_CONFIG_FILE"; then
+    echo "$feed_manager" >> "${OPKG_FEED_LOCAL_CONFIG_FILE}" 
   fi
  
   log "creating opkg feed symlink"
   ln -sf "$OPKG_FEED_LOCAL_CONFIG_FILE" "$OPKG_FEED_CONFIG_FILE"
-
-  # remove_feed_symlink removes the symlink only if the 
-  # target does not exist
-  # if the target does not exist opkg throws errors
-  opkg_common_remove_feed_symlink
+ 
 }
 
 opkg_common_update_packages() {
+  local msg="${1:-}"
+
   (
     while [ -e /run/opkg.lock ]; do
       sleep 0.5
     done
     opkg update
+    
+    if [[ -n "${msg}" ]]; then
+      echo "${msg}"
+    fi
   ) &
-}
 
+}
+ 
 opkg_common_remove_feed_symlink() {
-  if [[ ! -f "${OPKG_FEED_LOCAL_CONFIG_FILE}" ]]; then
+  #if [[ ! -f "${OPKG_FEED_LOCAL_CONFIG_FILE}" ]]; then
     if [ -L "${OPKG_FEED_CONFIG_FILE}" ]; then
       rm "${OPKG_FEED_CONFIG_FILE}"
     fi
-  fi
+  #fi
 }
 
 __ensure_rc_local() {

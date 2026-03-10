@@ -4,4 +4,4 @@
 
 install_helper_post_install
 
-echo "successfully installed ${opkg-manager}"
+

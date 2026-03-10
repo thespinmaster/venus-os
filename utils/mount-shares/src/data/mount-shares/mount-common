@@ -335,7 +335,7 @@ EOF
   local password=
   local options=
   local mount_settings=
-  
+  local prompt_options=
   while [ $# -gt 0 ]; do
     case "$1" in
     --name* | -n*)
@@ -378,16 +378,20 @@ EOF
   [[ "${name}" =~ ^[A-Za-z0-9_]+$ && "${name}" =~ [A-Za-z0-9] ]] || {
     log_error "ERROR: Invalid name: Only alpha numeric characters with underscores allowed"; return 1; }
 
+  [[ -z "${target}" ]] && prompt_options=1
   [[ -z "${source}" ]] && __mount_common___read -r -p "Enter server ip/host address and path: " source
   [[ -z "${target}" ]] && __mount_common___read -r -p "Enter local mount point folder: " target
   [[ -z "${username}" ]] && __mount_common___read -r -p "Enter username for share: " username
   [[ -z "${password}" ]] && __mount_common___read -r -s -p "Enter password for share: " password
- 
+
   if [[ -z "${source}" ]] || [[ -z "${target}" ]]; then
     log_error "ERROR: required args missing"
     return 1
   fi
-  
+  # options may often be empty so check use prompt_options based off of target
+
+  ((prompt_options)) && __mount_common___read -r -p "Enter any custom options: " options
+ 
   # validate before adding to mountpoint_conf_file
   local type="cifs"
 

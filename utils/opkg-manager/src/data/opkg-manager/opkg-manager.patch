@@ -1,25 +1,26 @@
 @openfile
 ====
-/data/victronenergy/qml/main.qml
+/opt/victronenergy/gui/qml/main.qml
 ====
 @findbackwards
 ====
 }
 ====
-$insertbefore
+@insertbefore
 ====
-  //opkg-manager 1.0
-  OpkgObjectCustomOverviewPages {}
+	//opkg-manager 1.0
+	OpkgObjectCustomOverviewPages {}
 ====
 @openfile
 ====
-/data/victronenergy/qml/PageSettings.qml
+/opt/victronenergy/gui/qml/PageSettings.qml
 ====
 @findbackwards
 ====
 }
 ====
-$insertbefore
-  //opkg-manager 1.0
-  OpkgPageSettingsCustomMenus {}
+@insertbefore
+====
+	//opkg-manager 1.0
+	OpkgPageSettingsCustomMenus {}
 ====

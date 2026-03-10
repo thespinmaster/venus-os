@@ -18,6 +18,8 @@ __load_source_file() {
 	__appendDataDir "${1}" source_file
 	[[ -f ${source_file} ]] || { echo "ERROR: source file does not exist:${source_file}" >&2; exit 1; }
 
+	set -- # resets $1, $2, ...
+	
 	# shellcheck disable=SC1090
 	. "${source_file}"
 	

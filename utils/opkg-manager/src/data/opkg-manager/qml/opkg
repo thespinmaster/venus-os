@@ -18,6 +18,8 @@ opkg_get_feeds() {
 	local feeds_mtime=0
 	local cache_mtime=0
 
+  echo "opkg_get_feeds:in"
+  
   # note use stat -L so it follows symlinks for getting the time
 
 	if [[ -f "$feeds_file" ]]; then
@@ -447,6 +449,7 @@ opkg_qml_list_packages() {
 
 case "${1:-}" in
 	get-feeds)
+
 		opkg_get_feeds
 		;;
 	add-feed)

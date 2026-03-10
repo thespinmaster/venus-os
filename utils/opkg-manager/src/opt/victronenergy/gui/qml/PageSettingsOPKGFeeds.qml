@@ -18,6 +18,7 @@ MbPage {
 	}
 
 	Component.onCompleted: {
+		console.log("opkg-feeds:onCompleted")
 		opkgRunner.operationName = "get-feeds"
 		opkgRunner.start(["get-feeds"])
 	}
@@ -94,6 +95,7 @@ MbPage {
 			if (opkgRunner.running) {
 				return
 			}
+			console.log("opkg-feeds:leftAction")
 			var page = editFeedPageComponent.createObject(pageStack, { isNew: true });
 			if (page) {
 				pageStack.push(page);

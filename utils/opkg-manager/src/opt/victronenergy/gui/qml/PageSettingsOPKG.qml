@@ -6,6 +6,12 @@ MbPage {
 	id: root
 	title: qsTr("Open Package Manager")
 
+	Component.onCompleted: {
+		console.debug("PageSettingsOPKG")
+		// opkgRunner.operationName = "get-feeds"
+		// opkgRunner.start(["get-feeds"])
+	}
+
   model: VisibleItemModel {
     MbSubMenu {
       description: qsTr("Packages")

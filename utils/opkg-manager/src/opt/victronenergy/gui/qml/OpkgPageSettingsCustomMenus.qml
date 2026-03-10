@@ -14,6 +14,7 @@ QtObject {
 		if (calledFromOnCompleted==0)
 			calledFromOnCompleted==1
 
+		console.log("OpkgPageSettingsCustomMenus:onCompleted")
 		addRemoveItems()
 	}
 
@@ -25,7 +26,8 @@ QtObject {
 				calledFromOnCompleted=2
 				return
 			}
- 
+
+			console.log("OpkgPageSettingsCustomMenus:onValueChanged")
 			addRemoveItems()
 		}
 	}
@@ -50,7 +52,8 @@ QtObject {
 			model.append(instance)
 			return
 		}
-		console.log("addOpkgSettingsSubMenu:NOT READY")
+ 
+		console.log("OpkgPageSettingsSubMenu.qml - Status: " + component.status + ", Error: " + component.errorString())
 	}
 
 	function addRemoveItem(action, index, qmlFileName) {

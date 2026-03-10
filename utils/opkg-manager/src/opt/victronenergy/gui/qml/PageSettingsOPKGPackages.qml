@@ -41,11 +41,11 @@ MbPage {
  
 	pageToolbarHandler: ToolbarHandler {
  
-		function centerAction() {
+		function leftAction() {
 			Vm.loadPackages(processRunner, packageModel, "list-packages-update", "update")
 		}
 
-		centerText: qsTr("Refresh")  
+		leftText: qsTr("Refresh")  
 
 	}
  

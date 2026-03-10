@@ -3,14 +3,16 @@
 set -o nounset
  
 declare -i PATCH_LENGTH=0
-declare -a PATCH_LINES
-declare -a FILE_LINES
+declare -a PATCH_LINES=()
+declare -a FILE_LINES=()
 
 # Read file into array FILE_LINES
 # $1: the file to read the files from
 _read_file_lines() {
     local filename="${1}"
+    [[ -f  "$filename" ]] || { echo "file-patcher: file not found: {$filename}"; return 1; } 
     mapfile -t FILE_LINES < "$filename"
+    
 }
 
 # reads the patch file into the PATCH_LINES array.
@@ -18,6 +20,7 @@ _read_file_lines() {
 # PATCH_LENGTH is set to the number size of the array
 _read_patch_lines() {
     local filename="${1}"
+    [[ -f  "$filename" ]] || { echo "file-patcher: patcher-file not found: {$filename}"; return 1; } 
     mapfile -t PATCH_LINES < "$filename"
     PATCH_LENGTH=${#PATCH_LINES[@]}
 }
@@ -26,7 +29,7 @@ _read_patch_lines() {
 # $1: the file name to write the FILE_LINES array too
 _write_file_lines() {
     local filename="${1}"
-    printf "%s\n" "${FILE_LINES[@]}" >"${filename}"
+    printf "%s\n" "${FILE_LINES[@]}" > "${filename}"
 }
 
 # shellcheck disable=SC2329
@@ -121,7 +124,7 @@ _find() {
         step=-1; file_exit_index=-1; patch_exit_index=-1
         patch_start_index=$patch_end
     fi
- 
+    
     while ((f!=file_exit_index)); do
 
 		p=$patch_start_index
@@ -131,7 +134,7 @@ _find() {
         elif [[ "${FILE_LINES[$f]}" =~ ^[[:space:]]*\*/ ]]; then
             comment_count=$((comment_count-step))
 		fi
-        ((comment_count)) && { f=$((f+step)); continue; } # don't search in comments
+        ((comment_count)) && { f=$((f+step)); continue; } # don't search in block comments
 
         while ((p!=patch_exit_index)); do
 
@@ -167,27 +170,28 @@ _find() {
 
 _open_command() {
     local -n __filename=$1
-    local -n __p=$2
-    local -n __isFileOpen=$3
-    local fileName=$__filename
-
-    if ((__isFileOpen)); then
-        _write_file_lines "$filename"
-        FILE_LINES=();
-        __isFileOpen=0;
+    local -n __index=$2
+    local -n __fileopen=$3
+ 
+    if ((__fileopen)); then
+        _write_file_lines "$__filename"
+        FILE_LINES=()
+        __fileopen=0
     fi
-    __p=$((__p+2))
-    filename="${PATCH_LINES[$__p]}"
-    [[ ! -f $fileName ]] || { 
-        echo "WARNING: File not found: $filename" >&2
-        __p=$((__p+2))
-        return; 
-    }
 
-    _read_file_lines "$filename"
-    __fileName=$fileName
-    __isFileOpen=1
-    __p=$((__p+2))
+    __index=$((__index+2))
+    __filename="${PATCH_LINES[$__index]}"
+
+    if [[ ! -f "$__filename" ]]; then
+        echo "WARNING: File not found: $__filename" >&2
+        __filename=""
+        __index=$((__index+2))
+        return
+    fi
+
+    _read_file_lines "$__filename"
+    __fileopen=1
+    __index=$((__index+2))
 }
 
 # shellcheck disable=SC2329
@@ -206,22 +210,26 @@ file_patcher_apply_patch() {
     _read_patch_lines "$patchfile"
     
     if [[ -f $filename ]]; then
-         _read_file_lines "$filename"
+        _read_file_lines "$filename2"
+        (($?!=0)) && return
         fileopen=1
     fi
-
+ 
     while ((p < PATCH_LENGTH)); do
        
         #echo "index: $p, ${#PATCH_LINES[@]}, value: ${PATCH_LINES[$p]}"
         if [[ "${PATCH_LINES[$p]}" == "@openfile" ]]; then
             _open_command filename p fileopen
         fi
-
-        ((!fileopen)) && continue
+ 
+        if ((!fileopen)); then
+            ((p+=1)); 
+            continue; 
+        fi
  
         case "${PATCH_LINES[$p]}" in
         @find | @findbackwards)
-            echo "${PATCH_LINES[$p]}"
+            #echo "${PATCH_LINES[$p]}"
             direction=1; [[ ${PATCH_LINES[$p]} == "@findbackwards" ]] && direction=-1
             _getCommandBounds $p patch_start patch_end
             # search FILE_LINES for matching lines contained in PATCH_LINES (upto end ''===='')
@@ -229,7 +237,7 @@ file_patcher_apply_patch() {
             p=$((patch_end+1))
             ;;
         @insertbefore | @insertafter)
-            echo "${PATCH_LINES[$p]}"
+            #echo "${PATCH_LINES[$p]}"
 
             [[ $file_start -eq -1 ]] && break
             
@@ -255,7 +263,7 @@ file_patcher_apply_patch() {
            
             ;;
         @remove)
-            echo "${PATCH_LINES[$p]}"
+            #echo "${PATCH_LINES[$p]}"
 
             _getCommandBounds $p patch_start patch_end
  
@@ -281,34 +289,37 @@ file_patcher_apply_patch() {
 # $1: the file to apply the patch commands too
 # $2: the file containing the patch commands to revert.  
 file_patcher_revert_patch() {
-    local filename="$1"
-    local patchfile="$2"
-    local -i file_start file_end
-    local -i patch_start patch_end
+    local patchfile="$1"
+    local filename="${2:-}"
+    local -i file_start=0 file_end=0
+    local -i patch_start=0 patch_end=0
     local -i insert_at_file_pos 
-    local -i p=0 isFileOpen=0
-
+    local -i p=0 fileopen=0
+ 
     _read_patch_lines "$patchfile"
  
     if [[ -f $filename ]]; then
          _read_file_lines "$filename"
-        isFileOpen=1
+        fileopen=1
     fi
 
-    for (( p=0; p<PATCH_LENGTH; p++ )); do
+    while ((p < PATCH_LENGTH)); do
  
         #echo "index: $p, ${#PATCH_LINES[@]}, value: ${PATCH_LINES[$p]}"
         if [[ "${PATCH_LINES[$p]}" == @openfile ]]; then
-            _open_command filename p isFileOpen
+            _open_command filename p fileopen
         fi
-
-        ((!isFileOpen)) && continue
+        
+        if ((!fileopen)); then
+            ((p+=1)); 
+            continue; 
+        fi
 
         case "${PATCH_LINES[$p]}" in
         @remove)  
 
             _getCommandBounds $p patch_start patch_end
-            _find 1 file_start file_end patch_start patch_end
+            _find 1 $patch_start $patch_end file_start file_end
             if ((file_start!=-1)) && [[ "${FILE_LINES[$file_start]}" == "/*" ]] ; then
                 _remove_range $file_end $((file_end))
                 _remove_range $file_start $((file_start))
@@ -320,7 +331,8 @@ file_patcher_revert_patch() {
 
             # search FILE_LINES for matching lines contained in PATCH_LINES (upto end ''===='')
             _getCommandBounds $p patch_start patch_end
-            _file 1 file_start file_end patch_start patch_end
+            _find 1 $patch_start $patch_end file_start file_end
+ 
             if ((file_start!=-1)); then
                 _remove_range $file_start $file_end
             fi
@@ -328,31 +340,18 @@ file_patcher_revert_patch() {
             file_start=-1; file_end=-1; patch_start=-1; patch_end=-1
             ;;
         esac
+        ((p+=1)); 
     done
 
-    _write_file_lines "$filename"
+    if ((fileopen)); then
+        _write_file_lines "$filename"
+    fi
 }
 
-
-#BASH_ARGV1="apply"
-#BASH_ARGV2="./test.working"
-#BASH_ARGV3="./test2.patch"
- 
-#set -- "${BASH_ARGV1}" "${BASH_ARGV2}" "${BASH_ARGV3}"
- 
-#cp "./test.orig" "$2"
-
-#apply_patch "$3"
-#revert_patch "$2" "$3"
-#exit 0
-
-# Main
-# shellcheck disable=SC2317
-if [ "$1" = "apply" ]; then
-    file_patcher_apply_patch "$2" "$3"
-elif [ "$1" = "revert" ]; then
+if [[ "${1:-}" = "apply" ]]; then
+    file_patcher_apply_patch "$2" "${3:-}"
+elif [[ "${1:-}" = "revert" ]]; then
     file_patcher_revert_patch "$2" "$3"
-else
-    echo "Usage: $0 apply|revert <file_to_patch> <patch_file>"
-    exit 1
+elif [[ -n "${1:-}" ]]; then
+    echo "file-patcher: Usage: $0 apply|revert <patch_file> <optional file_to_patch>"
 fi

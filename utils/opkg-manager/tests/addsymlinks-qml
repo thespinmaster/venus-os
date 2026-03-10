@@ -36,10 +36,12 @@ QML_FILES=(
 	
 	opkg-utils.js
 
-	MySubMenu.qml
-	MyCustomOverviewPage.qml
+
 
 )
+	#MySubMenu.qml
+	#MyCustomOverviewPage.qml
+
 # Icons
 QML_ICONS_FILES=(
 	icon-opkg-manager-tick.svg

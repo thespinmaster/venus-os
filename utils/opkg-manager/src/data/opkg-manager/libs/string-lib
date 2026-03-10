@@ -287,17 +287,19 @@ EOF
         (( found += 1 ))
         if (( opt_find_only == 0 )); then
           if (( opt_trim_lines == 0 )); then
-            #local _d1; make_debug_str "${output:0:match_start}" _d1
+            local _d1; make_debug_str "${output:0:match_start}" _d1
             #local _d2; make_debug_str "${opt_replacement_text}" _d2
             output="${output:0:match_start}${opt_replacement_text}"
             [[ "${opt_replacement_text}" ]] && output+="${newline}"
           else
-            _d=; make_debug_str "${output:(match_start-1):1}" _d
-            while [[ "${output:(match_start-1):1}" == [[:space:]] ]]; do
+            #_d=; make_debug_str "${output:(match_start-1):1}" _d
+            #local _d2; make_debug_str "${opt_replacement_text}" _d2
+            ((match_start>0)) && _d2="hello"
+            while ((match_start>0)) && [[ "${output:(match_start-1):1}" == [[:space:]] ]]; do
               match_start=$((match_start-1))
             done
             output="${output:0:match_start}${newline}${opt_replacement_text}"
-       
+            #local _d3; make_debug_str "${output}" _d3
             trim_forward_newlines=1
           fi
         elif (( opt_break_on_first == 1 )); then
@@ -313,7 +315,7 @@ EOF
   done
 
   if (( opt_find_only == 0 )); then
-    #local _d=; make_debug_str "${output}" _d
+    # local _d=; make_debug_str "${output}" _d
     printf '%s' "${output}"
   elif (( found > 0)); then
     printf '%s' "$found"
