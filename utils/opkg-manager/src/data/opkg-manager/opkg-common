@@ -7,7 +7,7 @@ readonly opkg_helpers_path="${VENUS_ROOT_DIR:-}/data/opkg-manager"
 readonly opkg_registered_packages_file="${opkg_helpers_path}/registered-packages.conf"
 # shellcheck disable=SC2034
 readonly opkg_rc_local_d_dir="${opkg_helpers_path}/rc.local.d"
-readonly resize2fs_file="$/opt/victronenergy/swupdate-scripts/resize2fs.sh"
+readonly resize2fs_file="/opt/victronenergy/swupdate-scripts/resize2fs.sh"
 
 OPKG_MANAGER_FEED_NAME="opkg-manager"
 OPKG_MAIN_FEED_NAME="thespinmaster"
@@ -94,13 +94,17 @@ opkg_common_ensure_feeds() {
  
 }
 
+__wait_for_opkg() {
+  while [ -e /run/opkg.lock ]; do
+    sleep 0.5
+  done
+}
+
 opkg_common_update_packages() {
   local msg="${1:-}"
 
   (
-    while [ -e /run/opkg.lock ]; do
-      sleep 0.5
-    done
+    _wait_for_opkg
     opkg update
     
     if [[ -n "${msg}" ]]; then
@@ -244,12 +248,21 @@ opkg_common_ensure_installed() {
   log "opkg_common_ensure_installed"
  
   log_push_indent
-  
+  local isfirst=1
+
   while IFS= read -r line
   do
     # ignore comments and empty lines
-    [[ -z "${line//[[:space:]]/}" || $line == \#* ]]  && continue
+    [[ -z "${line//[[:space:]]/}" || $line == \#* ]] && continue
+    
+    if [[ isfirst == 1 ]]; then
+      isfirst=0
+    else
+      sleep 1
+    fi
  
+    __wait_for_opkg
+    
     __opkg_common_try_install_package "${line}"
 
   done < "${opkg_registered_packages_file}"

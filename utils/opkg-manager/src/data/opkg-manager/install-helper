@@ -52,9 +52,12 @@ install_helper_post_install() {
 
     _install_helper_patch_files
     
+    echo "restarting gui service..."
+    svc -t /service/gui
+
     echo "please wait, updating packages..."
     opkg_common_update_packages "successfully installed ${opkg-manager}"
-  
+
 }
 
 _install_helper_patch_files()
