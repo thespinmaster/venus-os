@@ -6,6 +6,83 @@ declare -i PATCH_LENGTH=0
 declare -a PATCH_LINES=()
 declare -a FILE_LINES=()
 
+
+__get_venus_verion_byref() {
+  local -n __version="${1}"
+
+  if [ -f "/opt/victronenergy/version" ]; then
+    __version="$(cat /opt/victronenergy/version | head -n 1)"
+    __version=${__version:1}
+  else
+    __version=""
+  fi
+}
+
+__version_check() {
+    local conditions=$1  # e.g., "<3.66", ">3.66", "=3.66", ">=3.70", ">3.66 <3.70"
+    local version=$2    # e.g., "3.62"
+    
+    # Handle multiple conditions (AND logic)
+    local condition
+    for condition in $conditions; do
+        __version_check_single "$condition" "$version" || return 1
+    done
+    return 0
+}
+
+# Check a single version condition
+__version_check_single() {
+    local condition=$1
+    local version=$2
+    
+    # Extract operator and required version
+    # Handle >=, <=, =, >, <
+    local op op_len required_version
+    
+    if [[ $condition == ">="* ]]; then
+        op=">="
+        op_len=2
+    elif [[ $condition == "<="* ]]; then
+        op="<="
+        op_len=2
+    else
+        op=${condition:0:1}
+        op_len=1
+    fi
+    
+    required_version=${condition:$op_len}
+    
+    # Handle equality
+    if [[ $op == "=" ]]; then
+        [[ $required_version == $version ]]
+        return
+    fi
+    
+    # Handle version comparison
+    if [[ $required_version == $version ]]; then
+        # Equal versions
+        case $op in
+            ">="|"<="|"=") return 0 ;;
+            ">"|"<") return 1 ;;
+        esac
+    fi
+    
+    # Use sort -V to determine ordering
+    if [[ $(printf '%s\n' "$required_version" "$version" | sort -V | head -n1) == "$required_version" ]]; then
+        # required_version < version, so version > required_version
+        case $op in
+            ">" | ">=") return 0 ;;
+            "<" | "<=") return 1 ;;
+        esac
+    else
+        # required_version > version, so version < required_version
+        case $op in
+            "<" | "<=") return 0 ;;
+            ">" | ">=") return 1 ;;
+        esac
+    fi
+}
+
 # Read file into array FILE_LINES
 # $1: the file to read the files from
 _read_file_lines() {
@@ -210,27 +287,45 @@ file_patcher_apply_patch() {
     _read_patch_lines "$patchfile"
     
     if [[ -f $filename ]]; then
-        _read_file_lines "$filename2"
+        _read_file_lines "$filename"
         (($?!=0)) && return
         fileopen=1
     fi
- 
+    
+    local venus_version="" patch_line="" command="" version_condition=""
+
+    __get_venus_verion_byref venus_version
+
     while ((p < PATCH_LENGTH)); do
        
         #echo "index: $p, ${#PATCH_LINES[@]}, value: ${PATCH_LINES[$p]}"
-        if [[ "${PATCH_LINES[$p]}" == "@openfile" ]]; then
+        patch_line="${PATCH_LINES[$p]}"
+        
+        # Extract command (first word) and version condition
+        command="${patch_line%% *}"
+        version_condition=""
+        
+        # Check if there's a version condition
+        if [[ "$patch_line" != "$command" ]]; then
+            version_condition="${patch_line#* }"
+            if ! __version_check "$version_condition" "$venus_version"; then
+                _getCommandBounds $p patch_start patch_end
+                p=$((patch_end+2)) # +2 to jmp direct to next cmd
+                continue
+            fi
+        fi
+        
+        if [[ "$command" == "@openfile" ]]; then
             _open_command filename p fileopen
+            continue
         fi
  
-        if ((!fileopen)); then
-            ((p+=1)); 
-            continue; 
-        fi
+        ((!fileopen)) && { ((p+=1)); continue; }
  
-        case "${PATCH_LINES[$p]}" in
+        case "$command" in
         @find | @findbackwards)
             #echo "${PATCH_LINES[$p]}"
-            direction=1; [[ ${PATCH_LINES[$p]} == "@findbackwards" ]] && direction=-1
+            direction=1; [[ $command == "@findbackwards" ]] && direction=-1
             _getCommandBounds $p patch_start patch_end
             # search FILE_LINES for matching lines contained in PATCH_LINES (upto end ''===='')
             _find $direction $patch_start $patch_end file_start file_end
@@ -238,44 +333,37 @@ file_patcher_apply_patch() {
             ;;
         @insertbefore | @insertafter)
             #echo "${PATCH_LINES[$p]}"
-
-            [[ $file_start -eq -1 ]] && break
+            [[ $file_start -eq -1 ]] && { p=$((p+1)); continue; }
             
             _getCommandBounds $p patch_start patch_end
-            
             # ensure patch has not already been applied
             # search FILE_LINES for matching lines contained in PATCH_LINES (upto end ''===='')
-            # shellcheck disable=SC2034
             local -i fstart=$file_start fend=-1
             _find 1 $patch_start $patch_end fstart fend
             
-            if [[ $fstart -eq -1 ]] ; then
-                local -i insert_at_file_pos
-                if [[ "${PATCH_LINES[$p]}" == @insertbefore ]] ; then   
-                    insert_at_file_pos=$((file_start))
-                else
-                    insert_at_file_pos=$((file_end+1))
-                fi
-                _insert_patch $insert_at_file_pos $patch_start $patch_end
-            fi
-             p=$((patch_end+1))
-            file_start=-1; file_end=-1;
-           
+            [[ $fstart -ne -1 ]] && { p=$((patch_end+1)); ((p+=1)); continue; }
+            
+            local -i insert_at_file_pos=$((file_start))
+            [[ "$command" == @insertafter ]] && insert_at_file_pos=$((file_end+1))
+            
+            _insert_patch $insert_at_file_pos $patch_start $patch_end
+            p=$((patch_end+1))
+            file_start=-1; file_end=-1
             ;;
         @remove)
             #echo "${PATCH_LINES[$p]}"
-
             _getCommandBounds $p patch_start patch_end
- 
             _find 1 $patch_start $patch_end file_start file_end 
             p=$((patch_end+1))
-            [[ $file_start -eq -1 ]] && continue
+            
+            [[ $file_start -eq -1 ]] && { ((p+=1)); continue; }
+            
             file_end=$((file_end+1))
             _insert_line $file_end "*/"
             _insert_line $file_start "\*"
-            
             ;;
         esac
+        
         ((p+=1))
     done
 
@@ -303,19 +391,38 @@ file_patcher_revert_patch() {
         fileopen=1
     fi
 
+    local venus_version="" patch_line="" command="" version_condition=""
+
+    __get_venus_verion_byref venus_version
+
     while ((p < PATCH_LENGTH)); do
  
         #echo "index: $p, ${#PATCH_LINES[@]}, value: ${PATCH_LINES[$p]}"
-        if [[ "${PATCH_LINES[$p]}" == @openfile ]]; then
-            _open_command filename p fileopen
+        patch_line="${PATCH_LINES[$p]}"
+        
+        # Extract command (first word) and version condition
+        command="${patch_line%% *}"
+        version_condition=""
+        
+        # Check if there's a version condition
+        if [[ "$patch_line" != "$command" ]]; then
+            version_condition="${patch_line#* }"
+            if ! __version_check "$version_condition" "$venus_version"; then
+                _getCommandBounds $p patch_start patch_end
+                p=$((patch_end+1))
+                continue
+            fi
         fi
         
-        if ((!fileopen)); then
-            ((p+=1)); 
-            continue; 
+        if [[ "$command" == "@openfile" ]]; then
+            _open_command filename p fileopen
+            ((p+=1))
+            continue
         fi
+        
+        ((!fileopen)) && { ((p+=1)); continue; }
 
-        case "${PATCH_LINES[$p]}" in
+        case "$command" in
         @remove)  
 
             _getCommandBounds $p patch_start patch_end
@@ -355,3 +462,6 @@ elif [[ "${1:-}" = "revert" ]]; then
 elif [[ -n "${1:-}" ]]; then
     echo "file-patcher: Usage: $0 apply|revert <patch_file> <optional file_to_patch>"
 fi
+
+
+# file_patcher_apply_patch "opkg-manager.patch"

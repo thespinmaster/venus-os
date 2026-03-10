@@ -87,4 +87,3 @@ install_helper_pre_remove() {
   opkg_common_remove_feed_symlink
 
 }
- 

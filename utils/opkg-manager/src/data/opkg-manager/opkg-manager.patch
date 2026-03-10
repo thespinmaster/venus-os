@@ -1,6 +1,10 @@
-@openfile
+@openfile <3.70
 ====
 /opt/victronenergy/gui/qml/main.qml
+====
+@openfile >=3.70
+====
+/opt/victronenergy/gui/qml/Main.qml
 ====
 @findbackwards
 ====
@@ -11,7 +15,7 @@
 	//opkg-manager 1.0
 	OpkgObjectCustomOverviewPages {}
 ====
-@openfile
+@openfile 
 ====
 /opt/victronenergy/gui/qml/PageSettings.qml
 ====

@@ -422,20 +422,6 @@ mount_common_remove_mount()
   return 0
 }
 
-if [[ "${1:-}" == "mount_server" ]]; then
-  shift
-  mount_common_mount_server "$@"
-elif [[ "${1:-}" == "mount_cifs" ]]; then
-  shift
-  mount_common_mount_cifs "$@"
-elif [[ "${1:-}" == "waitformount" ]]; then
-  shift
-  mount_common_wait_on_mount_point "$@"
-elif [[ "${1:-}" == "mount-all" ]]; then
-  mount_common_mount_all
-elif [[ -n "${1:-}" ]]; then
- echo "invalid command: ${1:-}"
-fi
 
 case "${1:-}" in
   mount_server)
@@ -447,7 +433,12 @@ case "${1:-}" in
     mount_common_mount_cifs "$@"
     ;;
   mount-all)
+    shift
     mount_common_mount_all
+    ;;
+  waitformount)
+    shift
+    mount_common_wait_on_mount_point "$@"
     ;;
   *)
     [[ -n "${1:-}" ]] && echo "invalid command: ${1:-}"

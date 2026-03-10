@@ -21,6 +21,8 @@ OPKG_FEED_BASE_URL="https://github.com/${OPKG_MAIN_FEED_NAME}/venus-os/raw/refs/
 OPKG_PACKAGES_JSON_CACHE_FILE="/tmp/opkg-common-list-packages.json"
 OPKG_FEEDS_JSON_CACHE_FILE="/tmp/opkg-common-feeds.json"
 
+OPKG_VENUS_VERSION=
+
 #readonly LOG=${opkg_helpers_path}/log
 
 ___is_fs_readonly=
@@ -92,6 +94,16 @@ opkg_common_ensure_feeds() {
   log "creating opkg feed symlink"
   ln -sf "$OPKG_FEED_LOCAL_CONFIG_FILE" "$OPKG_FEED_CONFIG_FILE"
  
+}
+
+opkg_common_get_venus_verion_byref() {
+  local -n __version="${1}"
+
+  if [ -f "/opt/victronenergy/version" ]; then
+    __version="$(cat /opt/victronenergy/version | head -n 1)"
+  else
+    __version=""
+  fi
 }
 
 __wait_for_opkg() {
