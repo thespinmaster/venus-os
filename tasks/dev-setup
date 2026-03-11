@@ -5,16 +5,15 @@ set -e
 
 ensure_feed() {
 
-  local feed_config_file="/etc/opkg/thespinmaster.conf"
+  local feed_config_file="/etc/opkg/opkg-manager-tmp.conf"
   if [[ -f $feed_config_file ]]; then
     echo "removing existing feed file"
     rm $feed_config_file
   fi
   echo "adding opkg feed"
-  local feed_url="https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feeds/main"
   local feed_url="https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feeds/opkg-manager"
   echo "src/gz thespinmaster $feed_url" > "$feed_config_file"
-  
+ 
 }
 
 echo "configuring file system"

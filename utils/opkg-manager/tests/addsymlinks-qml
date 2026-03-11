@@ -22,13 +22,13 @@ QML_FILES=(
 	OpkgHeaderDescriptionItem.qml
 	OpkgEditBoxLargeText.qml
 	
-	PageSettingsOPKG.qml
-		PageSettingsOPKGPackages.qml
-		PageSettingsOPKGPackages.js
-			PageSettingsOPKGPackageInstall.qml
+	PageSettingOpkg.qml
+		PageSettingsOpkgPackages.qml
+		PageSettingsOpkgPackages.js
+			PageSettingsOpkgPackageInstall.qml
 
-	PageSettingsOPKGFeeds.qml
-		PageSettingsOPKGFeedEdit.qml
+	PageSettingsOpkgFeeds.qml
+		PageSettingsOpkgFeedEdit.qml
 	
 	OpkgObjectCustomOverviewPages.qml
 	OpkgPageSettingsCustomMenus.qml

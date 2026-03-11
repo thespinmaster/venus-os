@@ -4,6 +4,6 @@ import com.victron.velib 1.0
 
 MbSubMenu {
   description: qsTr("Open Package Manager")
-  subpage: Component { PageSettingsOPKG {} }
+  subpage: Component { PageSettingsOpkg {} }
 }
 
