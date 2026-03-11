@@ -52,8 +52,5 @@
 			"name": "rules.d",
 			"path": "../../etc/udev/rules.d"
 		}
-	],
-	"settings": {
-		"makefile.configureOnOpen": false
-	}
+	]
 }

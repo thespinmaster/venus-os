@@ -4,7 +4,7 @@ import com.victron.velib 1.0
 
 MbItem {
     id: root
-    width: pageStack && pageStack.currentPage ? pageStack.currentPage.width : 0
+    width: pageStack && pageStack.currentItem ? pageStack.currentItem.width : 0
     defaultHeight: Math.max(mbStyle.itemHeight, columnRoot.implicitHeight + mbStyle.marginDefault * 2)
     subpage: model && model.subpage ? model.subpage : undefined
     hasSubpage: subpage !== undefined
@@ -39,7 +39,7 @@ MbItem {
         MbTextDescription {
             id: description
             visible: !root.header || !(root.showCompact)
-            text: root.description ? root.description : ""
+            text: root.description || ""
             isCurrentItem: root.ListView.isCurrentItem
             wrapMode: root.descriptionWrapMode
             font.pixelSize: root.header ? 13 : mbStyle.fontPixelSize

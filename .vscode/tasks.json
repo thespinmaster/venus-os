@@ -1,17 +1,21 @@
 {
-  // See https://go.microsoft.com/fwlink/?LinkId=733558
-  // for the documentation about the tasks.json format
-  //"command": "bash ${workspaceFolder}/tasks/run-tests",
-  //"command": "echo hello",
-  //"command": "${workspaceFolder}/utils/opkg-manager/tests/serial-device-installer",
-  
   "version": "2.0.0",
-  
   "tasks": [
+    {
+      "label": "cleanup vscode server installs",
+      "type": "shell",
+      "command": "${workspaceFolder}/tasks/cleanup-vscode-server.sh",
+      //"args": ["--dry-run"],
+      "problemMatcher": [],
+      "group": "none",
+      "presentation": {
+        "reveal": "always"
+      },
+      "detail": "Removes all but the latest VS Code server install from ~/.vscode-server/bin (dry run by default). Remove --dry-run to actually delete."
+    },
     {
       "label": "all tests",
       "type": "shell",
-      
       "problemMatcher":[],
       "command": "bash ${workspaceFolder}/tasks/run-tests",
       "presentation": {
@@ -21,7 +25,8 @@
         "showReuseMessage": false,
         "clear": true,
         "close": false
-      }
+      },
+      "detail": "Finds and runs tests in all folders." 
     },
     {
       "label": "run bash script",
@@ -38,7 +43,7 @@
         "close": false,
         "preserveTerminalName": false,
         "echo": false
-      },
+      }
     },
     {
       "label": "build qmlplugin",
