@@ -6,15 +6,18 @@ import "PageSettingsOpkgPackages.js" as Vm
 MbPage {
 	id: root
 	title: qsTr("Package details")
-	property bool installInProgress: processRunner && processRunner.operationName !== ""
- 
-	property var model
-	property var processRunner
 
-	VBusItem {
-		id: noActionSetting
-		bind: Utils.path("com.victronenergy.settings", "/Settings/OpkgManager/NoAction")
-	}
+	property var packageModel
+
+ Component.onCompleted: {
+	console.log("Component.onCompleted:", title)
+ 	//console.log("packageModel:", packageModel.name)
+  //console.log("noActionSetting:", noActionSetting.value )
+ }
+ 
+ Component.onDestruction: {
+	console.log("Component.onDestruction:", title)
+ }
 
  MbItem {
 		id: itm
@@ -22,8 +25,8 @@ MbPage {
 		
 		OpkgHeaderDescriptionItem {
 			id: packageDetails
-			header: (root.model?.name) || ""
-			description: Vm.getDescription(model, false, true)
+			header: (packageModel?.name) || ""
+			description: Vm.getDescription(packageModel, false, true)
 			showCompact: false
 			hasSubpage: false
 			editable: false
@@ -44,7 +47,10 @@ MbPage {
 				bottomMargin: 0 // adjust this value to match your toolbar height
 			}
 
-			property var logLines: []
+				property var logLines: []
+				Component.onCompleted: {
+					if (!logLines) logLines = [];
+				}
 			function addLogLine(line) {
 
 				logLines.push(line)
@@ -55,12 +61,13 @@ MbPage {
 			}
 	
 			Rectangle {
+				property color clr: itm.mbStyle.valueColor
 				anchors.fill: parent
 				anchors.leftMargin: itm.mbStyle.marginDefault
 				anchors.rightMargin: itm.mbStyle.marginDefault
 
 				color: itm.mbStyle.themer?.backgroundColor2 || "transparent"
-				border.color: itm.mbStyle.themer?.borderColor || itm.mbStyle.valueColor
+				border.color: Qt.rgba(clr.r, clr.g, clr.b, 0.5) 
 				radius: 8
 				Flickable {
 					id: logFlickable
@@ -98,28 +105,28 @@ MbPage {
 	pageToolbarHandler: ToolbarHandler {
 
 		leftText: {
-			var item = root.model
-			if (item) {
-				var hasInstalled = item.installedVersion?.length > 0
-				var hasUpgrade = Vm.versionGreaterThan(item.version, item.version)
+ 
+			if (packageModel) {
+ 
+				var hasUpgrade = Vm.versionGreaterThan(packageModel.version, packageModel.installedVersion)
 				//console.log(hasInstalled + ", " + hasUpgrade)
 				if (hasUpgrade) {
 					return qsTr("Upgrade")
-				} else if (!hasInstalled) {
+				} else if (!packageModel.installedVersion?.length > 0) {
 					return qsTr("Install")
 				}
 			}
 			return qsTr("")
 		}
 		function leftAction() {
-			var item = root.model
+ 
 			var action=""
-			if (item) {
-				var hasInstalled = item.installedVersion?.length > 0
-				var hasUpgrade = Vm.versionGreaterThan(item.version, item.version)
+			if (packageModel) {
+ 
+				var hasUpgrade = Vm.versionGreaterThan(packageModel.version, packageModel.installedVersion)
 				if (hasUpgrade) {
 					action = "upgrade"
-				} else if (!hasInstalled) {
+				} else if (!packageModel.installedVersion?.length > 0) {
 					action = "install"
 				}
 			}
@@ -128,8 +135,8 @@ MbPage {
 		}
 
 		rightText: {
-        var item = root.model;
-        if (item && item.installedVersion) {
+ 
+        if (packageModel && packageModel.installedVersion) {
 						return qsTr("Remove");
 				}
         return qsTr("");
@@ -141,7 +148,7 @@ MbPage {
 
 	function doInstllerAction(action)
 	{
-		if (!processRunner || installInProgress)
+		if (!processRunner || processRunner.operationName !== "")
 			return
 
 		logArea.logLines = [];
@@ -149,7 +156,7 @@ MbPage {
 		
 		var noAction = noActionSetting.valid ? noActionSetting.value : false;
  
-		Vm.doInstllerAction(processRunner, action, root.model.name, noAction)
+		Vm.doInstllerAction(processRunner, action, packageModel.name, noAction)
 
 	}
 

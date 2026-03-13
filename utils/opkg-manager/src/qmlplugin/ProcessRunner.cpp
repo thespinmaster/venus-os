@@ -9,14 +9,16 @@ ProcessRunner::ProcessRunner(QObject *parent)
 	, m_operationName("")
 	, m_stopping(false)
 {
-	m_process.setProcessChannelMode(QProcess::SeparateChannels);
+    m_process.setProcessChannelMode(QProcess::SeparateChannels);
 
-	connect(&m_process, &QProcess::readyReadStandardOutput, this, &ProcessRunner::handleStdout);
-	connect(&m_process, &QProcess::readyReadStandardError, this, &ProcessRunner::handleStderr);
-	connect(&m_process,
-			QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
-			this,
-			&ProcessRunner::handleFinished);
+    connect(&m_process, &QProcess::readyReadStandardOutput, this, &ProcessRunner::handleStdout);
+    connect(&m_process, &QProcess::readyReadStandardError, this, &ProcessRunner::handleStderr);
+    connect(&m_process,
+	    QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+	    this,
+	    &ProcessRunner::handleFinished);
+    connect(&m_process, QOverload<QProcess::ProcessError>::of(&QProcess::errorOccurred),
+	    this, &ProcessRunner::handleError);
 }
 bool ProcessRunner::stopping() const
 {
@@ -66,10 +68,14 @@ void ProcessRunner::start(const QStringList &args)
 	m_stdoutBuffer.clear();
 	m_stderrBuffer.clear();
 
-	m_process.setProgram(m_helperPath);
-	m_process.setArguments(args);
-    
-	m_process.start();
+	try {
+		m_process.setProgram(m_helperPath);
+		m_process.setArguments(args);
+		m_process.start();
+	} catch (const std::exception &e) {
+		emit processError(QString("Exception: %1").arg(e.what()));
+		return;
+	}
 
 	emit runningChanged();
 }
@@ -85,12 +91,31 @@ void ProcessRunner::stop()
 	m_process.terminate();
 }
 
+void ProcessRunner::cleanup()
+{
+	// Call this from QML when the page is destroyed or navigation occurs
+	if (running()) {
+		m_stopping = true;
+		emit stoppingChanged();
+		m_process.terminate();
+		if (!m_process.waitForFinished(2000)) {
+			m_process.kill();
+			m_process.waitForFinished(2000);
+		}
+		m_stopping = false;
+		emit stoppingChanged();
+		emit runningChanged();
+	}
+	m_stdoutBuffer.clear();
+	m_stderrBuffer.clear();
+}
+
 void ProcessRunner::stopAndWait()
 {
 	if (!running()) {
 		return;
 	}
-	if (m_stopping) 
+	if (m_stopping)
 		return;
 
 	m_stopping = true;
@@ -99,6 +124,9 @@ void ProcessRunner::stopAndWait()
 	if (!m_process.waitForFinished(2000)) {
 		m_process.kill();
 	}
+	m_stopping = false;
+	emit stoppingChanged();
+	emit runningChanged();
 }
 
 void ProcessRunner::handleStdout()
@@ -129,6 +157,34 @@ void ProcessRunner::handleFinished(int exitCode, QProcess::ExitStatus exitStatus
 	if (!m_operationName.isEmpty()) {
 		setOperationName("");
 	}
+}
+
+void ProcessRunner::handleError(QProcess::ProcessError error)
+{
+	QString errorString;
+	switch (error) {
+	case QProcess::FailedToStart:
+		errorString = "Process failed to start.";
+		break;
+	case QProcess::Crashed:
+		errorString = "Process crashed.";
+		break;
+	case QProcess::Timedout:
+		errorString = "Process timed out.";
+		break;
+	case QProcess::ReadError:
+		errorString = "Process read error.";
+		break;
+	case QProcess::WriteError:
+		errorString = "Process write error.";
+		break;
+	case QProcess::UnknownError:
+	default:
+		errorString = "Unknown process error.";
+		break;
+	}
+	emit processError(errorString);
+	cleanup();
 }
 
 void ProcessRunner::emitLines(QByteArray &buffer, const QByteArray &chunk, bool isError)

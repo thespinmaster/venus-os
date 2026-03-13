@@ -20,14 +20,11 @@ function getDescription(model, showCompact, longDesc) {
   
   //console.log("getDescription:" + model + "," + model.description_short + "," + model.description_long)
 
-  if (model.subpage)
-    return model.description_short || "" // for options
- 
   var desc = ((longDesc && model.description_long?.length > 0)) 
                 ? model.description_long 
                 : model.description_short || ""
 
-  console.log("get desc:" + desc.trim())
+  //console.log("get desc:" + desc.trim())
   var installed = model.installedVersion?.length > 0
   var available = versionGreaterThan(model.version, model.installedVersion)
   return desc.trim() + "\n" +

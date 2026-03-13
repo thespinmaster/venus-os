@@ -32,12 +32,23 @@ MbItem {
 	property alias centerText: buttonExplanation.centerText
 	property alias unit: _unitText.text
 	property int _cursorWidth: -1
+	property var deftoolbarHandler: null
  
 	// internal
 	property string _editText
 
 	signal editDone(string newValue)
  
+	Component.onCompleted: {
+    // Capture once
+    deftoolbarHandler = toolbarHandler
+
+    // Then apply your readonly behavior
+    toolbarHandler = Qt.binding(function() {
+        return readonly ? null : deftoolbarHandler
+    })
+	}
+	
 	NumberAnimation {
 		id: blink
 		target: textInput
@@ -91,7 +102,7 @@ MbItem {
 	}
 
 	function edit(isMouse) {
-		if (!readonly && !editMode) {
+		if (!editMode) {
 			useVirtualKeyboard = isMouse === true
 			ti.focus = true
 			_editText = getEditText()
@@ -199,6 +210,9 @@ function setCursorPosition(position, direction) {
 	}
 
 	function cursorUpOrDown(direction) {
+		if (readonly)
+			return
+
 		if (!overwriteMode && textInput.cursorPosition === _editText.length && _editText.length < maximumLength)
 			_editText += " "
 
@@ -241,8 +255,11 @@ function setCursorPosition(position, direction) {
 	}
 
 	function keyPressed(event) {
-		event.accepted = true
+		if (readonly)
+			return
 
+		event.accepted = true
+ 
 		switch (event.key) {
 		case Qt.Key_Backspace:
 			if (overwriteMode || overwriteMode)
@@ -297,7 +314,7 @@ function setCursorPosition(position, direction) {
 
 		MbBackgroundRect {
 			id: greytag
-			color: editMode ? "#fff": "#ddd"
+			color: editMode && !readonly ? "#fff": "#ddd"
 			width: ti.width + 2 * mbStyle.marginDefault
 			height: ti.height + 6
 			border.color: "#ddd"
@@ -480,7 +497,7 @@ function setCursorPosition(position, direction) {
 
 			overwriteMode: root.overwriteMode
 			width: root.width
-			active: editMode && root.useVirtualKeyboard
+			active: !readonly && editMode && root.useVirtualKeyboard
 			onAnimatingChanged: {
 				if (!animating)
 					listview.positionViewAtIndex(currentIndex, ListView.Contain)
@@ -491,7 +508,7 @@ function setCursorPosition(position, direction) {
 			id: buttonExplanation
 
 			width: root.width
-			shown: editMode && !root.useVirtualKeyboard
+			shown:  !readonly && editMode && !root.useVirtualKeyboard
 			leftRightText: qsTr("Select position")
 			upDownText: qsTr("Select character")
 			centerText: enableSpaceBar ? qsTr("Add space") : qsTr("Apply changes")

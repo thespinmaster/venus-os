@@ -12,8 +12,8 @@
 ====
 @insertbefore
 ====
-	//opkg-manager 1.0
-	OpkgObjectCustomOverviewPages {}
+//opkg-manager 1.0
+property QtObject opkgCustomOverviewPages: OpkgObjectCustomOverviewPages {}
 ====
 @openfile 
 ====
@@ -25,6 +25,6 @@
 ====
 @insertbefore
 ====
-	//opkg-manager 1.0
-	OpkgPageSettingsCustomMenus {}
+//opkg-manager 1.0
+property QtObject opkgPageSettingsCustomMenus: OpkgPageSettingsCustomMenus {}
 ====

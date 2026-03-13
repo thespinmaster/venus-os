@@ -11,52 +11,74 @@ MbPage {
 	model: feedsModel
 	property var feedsModel: []
 	property bool showCompact: compactSetting.valid && compactSetting.value !== 0
- 
+  
 	VBusItem {
 		id: compactSetting
 		bind: Utils.path("com.victronenergy.settings", "/Settings/OpkgManager/ShowCompact")
 	}
 
 	Component.onCompleted: {
-		console.log("opkg-feeds:onCompleted")
-		opkgRunner.operationName = "get-feeds"
-		opkgRunner.start(["get-feeds"])
+		//console.log("opkg-feeds:onCompleted")
+		processRunner.operationName = "get-feeds"
+		processRunner.start(["get-feeds"])
 	}
+
+	Component.onDestruction: {
+		//console.log("opkg-feeds:onDestruction")
+		if (processRunner)
+				processRunner.cleanup()
+	}
+
 
 	//Define Edit feeds Page
   Component { id: editFeedPageComponent
 		MbPage {
 				
 				title: qsTr("Edit Feed")
-
+				property var feedModel: root.feedsModel[root.currentIndex]
 				property bool isNew: false
-			
+ 
 				model: VisibleItemModel {
+
 					MbEditBox {
 						id: feedNameEdit
+						readonly: !userHasWriteAccess || feedModel.builtin
+						useVirtualKeyboard: false
 						description: qsTr("Name")
 						maximumLength: 20
 						enableSpaceBar: false
-						item.value: (!isNew && root.feedsModel && root.feedsModel[root.currentIndex]?.name) ? root.feedsModel[root.currentIndex].name : ""
+ 
+						item.value: (!isNew && root.feedsModel) ? feedModel.name : ""
+
 					}
 				
 					OpkgEditBoxLargeText {
 						id: feedUrlEdit
+						readonly: !userHasWriteAccess || feedModel.builtin
 						description: qsTr("Url")
 						maximumLength: 256
 						matchString: "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ~!@#$%^&*()-_=+[]{}\\;:|/.,<>?"
 						enableSpaceBar: false
-						item.value:  (!isNew && root.feedsModel && root.feedsModel[root.currentIndex]?.url) ? root.feedsModel[root.currentIndex].url : ""
+						item.value:  (!isNew && root.feedsModel) ? feedModel.url : ""
+					}
+
+					MbTextDescription {
+						text: "(Readonly)"
+						opacity: 0.5
+						isCurrentItem: false
+						width: parent ? parent.width : 0
+						horizontalAlignment: Text.AlignHCenter
+						//anchors.horizontalCenter: parent.horizontalCenter
+						visible: feedModel.builtin
 					}
 				}
 			
 				pageToolbarHandler: ToolbarHandler {
-					leftIcon: "icon-toolbar-cancel"
-					rightIcon: "icon-toolbar-ok"
-
+					leftIcon: feedModel.builtin ? "" : "icon-toolbar-cancel"
+					rightIcon: feedModel.builtin ? "" :"icon-toolbar-ok"
 					function leftAction() { pageStack.pop() }
 					function rightAction() {
-						root.process_add_update(isNew, feedNameEdit.item.value, feedUrlEdit.item.value)		 
+						root.add_update_feed(isNew, feedNameEdit.item.value, feedUrlEdit.item.value)		 
 					}
 				}
 			
@@ -65,19 +87,12 @@ MbPage {
  
 	delegate: OpkgHeaderDescriptionItem {
 		editable: true
-		header: feedsModel[index].name
-		description: "Url: " + root.feedsModel[index].url
+		header: modelData.name
+		description: "Url: " + modelData.url
 		descriptionWrapMode: Text.WrapAtWordBoundaryOrAnywhere
 		showCompact: root.showCompact
-		subpage: {
-			if (!root)
-				return undefined
-    	if (index == -1 || !root.feedsModel[index]?.builtin) {
-				return editFeedPageComponent.createObject(parent);
-    	}
-    	return undefined;
-		}
-	 
+		subpage: editFeedPageComponent
+		//hasSubpage: subpage != undefined && !modelData.builtin
 	}
 	
 	pageToolbarHandler: ToolbarHandler {
@@ -92,7 +107,7 @@ MbPage {
 			return qsTr("")
 		}
 		function leftAction() {
-			if (opkgRunner.running) {
+			if (processRunner.running) {
 				return
 			}
 			console.log("opkg-feeds:leftAction")
@@ -102,41 +117,41 @@ MbPage {
 			}
 		}
 		function rightAction() {
-			if (opkgRunner.running) {
+			if (processRunner.running) {
 				return
 			}
-			opkgRunner.operationName = "remove-feed"
+			processRunner.operationName = "remove-feed"
  
 			var name = feedsModel[root.currentIndex].name
-			opkgRunner.start(["remove-feed", name])
+			processRunner.start(["remove-feed", name])
 		}
 	}
 
 	//////////////////
 	// methods
-  function process_add_update(isNew, name, url)
-	{
-		if (!opkgRunner || opkgRunner.running) {
+ 
+  function add_update_feed(isNew, name, url) {
+		if (!processRunner || processRunner.running) {
 				return
 			}
 			if (!isValid()) {
 				return
 			}
 			
-			opkgRunner.feedName = name || ""
-			opkgRunner.feedUrl = url || ""
+			processRunner.feedName = name || ""
+			processRunner.feedUrl = url || ""
 			if (isNew) {
  
-				opkgRunner.operationName="add-feed"
-				//console.log("process_add_update:add-feed,feedName:" + opkgRunner.feedName + ",feedUrl:" + opkgRunner.feedUrl)
+				processRunner.operationName="add-feed"
+				//console.log("add_update_feed:add-feed,feedName:" + processRunner.feedName + ",feedUrl:" + processRunner.feedUrl)
 
-				opkgRunner.start(["add-feed", opkgRunner.feedName, opkgRunner.feedUrl])
+				processRunner.start(["add-feed", processRunner.feedName, processRunner.feedUrl])
 			} else {
-				opkgRunner.operationName="edit-feed"
+				processRunner.operationName="edit-feed"
 				var curFeedName = feedsModel[root.currentIndex].name || ""
-				//console.log("process_add_update:edit-feed,feedName:" + opkgRunner.feedName + ",feedUrl:" + opkgRunner.feedUrl + ",curFeedName:" +curFeedName + ",idx:" +root.currentIndex)
+				//console.log("add_update_feed:edit-feed,feedName:" + processRunner.feedName + ",feedUrl:" + processRunner.feedUrl + ",curFeedName:" +curFeedName + ",idx:" +root.currentIndex)
 
-				opkgRunner.start(["edit-feed", opkgRunner.feedName, opkgRunner.feedUrl, curFeedName])
+				processRunner.start(["edit-feed", processRunner.feedName, processRunner.feedUrl, curFeedName])
 			}
 			
 			function isValid() {
@@ -172,35 +187,44 @@ MbPage {
 		if (isNew)
 			feedsModel.push({ name: name, url: url })
 		else if (root.currentIndex >= 0 && root.currentIndex < feedsModel.length) {
-			feedsModel[root.currentIndex].name = name
-			feedsModel[root.currentIndex].url = url
+			var feed = feedsModel[root.currentIndex]
+			feed.name = name
+			feed.url = url
 		}
 		feedsModel = feedsModel.slice();
 	}
  
 	function loadFeedsFromFile(file) {
-		var filePath = file?.trim();
-		if (!filePath?.length) {
-			throw new Error("No feeds file path returned");
-		}
+		try {
+			var filePath = (typeof file === "string") ? file.trim() : "";
+			if (!filePath || filePath.length === 0) {
+				console.log("loadFeedsFromFile: No feeds file path returned:");
+				throw new Error("No feeds file path returned");
+			}
+			//console.log("FileHelper:" + filePath);
 
-		var jsonText = FileHelper.readFile(filePath);
-		
-		if (!jsonText?.length) {
-			throw new Error("Failed to read feeds file: File is empty: " + filePath);
+			var jsonText = FileHelper.readFile(filePath);
+			if (typeof jsonText !== "string" || jsonText.length === 0) {
+				throw new Error("Failed to read feeds file: File is empty or not a string: " + filePath);
+			}
+			
+			var feeds = JSON.parse(jsonText);
+			feedsModel = feeds.map(function(feed) {
+				return { name: feed.name, url: feed.url, builtin: feed.builtin };
+			}).filter(function(f) { return f !== null; });
+
+		} catch (err) {
+			console.log("ERROR:loadFeedsFromFile:" + err.message);
+			toast.createToast("Error loading feeds: " + err.message);
+			feedsModel = [];
 		}
-		
-		var feeds = JSON.parse(jsonText)
- 
-		feedsModel = feeds.map(function(feed) {
-			return { name: feed.name, url: feed.url, builtin: feed.builtin }
-		})
 	}
 
 	ProcessRunner {
-		id: opkgRunner
-		helperPath: "/data/dev/utils/opkg-manager/src/data/opkg-manager/qml/opkg"
-		
+		id: processRunner
+		//helperPath: "/data/dev/utils/opkg-manager/src/data/opkg-manager/qml/opkg"
+		helperPath: "/data/opkg-manager/qml/opkg"
+
 		property string feedName: ""
 		property string feedUrl: ""
 		property string opkgErrorLine: ""
@@ -211,45 +235,55 @@ MbPage {
 			feedUrl=""
 			opkgErrorLine=""
 			feedsOutput=""
+			operationName=""
 		}
 
 		onOutputLine: function(line) {
-			if (opkgRunner.operationName === "get-feeds") {
+			if (operationName === "get-feeds") {
 				feedsOutput = line
 			}
 		}
 		onErrorLine: function(line) {
 			console.log(line)
-			//opkgErrorLine = line
+			opkgErrorLine = line
 		}
 		onFinished: function(exitCode, exitStatus) {
 			//console.log("onFinished:" + exitCode)
-			if (exitCode !== 0) {
-				let msg = opkgErrorLine.length ? opkgErrorLine : qsTr("Operation failed")
-				toast.createToast(msg)
-				reset()
-				return
-			}
+			
+			try {
+
+				if (exitCode !== 0) {
+					let msg = opkgErrorLine.length ? opkgErrorLine : qsTr("Operation failed")
+					toast.createToast(msg)
+					reset()
+					return
+				}
  
-			switch (opkgRunner.operationName) {
-				case "get-feeds":
-				  loadFeedsFromFile(feedsOutput)
-					
-					break;
-				case "remove-feed":
-					removeFeed()
-					toast.createToast("remove succeeded")
-					break;
-				case "add-feed":
-				case "edit-feed":
-				  var isNew = opkgRunner.operationName == "add-feed"
+				switch (operationName) {
+					case "get-feeds":
+						//console.log("onFinished: get-feeds:")
+						loadFeedsFromFile(feedsOutput)
+						
+						break;
+					case "remove-feed":
+						removeFeed()
+						toast.createToast("remove succeeded")
+						break;
+					case "add-feed":
+					case "edit-feed":
+						var isNew = operationName == "add-feed"
+	
+						updateFeed(isNew, feedName, feedUrl)
+						toast.createToast((isNew ? "add" : "edit") +  " succeeded")
+						//pageStack.pop()
+						break;
+				}
  
-					updateFeed(isNew, feedName, feedUrl)
-					toast.createToast((isNew ? "add" : "edit") +  " succeeded")
-					//pageStack.pop()
-					break;
-				break;
+			} catch (err) {
+				console.log("ERROR:" + err.message);
+				toast.createToast(qsTr(err.message));
 			}
+
 			reset()
 		}
 	}

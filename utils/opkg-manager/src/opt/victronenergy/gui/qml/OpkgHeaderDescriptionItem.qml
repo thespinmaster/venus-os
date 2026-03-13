@@ -1,19 +1,22 @@
-
-import QtQuick 2.0
+import QtQuick 2
 import com.victron.velib 1.0
 
 MbItem {
-    id: root
-    width: pageStack && pageStack.currentItem ? pageStack.currentItem.width : 0
+	id: root
+	width: (pageStack && pageStack.currentPage && pageStack.currentPage.width)
+    || (pageStack && pageStack.currentItem && pageStack.currentItem.width)
+    || 0
+    
     defaultHeight: Math.max(mbStyle.itemHeight, columnRoot.implicitHeight + mbStyle.marginDefault * 2)
-    subpage: model && model.subpage ? model.subpage : undefined
-    hasSubpage: subpage !== undefined
-    property int descriptionWrapMode: Text.WordWrap
+    //subpage: model && model.subpage ? model.subpage : undefined
+ 
+	property string description
+    property string header
     property bool showCompact: false
-    property string description: ""
-    property string header: ""
-    property string iconId: "icon-toolbar-enter"
-
+    property int descriptionWrapMode: Text.WordWrap
+	property VBusItem item: VBusItem {}
+	property string iconId: "icon-toolbar-enter"
+ 
     Column {
         id: columnRoot
         width: parent ? parent.width : undefined
@@ -39,7 +42,7 @@ MbItem {
         MbTextDescription {
             id: description
             visible: !root.header || !(root.showCompact)
-            text: root.description || ""
+            text: root.description ? root.description : ""
             isCurrentItem: root.ListView.isCurrentItem
             wrapMode: root.descriptionWrapMode
             font.pixelSize: root.header ? 13 : mbStyle.fontPixelSize
@@ -48,8 +51,8 @@ MbItem {
             anchors.leftMargin: mbStyle.marginDefault
         }
     }
-
-    MbIcon {
+ 
+	MbIcon {
 		id: icon
 
 		display: hasSubpage
@@ -59,5 +62,4 @@ MbItem {
 		}
 		iconId: root.iconId ? root.iconId + (root.ListView.isCurrentItem ? "-active" : "") : ""
 	}
-    
 }

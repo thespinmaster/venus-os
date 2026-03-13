@@ -5,52 +5,40 @@ QtObject {
 	
 	//dbus -y com.victronenergy.settings /Settings AddSetting OpkgManager/CustomPageSettingsMenuItems MySubMenu '' s 0 0 0
   property VBusItem customMenuItems: VBusItem { bind: "com.victronenergy.settings/Settings/OpkgManager/CustomPageSettingsMenuItems" }
-  property bool addedOpkgSettingsSubMenu: false
  
-	property int calledFromOnCompleted: 0
-
-	Component.onCompleted: function() {
+	Component.onCompleted: addOpkgSettingsSubMenu()
  
-		if (calledFromOnCompleted==0)
-			calledFromOnCompleted==1
-
-		console.log("OpkgPageSettingsCustomMenus:onCompleted")
-		addRemoveItems()
-	}
-
 	property Connections connection: Connections {
 		target: customMenuItems
 		function onValueChanged() {
-  
-			if (calledFromOnCompleted==1) {
-				calledFromOnCompleted=2
-				return
-			}
-
-			console.log("OpkgPageSettingsCustomMenus:onValueChanged")
-			addRemoveItems()
+ 
+			//console.log("OpkgPageSettingsCustomMenus:onValueChanged")
+			addRemoveItems("onValueChanged")
 		}
 	}
-
-	function addRemoveItems() {
-		
-		if (!addedOpkgSettingsSubMenu) {
-			addedOpkgSettingsSubMenu=true
-			addOpkgSettingsSubMenu()
-		}
  
+	function addRemoveItems() {
 		OpkgUtils.addRemoveCustomModelItems(customMenuItems, getSubMenuItemIndex, addRemoveItem);
 	}
-	
-
+ 
 	function addOpkgSettingsSubMenu() {
-		console.log("addOpkgSettingsSubMenu")
+		//console.log("generalItem.parentItem:"+ generalItem.parentItem==undefined)
 		var component = Qt.createComponent("OpkgPageSettingsSubMenu.qml");
 		if (component.status === Component.Ready) {
-			console.log("adding")
-			var instance = component.createObject()
-			model.append(instance)
-			return
+ 
+				// Notes:
+				// QT BUG 1
+				// If we use *any* other parent than null we get parenting issues (instance overlays index 0)
+				// QT BUG 2
+				// If we use null without accessing the listview.children[0] (also generalItem.parent)
+				// we get random crashes. We can force the crash by using calling gc() (Garbish Collection)
+				// The fix is to referece the listview's first child (guessing the items container)
+				// Also note that generalItem (first child) is the *only* item in the model that has its parent set.
+				var container = listview.children[0]
+				var instance = component.createObject(null)
+				model.insert(0,instance) //temporary
+				//model.append(instance)
+				return
 		}
  
 		console.log("OpkgPageSettingsSubMenu.qml - Status: " + component.status + ", Error: " + component.errorString())
@@ -58,7 +46,7 @@ QtObject {
 
 	function addRemoveItem(action, index, qmlFileName) {
 		
-		if (action=="-") {
+		if (action == "-") {
 			//console.log("hiding index:" + index)
 			model.get(index).show = false // if removing just hide
 			return
@@ -66,14 +54,15 @@ QtObject {
 
 		var component = Qt.createComponent(qmlFileName);
 		if (component.status === Component.Ready) {
-			var instance = component.createObject()
+			var constainer = listview.children[0] // see notes in addOpkgSettingsSubMenu
+			var instance = component.createObject(listview)
 			if (!instance) { 
-				console.log("failed to create not instance:" + qmlItemName); 
+				console.error("Failed to create component instance:" + qmlItemName); 
 				return; 
 			}
 		}
 		else {
-			console.log("Error loading component:", component.errorString());
+			console.error("Failed to create component:", component.errorString());
 			return
 		}
 		

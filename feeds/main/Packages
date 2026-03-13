@@ -49,8 +49,8 @@ Depends: opkg-manager
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: 9a07e1df3378f27e7610425dcd408eb9
-Size: 68416
+MD5Sum: 149750c8ffe72554ec3f0b9ac7b1400e
+Size: 68678
 Filename: mount-shares_1.0.1_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feeds/main/mount-shares
 Description:  Adds support for nfs and cifs shares to Venus OS

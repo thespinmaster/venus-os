@@ -10,51 +10,69 @@ import "PageSettingsOpkgPackages.js" as Vm
 MbPage {
 	id: root
 	title: qsTr("Open Package Manager")
-	model: packageModel
+	model: packagesModel
   property bool showCompact: compactSetting.valid && compactSetting.value !== 0
 	
-	ListModel { id: packageModel}
+	ListModel { id: packagesModel}
   
 	VBusItem {
 		id: compactSetting
 		bind: Utils.path("com.victronenergy.settings", "/Settings/OpkgManager/ShowCompact")
 	}
-   
+
+	VBusItem {
+		id: noActionSetting
+		bind: Utils.path("com.victronenergy.settings", "/Settings/OpkgManager/NoAction")
+	}
+ 
 	Component.onCompleted: {
-		Vm.loadPackages(processRunner, packageModel, "list-packages", "")
+		Vm.loadPackages(processRunner, packagesModel, "list-packages", "")
+	}
+
+	Component.onDestruction: {
+		if (processRunner)
+			processRunner.cleanup()
+		
+		//console.log("calling gc()")
+		//gc()
+ 
 	}
 
 	Component { id: opkgPackageInstallComponentFactory; PageSettingsOpkgPackageInstall {} }
+	
+	//Component {
+	//		id: opkgPackageInstallComponent
+	//		PageSettingsOpkgPackageInstall {
+	//				itemModel: model
+	//				processRunner: processRunner
+	//		}
+	//}
 
+	
 	delegate: Component {
 		OpkgHeaderDescriptionItem {
+			id: headerItem
 			header: model.name
 			description: Vm.getDescription(model, showCompact, false)
 			showCompact: root.showCompact
-			subpage: { 
-				if (opkgPackageInstallComponentFactory)
-					return opkgPackageInstallComponentFactory.createObject(parent, { model: model, processRunner: processRunner });
-				return null;
-			}
+			subpage: Component { PageSettingsOpkgPackageInstall { packageModel: packagesModel.get(index)}}
 		}
 	}
  
 	pageToolbarHandler: ToolbarHandler {
  
 		function leftAction() {
-			Vm.loadPackages(processRunner, packageModel, "list-packages-update", "update")
+			Vm.loadPackages(processRunner, packagesModel, "list-packages-update", "update")
 		}
 
 		leftText: qsTr("Refresh")  
 
 	}
  
-///////////////////////
-// methods
-
 	ProcessRunner {
 		id: processRunner
-		helperPath: "/data/dev/utils/opkg-manager/src/data/opkg-manager/qml/opkg"
+		//helperPath: "/data/dev/utils/opkg-manager/src/data/opkg-manager/qml/opkg"
+ 		helperPath: "/data/opkg-manager/qml/opkg"
  
 		property string lastOutputLine: ""
 		property string packagesErrorLine: ""
@@ -70,14 +88,14 @@ MbPage {
 		}
 
 		onErrorLine: function(line) {
-			console.error("PageSettingsOpkgPackages:" + line)
+			console.log("ERROR:PageSettingsOpkgPackages:" + line)
 			if (logCallback) {
 				logCallback(line)
 				return
 			}
 			packagesErrorLine = line
 		}
-		// Now expects the helper to output the file path of the JSON file
+
 		onFinished: function(exitCode, exitStatus) {
 			try {
 				
@@ -86,10 +104,10 @@ MbPage {
 						case "list-packages":
 						case "list-packages-update":
  
-							Vm.loadPackagesFromFile(lastOutputLine, FileHelper, packageModel);
+							Vm.loadPackagesFromFile(lastOutputLine, FileHelper, packagesModel);
  
 							if (processRunner.operationName === "list-packages-update") {
-								toast.createToast(qsTr("Refresh completed"));
+								toast.createToast(qsTr("Refresh completed"))
 							}
 
 							break;
@@ -100,21 +118,22 @@ MbPage {
 							if (logCallback)
 								logCallback("--- Finished " + processRunner.operationName + ". Exit code: " + exitCode + ", status: " + exitStatus + " ---"); 
 							logCallback = undefined
-							break;
+							break
 						default:
-							break;
+							break
 					}
 				} else {
-					let msg = packagesErrorLine.length ? packagesErrorLine : qsTr("Operation failed");
-					toast.createToast(msg);
+					let msg = packagesErrorLine.length ? packagesErrorLine : qsTr("Operation failed")
+					toast.createToast(msg)
 				}
-				processRunner.operationName = "";
+				processRunner.operationName = ""
 			} catch (err) {
-				console.log("ERROR:" + err.message);
-				toast.createToast(qsTr(err.message));
+				console.log("ERROR:PageSettingsOpkgPackages:" + err.message)
+				toast.createToast(qsTr(err.message))
 			}
+ 
 		}
-
+		
 	}
 
 }
