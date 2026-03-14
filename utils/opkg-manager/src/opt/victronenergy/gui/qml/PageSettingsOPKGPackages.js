@@ -1,7 +1,8 @@
 
 // Version comparison helper
 function versionGreaterThan(v1, v2) {
-  if (!v2 && v1) return true;
+ 
+  if (!v2 && v1) return false;
   if (!v1 || !v2) return false;
   var a = v1.split('.').map(Number);
   var b = v2.split('.').map(Number);
@@ -26,7 +27,9 @@ function getDescription(model, showCompact, longDesc) {
 
   //console.log("get desc:" + desc.trim())
   var installed = model.installedVersion?.length > 0
-  var available = versionGreaterThan(model.version, model.installedVersion)
+  var available = true
+  if (installed)
+    available = versionGreaterThan(model.version, model.installedVersion)
   return desc.trim() + "\n" +
       (installed ? "Installed: " + model.installedVersion + "  ": "")  + 
       (available ? "Available: " + model.version + "  ": "")  + 

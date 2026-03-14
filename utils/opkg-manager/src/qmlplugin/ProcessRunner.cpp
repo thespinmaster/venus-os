@@ -2,6 +2,8 @@
 
 #include <QByteArray>
 
+#include <QProcess>
+
 
 ProcessRunner::ProcessRunner(QObject *parent)
 	: QObject(parent)
@@ -55,6 +57,14 @@ void ProcessRunner::setHelperPath(const QString &path)
 bool ProcessRunner::running() const
 {
 	return m_process.state() != QProcess::NotRunning;
+}
+
+bool ProcessRunner::waitForFinished(int msecs)
+{
+	if (!running()) {
+		return true;
+	}
+	return m_process.waitForFinished(msecs);
 }
 
 void ProcessRunner::start(const QStringList &args)

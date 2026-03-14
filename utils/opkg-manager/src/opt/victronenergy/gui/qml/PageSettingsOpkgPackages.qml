@@ -11,9 +11,12 @@ MbPage {
 	id: root
 	title: qsTr("Open Package Manager")
 	model: packagesModel
+
+	property var curPage: pageStack ? (pageStack.currentPage || pageStack.currentItem) : undefined
   property bool showCompact: compactSetting.valid && compactSetting.value !== 0
-	
-	ListModel { id: packagesModel}
+	property bool isBusy: false
+
+	ListModel { id: packagesModel }
   
 	VBusItem {
 		id: compactSetting
@@ -24,9 +27,10 @@ MbPage {
 		id: noActionSetting
 		bind: Utils.path("com.victronenergy.settings", "/Settings/OpkgManager/NoAction")
 	}
- 
+
 	Component.onCompleted: {
 		Vm.loadPackages(processRunner, packagesModel, "list-packages", "")
+ 
 	}
 
 	Component.onDestruction: {
@@ -37,18 +41,7 @@ MbPage {
 		//gc()
  
 	}
-
-	Component { id: opkgPackageInstallComponentFactory; PageSettingsOpkgPackageInstall {} }
-	
-	//Component {
-	//		id: opkgPackageInstallComponent
-	//		PageSettingsOpkgPackageInstall {
-	//				itemModel: model
-	//				processRunner: processRunner
-	//		}
-	//}
-
-	
+ 
 	delegate: Component {
 		OpkgHeaderDescriptionItem {
 			id: headerItem
@@ -61,7 +54,10 @@ MbPage {
  
 	pageToolbarHandler: ToolbarHandler {
  
-		function leftAction() {
+		function leftAction(mouse) {
+			if (!mouse)
+				return
+ 
 			Vm.loadPackages(processRunner, packagesModel, "list-packages-update", "update")
 		}
 
@@ -77,7 +73,7 @@ MbPage {
 		property string lastOutputLine: ""
 		property string packagesErrorLine: ""
 		property var logCallback
-
+ 
 		onOutputLine: function(line) {
 			if (logCallback) {
 				logCallback(line)
@@ -87,6 +83,23 @@ MbPage {
 			lastOutputLine = line
 		}
 
+		onRunningChanged: function() {
+ 
+			switch (processRunner.operationName) {
+				case "install":
+				case "upgrade":
+				case "remove":
+					isBusy = true
+					curPage.status = PageStatus.Inactive
+					break
+				default:
+					if (isBusy) {
+						isBusy = false
+						curPage.status = PageStatus.Active
+					}
+					break
+			}
+		}
 		onErrorLine: function(line) {
 			console.log("ERROR:PageSettingsOpkgPackages:" + line)
 			if (logCallback) {
@@ -97,8 +110,10 @@ MbPage {
 		}
 
 		onFinished: function(exitCode, exitStatus) {
+ 
+			//console.log("processRunner.running:" + processRunner.running)
 			try {
-				
+ 
 				if (exitCode === 0 && exitStatus === 0) {
 					switch (processRunner.operationName) {
 						case "list-packages":
@@ -114,7 +129,6 @@ MbPage {
 						case "install":
 						case "upgrade":
 						case "remove":
-							// handle remove if needed
 							if (logCallback)
 								logCallback("--- Finished " + processRunner.operationName + ". Exit code: " + exitCode + ", status: " + exitStatus + " ---"); 
 							logCallback = undefined
@@ -128,7 +142,8 @@ MbPage {
 				}
 				processRunner.operationName = ""
 			} catch (err) {
-				console.log("ERROR:PageSettingsOpkgPackages:" + err.message)
+				console.log("ERROR:PageSettingsOpkgPackages:" + err.message + ", " + err.stack)
+				
 				toast.createToast(qsTr(err.message))
 			}
  

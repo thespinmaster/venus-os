@@ -51,7 +51,7 @@ for file in "${code_files[@]}"; do
             total_bytes=$((total_bytes + size))
         fi
     fi
-}
+done
 
 # Convert bytes to human-readable
 if command -v numfmt >/dev/null 2>&1; then

@@ -6,20 +6,26 @@ import "PageSettingsOpkgPackages.js" as Vm
 MbPage {
 	id: root
 	title: qsTr("Package details")
-
-	property var packageModel
-
- Component.onCompleted: {
-	console.log("Component.onCompleted:", title)
- 	//console.log("packageModel:", packageModel.name)
-  //console.log("noActionSetting:", noActionSetting.value )
- }
  
- Component.onDestruction: {
-	console.log("Component.onDestruction:", title)
- }
+	property var packageModel
+	
+	// protect the back button from being pressed while processing commands.
+ 	MouseArea {
+		x:0; y:-mbTools.height
+		width: mbTools.height; height: mbTools.height
+		visible: isBusy // isBusy, parent page (PageSettingsOpkgPackages)
+	}
 
- MbItem {
+	Component.onCompleted: {
+		console.log("Component.onCompleted:", title)
+		//rootWindow.dumpItemTree()
+ 	}
+ 
+	Component.onDestruction: {
+		//console.log("Component.onCompleted:", title)
+ 	}
+
+ 	MbItem {
 		id: itm
     anchors.fill: parent
 		
@@ -47,10 +53,10 @@ MbPage {
 				bottomMargin: 0 // adjust this value to match your toolbar height
 			}
 
-				property var logLines: []
-				Component.onCompleted: {
-					if (!logLines) logLines = [];
-				}
+			property var logLines: []
+			Component.onCompleted: {
+				if (!logLines) logLines = [];
+			}
 			function addLogLine(line) {
 
 				logLines.push(line)
@@ -100,16 +106,16 @@ MbPage {
 				}
 			}
 		}
- }
+	}
  
 	pageToolbarHandler: ToolbarHandler {
 
 		leftText: {
  
 			if (packageModel) {
- 
+				//console.log("ver1:" + packageModel.version + ", installed ver:" +  packageModel.installedVersion)
 				var hasUpgrade = Vm.versionGreaterThan(packageModel.version, packageModel.installedVersion)
-				//console.log(hasInstalled + ", " + hasUpgrade)
+ 
 				if (hasUpgrade) {
 					return qsTr("Upgrade")
 				} else if (!packageModel.installedVersion?.length > 0) {
@@ -118,9 +124,11 @@ MbPage {
 			}
 			return qsTr("")
 		}
-		function leftAction() {
- 
+		function leftAction(mouse) {
+ 			if (!mouse  || rightText==="")
+				return
 			var action=""
+			console.log("leftAction")
 			if (packageModel) {
  
 				var hasUpgrade = Vm.versionGreaterThan(packageModel.version, packageModel.installedVersion)
@@ -142,12 +150,15 @@ MbPage {
         return qsTr("");
 		}
  
-		function rightAction() { doInstllerAction("remove") }
+		function rightAction(mouse) { 
+			if (!mouse || rightText==="")
+				return
+			doInstllerAction("remove") 
+		}
 
 	}
 
-	function doInstllerAction(action)
-	{
+	function doInstllerAction(action) {
 		if (!processRunner || processRunner.operationName !== "")
 			return
 
@@ -155,7 +166,7 @@ MbPage {
 		processRunner.logCallback = logArea.addLogLine.bind(logArea)
 		
 		var noAction = noActionSetting.valid ? noActionSetting.value : false;
- 
+
 		Vm.doInstllerAction(processRunner, action, packageModel.name, noAction)
 
 	}

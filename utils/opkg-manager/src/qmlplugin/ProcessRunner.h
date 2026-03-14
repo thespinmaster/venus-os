@@ -15,6 +15,7 @@ class ProcessRunner : public QObject
 	Q_PROPERTY(QString operationName READ operationName WRITE setOperationName NOTIFY operationNameChanged)
 
 public:
+	Q_INVOKABLE bool waitForFinished(int msecs = -1);
 	explicit ProcessRunner(QObject *parent = nullptr);
 
 	QString helperPath() const;
