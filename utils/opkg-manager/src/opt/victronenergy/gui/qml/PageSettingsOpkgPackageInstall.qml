@@ -128,7 +128,7 @@ MbPage {
  			if (!mouse  || rightText==="")
 				return
 			var action=""
-			console.log("leftAction")
+
 			if (packageModel) {
  
 				var hasUpgrade = Vm.versionGreaterThan(packageModel.version, packageModel.installedVersion)
