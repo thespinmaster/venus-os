@@ -50,7 +50,7 @@ MbPage {
 				left: parent.left
 				right: parent.right
 				bottom: parent.bottom
-				bottomMargin: 0 // adjust this value to match your toolbar height
+				bottomMargin: 2
 			}
 
 			property var logLines: []
@@ -125,7 +125,7 @@ MbPage {
 			return qsTr("")
 		}
 		function leftAction(mouse) {
- 			if (!mouse  || rightText==="")
+ 			if (!mouse  || leftAction==="")
 				return
 			var action=""
 
