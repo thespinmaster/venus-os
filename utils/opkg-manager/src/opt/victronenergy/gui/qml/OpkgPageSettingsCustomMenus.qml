@@ -2,18 +2,22 @@ import QtQuick 2
 import "opkg-utils.js" as OpkgUtils
 
 QtObject {
-	
+
 	//dbus -y com.victronenergy.settings /Settings AddSetting OpkgManager/CustomPageSettingsMenuItems MySubMenu '' s 0 0 0
   property VBusItem customMenuItems: VBusItem { bind: "com.victronenergy.settings/Settings/OpkgManager/CustomPageSettingsMenuItems" }
  
-	Component.onCompleted: addOpkgSettingsSubMenu()
+	//Just declaring the type is enough for the qt compiler to
+	// load the component into the cache at startup, resulting in quicker loading
+	property OpkgPageSettingsSubMenu cached1: null
+
+	Component.onCompleted: {
+		Qt.callLater(addOpkgSettingsSubMenu)
+	}
  
 	property Connections connection: Connections {
 		target: customMenuItems
 		function onValueChanged() {
- 
-			//console.log("OpkgPageSettingsCustomMenus:onValueChanged")
-			addRemoveItems("onValueChanged")
+			Qt.callLater(addRemoveItems("onValueChanged"))
 		}
 	}
  
@@ -22,10 +26,10 @@ QtObject {
 	}
  
 	function addOpkgSettingsSubMenu() {
-		//console.log("generalItem.parentItem:"+ generalItem.parentItem==undefined)
 		var component = Qt.createComponent("OpkgPageSettingsSubMenu.qml");
+		
 		if (component.status === Component.Ready) {
- 
+				
 				// Notes:
 				// QT BUG 1
 				// If we use *any* other parent than null we get parenting issues (instance overlays index 0)
@@ -35,8 +39,11 @@ QtObject {
 				// The fix is to referece the listview's first child (guessing the items container)
 				// Also note that generalItem (first child) is the *only* item in the model that has its parent set.
 				var container = listview.children[0]
-				var instance = component.createObject(null)
-				model.insert(0,instance) //temporary
+				var incubator = component.incubateObject(container); // incubateObject is non blocking
+				if (incubator.status === Component.Ready) {
+					model.insert(0, incubator.object) //temporary
+				}
+				// model.insert(0,incubator.object) //temporary
 				//model.append(instance)
 				return
 		}
@@ -55,8 +62,9 @@ QtObject {
 		var component = Qt.createComponent(qmlFileName);
 		if (component.status === Component.Ready) {
 			var constainer = listview.children[0] // see notes in addOpkgSettingsSubMenu
-			var instance = component.createObject(listview)
-			if (!instance) { 
+			var incubator = component.incubateObject(null); // incubateObject is non blocking
+			//var instance = component.createObject(listview)
+			if (incubator.status !== Component.Ready) {
 				console.error("Failed to create component instance:" + qmlItemName); 
 				return; 
 			}
@@ -70,9 +78,9 @@ QtObject {
 			model.get(index).show = false // if replacing just hide
  
 		if (index==-2) {
-			model.append(instance)
+			model.append(incubator.object)
 		} else {
-			model.insert(index, instance)
+			model.insert(index, incubator.object)
 		}
 	}
 

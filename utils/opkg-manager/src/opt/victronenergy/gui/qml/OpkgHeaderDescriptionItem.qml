@@ -33,7 +33,7 @@ MbItem {
             text: root.header || ""
             isCurrentItem: root.ListView.isCurrentItem
             visible: root.header || !root.showCompact
-            font.bold: !root.showCompact
+            //font.bold: !root.showCompact
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.leftMargin: mbStyle.marginDefault
