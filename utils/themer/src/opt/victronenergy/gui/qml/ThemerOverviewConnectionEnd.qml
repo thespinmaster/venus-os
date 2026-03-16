@@ -6,10 +6,10 @@ QtObject {
  
 	Component.onCompleted: {
 		if (connection) {
-			connection.color = Themer.backgroundColor
+			connection.color = Themer.windowBackgroundColor
 		}
 		if (ball?.border) {
-			ball.border.color = Themer.backgroundColor
+			ball.border.color = Themer.windowBackgroundColor
 		}
 	}
 }

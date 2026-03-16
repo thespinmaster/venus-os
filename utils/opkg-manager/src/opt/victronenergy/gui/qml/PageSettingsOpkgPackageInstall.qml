@@ -31,7 +31,7 @@ MbPage {
 		
 		OpkgHeaderDescriptionItem {
 			id: packageDetails
-			header: (packageModel?.name) || ""
+			header: packageModel?.name || ""
 			description: Vm.getDescription(packageModel, false, true)
 			showCompact: false
 			hasSubpage: false
@@ -42,7 +42,7 @@ MbPage {
 			anchors.rightMargin: itm.mbStyle.marginDefault
 		}
 	
-		// Non-selectable, scrollable log area (direct child of MbPage)
+		// Non-selectable, scrollable log area
 		Item {
 			id: logArea
 			anchors {
@@ -69,11 +69,12 @@ MbPage {
 			Rectangle {
 				property color clr: itm.mbStyle.valueColor
 				anchors.fill: parent
+				anchors.topMargin: 2
 				anchors.leftMargin: itm.mbStyle.marginDefault
 				anchors.rightMargin: itm.mbStyle.marginDefault
 
 				color: itm.mbStyle.themer?.backgroundColor2 || "transparent"
-				border.color: Qt.rgba(clr.r, clr.g, clr.b, 0.5) 
+				border.color: itm.mbStyle.themer?.borderColor || Qt.rgba(clr.r, clr.g, clr.b, 0.5) 
 				radius: 8
 				Flickable {
 					id: logFlickable
@@ -101,6 +102,7 @@ MbPage {
 							width: logFlickable.width - 12
 							height: 10 // bottom padding to prevent clipping
 							color: "transparent"
+ 
 						}
 					}
 				}

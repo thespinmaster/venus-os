@@ -1,0 +1,88 @@
+#!/bin/bash
+
+rc_local_script="
+# opkg-manager (do not edit)
+${VE_ROOT_DIR:-}/data/opkg-manager/rc.local.d/startup
+"
+__appendDataDir() {
+	local VENUS_DATA_DIR="/data/dev/utils/opkg-manager/src"; [ -d $VENUS_DATA_DIR ] || VENUS_DATA_DIR=
+  local file="${1}"
+	local -n _out_dir=${2}
+	_out_dir="${VENUS_DATA_DIR:-}/data/opkg-manager/${file}"
+}
+
+# List of special pages (without .qml)
+__load_source_file() {
+		# may require symlink to /data/dev 
+  local source_file=
+	__appendDataDir "${1}" source_file
+	[[ -f "${source_file}" ]] || { echo "ERROR: source file does not exist:${source_file}" >&2; exit 1; }
+
+	set -- # resets $1, $2, ...
+
+  # shellcheck disable=SC1090
+	. "${source_file}"
+	
+}
+
+#__add_remove_dbus_settings() {
+	
+#	local -i remove=${1:-0} # 0 adds; 1 removes
+#	__load_source_file "dbus-common"
+
+#local settings='
+#Theme:s:0:0:"dark"
+#Enabled:i:0:1:1
+#'
+
+#dbus_common_add_remove_debus_settings $remove "Themer" "$settings"
+ 
+#}
+ 
+install_helper_post_install() {
+ 
+    __load_source_file "opkg-common"
+
+    opkg_common_add_script_to_rc_local "${rc_local_script}"
+    
+    opkg_common_register_package "opkg-manager"
+
+    opkg_common_ensure_feeds
+
+    _install_helper_patch_files
+    
+    echo "restarting gui service..."
+    svc -t /service/gui
+
+    echo "please wait, updating packages..."
+    opkg_common_update_packages "successfully installed ${opkg-manager}"
+
+}
+
+_install_helper_patch_files()
+{
+    echo "patching files"
+    __load_source_file "file-patcher"
+    local full_path=
+    __appendDataDir "opkg-manager.patch" full_path
+
+    file_patcher_apply_patch $full_path
+}
+
+install_helper_pre_remove() {
+ 
+  __load_source_file "opkg-common"
+
+  opkg_common_remove_script_from_rc_local "${rc_local_script}"
+
+    echo "patching files"
+    __load_source_file "file-patcher"
+  local full_path=
+   __appendDataDir "opkg-manager.patch" full_path
+  file_patcher_revert_patch $full_path
+
+  opkg_common_unregister_package "opkg-manager"
+
+  opkg_common_remove_feed_symlink
+
+}

@@ -6,6 +6,7 @@ QtObject {
  
 	Component.onCompleted: {
 		if (connection) {
+			
 			connection.color = Themer.backgroundColor
 		}
 		if (ball?.border) {

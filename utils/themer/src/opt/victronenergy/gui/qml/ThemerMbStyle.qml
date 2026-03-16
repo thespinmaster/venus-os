@@ -4,14 +4,16 @@ import Theming 1.0
 QtObject {
  
  	Component.onCompleted: {
-    //console.log("ThemerMbStyle:Component.onCompleted")
+ 
 		if (textColor) {
 			textColor = Qt.binding(function() { return Themer.textColor})
 		}
 		if (borderColor) {
 			borderColor = Qt.binding(function() { return Themer.borderColor})
 		}
-		
+		if (backgroundColor) {
+			backgroundColor = Qt.binding(function() { return isCurrentItem ? Themer.backgroundColorSelected : Themer.backgroundColor })
+		}
 		themer = Themer
 	}
  

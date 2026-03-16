@@ -1,7 +1,7 @@
 #!/bin/bash
 
 set -o nounset
- 
+
 declare this_path; this_path="$(dirname "${BASH_SOURCE[0]}")"
  
 QML_TARGET_PATH="/opt/victronenergy/gui/qml"
@@ -15,10 +15,14 @@ QML_ICONS_SOURCE_PATH="$this_path/../src${QML_ICONS_TARGET_PATH}"
 QML_FILES=(
 	
 	Theming
+	
+	ThemerMain.qml
+	ThemerMbStyle.qml
+	ThemerMbSubMenu.qml
+	ThemerOverviewConnectionEnd.qml
 
-	Tm_OverviewConnectionEnd.qml
-	Tm_main.qml
- 
+	PageSettingsThemer.qml
+	PageSettingsThemerSubMenu.qml
 )
 
 # Icons

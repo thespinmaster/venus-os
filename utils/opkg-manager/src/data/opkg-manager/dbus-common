@@ -24,7 +24,8 @@ dbus_common_add_debus_settings() {
 		name="${name#"${name%%[![:space:]]*}"}"
 		# Skip blank lines and comments
 		[[ -z "$name" || "$name" =~ ^[[:space:]]*# ]] && continue
-		dbus -y $basePath /Settings AddSetting $group "$name" "$value" "$type" $min $max
+		echo "adding dbus setting: $group/$name, value:$value, type:$type, min:$min, max:$max"
+		dbus -y $basePath /Settings AddSetting $group "$name" "$value" "$type" $min $max 1>/dev/null
 	done <<< "$dbus_settings"
 }
 

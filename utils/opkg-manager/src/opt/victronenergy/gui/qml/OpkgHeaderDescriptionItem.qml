@@ -16,12 +16,13 @@ MbItem {
     property int descriptionWrapMode: Text.WordWrap
 	property VBusItem item: VBusItem {}
 	property string iconId: "icon-toolbar-enter"
- 
+    property int spacing : 0
+
     Column {
         id: columnRoot
         width: parent ? parent.width : undefined
         height: implicitHeight
-        spacing: 2
+        spacing: spacing
         property bool isCurrentItem: root.ListView.isCurrentItem
         anchors {
             top: parent.top; topMargin: mbStyle.marginDefault
@@ -45,7 +46,7 @@ MbItem {
             text: root.description ? root.description : ""
             isCurrentItem: root.ListView.isCurrentItem
             wrapMode: root.descriptionWrapMode
-            font.pixelSize: root.header ? 13 : mbStyle.fontPixelSize
+            font.pixelSize: root.header ? 12 : mbStyle.fontPixelSize
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.leftMargin: mbStyle.marginDefault

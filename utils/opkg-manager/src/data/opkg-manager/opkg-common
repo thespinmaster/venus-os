@@ -116,7 +116,7 @@ opkg_common_update_packages() {
   local msg="${1:-}"
 
   (
-    _wait_for_opkg
+    __wait_for_opkg
     opkg update
     
     if [[ -n "${msg}" ]]; then
