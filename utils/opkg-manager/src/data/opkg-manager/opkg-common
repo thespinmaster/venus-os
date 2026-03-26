@@ -107,21 +107,23 @@ opkg_common_get_venus_verion_byref() {
 }
 
 __wait_for_opkg() {
+  local -i counter=0
   while [ -e /run/opkg.lock ]; do
     sleep 0.5
+    ((++counter))
+    ((counter>30)) && return 1
   done
+  return 0
 }
 
 opkg_common_update_packages() {
- 
   (
-    __wait_for_opkg
-    opkg update
+    __wait_for_opkg && opkg update 
   ) &
   
   local opkg_pid=$!
-  wait $opkg_pid
-
+  wait "$opkg_pid"
+ 
 }
  
 opkg_common_remove_feed_symlink() {
