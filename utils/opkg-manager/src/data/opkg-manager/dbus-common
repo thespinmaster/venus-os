@@ -19,15 +19,18 @@ dbus_common_add_dbus_settings() {
 
 	# For each line in dbus_settings, parse fields and add setting
 	while IFS=: read -r fullpath type min max value; do
-		# Skip blank lines and comments
-	  [[ -z "$fullpath" || "$fullpath" =~ ^[[:space:]]*# ]] && continue
+		# Skip blank lines and comments, including lines with leading whitespace.
+		fullpath="${fullpath#"${fullpath%%[![:space:]]*}"}"
+		[[ -z "$fullpath" || "$fullpath" == \#* ]] && continue
+		echo "aa:fullpath:$fullpath"
+
   	group="${fullpath%/*}"
     name="${fullpath##*/}"
 		# Trim any leading whitespace from group
 		group="${group#"${group%%[![:space:]]*}"}"
  
 		echo "adding dbus setting: $group/$name, value:$value, type:$type, min:$min, max:$max"
-		dbus -y $servicePath /Settings AddSetting $group "$name" "$value" "$type" $min $max 1>/dev/null
+		#dbus -y $servicePath /Settings AddSetting $group "$name" "$value" "$type" $min $max 1>/dev/null
 	done <<< "$dbus_settings"
 }
 
@@ -44,8 +47,9 @@ dbus_common_add_dbus_settings() {
 	local names=""
 
 	while IFS=: read -r fullpath _ _ _ _; do
-		# Skip blank lines and comments
-		[[ -z "$fullpath" || "$fullpath" =~ ^[[:space:]]*# ]] && continue
+		# Skip blank lines and comments, including lines with leading whitespace.
+		fullpath="${fullpath#"${fullpath%%[![:space:]]*}"}"
+		[[ -z "$fullpath" || "$fullpath" == \#* ]] && continue
 		group="${fullpath%/*}"
 		name="${fullpath##*/}"
 		# Trim any leading whitespace from group
@@ -90,3 +94,4 @@ elif [[ "${1:-}" == "dbus-add-settings" ]]; then
   shift
 	dbus_common_add_dbus_settings "$1"
 fi
+ 
