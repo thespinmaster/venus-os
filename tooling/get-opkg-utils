@@ -8,7 +8,8 @@ fi
 
 if ! command -v make >/dev/null 2>&1; then
   opkg update
-  opkg install make
+  opkg install coreutils
+  # opkg install make
 fi
 
 cur_dir=$PWD

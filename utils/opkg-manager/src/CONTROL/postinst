@@ -1,7 +1,5 @@
 #!/bin/bash
 
-. "${VE_ROOT_DIR:-}/data/opkg-manager/install-helper"
-
-install_helper_post_install
+"${VE_ROOT_DIR:-}/data/opkg-manager/installer" "install"
 
 

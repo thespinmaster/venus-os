@@ -57,10 +57,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin
+CMAKE_SOURCE_DIR = /data/dev/utils/opkg-manager/src/qmlplugin
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/build
+CMAKE_BINARY_DIR = /data/dev/utils/opkg-manager/src/qmlplugin/build
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -87,9 +87,9 @@ rebuild_cache/fast: rebuild_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/build/CMakeFiles /home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/build//CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /data/dev/utils/opkg-manager/src/qmlplugin/build/CMakeFiles /data/dev/utils/opkg-manager/src/qmlplugin/build//CMakeFiles/progress.marks
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/admin/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /data/dev/utils/opkg-manager/src/qmlplugin/build/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
@@ -155,6 +155,30 @@ OpkgManagerplugin_autogen/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerplugin_autogen.dir/build.make CMakeFiles/OpkgManagerplugin_autogen.dir/build
 .PHONY : OpkgManagerplugin_autogen/fast
 
+FileHelper.o: FileHelper.cpp.o
+.PHONY : FileHelper.o
+
+# target to build an object file
+FileHelper.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerplugin.dir/build.make CMakeFiles/OpkgManagerplugin.dir/FileHelper.cpp.o
+.PHONY : FileHelper.cpp.o
+
+FileHelper.i: FileHelper.cpp.i
+.PHONY : FileHelper.i
+
+# target to preprocess a source file
+FileHelper.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerplugin.dir/build.make CMakeFiles/OpkgManagerplugin.dir/FileHelper.cpp.i
+.PHONY : FileHelper.cpp.i
+
+FileHelper.s: FileHelper.cpp.s
+.PHONY : FileHelper.s
+
+# target to generate assembly for a file
+FileHelper.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerplugin.dir/build.make CMakeFiles/OpkgManagerplugin.dir/FileHelper.cpp.s
+.PHONY : FileHelper.cpp.s
+
 OpkgManagerPlugin.o: OpkgManagerPlugin.cpp.o
 .PHONY : OpkgManagerPlugin.o
 
@@ -179,29 +203,29 @@ OpkgManagerPlugin.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerplugin.dir/build.make CMakeFiles/OpkgManagerplugin.dir/OpkgManagerPlugin.cpp.s
 .PHONY : OpkgManagerPlugin.cpp.s
 
-ProcessRunner.o: ProcessRunner.cpp.o
-.PHONY : ProcessRunner.o
+OpkgManagerplugin_autogen/EWIEGA46WW/qrc_resources.o: OpkgManagerplugin_autogen/EWIEGA46WW/qrc_resources.cpp.o
+.PHONY : OpkgManagerplugin_autogen/EWIEGA46WW/qrc_resources.o
 
 # target to build an object file
-ProcessRunner.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerplugin.dir/build.make CMakeFiles/OpkgManagerplugin.dir/ProcessRunner.cpp.o
-.PHONY : ProcessRunner.cpp.o
+OpkgManagerplugin_autogen/EWIEGA46WW/qrc_resources.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerplugin.dir/build.make CMakeFiles/OpkgManagerplugin.dir/OpkgManagerplugin_autogen/EWIEGA46WW/qrc_resources.cpp.o
+.PHONY : OpkgManagerplugin_autogen/EWIEGA46WW/qrc_resources.cpp.o
 
-ProcessRunner.i: ProcessRunner.cpp.i
-.PHONY : ProcessRunner.i
+OpkgManagerplugin_autogen/EWIEGA46WW/qrc_resources.i: OpkgManagerplugin_autogen/EWIEGA46WW/qrc_resources.cpp.i
+.PHONY : OpkgManagerplugin_autogen/EWIEGA46WW/qrc_resources.i
 
 # target to preprocess a source file
-ProcessRunner.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerplugin.dir/build.make CMakeFiles/OpkgManagerplugin.dir/ProcessRunner.cpp.i
-.PHONY : ProcessRunner.cpp.i
+OpkgManagerplugin_autogen/EWIEGA46WW/qrc_resources.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerplugin.dir/build.make CMakeFiles/OpkgManagerplugin.dir/OpkgManagerplugin_autogen/EWIEGA46WW/qrc_resources.cpp.i
+.PHONY : OpkgManagerplugin_autogen/EWIEGA46WW/qrc_resources.cpp.i
 
-ProcessRunner.s: ProcessRunner.cpp.s
-.PHONY : ProcessRunner.s
+OpkgManagerplugin_autogen/EWIEGA46WW/qrc_resources.s: OpkgManagerplugin_autogen/EWIEGA46WW/qrc_resources.cpp.s
+.PHONY : OpkgManagerplugin_autogen/EWIEGA46WW/qrc_resources.s
 
 # target to generate assembly for a file
-ProcessRunner.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerplugin.dir/build.make CMakeFiles/OpkgManagerplugin.dir/ProcessRunner.cpp.s
-.PHONY : ProcessRunner.cpp.s
+OpkgManagerplugin_autogen/EWIEGA46WW/qrc_resources.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerplugin.dir/build.make CMakeFiles/OpkgManagerplugin.dir/OpkgManagerplugin_autogen/EWIEGA46WW/qrc_resources.cpp.s
+.PHONY : OpkgManagerplugin_autogen/EWIEGA46WW/qrc_resources.cpp.s
 
 OpkgManagerplugin_autogen/mocs_compilation.o: OpkgManagerplugin_autogen/mocs_compilation.cpp.o
 .PHONY : OpkgManagerplugin_autogen/mocs_compilation.o
@@ -227,6 +251,30 @@ OpkgManagerplugin_autogen/mocs_compilation.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerplugin.dir/build.make CMakeFiles/OpkgManagerplugin.dir/OpkgManagerplugin_autogen/mocs_compilation.cpp.s
 .PHONY : OpkgManagerplugin_autogen/mocs_compilation.cpp.s
 
+ProcessRunner.o: ProcessRunner.cpp.o
+.PHONY : ProcessRunner.o
+
+# target to build an object file
+ProcessRunner.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerplugin.dir/build.make CMakeFiles/OpkgManagerplugin.dir/ProcessRunner.cpp.o
+.PHONY : ProcessRunner.cpp.o
+
+ProcessRunner.i: ProcessRunner.cpp.i
+.PHONY : ProcessRunner.i
+
+# target to preprocess a source file
+ProcessRunner.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerplugin.dir/build.make CMakeFiles/OpkgManagerplugin.dir/ProcessRunner.cpp.i
+.PHONY : ProcessRunner.cpp.i
+
+ProcessRunner.s: ProcessRunner.cpp.s
+.PHONY : ProcessRunner.s
+
+# target to generate assembly for a file
+ProcessRunner.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerplugin.dir/build.make CMakeFiles/OpkgManagerplugin.dir/ProcessRunner.cpp.s
+.PHONY : ProcessRunner.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -238,15 +286,21 @@ help:
 	@echo "... OpkgManagerplugin_autogen"
 	@echo "... OpkgManagerplugin_autogen_timestamp_deps"
 	@echo "... OpkgManagerplugin"
+	@echo "... FileHelper.o"
+	@echo "... FileHelper.i"
+	@echo "... FileHelper.s"
 	@echo "... OpkgManagerPlugin.o"
 	@echo "... OpkgManagerPlugin.i"
 	@echo "... OpkgManagerPlugin.s"
-	@echo "... ProcessRunner.o"
-	@echo "... ProcessRunner.i"
-	@echo "... ProcessRunner.s"
+	@echo "... OpkgManagerplugin_autogen/EWIEGA46WW/qrc_resources.o"
+	@echo "... OpkgManagerplugin_autogen/EWIEGA46WW/qrc_resources.i"
+	@echo "... OpkgManagerplugin_autogen/EWIEGA46WW/qrc_resources.s"
 	@echo "... OpkgManagerplugin_autogen/mocs_compilation.o"
 	@echo "... OpkgManagerplugin_autogen/mocs_compilation.i"
 	@echo "... OpkgManagerplugin_autogen/mocs_compilation.s"
+	@echo "... ProcessRunner.o"
+	@echo "... ProcessRunner.i"
+	@echo "... ProcessRunner.s"
 .PHONY : help
 
 

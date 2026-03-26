@@ -1,6 +1,0 @@
-module Theming
-singleton Themer 1.0 Themer.qml
-Themermain 1.0 Themermain.qml
-ThemerOverviewConnectionEnd 1.0 ThemerOverviewConnectionEnd.qml
-ThemerMbSubMenu 1.0 ThemerMbSubMenu.qml
-ThemerMbStyle 1.0 ThemerMbStyle.qml

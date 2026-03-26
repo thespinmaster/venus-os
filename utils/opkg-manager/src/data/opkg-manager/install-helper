@@ -1,9 +1,12 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-rc_local_script="
-# opkg-manager (do not edit)
-${VE_ROOT_DIR:-}/data/opkg-manager/rc.local.d/startup
-"
+set -o nounset
+
+# declare DBUS_SETTINGS=
+# declare RC_LOCAL_SCRIPT=
+# set package name using the path of the calling file's location
+declare PACKAGE_NAME="$(basename "$(dirname "${BASH_SOURCE[1]}")")"
+declare RESTART_GUI_SERVICE=0
 
 __appendDataDir() {
 	local VENUS_DATA_DIR="/data/dev/utils/opkg-manager/src"; [ -d $VENUS_DATA_DIR ] || VENUS_DATA_DIR=
@@ -11,79 +14,103 @@ __appendDataDir() {
 	local -n _out_dir=${2}
 	_out_dir="${VENUS_DATA_DIR:-}/data/opkg-manager/${file}"
 }
-
 # List of special pages (without .qml)
 __load_source_file() {
 		# may require symlink to /data/dev 
   local source_file=
 	__appendDataDir "${1}" source_file
-	[[ -f "${source_file}" ]] || { echo "ERROR: source file does not exist:${source_file}" >&2; exit 1; }
+	[[ -f ${source_file} ]] || { echo "ERROR: source file does not exist:${source_file}" >&2; exit 1; }
 
 	set -- # resets $1, $2, ...
-
-  # shellcheck disable=SC1090
+	
+	# shellcheck disable=SC1090
 	. "${source_file}"
 	
 }
-
-#__add_remove_dbus_settings() {
-	
-#	local -i remove=${1:-0} # 0 adds; 1 removes
-#	__load_source_file "dbus-common"
-
-#local settings='
-#Theme:s:0:0:"dark"
-#Enabled:i:0:1:1
-#'
-
-#dbus_common_add_remove_debus_settings $remove "Themer" "$settings"
  
-#}
  
 install_helper_post_install() {
  
-    __load_source_file "opkg-common"
+	local this_path="$(dirname "${BASH_SOURCE[0]}")"
+ 
+	__load_source_file "opkg-common"
+	
+	echo "registering package: $PACKAGE_NAME"
+	opkg_common_register_package "$PACKAGE_NAME"
 
-    opkg_common_add_script_to_rc_local "${rc_local_script}"
-    
-    opkg_common_register_package "opkg-manager"
+	if [[ -n "${RC_LOCAL_SCRIPT:-}" ]]; then
+		echo "adding rc.local script"
+		opkg_common_add_script_to_rc_local "${RC_LOCAL_SCRIPT}"
+	fi
+ 
 
-    opkg_common_ensure_feeds
+	(
+		echo "patching files"
+		__load_source_file "file-patcher"
+		
+		for patchfile in "$this_path"/*.patch; do
+			file_patcher_revert_patch "$patchfile"
+		done
+	)
 
-    _install_helper_patch_files
-    
-    echo "restarting gui service..."
-    svc -t /service/gui
+	if [[ -n "${DBUS_SETTINGS:-}" ]]; then
+		(
+			echo "adding dbus settings"
 
-    echo "please wait, updating packages..."
-    opkg_common_update_packages "successfully installed ${opkg-manager}"
+			__load_source_file "dbus-common"
 
-}
+			if [[ -n "${DBUS_SETTINGS_REMOVE:-}" ]]; then
+				dbus_common_remove_dbus_settings "$DBUS_SETTINGS_REMOVE"
+			fi
+			if [[ -n "${DBUS_SETTINGS:-}" ]]; then
+				dbus_common_add_dbus_settings "$DBUS_SETTINGS"
+			fi
 
-_install_helper_patch_files()
-{
-    echo "patching files"
-    __load_source_file "file-patcher"
-    local full_path=
-    __appendDataDir "opkg-manager.patch" full_path
+			dbus_common_add_dbus_settings "$DBUS_SETTINGS"
+		)
+	fi
 
-    file_patcher_apply_patch $full_path
+	install_helper_restart_gui_service
 }
 
 install_helper_pre_remove() {
+
+	local this_path="$(dirname "${BASH_SOURCE[0]}")"
  
-  __load_source_file "opkg-common"
+	__load_source_file "opkg-common"
+ 
+	if [[ -n "${RC_LOCAL_SCRIPT:-}" ]]; then
+		opkg_common_remove_script_from_rc_local "${RC_LOCAL_SCRIPT}"
+	fi
 
-  opkg_common_remove_script_from_rc_local "${rc_local_script}"
+	opkg_common_unregister_package "$PACKAGE_NAME"
 
-    echo "patching files"
-    __load_source_file "file-patcher"
-  local full_path=
-   __appendDataDir "opkg-manager.patch" full_path
-  file_patcher_revert_patch $full_path
+	(
+		__load_source_file "file-patcher"
+		
+		for patchfile in "$this_path"/*.patch; do
+			file_patcher_revert_patch "$patchfile"
+		done
+	)
+ 
+	if [[ -n "${DBUS_SETTINGS:-}" ]] then
+		(
+			__load_source_file "dbus-common"
+ 
+			dbus_common_remove_dbus_settings "$DBUS_SETTINGS"
+ 
+		)
+	fi
 
-  opkg_common_unregister_package "opkg-manager"
-
-  opkg_common_remove_feed_symlink
-
+	install_helper_restart_gui_service
 }
+
+install_helper_restart_gui_service() {
+	((RESTART_GUI_SERVICE)) || return
+
+	echo "restarting gui service..."
+  svc -t /service/gui
+}
+
+
+ 

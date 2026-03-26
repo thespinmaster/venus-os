@@ -14,6 +14,10 @@ QtObject {
 		if (backgroundColor) {
 			backgroundColor = Qt.binding(function() { return isCurrentItem ? Themer.backgroundColorSelected : Themer.backgroundColor })
 		}
+		if (backgroundColorService) {
+			backgroundColorService = Qt.binding(function() { return isCurrentItem ? Themer.serviceBackgroundColorSelected : Themer.serviceBackgroundColor })
+		}
+		
 		themer = Themer
 	}
  

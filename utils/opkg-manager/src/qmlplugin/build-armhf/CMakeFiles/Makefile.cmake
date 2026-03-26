@@ -36,6 +36,7 @@ set(CMAKE_MAKEFILE_DEPENDS
   "/usr/lib/arm-linux-gnueabihf/cmake/Qt6Core/Qt6CoreConfigExtras.cmake"
   "/usr/lib/arm-linux-gnueabihf/cmake/Qt6Core/Qt6CoreConfigVersion.cmake"
   "/usr/lib/arm-linux-gnueabihf/cmake/Qt6Core/Qt6CoreConfigVersionImpl.cmake"
+  "/usr/lib/arm-linux-gnueabihf/cmake/Qt6Core/Qt6CoreConfigureFileTemplate.in"
   "/usr/lib/arm-linux-gnueabihf/cmake/Qt6Core/Qt6CoreDependencies.cmake"
   "/usr/lib/arm-linux-gnueabihf/cmake/Qt6Core/Qt6CoreMacros.cmake"
   "/usr/lib/arm-linux-gnueabihf/cmake/Qt6Core/Qt6CoreTargets-none.cmake"
@@ -109,10 +110,12 @@ set(CMAKE_MAKEFILE_DEPENDS
   "/usr/lib/arm-linux-gnueabihf/cmake/Qt6Qml/Qt6QmlDependencies.cmake"
   "/usr/lib/arm-linux-gnueabihf/cmake/Qt6Qml/Qt6QmlFindQmlscInternal.cmake"
   "/usr/lib/arm-linux-gnueabihf/cmake/Qt6Qml/Qt6QmlMacros.cmake"
+  "/usr/lib/arm-linux-gnueabihf/cmake/Qt6Qml/Qt6QmlPluginTemplate.cpp.in"
   "/usr/lib/arm-linux-gnueabihf/cmake/Qt6Qml/Qt6QmlPlugins.cmake"
   "/usr/lib/arm-linux-gnueabihf/cmake/Qt6Qml/Qt6QmlTargets-none.cmake"
   "/usr/lib/arm-linux-gnueabihf/cmake/Qt6Qml/Qt6QmlTargets.cmake"
   "/usr/lib/arm-linux-gnueabihf/cmake/Qt6Qml/Qt6QmlVersionlessTargets.cmake"
+  "/usr/lib/arm-linux-gnueabihf/cmake/Qt6Qml/Qt6qmldirTemplate.cmake.in"
   "/usr/lib/arm-linux-gnueabihf/cmake/Qt6QmlIntegration/Qt6QmlIntegrationAdditionalTargetInfo.cmake"
   "/usr/lib/arm-linux-gnueabihf/cmake/Qt6QmlIntegration/Qt6QmlIntegrationConfig.cmake"
   "/usr/lib/arm-linux-gnueabihf/cmake/Qt6QmlIntegration/Qt6QmlIntegrationConfigVersion.cmake"
@@ -165,14 +168,27 @@ set(CMAKE_MAKEFILE_OUTPUTS
 
 # Byproducts of CMake generate step:
 set(CMAKE_MAKEFILE_PRODUCTS
+  ".rcc/qmake_OpkgManager.qrc"
+  "OpkgManagerpluginplugin_OpkgManagerPlugin.cpp"
+  "qmldir"
   "CMakeFiles/OpkgManagerplugin_autogen.dir/AutogenInfo.json"
+  "CMakeFiles/OpkgManagerpluginplugin_autogen.dir/AutogenInfo.json"
   ".qt/QtDeploySupport.cmake"
+  "qmltypes/OpkgManagerplugin_foreign_types.txt"
   "CMakeFiles/CMakeDirectoryInformation.cmake"
   )
 
 # Dependency information for all targets:
 set(CMAKE_DEPEND_INFO_FILES
   "CMakeFiles/OpkgManagerplugin.dir/DependInfo.cmake"
+  "CMakeFiles/OpkgManagerplugin_automoc_json_extraction.dir/DependInfo.cmake"
+  "CMakeFiles/OpkgManagerplugin_qmltyperegistration.dir/DependInfo.cmake"
+  "CMakeFiles/all_qmltyperegistrations.dir/DependInfo.cmake"
+  "CMakeFiles/OpkgManagerplugin_other_files.dir/DependInfo.cmake"
+  "CMakeFiles/OpkgManagerpluginplugin.dir/DependInfo.cmake"
+  "CMakeFiles/qt_internal_plugins.dir/DependInfo.cmake"
   "CMakeFiles/OpkgManagerplugin_autogen_timestamp_deps.dir/DependInfo.cmake"
   "CMakeFiles/OpkgManagerplugin_autogen.dir/DependInfo.cmake"
+  "CMakeFiles/OpkgManagerpluginplugin_autogen_timestamp_deps.dir/DependInfo.cmake"
+  "CMakeFiles/OpkgManagerpluginplugin_autogen.dir/DependInfo.cmake"
   )

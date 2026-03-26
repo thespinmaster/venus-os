@@ -69,7 +69,7 @@ Item {
                 required property int index
                 property bool isFirst: index === 0
                 property bool isLast: index === root.model.length - 1
-                property bool isOnly: root.model.length <= 1
+                property bool isOnly: isFirst && isLast
 
                 text: root.labelFor(modelData, index)
                 checkable: true

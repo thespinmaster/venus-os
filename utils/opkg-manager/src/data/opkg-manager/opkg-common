@@ -113,16 +113,14 @@ __wait_for_opkg() {
 }
 
 opkg_common_update_packages() {
-  local msg="${1:-}"
-
+ 
   (
     __wait_for_opkg
     opkg update
-    
-    if [[ -n "${msg}" ]]; then
-      echo "${msg}"
-    fi
   ) &
+  
+  local opkg_pid=$!
+  wait $opkg_pid
 
 }
  

@@ -4,28 +4,30 @@
 
 set -o nounset
 
-
-# Function: dbus_common_add_debus_settings
+# Function: dbus_common_add_dbus_settings
 # Adds dbus settings for a group.
 # Arguments:
 #   $1 - group name (string)
 #   $2 - dbus_settings (string, lines formatted as name:type:min:max:value)
 # type should be: 'i' (integer), 'f' (float) and 's' (string)
 # Each line in dbus_settings is parsed and sent to dbus as a setting.
-dbus_common_add_debus_settings() {
+dbus_common_add_dbus_settings() {
 
-	local basePath="com.victronenergy.settings"
-	local group="$1"
-	local dbus_settings="$2"
+	local servicePath="com.victronenergy.settings"
+	local group name
+	local dbus_settings="$1"
 
 	# For each line in dbus_settings, parse fields and add setting
-	while IFS=: read -r name type min max value; do
-		# Trim leading whitespace from name
-		name="${name#"${name%%[![:space:]]*}"}"
+	while IFS=: read -r fullpath type min max value; do
 		# Skip blank lines and comments
-		[[ -z "$name" || "$name" =~ ^[[:space:]]*# ]] && continue
+	  [[ -z "$fullpath" || "$fullpath" =~ ^[[:space:]]*# ]] && continue
+  	group="${fullpath%/*}"
+    name="${fullpath##*/}"
+		# Trim any leading whitespace from group
+		group="${group#"${group%%[![:space:]]*}"}"
+ 
 		echo "adding dbus setting: $group/$name, value:$value, type:$type, min:$min, max:$max"
-		dbus -y $basePath /Settings AddSetting $group "$name" "$value" "$type" $min $max 1>/dev/null
+		dbus -y $servicePath /Settings AddSetting $group "$name" "$value" "$type" $min $max 1>/dev/null
 	done <<< "$dbus_settings"
 }
 
@@ -36,19 +38,33 @@ dbus_common_add_debus_settings() {
  #   $2 - dbus_settings (string, lines formatted as just name or name:type:min:max:value) 
  # Removes all settings listed in dbus_settings for the group.
  dbus_common_remove_dbus_settings() {
-	local basePath="com.victronenergy.settings"
-	local group="$1"
-	local dbus_settings="$2"
-	local all_values=""
-	while IFS=: read -r name _ _ _ _; do
-		# Trim leading whitespace from name
-		name="${name#"${name%%[![:space:]]*}"}"
+	local baseService="com.victronenergy.settings"
+	local dbus_settings="$1"
+	local prev_group=""
+	local names=""
+
+	while IFS=: read -r fullpath _ _ _ _; do
 		# Skip blank lines and comments
-		[[ -z "$name" || "$name" =~ ^[[:space:]]*# ]] && continue
-		[[ -z "$all_values" ]] && all_values="'$name'" || all_values+=", '$name'"
+		[[ -z "$fullpath" || "$fullpath" =~ ^[[:space:]]*# ]] && continue
+		group="${fullpath%/*}"
+		name="${fullpath##*/}"
+		# Trim any leading whitespace from group
+		group="${group#"${group%%[![:space:]]*}"}"
+
+		if [[ -n "$prev_group" && "$group" != "$prev_group" ]]; then
+			echo "removing values $names from /Settings/$prev_group"
+			dbus -y $baseService /Settings/$prev_group RemoveSettings "%[$names]"
+			names=""
+		fi
+
+		[[ -z "$names" ]] && names="'$name'" || names+=", '$name'"
+		prev_group="$group"
 	done <<< "$dbus_settings"
-	echo "removing values $all_values from /Settings/$group"
-	dbus -y $basePath /Settings/$group RemoveSettings "%[$all_values]"
+
+	if [[ -n "$names" && -n "$prev_group" ]]; then
+		echo "removing values $names from /Settings/$prev_group"
+		dbus -y $baseService /Settings/$prev_group RemoveSettings "%[$names]"
+	fi
 }
 
  # Function: dbus_common_add_remove_debus_settings
@@ -56,15 +72,21 @@ dbus_common_add_debus_settings() {
  # Arguments:
  #   $1 - remove flag (integer, 1 to remove, 0 to add)
  # Uses __themer_command_get_dbus_settings to get settings.
- dbus_common_add_remove_debus_settings() {
+ dbus_common_add_remove_dbus_settings() {
 	
 	local -i remove=${1}
-	local group="${2}"
-  local settings="${3}"
+  local settings="${2}"
 	if ((remove)); then
-		dbus_common_remove_dbus_settings "$group" "$settings"
+		dbus_common_remove_dbus_settings "$settings"
 	else
-		dbus_common_add_debus_settings "$group" "$settings"
+		dbus_common_add_dbus_settings "$settings"
 	fi
 }
- 
+
+if [[ "${1:-}" == "dbus-remove-settings" ]]; then
+  shift
+	dbus_common_remove_dbus_settings "$1"
+elif [[ "${1:-}" == "dbus-add-settings" ]]; then
+  shift
+	dbus_common_add_dbus_settings "$1"
+fi

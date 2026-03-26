@@ -24,11 +24,42 @@ else()
 	endif()
 endif()
 
-add_library(OpkgManagerplugin MODULE
-	OpkgManagerPlugin.cpp
-	ProcessRunner.cpp
-	FileHelper.cpp
-	FileHelper.h
+
+# Use qt_add_qml_module for Qt 6 QML plugin with bytecode
+qt_add_qml_module(OpkgManagerplugin
+	URI OpkgManager
+	VERSION 1.0
+	
+	#[[
+	QML_FILES
+		resources/test.qml
+		resources/OpkgEditBoxLargeText.qml
+		resources/OpkgHeaderDescriptionItem.qml
+		resources/OpkgObjectCustomOverviewPages.qml
+		resources/OpkgPageSettingsCustomMenus.qml
+		resources/OpkgPageSettingsSubMenu.qml
+		resources/PageSettingsOpkg.qml
+		resources/PageSettingsOpkgFeeds.qml
+		resources/PageSettingsOpkgPackageInstall.qml
+		resources/PageSettingsOpkgPackages.qml
+
+		#../opt/victronenergy/gui/qml/OpkgEditBoxLargeText.qml
+		#../opt/victronenergy/gui/qml/OpkgHeaderDescriptionItem.qml
+		#../opt/victronenergy/gui/qml/OpkgObjectCustomOverviewPages.qml
+		#../opt/victronenergy/gui/qml/OpkgPageSettingsCustomMenus.qml
+		#../opt/victronenergy/gui/qml/OpkgPageSettingsSubMenu.qml
+		#../opt/victronenergy/gui/qml/PageSettingsOpkg.qml
+		#../opt/victronenergy/gui/qml/PageSettingsOpkgFeeds.qml
+		#../opt/victronenergy/gui/qml/PageSettingsOpkgPackageInstall.qml
+		#../opt/victronenergy/gui/qml/PageSettingsOpkgPackages.qml
+	RESOURCE_PREFIX /
+	]]
+	
+	SOURCES
+		OpkgManagerPlugin.cpp
+		ProcessRunner.cpp
+		FileHelper.cpp
+		FileHelper.h
 )
 
 target_include_directories(OpkgManagerplugin PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})

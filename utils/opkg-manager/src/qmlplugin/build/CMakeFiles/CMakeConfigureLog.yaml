@@ -276,3 +276,83 @@ events:
       
       
 ...
+
+---
+events:
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/share/cmake-3.28/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "/usr/share/cmake-3.28/Modules/CheckCXXSourceCompiles.cmake:52 (cmake_check_source_compiles)"
+      - "/usr/share/cmake-3.28/Modules/FindThreads.cmake:99 (CHECK_CXX_SOURCE_COMPILES)"
+      - "/usr/share/cmake-3.28/Modules/FindThreads.cmake:163 (_threads_check_libc)"
+      - "/usr/share/cmake-3.28/Modules/CMakeFindDependencyMacro.cmake:76 (find_package)"
+      - "/usr/lib/aarch64-linux-gnu/cmake/Qt6/QtPublicDependencyHelpers.cmake:33 (find_dependency)"
+      - "/usr/lib/aarch64-linux-gnu/cmake/Qt6/Qt6Dependencies.cmake:24 (_qt_internal_find_third_party_dependencies)"
+      - "/usr/lib/aarch64-linux-gnu/cmake/Qt6/Qt6Config.cmake:122 (include)"
+      - "CMakeLists.txt:18 (find_package)"
+    directories:
+      source: "/data/dev/utils/opkg-manager/src/qmlplugin/build/CMakeFiles/CMakeScratch/TryCompile-VkC2hJ"
+      binary: "/data/dev/utils/opkg-manager/src/qmlplugin/build/CMakeFiles/CMakeScratch/TryCompile-VkC2hJ"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: ""
+      CMAKE_CXX_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_MODULE_PATH: "/usr/lib/aarch64-linux-gnu/cmake/Qt6;/usr/lib/aarch64-linux-gnu/cmake/Qt6/3rdparty/extra-cmake-modules/find-modules;/usr/lib/aarch64-linux-gnu/cmake/Qt6/3rdparty/kwin"
+    buildResult:
+      variable: "CMAKE_HAVE_LIBC_PTHREAD"
+      cached: true
+      stdout: |
+        Change Dir: '/data/dev/utils/opkg-manager/src/qmlplugin/build/CMakeFiles/CMakeScratch/TryCompile-VkC2hJ'
+        
+        Run Build Command(s): /usr/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_f66c7/fast
+        /usr/bin/gmake  -f CMakeFiles/cmTC_f66c7.dir/build.make CMakeFiles/cmTC_f66c7.dir/build
+        gmake[1]: Entering directory '/mnt/storage/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/build/CMakeFiles/CMakeScratch/TryCompile-VkC2hJ'
+        Building CXX object CMakeFiles/cmTC_f66c7.dir/src.cxx.o
+        /usr/bin/c++ -DCMAKE_HAVE_LIBC_PTHREAD   -o CMakeFiles/cmTC_f66c7.dir/src.cxx.o -c /data/dev/utils/opkg-manager/src/qmlplugin/build/CMakeFiles/CMakeScratch/TryCompile-VkC2hJ/src.cxx
+        Linking CXX executable cmTC_f66c7
+        /usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_f66c7.dir/link.txt --verbose=1
+        /usr/bin/c++ CMakeFiles/cmTC_f66c7.dir/src.cxx.o -o cmTC_f66c7 
+        gmake[1]: Leaving directory '/mnt/storage/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/build/CMakeFiles/CMakeScratch/TryCompile-VkC2hJ'
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/share/cmake-3.28/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "/usr/share/cmake-3.28/Modules/CheckCXXSourceCompiles.cmake:52 (cmake_check_source_compiles)"
+      - "/usr/lib/aarch64-linux-gnu/cmake/Qt6/FindWrapAtomic.cmake:33 (check_cxx_source_compiles)"
+      - "/usr/share/cmake-3.28/Modules/CMakeFindDependencyMacro.cmake:76 (find_package)"
+      - "/usr/lib/aarch64-linux-gnu/cmake/Qt6/QtPublicDependencyHelpers.cmake:33 (find_dependency)"
+      - "/usr/lib/aarch64-linux-gnu/cmake/Qt6Core/Qt6CoreDependencies.cmake:30 (_qt_internal_find_third_party_dependencies)"
+      - "/usr/lib/aarch64-linux-gnu/cmake/Qt6Core/Qt6CoreConfig.cmake:50 (include)"
+      - "/usr/lib/aarch64-linux-gnu/cmake/Qt6/Qt6Config.cmake:167 (find_package)"
+      - "CMakeLists.txt:18 (find_package)"
+    checks:
+      - "Performing Test HAVE_STDATOMIC"
+    directories:
+      source: "/data/dev/utils/opkg-manager/src/qmlplugin/build/CMakeFiles/CMakeScratch/TryCompile-af020Q"
+      binary: "/data/dev/utils/opkg-manager/src/qmlplugin/build/CMakeFiles/CMakeScratch/TryCompile-af020Q"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: ""
+      CMAKE_CXX_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_MODULE_PATH: "/usr/lib/aarch64-linux-gnu/cmake/Qt6;/usr/lib/aarch64-linux-gnu/cmake/Qt6/3rdparty/extra-cmake-modules/find-modules;/usr/lib/aarch64-linux-gnu/cmake/Qt6/3rdparty/kwin"
+    buildResult:
+      variable: "HAVE_STDATOMIC"
+      cached: true
+      stdout: |
+        Change Dir: '/data/dev/utils/opkg-manager/src/qmlplugin/build/CMakeFiles/CMakeScratch/TryCompile-af020Q'
+        
+        Run Build Command(s): /usr/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_2828f/fast
+        /usr/bin/gmake  -f CMakeFiles/cmTC_2828f.dir/build.make CMakeFiles/cmTC_2828f.dir/build
+        gmake[1]: Entering directory '/mnt/storage/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/build/CMakeFiles/CMakeScratch/TryCompile-af020Q'
+        Building CXX object CMakeFiles/cmTC_2828f.dir/src.cxx.o
+        /usr/bin/c++ -DHAVE_STDATOMIC   -o CMakeFiles/cmTC_2828f.dir/src.cxx.o -c /data/dev/utils/opkg-manager/src/qmlplugin/build/CMakeFiles/CMakeScratch/TryCompile-af020Q/src.cxx
+        Linking CXX executable cmTC_2828f
+        /usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_2828f.dir/link.txt --verbose=1
+        /usr/bin/c++ CMakeFiles/cmTC_2828f.dir/src.cxx.o -o cmTC_2828f 
+        gmake[1]: Leaving directory '/mnt/storage/dev/repos/venus-os/utils/opkg-manager/src/qmlplugin/build/CMakeFiles/CMakeScratch/TryCompile-af020Q'
+        
+      exitCode: 0
+...

@@ -1,4 +1,6 @@
 
+.pragma library
+
 // Version comparison helper
 function versionGreaterThan(v1, v2) {
  

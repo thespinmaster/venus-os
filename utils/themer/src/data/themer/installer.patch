@@ -1,0 +1,70 @@
+@openfile <3.70
+====
+/opt/victronenergy/gui/qml/main.qml
+====
+@openfile >=3.70
+====
+/opt/victronenergy/gui/qml/Main.qml
+====
+@findbackwards
+====
+}
+====
+@insertbefore
+====
+  // themer 1.0
+  ThemerMain {}
+====
+@openfile 
+====
+/opt/victronenergy/gui/qml/MbStyle.qml
+====
+@findbackwards
+====
+}
+====
+@insertbefore
+====
+  // themer 1.0
+  property var themer: ThemerMbStyle {}
+====
+@openfile 
+====
+/opt/victronenergy/gui/qml/MbSubMenu.qml
+====
+@findbackwards
+====
+}
+====
+@insertbefore
+====
+  // themer 1.0
+  ThemerMbSubMenu {}
+====
+====
+@openfile 
+====
+/opt/victronenergy/gui/qml/OverviewConnectionEnd.qml
+====
+@findbackwards
+====
+}
+====
+@insertbefore
+====
+  // themer 1.0
+  ThemerOverviewConnectionEnd {}
+====
+@openfile 
+====
+/opt/victronenergy/gui/qml/OverviewTanks.qml
+====
+@findbackwards
+====
+}
+====
+@insertbefore
+====
+  // themer 1.0
+  ThemerOverviewTanks {}
+====

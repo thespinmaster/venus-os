@@ -6,13 +6,10 @@ import QtQuick.Controls
 OverviewPage {
 		id: root
 
-	property variant sys: theSystem
 	property string settingsPrefix: "com.victronenergy.settings/Settings/Devices/dbus_inetbox/"
 	property string systemPrefix: "com.victronenergy.system"
 	property string platformPrefix: "com.victronenergy.platform"
 	property string inetboxPrefix: "com.victronenergy.dbus_inetbox"
-	property VBusItem _systemState: VBusItem { bind: Utils.path(systemPrefix, "/SystemState/State") }
-	property bool hasSystemState: _systemState.valid
   property int headerFont: 20
 	property int groupFont: 12
   property int textFont: 12
@@ -38,11 +35,11 @@ OverviewPage {
 	VBusItem { id: airconCurrentTempItem; bind: Utils.path(inetboxPrefix, "/Values/AirconCurrentTemp") }
 	VBusItem { id: themeItem; bind: Utils.path(settingsPrefix, "Theme") }
   VBusItem { id: showAirconItem; bind: Utils.path(settingsPrefix, "ShowAircon") }
-  VBusItem { id: metricItem; bind: Utils.path(settingsPrefix, "Metric") }
+  //VBusItem { id: metricItem; bind: Utils.path(settingsPrefix, "Metric") }
 
 	function applyTheme(themeName) {
 
-		console.log("applyTheme:" + themeName)
+		//console.log("applyTheme:" + themeName)
 
 		switch (themeName) {
 		case "dark":
@@ -83,23 +80,20 @@ OverviewPage {
 		}
 	}
 
-	function formatTemp(value) {
+	function formatTemp(value, round) {
 		var num = parseFloat(value)
+		if (!round)
+			round=0
+
 		if (isNaN(num)) {
 			return "--"
 		}
-		if (metricItem.value === 0) {
-			return (num * 9 / 5 + 32).toFixed(1) + "°F"
+		if (user.temperatureUnit === Unit.Fahrenheit) {
+			return (num * 9 / 5 + 32).toFixed(round) + "°F"
 		}
 		return num.toFixed(1) + "°C"
 	}
  
-	/*
-	Component.onCompleted: {
-		console.debug("njka:Theme:" + themeItem.value)
-		console.debug("njka:Theme:" + showAircon.value)
-	}
-	*/
 
 	Component.onCompleted: applyTheme(themeItem.value)
 
@@ -124,46 +118,45 @@ OverviewPage {
 					text: customNameItem.value || qsTr("Truma")
 					color: headerFontColor
 					font.pixelSize: headerFont
-					font.bold: true
-					anchors.top: parent.top
-					anchors.left: parent.left
-					anchors.topMargin: 0
-					anchors.horizontalCenter: parent.horizontalCenter
+					//font.bold: true
+					anchors {
+						top: parent.top
+						left: parent.left
+						topMargin: 0
+						horizontalCenter: parent.horizontalCenter
+					}
 					horizontalAlignment: Text.AlignHCenter
 			}
 
 			Text {
 				id: heatingCurrentTempText
-				text: formatTemp(heatingCurrentTempItem.value)
+				text: formatTemp(heatingCurrentTempItem.value, 1)
 				color: headerFontColor
 				font.pixelSize: textFont
-				anchors.top: parent.top
-				anchors.topMargin: 6
-				anchors.right: parent.right
-				anchors.rightMargin: 6
+				anchors {
+					top: parent.top
+					topMargin: 6
+					right: parent.right
+					rightMargin: 6
+				}
 			}
 
 			Connections {
 				target: heatingCurrentTempItem
 				function onValueChanged() {
-					heatingCurrentTempText.text = formatTemp(heatingCurrentTempItem.value)
-				}
-			}
-
-			Connections {
-				target: metricItem
-				function onValueChanged() {
-					heatingCurrentTempText.text = formatTemp(heatingCurrentTempItem.value)
+					heatingCurrentTempText.text = formatTemp(heatingCurrentTempItem.value,1)
 				}
 			}
 
       // Water
 			Rectangle {
 				id: waterControlContainer
-				anchors.top: header.bottom
-				anchors.topMargin: 2
-				anchors.left: parent.left
-				anchors.leftMargin: 8
+				anchors {
+					top: header.bottom
+					topMargin: 2
+					left: parent.left
+					leftMargin: 8
+				}
 				width: parent.width / 2.2 - 16
 				height: buttonControl.height + 40
 				color: groupBackgroundColor
@@ -173,11 +166,13 @@ OverviewPage {
 					text: "Water"
 					color: fontColor
 					font.pixelSize: groupFont
-					font.bold: true
-					anchors.top: parent.top
-					anchors.topMargin: 6
-					anchors.left: parent.left
-					anchors.leftMargin: 6
+					//font.bold: true
+					anchors {
+						top: parent.top
+						topMargin: 6
+						left: parent.left
+						leftMargin: 6
+					}
 				}
 
 				ButtonGroupControl {
@@ -189,12 +184,15 @@ OverviewPage {
 					valueMapping: ["0", "40", "60", "200"]
 					Component.onCompleted: setIndexFromValue(waterTargetTempItem.value)
 					onActivated: waterTargetTempItem.setValue(getValueAtIndex(currentIndex))
-					anchors.left: parent.left
-					anchors.leftMargin: 6
-					anchors.right: waterCurrentTempDisplay.left
-					anchors.rightMargin: 6
-					anchors.top: parent.top
-					anchors.topMargin: 30
+					anchors {
+						top: parent.top
+						topMargin: 30
+						left: parent.left
+						leftMargin: 6
+						right: waterCurrentTempDisplay.left
+						rightMargin: 6
+					}
+ 
 				}
 
 				Text {
@@ -202,24 +200,18 @@ OverviewPage {
 					text: formatTemp(waterCurrentTempItem.value)
 					color: fontColor
 					font.pixelSize: textFont
-					anchors.right: parent.right
-					anchors.rightMargin: 6
-					anchors.top: parent.top
-					anchors.topMargin: 6
-
+					anchors {
+						top: parent.top
+						topMargin: 6
+						right: parent.right
+						rightMargin: 6
+					}
 					Connections {
 						target: waterCurrentTempItem
 						function onValueChanged() {
 							waterCurrentTempDisplay.text = formatTemp(waterCurrentTempItem.value)
 						}
 					}		
-
-					Connections {
-						target: metricItem
-						function onValueChanged() {
-							waterCurrentTempDisplay.text = formatTemp(waterCurrentTempItem.value)
-						}
-					}
 				}
 
 				Connections {
@@ -232,10 +224,12 @@ OverviewPage {
       // Energy Mix
 			Rectangle {
 				id: energyMixControlContainer
-				anchors.top: waterControlContainer.top
-				anchors.topMargin: waterControlContainer.topMargin
-				anchors.left: waterControlContainer.right
-				anchors.leftMargin: 8
+				anchors {
+					top: waterControlContainer.top
+					topMargin: waterControlContainer.topMargin
+					left: waterControlContainer.right
+					leftMargin: 8
+				}
 				width: parent.width / 1.8 - 12
 				height: energyMixButtonControl.height + 40
 				color: groupBackgroundColor
@@ -245,11 +239,13 @@ OverviewPage {
 					text: "Energy Mix"
 					color: fontColor
 					font.pixelSize: groupFont
-					font.bold: true
-					anchors.top: parent.top
-					anchors.topMargin: 6
-					anchors.left: parent.left
-					anchors.leftMargin: 6
+					//font.bold: true
+					anchors {
+						top: parent.top
+						topMargin: 6
+						left: parent.left
+						leftMargin: 6
+					}
 				}
 
 				ButtonGroupControl {
@@ -261,12 +257,14 @@ OverviewPage {
 					valueMapping: ["gas|0", "mix|900", "mix|1800", "electricity|900", "electricity|1800"]
 					Component.onCompleted: setIndexFromValue(energyMixItem.value)
 					onActivated: energyMixItem.setValue(getValueAtIndex(currentIndex))
-					anchors.left: parent.left
-					anchors.leftMargin: 6
-					anchors.right: parent.right
-					anchors.rightMargin: 6
-					anchors.top: parent.top
-					anchors.topMargin: 30
+					anchors {
+						left: parent.left
+						leftMargin: 6
+						right: parent.right
+						rightMargin: 6
+						top: parent.top
+						topMargin: 30
+					}
 				}
 				
 				Connections {
@@ -280,10 +278,12 @@ OverviewPage {
 			// Heating
 			Rectangle {
 				id: heatingControlContainer
-				anchors.top: waterControlContainer.bottom
-				anchors.topMargin: 10
-				anchors.left: parent.left
-				anchors.leftMargin: 8
+				anchors {
+					top: waterControlContainer.bottom
+					topMargin: 10
+					left: parent.left
+					leftMargin: 8
+				}
 				width: waterControlContainer.width
 				height: heatingButtonControl.height + heatingSlider.height + 70
 				color: groupBackgroundColor
@@ -294,11 +294,13 @@ OverviewPage {
 					text: "Heating"
 					color: fontColor
 					font.pixelSize: groupFont
-					font.bold: true
-					anchors.top: parent.top
-					anchors.topMargin: 6
-					anchors.left: parent.left
-					anchors.leftMargin: 6
+					//font.bold: true
+					anchors {
+						top: parent.top
+						topMargin: 6
+						left: parent.left
+						leftMargin: 6
+					}
 				}
 
 				ButtonGroupControl {
@@ -311,12 +313,14 @@ OverviewPage {
 
 					Component.onCompleted: setIndexFromValue(heatingModeItem.value)
 					onActivated: heatingModeItem.setValue(getValueAtIndex(currentIndex))
-					anchors.left: parent.left
-					anchors.leftMargin: 6
-					anchors.right: parent.right
-					anchors.rightMargin: 6
-					anchors.top: parent.top
-					anchors.topMargin: 30
+					anchors {
+						left: parent.left
+						leftMargin: 6
+						right: parent.right
+						rightMargin: 6
+						top: parent.top
+						topMargin: 30
+					}
 				}
 				
 				Connections {
@@ -330,10 +334,12 @@ OverviewPage {
 					text: "Target Temp"
 					color: fontColor
 					font.pixelSize: textFont
-					anchors.top: heatingButtonControl.bottom
-					anchors.topMargin: 10
-					anchors.left: parent.left
-					anchors.leftMargin: 6
+					anchors {
+						top: heatingButtonControl.bottom
+						topMargin: 10
+						left: parent.left
+						leftMargin: 6
+					}
 				}
 
 				Slider {
@@ -358,42 +364,43 @@ OverviewPage {
 							color: root.selectedColor
 						}
 					}
-					anchors.left: parent.left
-					anchors.right: tempValueLabel.left
-					anchors.rightMargin: 4
-					anchors.top: heatingButtonControl.bottom
-					anchors.topMargin: 30
-					anchors.leftMargin: 6
+					anchors {
+						left: parent.left
+						leftMargin: 6
+						right: tempValueLabel.left
+						rightMargin: 4
+						top: heatingButtonControl.bottom
+						topMargin: 30
+						
+					}
 			}
 
 			Text {
 				id: tempValueLabel
-				text: formatTemp(heatingSlider.value).replace(".0", "")
+				text: formatTemp(heatingSlider.value,0)
 				color: fontColor
 				font.pixelSize: textFont
-				anchors.right: parent.right
-				anchors.rightMargin: 6
-				anchors.top: heatingButtonControl.bottom
-				anchors.topMargin: 29
-				anchors.verticalCenter: heatingSlider.verticalCenter
-			}
-
-			Connections {
-				target: metricItem
-				function onValueChanged() {
-					tempValueLabel.text = formatTemp(heatingSlider.value).replace(".0", "")
+				anchors {
+						right: parent.right
+						rightMargin: 6
+						top: heatingButtonControl.bottom
+						topMargin: 29
+						verticalCenter: heatingSlider.verticalCenter
 				}
 			}
+
 		}
 
 		// Aircon
 		Rectangle {
 			id: airconControlContainer
 			visible: !!showAirconItem.value
-			anchors.top: waterControlContainer.bottom
-			anchors.topMargin: 10
-			anchors.left: heatingControlContainer.right
-			anchors.leftMargin: 8
+			anchors {
+				top: waterControlContainer.bottom
+				topMargin: 10
+				left: heatingControlContainer.right
+				leftMargin: 8
+			}
 			width: energyMixControlContainer.width
 			height: airconHeader.height + airconModeButtonControl.height + airconFanButtonControl.height + airconTargetTemp.height + airconSlider.height + 50
 			color: groupBackgroundColor
@@ -404,11 +411,13 @@ OverviewPage {
 				text: "Aircon"
 				color: fontColor
 				font.pixelSize: groupFont
-				font.bold: true
-				anchors.top: parent.top
-				anchors.topMargin: 6
-				anchors.left: parent.left
-				anchors.leftMargin: 6
+				//font.bold: true
+				anchors {
+					top: parent.top
+					topMargin: 6
+					left: parent.left
+					leftMargin: 6
+				}
 			}
 
 			ButtonGroupControl {
@@ -420,12 +429,14 @@ OverviewPage {
 				valueMapping: ["off", "vent", "cool", "hot", "auto"]
 				Component.onCompleted: setIndexFromValue(airconModeItem.value)
 				onActivated: airconModeItem.setValue(getValueAtIndex(currentIndex))
-				anchors.left: parent.left
-				anchors.leftMargin: 6
-				anchors.right: parent.right
-				anchors.rightMargin: 6
-				anchors.top: parent.top
-				anchors.topMargin: 30
+				anchors {
+					left: parent.left
+					leftMargin: 6
+					right: parent.right
+					rightMargin: 6
+					top: parent.top
+					topMargin: 30
+				}
 			}
 			
 			Connections {
@@ -444,12 +455,14 @@ OverviewPage {
 				valueMapping: ["low", "mid", "high", "night", "auto"]
 				Component.onCompleted: setIndexFromValue(airconFanSpeedItem.value)
 				onActivated: airconFanSpeedItem.setValue(getValueAtIndex(currentIndex))
-				anchors.left: parent.left
-				anchors.leftMargin: 6
-				anchors.right: parent.right
-				anchors.rightMargin: 6
-				anchors.top: airconModeButtonControl.bottom
-				anchors.topMargin: 12
+				anchors {
+					left: parent.left
+					leftMargin: 6
+					right: parent.right
+					rightMargin: 6
+					top: airconModeButtonControl.bottom
+					topMargin: 12
+				}
 			}
 			
 			Connections {
@@ -464,10 +477,12 @@ OverviewPage {
 				text: "Target Temp"
 				color: fontColor
 				font.pixelSize: textFont
-				anchors.top: airconFanButtonControl.bottom
-				anchors.topMargin: 10
-				anchors.left: parent.left
-				anchors.leftMargin: 6
+				anchors {
+					top: airconFanButtonControl.bottom
+					topMargin: 10
+					left: parent.left
+					leftMargin: 6
+				}
 			}
 
 			Slider {
@@ -492,32 +507,31 @@ OverviewPage {
 						color: root.selectedColor
 					}
 				}
-				anchors.left: parent.left
-				anchors.right: airconTempValueLabel.left
-				anchors.rightMargin: 4
-				anchors.top: airconFanButtonControl.bottom
-				anchors.topMargin: 30
-				anchors.leftMargin: 6
+				anchors {
+					left: parent.left
+					leftMargin: 6
+					right: airconTempValueLabel.left
+					rightMargin: 4
+					top: airconFanButtonControl.bottom
+					topMargin: 30
+				}
 			}
 
 			Text {
 					id: airconTempValueLabel
-					text: formatTemp(airconSlider.value).replace(".0", "")
+					text: formatTemp(airconSlider.value,0).replace(".0", "")
 					color: fontColor
 					font.pixelSize: textFont
-					anchors.right: parent.right
-					anchors.rightMargin: 6
-					anchors.top: airconFanButtonControl.bottom
-					anchors.topMargin: 29
-					anchors.verticalCenter: airconSlider.verticalCenter
-				}
-
-				Connections {
-					target: metricItem
-					function onValueChanged() {
-						airconTempValueLabel.text = formatTemp(airconSlider.value).replace(".0", "")
+					anchors {
+						leftMargin: 6
+						right: parent.right
+						rightMargin: 6
+						top: airconFanButtonControl.bottom
+						topMargin: 29
+						verticalCenter: airconSlider.verticalCenter
 					}
 				}
+
 			}
 
 	}

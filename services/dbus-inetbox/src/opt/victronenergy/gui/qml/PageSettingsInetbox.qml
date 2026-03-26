@@ -18,16 +18,11 @@ MbPage {
 			name: qsTr("Show Aircon")
 			bind: "com.victronenergy.settings/Settings/Devices/dbus_inetbox/ShowAircon"
 		}
- 		MbSwitch {
-			id: useMetric
-			name: qsTr("Metric")
-			bind: "com.victronenergy.settings/Settings/Devices/dbus_inetbox/Metric"
-		}
 		MbEditBox {
 			id: name
 			description: qsTr("Name")
 			item {
-				bind: "com.victronenergy.dbus_inetbox/CustomName"
+				bind: "com.victronenergy.settings/Settings/Devices/dbus_inetbox/CustomName"
 				invalidate: false
 			}
 			show: item.valid

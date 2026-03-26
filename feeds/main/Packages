@@ -4,11 +4,12 @@ Depends: opkg-manager, python3
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: 448474f575283356d3c9a8622b3b7e2f
-Size: 120224
+MD5Sum: c6bef49bdfd4dd9a0d736fe04a830404
+Size: 118212
 Filename: dbus-inetbox_0.0.1_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feeds/main/dbus-inetbox
-Description:  Adds support for Truma inetbox to Venus-OS
+Description: Adds support for Truma inetbox to Venus-OS
+ Adds support for Truma inetbox to Venus-OS
 OE: dbus-inetbox
 License: MIT
 Priority: optional
@@ -19,11 +20,12 @@ Depends: opkg-manager, python3
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: d2061a85e686db755d8f267ffa5105bb
-Size: 62066
+MD5Sum: 10f8d6f24d604ed0b0afb94db7b73c36
+Size: 65960
 Filename: dbus-ne-shunt_1.0.19_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feeds/main/dbus-ne-shunt
-Description:  Adds support for NordElectronica shunt NE196/NE319 board to Venus-OS
+Description: Adds support for NordElectronica shunt NE196/NE319 board to Venus-OS
+ Adds support for NordElectronica shunt NE196/NE319 board to Venus-OS
 OE: dbus-ne-shunt
 License: MIT
 Priority: optional
@@ -34,11 +36,12 @@ Depends: opkg-manager
 Section: utilities
 Architecture: all
 Maintainer: Lucien Denisey <ldenisey@gmail.com>
-MD5Sum: 55306f8f144466e0ab453508763abb24
-Size: 16178
+MD5Sum: 45614d3435dd3e6812b83b64b876112f
+Size: 16262
 Filename: dbus-relay-board_1.0.0_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feeds/main/dbus-relay-board
-Description:  Add support to RS485, RS232 and TTL232 relay boards
+Description: Add support to RS485, RS232 and TTL232 relay boards
+ Add support to RS485, RS232 and TTL232 relay boards
 OE: dbus-relay-board
 License: MIT
 Priority: optional
@@ -49,11 +52,12 @@ Depends: opkg-manager
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: 0e7efea8b0d06c7671e0374f53ecf0f9
-Size: 68676
+MD5Sum: 77dc335ed901d4e514eb211a29041182
+Size: 68438
 Filename: mount-shares_1.0.1_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feeds/main/mount-shares
-Description:  Adds support for nfs and cifs shares to Venus OS
+Description: Adds support for nfs and cifs shares to Venus OS
+ Adds support for nfs and cifs shares to Venus OS
 OE: mount-shares
 License: MIT
 Priority: optional
@@ -64,11 +68,12 @@ Depends: opkg-manager
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: e389c8038f91265f87d9e9b96fac003c
-Size: 2082
+MD5Sum: 2453912ba16e3e63ef395dcee5a05a1c
+Size: 2090
 Filename: network-gps_1.0.0_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feeds/main/network-gps
-Description:  Network GPS using NMEA
+Description: Network GPS using NMEA
+ Network GPS using NMEA
 OE: network-gps
 License: MIT
 Priority: optional
@@ -79,11 +84,12 @@ Depends: opkg-manager
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: 8a792eb96cad67260a7a1dacca4c29b1
-Size: 1008
+MD5Sum: 5ab20b260ed54899d19b24cc979c93f8
+Size: 1016
 Filename: test-install_1.0.4_all.ipk
 Source: https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feed/test-install
-Description:  A simple app for testing install
+Description: A simple app for testing install
+ A simple app for testing install
 OE: einstine
 License: MIT
 Priority: optional
@@ -94,11 +100,12 @@ Depends: opkg-manager, python3
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: 8428f9c4f21e5f8b4c69bd02895643b7
-Size: 2346
+MD5Sum: caa3b6a94c7ba83088004d74af0a3c4d
+Size: 2364
 Filename: test-service_1.0.0_all.ipk
 Source: https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feed/test-service
-Description:  A simple service for testing
+Description: A simple service for testing
+ A simple service for testing
 OE: einstine
 License: MIT
 Priority: optional
@@ -109,11 +116,12 @@ Depends: opkg-manager
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: 3d4fb69a4902b7e91e4e90dbe0f22812
-Size: 2974
+MD5Sum: 346c4394e25f26c05244978edda8b12a
+Size: 4000
 Filename: themer_1.0.0_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feeds/main/themer
-Description:  Adds basic theming support on the Venus OS
+Description: Adds basic theming support on the Venus OS
+ Adds basic theming support on the Venus OS
 OE: einstine
 License: MIT
 Priority: optional

@@ -1,7 +1,4 @@
 #!/bin/bash
-
-. "${VE_ROOT_DIR:-}/data/opkg-manager/install-helper"
-
-install_helper_pre_remove
-
-echo "successfully removed opkg-manager"
+ 
+"${VE_ROOT_DIR:-}/data/opkg-manager/installer" "remove"
+ 

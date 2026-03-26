@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+source ./basescript
+ 
+if [[ $1 == "install" ]]; then
+  echo "myscript:finished"
+fi
+
+echo "myscript:finished2"

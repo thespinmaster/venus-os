@@ -1,7 +1,3 @@
 #!/bin/bash
  
-. "${VE_ROOT_DIR:-}/data/themer/install-helper"
-
-install_helper_pre_remove
-
-echo "successfully removed themer"
+"${VE_ROOT_DIR:-}/data/themer/installer" "remove"

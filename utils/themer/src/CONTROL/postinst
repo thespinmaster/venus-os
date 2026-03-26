@@ -1,8 +1,3 @@
 #!/bin/bash
  
-. "${VE_ROOT_DIR:-}/data/themer/install-helper"
-
-install_helper_post_install "themer"
- 
-echo "successfully installed themer"
-
+"${VE_ROOT_DIR:-}/data/themer/installer" "install"

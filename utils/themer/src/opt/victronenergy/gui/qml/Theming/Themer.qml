@@ -14,10 +14,14 @@ QtObject {
 	property VBusItem backgroundColorItem: VBusItem {}
   property VBusItem backgroundColorSelectedItem: VBusItem {}
 	property VBusItem background2ColorItem: VBusItem {}
+	
 	property VBusItem iconSuffixNormalItem: VBusItem {}
  	property VBusItem iconSuffixSelectedItem: VBusItem {}
  	property VBusItem borderColoItem: VBusItem {}
-  
+  property VBusItem serviceBackgroundColorItem: VBusItem {}
+  property VBusItem serviceBackgroundColorSelectedItem: VBusItem {}
+  property VBusItem tankBackgroundColorItem: VBusItem {}
+
 	Component.onCompleted: {
 		updateBindings()
 	}
@@ -37,7 +41,11 @@ QtObject {
 		backgroundColorItem.bind = Utils.path(themePath, "/BackgroundColor")
 		backgroundColorSelectedItem.bind = Utils.path(themePath, "/BackgroundColorSelected")
 		background2ColorItem.bind = Utils.path(themePath, "/BackgroundColor2")
-		
+
+		tankBackgroundColorItem.bind = Utils.path(themePath, "/TankBackgroundColor")
+		serviceBackgroundColorItem.bind = Utils.path(themePath, "/ServiceBackgroundColor")
+    serviceBackgroundColorSelectedItem.bind = Utils.path(themePath, "/ServiceBackgroundColorSelected")
+
 		iconSuffixNormalItem.bind = Utils.path(themePath, "/IconSuffixNormal")
 		iconSuffixSelectedItem.bind = Utils.path(themePath, "/IconSuffixSelected")
 		borderColoItem.bind = Utils.path(themePath, "/BorderColor")
@@ -49,11 +57,15 @@ QtObject {
 	property string windowBackgroundColor : resolveColor(backgroundColorItem, '#FFFFFF', '#202020')
 
 	property string backgroundColor: resolveColor(backgroundColorItem, 'transparent', 'transparent')
-	//property string backgroundColorSelected: resolveColor(backgroundColorSelectedItem, '#4790d0', "#202020")
+	property string backgroundColorSelected: resolveColor(backgroundColorSelectedItem, '#4790d0', "#4790d0")
 	property string backgroundColor2: resolveColor(background2ColorItem, 'transparent', "#303030" )
+
+	property string serviceBackgroundColor: resolveColor(serviceBackgroundColorItem, '#ffe9b7', "#7d960f" )
+	property string serviceBackgroundColorSelected: resolveColor(serviceBackgroundColorSelectedItem, '#2969a1', "#2969a1" )
+	
+	property string tankBackgroundColor: resolveColor(tankBackgroundColorItem, 'white', "#929292" )
 	
 	property string iconSuffixNormal: resolveIconSuffix(iconSuffixNormalItem, "", "-active")
-	property string backgroundColorSelected: resolveColor(backgroundColorSelectedItem, '#4790d0', "#4790d0")
 
 	property string iconSuffixSelected: resolveIconSuffix(iconSuffixSelectedItem, '-active','')
 	property string borderColor: resolveColor(borderColoItem, "#ddd", "#505050")

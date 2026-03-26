@@ -1,30 +1,27 @@
 import QtQuick 2
-import ".."
+import "file:/opt/victronenergy/gui/qml"
 import "opkg-utils.js" as OpkgUtils
 
 QtObject {
 
-  property VBusItem customPages: VBusItem { bind: "com.victronenergy.settings/Settings/OpkgManager/CustomOverviewPages" }
+  property VeQuickItem customPages: VeQuickItem { 
+		uid: "dbus/com.victronenergy.settings/Settings/OpkgManager/CustomOverviewPages"
+		onValueChanged: {
 
-	property Connections connections: Connections{
-		target: customPages
-		function onValueChanged() {
-			if (!customPages.valid || customPages.value?.length === 0) {
-				console.log("onValueChanged:exit")
-				return;
-			}
-			
-			OpkgUtils.addRemoveCustomModelItems(customPages, getPageIndex, addRemoveItem);
-			
+			if (value == undefined)
+				return
+ 
+			OpkgUtils.addRemoveCustomItemsQuick(customPages, overviewModel, getPageIndex, addRemoveItem, null);
 		}
 	}
-	
-	//Component.onCompleted: {
+  
+	property VeQuickItem customMenuItems: VeQuickItem {
+		uid: "dbus/com.victronenergy.settings/Settings/OpkgManager/CustomMenus"
+		onValueChanged: OpkgUtils.initCreateComponent(customMenuItems)
+	}	
  
-	//}
+	function addRemoveItem(model, action, index, pageFileName) {
 
-	function addRemoveItem(action, index, pageFileName) {
- 
 		if (action==="-") {
 			overviewModel.remove(index)
 			return
@@ -44,10 +41,9 @@ QtObject {
  
 	}
 
-	function getPageIndex(page)
-	{
-		for (var i = 0; i < overviewModel.count; i++)
-			if (overviewModel.get(i).pageSource === page)
+	function getPageIndex(model, page) {
+		for (var i = 0; i < model.count; i++)
+			if (model.get(i).pageSource === page)
 				return i
 		return -1
 	}
@@ -55,6 +51,7 @@ QtObject {
 	function addRemoveCustomOverviewPages(customPages) {
 		if (customPages == undefined)
 			return
+		
 		// sample data
 		//var customPages = "OverviewInetbox:1,-OverviewTiles";
 		var items = customPages.split(",");
