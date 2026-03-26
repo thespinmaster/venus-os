@@ -49,7 +49,7 @@ install_helper_post_install() {
 		__load_source_file "file-patcher"
 		
 		for patchfile in "$this_path"/*.patch; do
-			file_patcher_revert_patch "$patchfile"
+			file_patcher_apply_patch "$patchfile"
 		done
 	)
 
@@ -76,6 +76,7 @@ install_helper_post_install() {
 install_helper_pre_remove() {
 
 	local this_path="$(dirname "${BASH_SOURCE[0]}")"
+ 	local installer_path="$(dirname "${BASH_SOURCE[1]}")"
  
 	__load_source_file "opkg-common"
  
@@ -88,7 +89,7 @@ install_helper_pre_remove() {
 	(
 		__load_source_file "file-patcher"
 		
-		for patchfile in "$this_path"/*.patch; do
+		for patchfile in "$installer_path"/*.patch; do
 			file_patcher_revert_patch "$patchfile"
 		done
 	)
