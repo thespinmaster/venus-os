@@ -23,8 +23,9 @@ QtObject {
   }
 
   function _getComponentArgs() {
- 
-		return {parent: _subpageInstance.listview.children[0], args: { pageStack: rootWindow.pageStack, mbTools: mbTools}}
+    //console.log("bbb:" + pageStack)
+    var pStack = rootWindow.pageStack ?? pageStack //3.71 fix
+		return {parent: _subpageInstance.listview.children[0], args: { pageStack: pStack, mbTools: mbTools}}
   }
 
   function _onSubpageInstanceChanged()

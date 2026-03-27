@@ -16,6 +16,7 @@ QML_ICONS_SOURCE_PATH="$this_path/../src${QML_ICONS_TARGET_PATH}"
 for source_file in "$QML_SOURCE_PATH"/*; do
 	[ -f "$source_file" ] || continue
 	dest_file="$(basename "$source_file")"
+	rm -f "$QML_TARGET_PATH/$dest_file"
 	ln -sf "$source_file" "$QML_TARGET_PATH/$dest_file"
 done
 
@@ -23,6 +24,7 @@ done
 for source_file in "$QML_ICONS_SOURCE_PATH"/*; do
 	[ -f "$source_file" ] || continue
 	dest_file="$(basename "$source_file")"
+	rm -f "$QML_ICONS_TARGET_PATH/$dest_file"
 	ln -sf "$source_file" "$QML_ICONS_TARGET_PATH/$dest_file"
 done
 

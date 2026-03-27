@@ -30,7 +30,7 @@ function addRemoveCustomItems(customItems, model, getItemIndexCallback, addRemov
 }
 
 function addRemoveCustomItemsQuick(customItems, model, getItemIndexCallback, addRemoveItemCallback, getComponentArgs) {
-  console.log("YYY:addRemoveCustomItemsQuick")
+ 
   if (customItems == undefined)
     return
   
@@ -46,10 +46,9 @@ function addRemoveCustomItemsQuick(customItems, model, getItemIndexCallback, add
  
   if (!addRemoveItemCallback)
     addRemoveItemCallback = modelAddRemoveItem
-  
-  console.log("YYY:addRemoveCustomItemsQuick 2")
+ 
   for (var prop in customItems.value) {
-    console.log("YYY:prop:" + prop)
+ 
     var qmlItemName = prop
     var qmlItemValue = customItems.value[qmlItemName]
     
@@ -80,7 +79,7 @@ function modelAddRemoveItem(model, action, index, qmlFileName, getComponentArgs)
   if (component.status === 1) {
  
     var componentArgs = getComponentArgs()
-    //console.log("AAA:" + componentArgs.parent)
+    console.log("AAA:" + qmlFileName)
     var incubator = component.incubateObject(null, componentArgs.args) // incubateObject is non blocking
     //var incubator = component.incubateObject(componentArgs.parent, componentArgs.args) // in
 

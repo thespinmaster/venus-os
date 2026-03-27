@@ -8,8 +8,8 @@ ${VE_ROOT_DIR:-}/data/opkg-manager/rc.local.d/startup
 "
 
 DBUS_SETTINGS="
-		OpkgManager/CustomOverviewPages/OverviewInetbox:s:0:0:''
-		OpkgManager/CustomMenus/PageSettings/OpkgPageSettingsSubMenu:s:0:0:''
+    OpkgManager/CustomMenus/PageSettings/OpkgPageSettingsSubMenu:s:0:0:
+		OpkgManager/CustomMenus/PageSettingsDisplay/OpkgPageSettingsDisplaySubMenu:s:0:0:
 	"
 
 if [[ "$1" == "dev-install" ]]; then
