@@ -39,6 +39,6 @@
 @insertbefore
 ====
 	// opkg-manager 1.0
-	OpkgPageMain {}
+	OpkgPageMain {id: opkgPageMain}
 ====
 

@@ -1,14 +1,13 @@
 import QtQuick 2
 import com.victron.velib 1.0
-import "file:/opt/victronenergy/gui/qml"
-
+ 
 MbItem {
 	id: root
 	width: (pageStack && pageStack.currentPage && pageStack.currentPage.width)
     || (pageStack && pageStack.currentItem && pageStack.currentItem.width)
     || 0
     
-    defaultHeight: Math.max(mbStyle.itemHeight, columnRoot.implicitHeight + mbStyle.marginDefault * 2)
+    defaultHeight: Math.max(mbStyle.itemHeight, columnRoot.implicitHeight + mbStyle.marginItemVertical + mbStyle.marginDefault*2 )
     //subpage: model && model.subpage ? model.subpage : undefined
  
 	property string description
@@ -26,7 +25,8 @@ MbItem {
         spacing: spacing
         property bool isCurrentItem: root.ListView.isCurrentItem
         anchors {
-            top: parent.top; topMargin: mbStyle.marginDefault
+            top: parent.top; 
+            topMargin: root.showCompact ? mbStyle.marginDefault : mbStyle.marginDefault
             bottom: parent.bottom; bottomMargin: mbStyle.marginDefault
         }
  
@@ -35,22 +35,26 @@ MbItem {
             text: root.header || ""
             isCurrentItem: root.ListView.isCurrentItem
             visible: root.header || !root.showCompact
-            //font.bold: !root.showCompact
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.leftMargin: mbStyle.marginDefault
+            anchors {
+                left: parent.left; leftMargin: mbStyle.marginDefault
+                right: parent.right
+                bottomMargin: mbStyle.marginItemVertical
+            }
+ 
         }
 
         MbTextDescription {
             id: description
-            visible: !root.header || !(root.showCompact)
+            visible: !root.header || !root.showCompact
             text: root.description ? root.description : ""
             isCurrentItem: root.ListView.isCurrentItem
             wrapMode: root.descriptionWrapMode
             font.pixelSize: root.header ? 12 : mbStyle.fontPixelSize
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.leftMargin: mbStyle.marginDefault
+            anchors {
+                left: parent.left; leftMargin: mbStyle.marginDefault
+                right: parent.right
+                
+            }
         }
     }
  
@@ -62,6 +66,9 @@ MbItem {
 			right: root.right; rightMargin: mbStyle.marginDefault
 			verticalCenter: parent.verticalCenter
 		}
-		iconId: root.iconId ? root.iconId + (root.ListView.isCurrentItem ? "-active" : "") : ""
+		iconId: mbStyle.themer ? Themer.subMenuIconBinding(root.ListView.isCurrentItem, icon, root.iconId) : root.iconId
+    
 	}
+
+ 
 }

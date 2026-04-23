@@ -1,5 +1,4 @@
 import QtQuick 2
-import "file:/opt/victronenergy/gui/qml"
 import "opkg-utils.js" as OpkgUtils
 
 QtObject {
@@ -17,17 +16,26 @@ QtObject {
   
 	property VeQuickItem customMenuItems: VeQuickItem {
 		uid: "dbus/com.victronenergy.settings/Settings/OpkgManager/CustomMenus"
-		onValueChanged: OpkgUtils.initCreateComponent(customMenuItems)
+		onValueChanged: {
+			OpkgUtils.initCreateComponent(customMenuItems) 
+			}
 	}	
  
 	function addRemoveItem(model, action, index, pageFileName) {
-
+		//console.log("AAA:addRemoveItem:" + pageFileName)
 		if (action==="-") {
 			overviewModel.remove(index)
 			return
 		}
+
+		if (!OpkgUtils.qmlFileExists(pageFileName)) {
+			console.log("Skipping missing custom overview page: " + pageFileName)
+			return
+		}
+
 		if (action==="*") { // replace
-			overviewModel.get(index).pageSource === pageFileName
+			//overviewModel.get(index).pageSource === pageFileName
+			overviewModel.setProperty(index, "pageSource", pageFileName)
 			return
 		}
  

@@ -51,9 +51,10 @@ opkg install mount-shares
 (
   . /data/mount-shares/mount-helpers
 
-  #source, username and password will be prompted for
-  # store mnt under /data and not /mnt as mnt may be readonly 
-  mount_common_mount_cifs --target="/data/mnt/dev"
+  # source, username and password will be prompted for
+  # store mnt under /data and not /mnt as mnt may be readonly
+  # `mfsymlinks` enables symlink support on the CIFS dev share.
+  mount_common_mount_cifs --target="/data/mnt/dev" --options="exec,mfsymlinks"
 )
 
 if [[ ! -L "/data/dev" ]]; then

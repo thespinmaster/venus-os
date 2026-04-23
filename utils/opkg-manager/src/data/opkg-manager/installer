@@ -1,7 +1,5 @@
 #!/bin/bash
 
-RESTART_GUI_SERVICE=1
-
 RC_LOCAL_SCRIPT="
 # opkg-manager (do not edit)
 ${VE_ROOT_DIR:-}/data/opkg-manager/rc.local.d/startup
@@ -10,7 +8,7 @@ ${VE_ROOT_DIR:-}/data/opkg-manager/rc.local.d/startup
 DBUS_SETTINGS="
     OpkgManager/CustomMenus/PageSettings/OpkgPageSettingsSubMenu:s:0:0:
 		OpkgManager/CustomMenus/PageSettingsDisplay/OpkgPageSettingsDisplaySubMenu:s:0:0:
-	"
+"
 
 if [[ "$1" == "dev-install" ]]; then
   VE_ROOT_DIR=/data/dev/utils/opkg-manager/src

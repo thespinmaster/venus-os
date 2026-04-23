@@ -5,19 +5,19 @@
 set -o nounset
 
 declare this_path; this_path="$(dirname "${BASH_SOURCE[0]}")"
- 
-LIBS_TARGET_PATH="$this_path/../src/data/opkg-manager/libs"
+
 LIBS_SOURCE_PATH="$this_path/../../../scripts/libs"
+LIBS_TARGET_PATH="$this_path/../src/data/opkg-manager/libs"
  
 LIB_FILES=(
   conf-lib
   core-lib
   log-lib
   string-lib
-  timeout
+  usb-lib
 )
 
 for file in "${LIB_FILES[@]}"; do
-	ln -f "$LIBS_SOURCE_PATH/$file" "$LIBS_TARGET_PATH/$file"
-  echo "$LIBS_SOURCE_PATH/$file -> $LIBS_TARGET_PATH/$file"
+	ln -sf "$LIBS_SOURCE_PATH/$file" "$LIBS_TARGET_PATH/$file"
+  echo "$LIBS_SOURCE_PATH/$file → $LIBS_TARGET_PATH/$file"
 done

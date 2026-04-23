@@ -26,7 +26,6 @@ a5987f92947d9071e68c8bf47e312145 .rcc/qrc_qmake_OpkgManager.cpp
 8de1a9519b2558ab77e1d56cd2472a25 /data/dev/utils/opkg-manager/src/qmlplugin/opt/victronenergy/gui/qml/OpkgObjectCustomOverviewPages.qml
 e6c77bd30bc9f3093e95081399a50d71 /data/dev/utils/opkg-manager/src/qmlplugin/opt/victronenergy/gui/qml/OpkgPageSettingsCustomMenus.qml
 1c21e538bde99ea752d6940be6377782 /data/dev/utils/opkg-manager/src/qmlplugin/opt/victronenergy/gui/qml/OpkgPageSettingsSubMenu.qml
-0184edc6750967475fc3a61237aa62fd /data/dev/utils/opkg-manager/src/qmlplugin/opt/victronenergy/gui/qml/PageSettingsOpkg.qml
 823e9097851df202f5d2f8a9228d8776 /data/dev/utils/opkg-manager/src/qmlplugin/opt/victronenergy/gui/qml/PageSettingsOpkgFeeds.qml
 bc484d3ca2d16cf3fbf02899e7e33e7d /data/dev/utils/opkg-manager/src/qmlplugin/opt/victronenergy/gui/qml/PageSettingsOpkgPackageInstall.qml
 9832f89310693c3e0db977c1eccaf80b /data/dev/utils/opkg-manager/src/qmlplugin/opt/victronenergy/gui/qml/PageSettingsOpkgPackages.qml
@@ -46,7 +45,6 @@ db056a196cf7d853c7f778cfd3dd64fa resources/OpkgHeaderDescriptionItem.qml
 234ccc1a734518f33acf822069d49c74 resources/OpkgObjectCustomOverviewPages.qml
 c2b2ddcb69148e08107d343935e108d3 resources/OpkgPageSettingsCustomMenus.qml
 4ddffcd3d94b750e809d2d899a7f8822 resources/OpkgPageSettingsSubMenu.qml
-894496d8d9dbc30efcd1c4f887ddbed2 resources/PageSettingsOpkg.qml
 d3510d46d59ef8d543d2e4561f98080d resources/PageSettingsOpkgFeeds.qml
 e2841c9923bba9150cc6c62ad0dc4bfd resources/PageSettingsOpkgPackageInstall.qml
 648bb84866c9d9752fbf7c92e0334587 resources/PageSettingsOpkgPackages.qml

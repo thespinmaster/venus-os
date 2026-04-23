@@ -7,13 +7,12 @@ set -o nounset
 # Function: dbus_common_add_dbus_settings
 # Adds dbus settings for a group.
 # Arguments:
-#   $1 - group name (string)
-#   $2 - dbus_settings (string, lines formatted as name:type:min:max:value)
+#   $1 - dbus_settings (string, lines formatted as path/name:type:min:max:value)
 # type should be: 'i' (integer), 'f' (float) and 's' (string)
 # Each line in dbus_settings is parsed and sent to dbus as a setting.
 dbus_common_add_dbus_settings() {
 
-	local servicePath="com.victronenergy.settings"
+	local service="com.victronenergy.settings"
 	local group name
 	local dbus_settings="$1"
 
@@ -27,11 +26,112 @@ dbus_common_add_dbus_settings() {
     name="${fullpath##*/}"
 		# Trim any leading whitespace from group
 		group="${group#"${group%%[![:space:]]*}"}"
- 
+		group="${group##/}" # Trim any leading / from group
+
 		echo "adding dbus setting: $group/$name, value:$value, type:$type, min:$min, max:$max"
-		dbus -y $servicePath /Settings AddSetting $group "$name" "$value" "$type" $min $max 1>/dev/null
+		
+		dbus -y $service /Settings AddSetting $group "$name" "" "$type" $min $max 1>/dev/null
+		
+		# use of -- stops values with - being interpreted as flags
+		dbus -y "$service" "/Settings/${group}/${name}" SetValue -- "${value}" >/dev/null
 	done <<< "$dbus_settings"
 }
+
+# Function: dbus_common_add_array_props <assoc_array_ref>
+# Writes each key/value from the assoc array to dbus at
+# com.victronenergy.settings /Settings/Arg1/
+# AddSetting is called first to create the path if it doesn't exist (idempotent).
+# Arguments:
+#   $1 - base_path e.g. "OpkgManager/SerialInstaller"
+#   $2 - assoc array of property key/values
+dbus_common_add_array_props() {
+  local base_path="$1"
+  local -n __assoc="$2"
+  local service="com.victronenergy.settings"
+  
+	[[ -z "$base_path" ]] && { echo "invalid args:no base path" >&2; return 1; }
+	base_path="${base_path##/}" # Trim any leading / from base_path
+
+  for k in "${!__assoc[@]}"; do
+    dbus -y "$service" /Settings AddSetting "$base_path" "$k" "" 's' 0 0 1>/dev/null
+    dbus -y "$service" "/Settings/${base_path}/${k}" SetValue -- "${__assoc[$k]}" 1>/dev/null
+  done
+}
+
+# Function: dbus_common_remove
+# Removes settings from the dbus using all arguments after the base path.
+# com.victronenergy.settings /Settings/Arg1/
+# Arguments:
+#   $1 - base_path e.g. "OpkgManager/SerialInstaller"
+#   $2..$n - setting names to remove
+# if only a base_path is provided then
+# the name to be removed is assumed to be the base name of the path
+# i.e. /OpkgManager/SerialInstaller/Port will remove the property Port
+dbus_common_remove() {
+  local base_path="$1"
+  local names=""
+  local name
+
+  [[ -z "$base_path" ]] && { echo "invalid args:no base path" >&2; return 1; }
+
+  base_path="${base_path##/}" # Trim any leading / from base_path
+
+  shift
+
+  if (($# == 0)); then
+    name="${base_path##*/}"
+		if [[ -n "$name" && "$base_path" == */* ]]; then
+			base_path="${base_path%/*}"
+			names="'$name'"
+		fi
+ 
+  else
+    for name in "$@"; do
+      [[ -z "$names" ]] && names="'$name'" || names+=", '$name'"
+    done
+  fi
+
+  if [[ -z $names ]]; then
+    echo "Warning: no settings to remove" >&2
+    return 0
+  fi
+
+  echo "removing values $names from /Settings/$base_path"
+  dbus -y "com.victronenergy.settings" /Settings/$base_path RemoveSettings "%[$names]"
+}
+
+
+# Function: dbus_common_get_value
+# Get a value from the dbus settings service
+# com.victronenergy.settings /Settings/Arg1/
+# AddSetting is called first to create the path if it doesn't exist (idempotent).
+# Arguments:
+#   $1 - path (string) Path and name of the value to retrieve "OpkgManager/SerialInstaller"
+#   $2 - setting (string) The name of the setting to get
+#   $3 - default (optional string) The default value if the value returned is empty.
+dbus_common_get_value() {
+	  local path="$1"
+    local -n __value="$2"
+    local default_value="${3:-}"
+    local value
+
+		path="${path##/}"
+		value="$(dbus -y "com.victronenergy.settings" "/Settings/$path" GetValue 2>/dev/null)"
+ 
+		#strip single quotes from the start and end
+		value="${value#\'}"
+		value="${value%\'}"
+		
+		if [[ -z $value ]]; then
+      __value="$default_value"
+			if [[ -z $__value ]]; then
+				return 1 # return 1 if no value or default is provided
+			fi
+		else
+			 __value="$value"
+		fi
+		return 0
+  }
 
  # Function: dbus_common_remove_dbus_settings
  # Removes dbus settings for a group.
@@ -53,6 +153,7 @@ dbus_common_add_dbus_settings() {
 		name="${fullpath##*/}"
 		# Trim any leading whitespace from group
 		group="${group#"${group%%[![:space:]]*}"}"
+		group="${group##/}" # Trim any leading / from group
 
 		if [[ -n "$prev_group" && "$group" != "$prev_group" ]]; then
 			echo "removing values $names from /Settings/$prev_group"

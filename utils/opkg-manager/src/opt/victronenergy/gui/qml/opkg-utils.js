@@ -5,15 +5,28 @@ function initCreateComponent(customItems) {
   
   if (customItems.value === undefined)
     return
- 
+  
   for (var path in customItems.value) {
     var parts = path.split("/");
     var qmlItemName = parts[parts.length - 1]; // "OpkgPageSettingsSubMenu"
-    console.log("caching:" + qmlItemName + ".qml")
+    //console.log("caching:" + qmlItemName + ".qml")
     var cmo=Qt.createComponent(qmlItemName + ".qml")
     cmo.destroy()
   }
 
+}
+
+function qmlFileExists(qmlFileName) {
+  var component = Qt.createComponent(qmlFileName)
+  var exists = component.status === 1
+
+  if (!exists) {
+    console.log("QML file not found or invalid: " + qmlFileName)
+    console.log(component.errorString())
+  }
+
+  component.destroy()
+  return exists
 }
 
 //functionality
@@ -63,6 +76,26 @@ function modelGetItemIndex(model, description) {
   return -1
 }
 
+function dumpInstanceProperties(instance) {
+  if (!instance) {
+    console.log("dumpInstanceProperties: no instance provided")
+    return
+  }
+
+  Object.keys(instance).forEach(function(key) {
+    try {
+      var val = instance[key].toString()
+
+      if (val.indexOf("function()") === 0)
+        return
+ 
+      console.log("instance." + key + ":", val)
+    } catch (error) {
+      console.log("instance." + key + ": <error reading value: " + error + ">");
+    }
+  })
+}
+
 function modelAddRemoveItem(model, action, index, qmlFileName, getComponentArgs) {
 
   if (action == "-") {
@@ -76,17 +109,12 @@ function modelAddRemoveItem(model, action, index, qmlFileName, getComponentArgs)
   // some kind of invisible context causes parenting issues
  
   var component = Qt.createComponent(qmlFileName)
+
   if (component.status === 1) {
  
     var componentArgs = getComponentArgs()
-    console.log("AAA:" + qmlFileName)
-    var incubator = component.incubateObject(null, componentArgs.args) // incubateObject is non blocking
-    //var incubator = component.incubateObject(componentArgs.parent, componentArgs.args) // in
-
-    if (incubator.status !== 1) {
-      console.error("Failed to create component instance:" + qmlFileName)
-      return; 
-    }
+    var instance = component.createObject(componentArgs.parent, componentArgs.args) // incubateObject is non blocking
+    instance.y = -instance.height-10 //make sure the item is not initialy visible
   }
   else {
     console.error("Failed to create component:", component.errorString());
@@ -97,10 +125,17 @@ function modelAddRemoveItem(model, action, index, qmlFileName, getComponentArgs)
     model.get(index).show = false // if replacing just hide
 
   if (index==-2) {
-    model.append(incubator.object)
+    //console.log("---------------------------------")
+    //dumpInstanceProperties(instance)
+    //console.log("---------------------------------")
+    model.append(instance)
+  
+    //var m=model.get(model.count-2)
+    //dumpInstanceProperties(m)
   } else {
-    model.insert(index, incubator.object)
+    model.insert(index, instance)
   }
+  //console.log("UUU:" + p.dumpItemTree())
 }
  
 function _doItemAction(qmlItemName, qmlItemValue, model, getItemIndexCallback, addRemoveItemCallback, createComponentCallback) {
@@ -117,6 +152,7 @@ function _doItemAction(qmlItemName, qmlItemValue, model, getItemIndexCallback, a
   }
 
   switch (action) {
+    case "":
     case undefined:
       index=-2 // insert at end
       break
@@ -130,7 +166,7 @@ function _doItemAction(qmlItemName, qmlItemValue, model, getItemIndexCallback, a
       index = getItemIndexCallback(model, qmlItemValue)
       break
     default:
-      console.log("invalid operation: action=" + action)
+      console.log("invalid operation: action='" + action + "', qmlItemName:'" + qmlItemName + "', qmlItemValue:'" + qmlItemValue + "'")
       return
   }
 

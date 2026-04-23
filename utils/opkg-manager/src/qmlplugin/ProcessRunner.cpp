@@ -1,13 +1,28 @@
 #include "ProcessRunner.h"
 
+#include "ProcessRunner.h"
+
 #include <QByteArray>
+#include <QDebug>
+#include <QStandardPaths>
 
 #include <QProcess>
+
+#define Q_OS_UNIX
+// #define TRACE
+
+#ifdef Q_OS_UNIX
+#include <signal.h>
+#endif
+
+#ifndef TRACE
+#define trace(...) ((void)0)
+#endif
 
 
 ProcessRunner::ProcessRunner(QObject *parent)
 	: QObject(parent)
-	, m_helperPath("/data/opkg-manager/opkg-qml")
+	, m_helperPath("/data/opkg-manager/process-runner")
 	, m_operationName("")
 	, m_stopping(false)
 {
@@ -37,6 +52,19 @@ void ProcessRunner::setOperationName(const QString &name)
 		return;
 	m_operationName = name;
 	emit operationNameChanged();
+}
+
+bool ProcessRunner::traceEnabled() const
+{
+	return m_traceEnabled;
+}
+
+void ProcessRunner::setTraceEnabled(bool enabled)
+{
+	if (m_traceEnabled == enabled)
+		return;
+	m_traceEnabled = enabled;
+	emit traceEnabledChanged();
 }
 
 QString ProcessRunner::helperPath() const
@@ -79,8 +107,18 @@ void ProcessRunner::start(const QStringList &args)
 	m_stderrBuffer.clear();
 
 	try {
+ 
+#ifdef TRACE
+			trace(QString("start(): resetting child signal defaults via %1").arg(envProgram));
+#endif
+		}
+ 
 		m_process.setProgram(m_helperPath);
 		m_process.setArguments(args);
+		#ifdef TRACE
+		trace(QString("start(): program=%1 args=%2")
+					.arg(program, processArgs.join(" ")));
+		#endif
 		m_process.start();
 	} catch (const std::exception &e) {
 		emit processError(QString("Exception: %1").arg(e.what()));
@@ -91,13 +129,42 @@ void ProcessRunner::start(const QStringList &args)
 }
 void ProcessRunner::stop()
 {
-	if (m_stopping)
+	if (m_stopping) {
+			   #ifdef TRACE
+			   trace("stop(): ignored because already stopping");
+			   #endif
 		return;
-	if (!running())
+	}
+	if (!running()) {
+			   #ifdef TRACE
+			   trace("stop(): ignored because process is not running");
+			   #endif
 		return;
+	}
 
 	m_stopping = true;
 	emit stoppingChanged();
+
+
+#ifdef Q_OS_UNIX
+	const qint64 pid = m_process.processId();
+#ifdef TRACE
+	trace(QString("stop(): pid=%1 sending SIGTERM").arg(pid));
+#endif
+	if (pid > 0 && ::kill(static_cast<pid_t>(pid), SIGTERM) == 0) {
+#ifdef TRACE
+		trace("stop(): SIGTERM sent successfully");
+#endif
+		return;
+	}
+#ifdef TRACE
+	trace("stop(): SIGTERM failed, falling back to terminate()", true);
+#endif
+#endif
+
+	#ifdef TRACE
+	trace("stop(): calling m_process.terminate()");
+	#endif
 	m_process.terminate();
 }
 
@@ -107,8 +174,14 @@ void ProcessRunner::cleanup()
 	if (running()) {
 		m_stopping = true;
 		emit stoppingChanged();
+		#ifdef TRACE
+		trace("cleanup(): calling m_process.terminate()");
+		#endif
 		m_process.terminate();
 		if (!m_process.waitForFinished(2000)) {
+			   #ifdef TRACE
+			   trace("cleanup(): terminate() timed out, calling kill()", true);
+			   #endif
 			m_process.kill();
 			m_process.waitForFinished(2000);
 		}
@@ -130,8 +203,14 @@ void ProcessRunner::stopAndWait()
 
 	m_stopping = true;
 	emit stoppingChanged();
+	#ifdef TRACE
+	trace("stopAndWait(): calling m_process.terminate()");
+	#endif
 	m_process.terminate();
 	if (!m_process.waitForFinished(2000)) {
+			   #ifdef TRACE
+			   trace("stopAndWait(): terminate() timed out, calling kill()", true);
+			   #endif
 		m_process.kill();
 	}
 	m_stopping = false;
@@ -157,6 +236,12 @@ void ProcessRunner::handleFinished(int exitCode, QProcess::ExitStatus exitStatus
 	if (!m_stderrBuffer.isEmpty()) {
 		emitLines(m_stderrBuffer, QByteArray("\n"), true);
 	}
+
+	#ifdef TRACE
+	trace(QString("handleFinished(): exitCode=%1 exitStatus=%2")
+			.arg(exitCode)
+			.arg(static_cast<int>(exitStatus)));
+	#endif
 
 	m_stopping = false;
 	emit stoppingChanged();
@@ -193,9 +278,30 @@ void ProcessRunner::handleError(QProcess::ProcessError error)
 		errorString = "Unknown process error.";
 		break;
 	}
+	#ifdef TRACE
+	trace(QString("handleError(): %1").arg(errorString), true);
+	#endif
 	emit processError(errorString);
 	cleanup();
 }
+
+#ifdef TRACE
+void ProcessRunner::trace(const QString &message, bool isError)
+{
+	if (!m_traceEnabled)
+		return;
+
+	const QString line = QString("[ProcessRunner] %1").arg(message);
+	qInfo().noquote() << line;
+	if (isError) {
+		emit errorLine(line);
+	} else {
+		emit outputLine(line);
+	}
+}
+#else
+void ProcessRunner::trace(const QString &, bool) {}
+#endif
 
 void ProcessRunner::emitLines(QByteArray &buffer, const QByteArray &chunk, bool isError)
 {

@@ -8,23 +8,24 @@ This document provides a recommended naming convention for functions, variables,
 
 ### 1. Library File Naming
 
-* Use `snake_case` for filenames.
-* Library files **must end with `_lib.sh`** to indicate they are intended to be sourced and are not standalone scripts.
+* Use `dashed-case` for filenames.
+* Library files **must end with `-lib`** to indicate they are intended to be sourced and are not standalone scripts.
 * Name the file according to the library's purpose.
 
 **Example:**
 
 ```
-conf_lib.sh        # Configuration library
-network_lib.sh     # Networking utilities library
-strings_lib.sh     # String manipulation library
+conf-lib        # Configuration library
+network-lib     # Networking utilities library
+strings-lib     # String manipulation library
 ```
 
 **Non-library scripts:**
 
 ```
-install_helpers.sh # May contain helpers but is executable
-run_backup.sh      # Script intended to be executed
+install-helpers # May contain helpers but is executable
+run-backup      # Script intended to be executed
+install-common
 ```
 
 ---

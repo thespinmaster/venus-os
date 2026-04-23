@@ -339,7 +339,7 @@ file_patcher_apply_patch() {
             # ensure patch has not already been applied
             # search FILE_LINES for matching lines contained in PATCH_LINES (upto end ''===='')
             local -i fstart=$file_start fend=-1
-            _find 1 $patch_start $patch_end fstart fend
+            _find $direction $patch_start $patch_end fstart fend
             
             [[ $fstart -ne -1 ]] && { p=$((patch_end+1)); ((p+=1)); continue; }
             
@@ -353,7 +353,7 @@ file_patcher_apply_patch() {
         @remove)
             #echo "${PATCH_LINES[$p]}"
             _getCommandBounds $p patch_start patch_end
-            _find 1 $patch_start $patch_end file_start file_end 
+            _find $direction $patch_start $patch_end file_start file_end 
             p=$((patch_end+1))
             
             [[ $file_start -eq -1 ]] && { ((p+=1)); continue; }

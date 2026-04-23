@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 
 set -o nounset
-
-# declare DBUS_SETTINGS=
-# declare RC_LOCAL_SCRIPT=
+ 
 # set package name using the path of the calling file's location
-declare PACKAGE_NAME="$(basename "$(dirname "${BASH_SOURCE[1]}")")"
-declare RESTART_GUI_SERVICE=0
+
+declare PACKAGE_NAME="${PACKAGE_NAME-$(basename "$(dirname "${BASH_SOURCE[1]-}")")}"
+declare RESTART_GUI_SERVICE="${RESTART_GUI_SERVICE:=0}"
+declare DBUS_SETTINGS="${DBUS_SETTINGS-}"
+declare RC_LOCAL_SCRIPT="${RC_LOCAL_SCRIPT-}"
+declare CUSTOM_SERVICE_PATH="${CUSTOM_SERVICE_PATH-}"
 
 __appendDataDir() {
 	local VENUS_DATA_DIR="/data/dev/utils/opkg-manager/src"; [ -d $VENUS_DATA_DIR ] || VENUS_DATA_DIR=
@@ -28,11 +30,91 @@ __load_source_file() {
 	
 }
  
- 
+__get_custom_service_paths_from_dbus_settings_byref() {
+	local -n _out_paths="$1"
+	local -A seen_paths=()
+	local line=
+	local service_path=
+
+	_out_paths=()
+
+	while IFS= read -r line; do
+		[[ "$line" =~ Settings/OpkgManager/CustomServices/([^/]+)/ProductName(:|$) ]] || continue
+		service_path="${BASH_REMATCH[1]}"
+		[[ -z "$service_path" || -n "${seen_paths[$service_path]:-}" ]] && continue
+		seen_paths["$service_path"]=1
+		_out_paths+=("$service_path")
+	done <<< "${DBUS_SETTINGS:-}"
+}
+
+install_helper_add_custom_service_path() {
+	local servicePaths=
+	local service_path=
+	local -a custom_service_paths=()
+
+	__get_custom_service_paths_from_dbus_settings_byref custom_service_paths
+	(( ${#custom_service_paths[@]} == 0 )) && return
+
+	dbus_common_get_value "OpkgManager/CustomServicePaths" servicePaths
+
+	for service_path in "${custom_service_paths[@]}"; do
+		case "|${servicePaths}|" in
+			*"|${service_path}|"*) ;;
+			"||") servicePaths="${service_path}" ;;
+			*) servicePaths+="|${service_path}" ;;
+		esac
+	done
+
+	dbus_common_add_dbus_settings "OpkgManager/CustomServicePaths:s:0:0:$servicePaths"
+}
+install_helper_remove_custom_service_path() {
+	local servicePaths=
+	local updatedPaths=
+	local service_path=
+	local -a custom_service_paths=()
+	local -A remove_service_paths=()
+
+	__get_custom_service_paths_from_dbus_settings_byref custom_service_paths
+	(( ${#custom_service_paths[@]} == 0 )) && return
+
+	dbus_common_get_value "OpkgManager/CustomServicePaths" servicePaths
+
+	for service_path in "${custom_service_paths[@]}"; do
+		remove_service_paths["$service_path"]=1
+	done
+
+	IFS='|' read -r -a _paths <<< "${servicePaths:-}"
+	for service_path in "${_paths[@]}"; do
+		[[ -z "$service_path" || -n "${remove_service_paths[$service_path]:-}" ]] && continue
+		if [[ -n "$updatedPaths" ]]; then
+			updatedPaths+="|$service_path"
+		else
+			updatedPaths="$service_path"
+		fi
+	done
+
+	dbus_common_add_dbus_settings "OpkgManager/CustomServicePaths:s:0:0:$updatedPaths"
+}
+# arguments {1} (optional): set to remove to remove
+install_helper_add_remove_patch() {
+	local remove=0
+	[[ "{1:-}" == "remove" ]] && remove=1
+	
+	for patchfile in "$installer_path"/*.patch; do
+		RESTART_GUI_SERVICE=1
+		if (($remove==0)); then
+			file_patcher_apply_patch "$patchfile"
+		else
+			file_patcher_revert_patch "$patchfile"
+		fi
+	done
+}
+
 install_helper_post_install() {
  
-	local this_path="$(dirname "${BASH_SOURCE[0]}")"
- 
+  local installer_path="$(dirname "${BASH_SOURCE[1]}")"
+  [[ -z "$PACKAGE_NAME" ]] && { echo "ERROR: PACKAGE_NAME not set"; return 1; }
+
 	__load_source_file "opkg-common"
 	
 	echo "registering package: $PACKAGE_NAME"
@@ -43,41 +125,41 @@ install_helper_post_install() {
 		opkg_common_add_script_to_rc_local "${RC_LOCAL_SCRIPT}"
 	fi
  
-
 	(
 		echo "patching files"
 		__load_source_file "file-patcher"
 		
-		for patchfile in "$this_path"/*.patch; do
+		for patchfile in "$installer_path"/*.patch; do
 			file_patcher_apply_patch "$patchfile"
 		done
 	)
 
-	if [[ -n "${DBUS_SETTINGS:-}" ]]; then
+	if [[ -n "${DBUS_SETTINGS:-}" || \
+				-n "${DBUS_SETTINGS_DEPRECIATED:-}" ]]; then
 		(
-			echo "adding dbus settings"
-
 			__load_source_file "dbus-common"
-
-			if [[ -n "${DBUS_SETTINGS_REMOVE:-}" ]]; then
-				dbus_common_remove_dbus_settings "$DBUS_SETTINGS_REMOVE"
+			echo "adding dbus settings"
+ 
+			if [[ -n "${DBUS_SETTINGS_DEPRECIATED:-}" ]]; then
+				dbus_common_remove_dbus_settings "$DBUS_SETTINGS_DEPRECIATED"
 			fi
+
 			if [[ -n "${DBUS_SETTINGS:-}" ]]; then
 				dbus_common_add_dbus_settings "$DBUS_SETTINGS"
+				install_helper_add_custom_service_path 
 			fi
-
-			dbus_common_add_dbus_settings "$DBUS_SETTINGS"
 		)
 	fi
 
 	install_helper_restart_gui_service
 }
 
-install_helper_pre_remove() {
 
-	local this_path="$(dirname "${BASH_SOURCE[0]}")"
- 	local installer_path="$(dirname "${BASH_SOURCE[1]}")"
+install_helper_pre_remove() {
  
+ 	local installer_path="$(dirname "${BASH_SOURCE[1]}")"
+	[[ -z "$PACKAGE_NAME" ]] && { echo "ERROR: PACKAGE_NAME not set"; return 1; }
+	
 	__load_source_file "opkg-common"
  
 	if [[ -n "${RC_LOCAL_SCRIPT:-}" ]]; then
@@ -88,21 +170,26 @@ install_helper_pre_remove() {
 
 	(
 		__load_source_file "file-patcher"
-		
-		for patchfile in "$installer_path"/*.patch; do
-			file_patcher_revert_patch "$patchfile"
-		done
+		install_helper_add_remove_patch remove
 	)
  
-	if [[ -n "${DBUS_SETTINGS:-}" ]] then
+	if [[ -n "${DBUS_SETTINGS:-}" || 
+				-n "${DBUS_SETTINGS_DEPRECIATED:-}" ]]; then
 		(
 			__load_source_file "dbus-common"
- 
-			dbus_common_remove_dbus_settings "$DBUS_SETTINGS"
- 
+
+			if [[ -n "${DBUS_SETTINGS:-}" ]]; then
+				echo "removing dbus settings"
+				dbus_common_remove_dbus_settings "$DBUS_SETTINGS"
+				install_helper_remove_custom_service_path
+			fi
+
+			if [[ -n "${DBUS_SETTINGS_DEPRECIATED:-}" ]]; then
+				dbus_common_remove_dbus_settings "$DBUS_SETTINGS_DEPRECIATED"
+			fi
 		)
 	fi
-
+ 
 	install_helper_restart_gui_service
 }
 

@@ -10,9 +10,10 @@
 # -d -debug  : debug logging
 # -s -serial : serial port such as ttyACM0
 
-. /opt/victronenergy/serial-starter/run-service
+. /opt/victronenergy/serial-starter/run-service.sh
+ 
+sdi_rule_id=$(udevadm info --query=property --name="/dev/$tty" | sed -n "s/^SDI_RULE_ID=//p")
 
 app=/opt/victronenergy/dbus-ne-shunt/__main__.py
-args="/dev/$tty"
-
-start -s $args
+ 
+start -s "/dev/$tty" -i "$sdi_rule_id"

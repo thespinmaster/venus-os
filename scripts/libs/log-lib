@@ -64,10 +64,10 @@ log() {
     # don't log null lines
     [[ -z $1 ]] && return 0
   fi
-
-  if [[ -v "OPKGH_LOG_FILE" && -f "${OPKGH_LOG_FILE}" ]]; then
-    echo "${LOG_INDENT}${prefix}${1}" >> "${OPKGH_LOG_FILE}"
-  elif (( LOGLEVEL == LOGLEVEL_ERROR )); then
+  
+  if [[ -v "LOG_FILE" && -f "${LOG_FILE}" ]]; then
+    echo "${LOG_INDENT}${prefix}${1}" >> "${LOG_FILE}"
+  elif [[ ${2:-} == $LOGLEVEL_ERROR ]]; then
     echo "${LOG_INDENT}${prefix}${1}" >&2
   else
     echo "${LOG_INDENT}${prefix}${1}" >&1
@@ -100,7 +100,7 @@ __log_set_indent() {
 
 init_logging_to_file() {
   #exec &> "$1"
-  OPKGH_LOG_FILE="$1"
+  LOG_FILE="$1"
   echo "*** $(date +%y/%m/%d_%H:%M:%S) ***" > "$1"
 }
 

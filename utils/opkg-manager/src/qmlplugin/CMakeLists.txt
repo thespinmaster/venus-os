@@ -38,7 +38,7 @@ qt_add_qml_module(OpkgManagerplugin
 		resources/OpkgObjectCustomOverviewPages.qml
 		resources/OpkgPageSettingsCustomMenus.qml
 		resources/OpkgPageSettingsSubMenu.qml
-		resources/PageSettingsOpkg.qml
+		resources/OpkgPageSettings.qml
 		resources/PageSettingsOpkgFeeds.qml
 		resources/PageSettingsOpkgPackageInstall.qml
 		resources/PageSettingsOpkgPackages.qml
@@ -48,7 +48,7 @@ qt_add_qml_module(OpkgManagerplugin
 		#../opt/victronenergy/gui/qml/OpkgObjectCustomOverviewPages.qml
 		#../opt/victronenergy/gui/qml/OpkgPageSettingsCustomMenus.qml
 		#../opt/victronenergy/gui/qml/OpkgPageSettingsSubMenu.qml
-		#../opt/victronenergy/gui/qml/PageSettingsOpkg.qml
+		#../opt/victronenergy/gui/qml/OpkgPageSettings.qml
 		#../opt/victronenergy/gui/qml/PageSettingsOpkgFeeds.qml
 		#../opt/victronenergy/gui/qml/PageSettingsOpkgPackageInstall.qml
 		#../opt/victronenergy/gui/qml/PageSettingsOpkgPackages.qml

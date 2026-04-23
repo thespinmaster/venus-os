@@ -11,7 +11,6 @@ from tools import calculate_checksum
 import conversions as cnv
 import logging
 from decimal import Decimal
-from datetime import datetime
 
 
 class InetboxApp:
@@ -298,7 +297,7 @@ class InetboxApp:
 		),
 		"clock": (
 			cnv.clock_to_string,
-			cnv.string_to_clock,
+			None,
 		),
 		"display": (str, None),
 		"aircon_on": (int, int),
@@ -322,8 +321,6 @@ class InetboxApp:
 		"aircon_vent_mode": [114, True, False],
 		"target_temp_aircon": [2990, True, False],
 		"aircon_on": [1, False, False],
-  
-    #"clock": [0, False, False],
 	}
 
 	#status_updated = False
@@ -351,27 +348,20 @@ class InetboxApp:
 
 	async def _publish_loop(self):
 			i = 0
-			#c = 0
 			while True:
-					await asyncio.sleep(10)  # Update every 10sec
+					await asyncio.sleep(2)  # Update every 2sec
 					# if file: logging._stream.flush()
 					s = self.get_all(True)
 					for idx, key in enumerate(s.keys()):
 							try:
 									for callback in self.publish_callback:
 											callback(key, str(s[key]))
-							except:
-									print(f"Error in publish_loop, index {idx}, key {key}")
+							except Exception as e:
+									self.log.exception(f"Error in publish_loop, index {idx}, key {key}")
 					i += 1
 					if not (i % 6):
 							i = 0
-							self.status["alive"][1] = True  # publish alive-heartbeat every min
-							i += 1
-					#if not (c % 6):
-					#		c = 0
-					#		time = datetime.now().strftime("%H:%M")
-					#		self.set_status("clock", time)
-
+							#self.status["alive"][1] = True  # publish alive-heartbeat every min
  
 	def add_publish_callback(self, callback: Callable[[str, str], None]):
 		self.publish_callback.append(callback)

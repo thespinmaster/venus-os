@@ -8,10 +8,11 @@ class battery_service(dbus_base_service):
 	MinVoltage = 11.63
 	MaxVoltage = 12.89
  
-	def __init__(self, name, port, classAndVrmInstance, capacity, onValueChanged):
+	def __init__(self, name, portName, serviceIdentifier, classAndVrmInstance, capacity, onValueChanged):
 
 		self._registerCore(
-			port,
+			portName,
+			serviceIdentifier,
 			classAndVrmInstance,
 			paths =  {
 				'/Voltage': {'initial': None,'writable': False},

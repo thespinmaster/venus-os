@@ -16,16 +16,24 @@ QtObject {
 	}	
 
   function _addItems() {
+
     if (customItems.value === undefined)
       return
+
     OpkgUtils.addRemoveCustomItemsQuick(customItems, _subpageInstance.model , undefined, undefined, _getComponentArgs);
+ 
     customItems.uid = null
   }
 
   function _getComponentArgs() {
-    //console.log("bbb:" + pageStack)
+    // rootWindow.pageStack 3.66
+    // pageStack 3.71
+    //console.log("PPP:" + Object.keys(_subpageInstance))
+    //console.log("yyy:" + _subpageInstance.listview.contentItem + ", " + _subpageInstance.listview.children[0])
     var pStack = rootWindow.pageStack ?? pageStack //3.71 fix
-		return {parent: _subpageInstance.listview.children[0], args: { pageStack: pStack, mbTools: mbTools}}
+    //_subpageInstance.listview.children[0]
+    //_subpageInstance.listview.contentItem
+		return {parent: _subpageInstance.listview.contentItem, args: { pageStack: pStack, mbTools: mbTools}}
   }
 
   function _onSubpageInstanceChanged()
@@ -34,7 +42,7 @@ QtObject {
       return
  
     
-    var pageName=_subpageInstance.toString()
+    var pageName = _subpageInstance.toString()
     pageName = pageName.split("_")[0]
 		if (pageName)
     	customItems.uid = baseDbusCustomMenusPath + pageName

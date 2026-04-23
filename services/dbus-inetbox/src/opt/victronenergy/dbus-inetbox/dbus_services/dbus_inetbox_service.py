@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 
 from dbus_base_service import dbus_base_service
-from dbus_constants import dbus_constants
  
 class dbusInetboxService(dbus_base_service):
  
-	def __init__(self, name: str, port:str, classAndVrmInstance:str, onValueChanged):
+	def __init__(self, name: str, portName:str, serviceIdentifier:str,  classAndVrmInstance:str, onValueChangedCallback):
 
 		self._registerCore(
-			None,
+			portName,
+			serviceIdentifier,
 			classAndVrmInstance,
 			paths =  {	
 				'/CustomName': {'initial': name,'writable': True},
-				'/Port': {'initial': port,'writable': False},
+				'/Port': {'initial': portName,'writable': False},
 				'/Values/WaterCurrentTemp': {'initial': None,'writable': False},
 				'/Values/WaterTargetTemp': {'initial': 0,'writable': True},
     		'/Values/HeatingMode': {'initial': None,'writable': True},
@@ -28,9 +28,10 @@ class dbusInetboxService(dbus_base_service):
 				'/Values/Error': {'initial': None,'writable': False},
 				'/Values/Clock': {'initial': None,'writable': False},
 				'/Values/Alive': {'initial': None,'writable': False},
+				'/Temperature': {'initial': None,'writable': False}
 				
 			},
-			onValueChanged = onValueChanged
+			onValueChanged = onValueChangedCallback
 			)
 	
  

@@ -2,7 +2,9 @@ class dbus_constants:
 
 	PRODUCT_NAME = "dbus-inetbox"
 	SAFE_PRODUCT_NAME="dbus_inetbox"
-	
+ 
+	SERVICE_TYPE_TEMPERATURE="temperature"
+ 
 	PRODUCT_ID = 0xD01A
 	PRODUCT_VERSION = "0.01"
 	FIRMWARE_VERSION = "0.01"
@@ -11,4 +13,5 @@ class dbus_constants:
 	DEFAULT_DEVICE_INSTANCE = 817
 	PATH_SETTING_INITIAL="initial"
 	PATH_SETTING_WRITABLE="writable"
+
 	

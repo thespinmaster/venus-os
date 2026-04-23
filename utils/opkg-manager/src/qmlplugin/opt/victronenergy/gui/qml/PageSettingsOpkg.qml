@@ -9,7 +9,7 @@ MbPage {
 	title: qsTr("Open Package Manager")
 
 	//Component.onCompleted: {
-		//console.debug("PageSettingsOpkg")
+		//console.debug("OpkgPageSettings")
 	//}
 
   model: VisibleItemModel {

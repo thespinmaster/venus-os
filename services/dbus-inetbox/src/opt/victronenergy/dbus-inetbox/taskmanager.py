@@ -82,6 +82,7 @@ class TaskManager:
 		handle asyncio.CancelledError if necessary.
 	"""
 	async def main_loop(self):
+		print("main_loop task in")
 		try:
 			while True:
 					for i in range(len(self._tasks_callbacks)):
@@ -91,8 +92,8 @@ class TaskManager:
 									# Tuples are immutable; reassign the list element with the new task instance.
 									self._tasks_callbacks[i] = (name, cb, asyncio.create_task(cb()))
                  
-					#print(f"main_loop sleeping for {self.WAIT_BETWEEN_TASKS_SEC} secs")
+					print(f"main_loop sleeping for {self.WAIT_BETWEEN_TASKS_SEC} secs")
 					await asyncio.sleep(self.WAIT_BETWEEN_TASKS_SEC)
 		except Exception as ex:
-			logging.error("Error in main_loop %s" % (ex))
-        
+			logging.error("Error in published_inetbox_value %s" % (ex))
+      

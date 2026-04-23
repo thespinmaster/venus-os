@@ -1,16 +1,23 @@
 #!/usr/bin/env bash
+ 
+####################################################################
+# Creates all (default) the opkg packages in the folders
+#   ../services, ../utils
+# Ignored files/folders
+#   .bak, .git, .tmp, /tests, -v[0-9], .old, .venv
+# All files are staged (copied to ) ../.build and built from there.
+# Symlinks are followed and copy the real file/directory
+# Args:
+#   Arg1:"all" (default): Builds all folders under under services & utils.
+#   Arg[n]: Or a list of folders under services or utils to built
+####################################################################
 
 which opkg-build &>/dev/null || { echo "ERROR: opkg-build not installed"; exit 1; }
 
 this_path="$(dirname "${BASH_SOURCE[0]}")"
-
-declare comment=
-
+ 
 if [[ -z "${1}" ]]; then
   build="all"
-elif [[ "${1}" == "-c" ]]; then
-  comment="${2}"
-  shift 2
 else
   build="${*}"
 fi
@@ -19,8 +26,7 @@ declare -a build_items=()
 declare -a folders=("../services" "../utils")
 declare pwd_old=$PWD
 declare -A update_feeds=()
-
-
+ 
 cd "$this_path"
 
 build_feed_index() {
@@ -86,7 +92,10 @@ stage_source_byref() {
     xargs -r -n1 dirname
   )
 
-  rsync -a --mkpath "$src_path/" "$dest_path" "${options[@]}" || return 1
+  # `-a` enables archive mode (recursive copy and preserve file attributes/symlinks).
+  # -L / --copy-links → follow symlinks and copy the real file/directory
+  # `--mkpath` creates the destination path if it does not already exist.
+  rsync -aL --mkpath "$src_path/" "$dest_path" "${options[@]}" || return 1
   _staging_path="$dest_path"
   return 0
 }
@@ -133,12 +142,6 @@ for pkg in "${build_items[@]}"; do
 done
 
 build_feed_indexes
- 
-if [[ -n "$comment" ]]; then
-  git add .
-  git commit -am "${comment}"
-  git push
-fi
 
 cd "$pwd_old" || true
 echo "Completed"

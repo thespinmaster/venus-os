@@ -4,13 +4,20 @@
 
 ####################################################
 reload_bash=
-alias_file=/etc/profile.d/my-alias
-if [ ! -L "${alias_file}" ]; then
+alias_file=/etc/profile.d/my-alias.sh
+if [[ "$(readlink -f "${alias_file}" 2>/dev/null)" != "/data/dev/scripts/my-alias.sh" ]]; then
   echo "creating ${alias_file} symbolic link"
-  ln -s /data/dev/projects/venus-os/scripts/my-alias "${alias_file}"
-  echo "reloading bash"
+  ln -sfn /data/dev/scripts/my-alias.sh "${alias_file}"
   reload_bash=1
 fi
+
+command_link=/usr/local/bin/dev
+if [[ "$(readlink -f "${command_link}" 2>/dev/null)" != "/data/dev/scripts/dev-helper" ]]; then
+  echo "creating ${command_link} symbolic link"
+  ln -sfn /data/dev/scripts/dev-helper "${command_link}"
+fi
+
+rm -f /etc/profile.d/my-alias
 
 nanorc_file=/etc/nanorc
 if [[ "$(readlink "${NANORV_FILE}")" != "/data/dev/projects/venus-os/scripts/nanorc" ]]; then

@@ -1,11 +1,6 @@
 
 
-def set_app_name(name):
-  # Fallback to prctl (Linux-only)
-  import ctypes
-  libc = ctypes.CDLL("libc.so.6")
-  libc.prctl(15, name, 0, 0, 0)  # PR_SET_NAME = 15
-  
+
 
 def calculate_checksum(bytestring):
 	# The checksum contains the inverted eight bit sum with carry over 

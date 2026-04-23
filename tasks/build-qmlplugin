@@ -51,6 +51,19 @@ if [[ "$qt_major" != "auto" ]]; then
 	cmake_args+=("-DQMLPLUGIN_QT_MAJOR=$qt_major")
 fi
 
+cmake_bin="${CMAKE_BIN:-}"
+if [[ -z "$cmake_bin" ]]; then
+	if command -v cmake >/dev/null 2>&1; then
+		cmake_bin="$(command -v cmake)"
+	elif command -v cmake3 >/dev/null 2>&1; then
+		cmake_bin="$(command -v cmake3)"
+	else
+		echo "Error: CMake was not found on PATH." >&2
+		echo "Install CMake or rerun with CMAKE_BIN set to its full path." >&2
+		exit 127
+	fi
+fi
+
 mkdir -p "$plugin_build"
-cmake -S "$plugin_src" -B "$plugin_build" "${cmake_args[@]}"
-cmake --build "$plugin_build"
+"$cmake_bin" -S "$plugin_src" -B "$plugin_build" "${cmake_args[@]}"
+"$cmake_bin" --build "$plugin_build"

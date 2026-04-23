@@ -29,6 +29,10 @@
 			"path": "../../opt/victronenergy/gui/qml"
 		},
 		{
+			"name": "opt/victronenergy  (/opt)",
+			"path": "../../opt/victronenergy"
+		},
+		{
 			"name": "opkg-manager (/data)",
 			"path": "../opkg-manager"
 		},

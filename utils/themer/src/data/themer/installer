@@ -15,8 +15,9 @@ DBUS_SETTINGS="
 		Themer/Dark/BackgroundColorSelected:s:0:0:'#2969a1'
 		Themer/Dark/BackgroundTankColor:s:0:0:'#cccccc'
 
-		OpkgManager/CustomMenus/PageSettingsDisplay/PageSettingsThemerSubMenu:s:0:0:''
+		OpkgManager/CustomMenus/PageSettingsDisplay/ThemerPageSettingsSubMenu:s:0:0:
 "
+#DBUS_SETTINGS_DEPRECIATED=""
 
 if [[ "$1" == "dev-install" ]]; then
   VE_ROOT_DIR=/data/dev/utils/opkg-manager/src
@@ -28,7 +29,6 @@ if [[ "$1" == "install" || "$1" == "post-install" || "$1" == "dev-install" ]]; t
 	install_helper_post_install
  
 elif [[ "$1" == "remove" || "$1" == "post-remove" ]]; then
-
 	install_helper_pre_remove
  
 else
@@ -38,7 +38,6 @@ fi
 
 # install_helper_finished
  
-
 #__add_remove_dbus_settings 0
 #install_helper_post_install
 #themer_common_patch_files

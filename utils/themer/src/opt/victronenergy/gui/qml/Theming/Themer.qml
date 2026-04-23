@@ -69,6 +69,16 @@ QtObject {
 
 	property string iconSuffixSelected: resolveIconSuffix(iconSuffixSelectedItem, '-active','')
 	property string borderColor: resolveColor(borderColoItem, "#ddd", "#505050")
+  
+	function subMenuIconBinding(isCurrentItem, icon, iconId) {
+	 
+		if (!iconId)
+			return ""
+		!isCurrentItem && iconSuffixNormal 
+				? icon.opacity = 0.5 
+				: icon.opacity = 1
+		return iconId + (isCurrentItem ? iconSuffixSelected : iconSuffixNormal)
+	}
 
 	function resolveIconSuffix(item, defaultLight, defaultDark) {
 		var useDefaults = !item?.valid

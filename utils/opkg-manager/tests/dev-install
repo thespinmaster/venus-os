@@ -12,9 +12,6 @@ QML_SOURCE_PATH="$this_path/../src${QML_TARGET_PATH}"
 QML_ICONS_TARGET_PATH="/opt/victronenergy/themes/ccgx/icons"
 QML_ICONS_SOURCE_PATH="$this_path/../src${QML_ICONS_TARGET_PATH}"
 
-QML_PLUGIN_SOURCE_PATH="$QML_SOURCE_PATH/OpkgHelpers"
-QML_PLUGIN_TARGET_PATH="$QML_TARGET_PATH/OpkgHelpers"
-
 # qml: files link all files found in $QML_ICONS_SOURCE_PATH
 for source_file in "$QML_SOURCE_PATH"/*; do
 	
@@ -34,12 +31,12 @@ for source_file in "$QML_ICONS_SOURCE_PATH"/*; do
 done
 
 # link the folder
-ln -sf "$QML_TARGET_PATH/OpkgManager" "$QML_SOURCE_PATH/OpkgManager"
+# ln -sf "$QML_TARGET_PATH/OpkgManager" "$QML_SOURCE_PATH/OpkgManager"
  
-ln -sf "$QML_TARGET_PATH/PageSettings.qml" "$QML_SOURCE_PATH/PageSettings.qml"
+#ln -sf "$QML_TARGET_PATH/PageSettings.qml" "$QML_SOURCE_PATH/PageSettings.qml"
  
-ln -sf "$this_path/../src/data/opkg-manager/opkg-common" "/data/opkg-manager/opkg-common"
+#ln -sf "$this_path/../src/data/opkg-manager/opkg-common" "/data/opkg-manager/opkg-common"
 
-$this_path/../src/data/opkg-manager/installer "dev-install"
+#$this_path/../src/data/opkg-manager/installer "dev-install"
 
 echo "done"

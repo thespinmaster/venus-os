@@ -29,7 +29,7 @@ class ne_shunt_serial_service:
 												xonxoff=False,
 												rtscts=False,
 												dsrdtr=False,   # also typically off unless explicitly needed
-												timeout=None    # blocking read (like raw mode)
+												timeout=1    # blocking read (like raw mode)
 	)
   
 		self.serial_port.rs485_mode = serial.rs485.RS485Settings()
@@ -71,9 +71,8 @@ class ne_shunt_serial_service:
 		time.sleep(0.1)
  
 	def read_data(self) -> str:
-
+ 
 		if not self.serial_port.is_open:
-			logging.debug("opening serial port") 
 			self.serial_port.open()
 			if not self.serial_port.is_open:
 				return ""
@@ -100,7 +99,9 @@ class ne_shunt_serial_service:
 		#self.reset_input_buffer()
 
 		while not checksum_match:
-			#time.sleep(0.1)
+ 
+			time.sleep(0.1)
+			
 			if self.serial_port.in_waiting > 0:
 				#print("in waiting:", self.serial_port.in_waiting)
 				next_byte = self.serial_port.read(1)
@@ -113,7 +114,7 @@ class ne_shunt_serial_service:
 				buffer_all_index += 1
 				bytes_read += 1
 				buffer_index += 1
-
+			
 			if buffer_index >= BUFFER_LENGTH:
 				calced_checksum = sum(buffer[:BUFFER_LENGTH - CHECKSUM_LENGTH]) % CHECKSUM_MOD
 				received_checksum = ((buffer[BUFFER_LENGTH - 2] << 8) | buffer[BUFFER_LENGTH - 1]) % CHECKSUM_MOD
@@ -132,7 +133,9 @@ class ne_shunt_serial_service:
 			if bytes_read >= MAX_BYTES_READ:
 				logging.debug("Timeout, read:" + self.byte_array_to_string(buffer_all))
 				return ""
-
+			elif bytes_read == 0:
+				return ""
+  
 		return ""
 
 	def _write_data(self, data):

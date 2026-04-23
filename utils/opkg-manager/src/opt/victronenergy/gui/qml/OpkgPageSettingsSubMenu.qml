@@ -2,11 +2,10 @@ import QtQuick 2
  
 MbSubMenu {
   description: qsTr("Open Package Manager")
-  subpage: Component { PageSettingsOpkg {} }
-  z:1
+  subpage: Component { OpkgPageSettings {} }
+ 
   property var pageStack
   property var mbTools
  
-
 }
 

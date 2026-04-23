@@ -1,98 +1,144 @@
 #!/usr/bin/env python3
 
 from gi.repository import GLib
-import time
 from taskmanager import TaskManager
 from argparse import ArgumentParser
+from contextlib import suppress
 
 import logging
 import asyncio
 import sys
-from inetbox_service import InetboxService
-import os
-from tools import set_app_name
+from inetbox_controller import InetboxController
+import signal
+
+log = logging.getLogger("main")
+
+async def dbus_loop(mainloop):
+
+	log.info("Connected to dbus, and switching over to GLib.MainLoop() (= event based)")
+
+	# Run mainloop in executor to avoid blocking asyncio
+	loop = asyncio.get_running_loop()
+	try:
+		await loop.run_in_executor(None, mainloop.run)
+	except asyncio.CancelledError:
+		GLib.idle_add(mainloop.quit)
+		raise
+
+
+async def async_main(args):
+	from dbus.mainloop.glib import DBusGMainLoop
+
+	# Have a mainloop, so we can send/receive asynchronous calls to and from dbus
+	DBusGMainLoop(set_as_default=True)
+
+	tasks = TaskManager()
+	mainloop = GLib.MainLoop()
+	tasks.add_task("dbus_loop", lambda: dbus_loop(mainloop))
+
+	InetboxController(
+		tasks,
+		args.serial,
+		args.sdiruleid,
+		args.debug_lin,
+		args.debug_inet,
+		args.record,
+	)
+
+	await asyncio.sleep(2)
+
+	loop = asyncio.get_running_loop()
+	stop_event = asyncio.Event()
+
+	def request_shutdown():
+		if not stop_event.is_set():
+			log.info("Shutting down...")
+			stop_event.set()
+
+	for sig in (signal.SIGINT, signal.SIGTERM):
+		try:
+			loop.add_signal_handler(sig, request_shutdown)
+		except NotImplementedError:
+			pass
+
+	manager_task = asyncio.create_task(tasks.main_loop())
+
+	try:
+		await stop_event.wait()
+	finally:
+		GLib.idle_add(mainloop.quit)
+		manager_task.cancel()
+
+		current_task = asyncio.current_task()
+		pending_tasks = [
+			task for task in asyncio.all_tasks()
+			if task is not current_task and not task.done()
+		]
+		for task in pending_tasks:
+			task.cancel()
+
+		if pending_tasks:
+			with suppress(asyncio.CancelledError):
+				await asyncio.gather(*pending_tasks, return_exceptions=True)
+
+		for sig in (signal.SIGINT, signal.SIGTERM):
+			try:
+				loop.remove_signal_handler(sig)
+			except NotImplementedError:
+				pass
 
 def main():
-	#appname='dbus-inetbox-async'
-	#set_app_name(b"dbus-inetbox")
-	#GLib.set_application_name(appname)
  
-	log = logging.getLogger("main")
+	args = getArgs()
+ 
+	logging.basicConfig(
+		level=logging.INFO,
+		format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+		handlers=[logging.StreamHandler(sys.stdout)],
+	)
 
+	args.debug_lin = False
+	log.info('Using serial port: ' + args.serial)
+	log.info('SDI Rule ID: ' + args.sdiruleid)
+	log.info('debug_lin: ' + str(args.debug_lin))
+	log.info('debug_inet: ' + str(args.debug_inet))
+	if args.record:
+		log.info('Recording to: ' + args.record)
+
+	try:
+		asyncio.run(async_main(args))
+ 
+	except KeyboardInterrupt:
+		log.info("Shutting down...")
+	finally:
+		log.info("quitting...")
+  
+	log.info("Connected to dbus, and switching over to GLib.MainLoop() (= event based)")
+ 
+	log.info("EXITED: dbus-neshunt")
+ 
+def getArgs():
 	# "--serial /dev/ttyUSB0 --debug_lin --debug_inet"
 	parser = ArgumentParser(description='truma-inetbox', add_help=True)
+	parser.add_argument('-s', '--serial', help='tty port (required)')
+	parser.add_argument("-i", "--sdiruleid", help="serial device rule id (required)")
 	parser.add_argument('-di', '--debug_inet', help='enable debug logging of the inetbox app',
 											action='store_true')
 	parser.add_argument('-dl', '--debug_lin', help='enable debug logging of the lin bus',
 											action='store_true')
-	parser.add_argument('-s', '--serial', help='tty')
 	parser.add_argument('-r', '--record', help='record serial traffic to file')
 
 	args = parser.parse_args()
 	if not args.serial:
 		log.error('No serial port specified, see -h')
 		exit(1)
-
-	counter=0
-	while (counter < 10):
-		if os.path.exists(args.serial):
-			break
-		counter +=1
-		time.sleep(0.5)
-	
-	if counter==10:
-		log.info("serial port not found")
-		return
-
-	serial_port = args.serial
-	debug_lin= args.debug_lin
-	debug_inet = args.debug_inet
-	record_file = args.record
-	#debug_lin = True
- 
-	logging.basicConfig(
-		level=logging.DEBUG,
-		#format="%(asctime)s - %(levelname)s - %(message)s",
-		format="%(levelname)s - %(message)s",
-		handlers=[logging.StreamHandler(sys.stdout)],
-	)
-
-	log.info('Using serial port: ' + args.serial)
-	log.info('debug_lin: ' + str(args.debug_lin))
-	log.info('debug_inet: ' + str(args.debug_inet))
-	if record_file:
-		log.info('Recording to: ' + record_file)
+	if not args.sdiruleid:
+		log.error('No sdiRuleId specified, see -h')
+		exit(1)
   
-	from dbus.mainloop.glib import DBusGMainLoop
+	return args
 
-	DBusGMainLoop(set_as_default=True)
 
-	async def dbus_loop():
- 
-		log.info("Connected to dbus, and switching over to GLib.MainLoop() (= event based)")
-		
-		mainloop = GLib.MainLoop()
-  
-		# Run mainloop in executor to avoid blocking asyncio
-		loop = asyncio.get_event_loop()
-		await loop.run_in_executor(None, mainloop.run)
- 
-	tasks = TaskManager()
-	tasks.add_task("dbus_loop", dbus_loop)
-
-	InetboxService(tasks, serial_port, debug_lin, debug_inet, record_file)
-
-	loop = asyncio.new_event_loop()
-	asyncio.set_event_loop(loop)
-
-	try:
-		asyncio.run(tasks.main_loop())
- 
-	except KeyboardInterrupt:
-		log.info("Shutting down...")
-	finally:
-		log.info("quitting...")
- 
 if __name__ == "__main__":
 	main()
 

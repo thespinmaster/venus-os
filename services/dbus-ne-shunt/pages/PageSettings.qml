@@ -193,13 +193,5 @@ MbPage {
 			showAccessLevel: User.AccessService
 		}
 
-		MbSubMenu {
-			description: qsTr("Ne-shunt")
-			subpage: Component {
-				PageSettingsFirmware {
-					title: qsTr("Ne-shunt")
-				}
-			}
-		}
 	}
 }

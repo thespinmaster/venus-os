@@ -1,6 +1,4 @@
 import QtQuick 2
-import "file:/opt/victronenergy/gui/qml"
-
  
 MbSwitch {
   bind: "com.victronenergy.settings/Settings/OpkgManager/CustomMenus/PageMain/PageSettings"

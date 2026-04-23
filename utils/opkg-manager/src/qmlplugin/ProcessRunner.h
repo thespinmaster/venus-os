@@ -4,7 +4,7 @@
 #include <QProcess>
 #include <QString>
 #include <QStringList>
-
+// #define TRACE
 
 class ProcessRunner : public QObject
 {
@@ -13,6 +13,7 @@ class ProcessRunner : public QObject
 	Q_PROPERTY(bool running READ running NOTIFY runningChanged)
 	Q_PROPERTY(bool stopping READ stopping NOTIFY stoppingChanged)
 	Q_PROPERTY(QString operationName READ operationName WRITE setOperationName NOTIFY operationNameChanged)
+	Q_PROPERTY(bool traceEnabled READ traceEnabled WRITE setTraceEnabled NOTIFY traceEnabledChanged)
 
 public:
 	Q_INVOKABLE bool waitForFinished(int msecs = -1);
@@ -27,6 +28,9 @@ public:
 	QString operationName() const;
 	void setOperationName(const QString &name);
 
+	bool traceEnabled() const;
+	void setTraceEnabled(bool enabled);
+
 	Q_INVOKABLE void start(const QStringList &args);
 	Q_INVOKABLE void stop();
 	Q_INVOKABLE void stopAndWait();
@@ -40,6 +44,7 @@ signals:
 	void errorLine(const QString &line);
 	void finished(int exitCode, int exitStatus);
 	void operationNameChanged();
+	void traceEnabledChanged();
 	void processError(const QString &errorString); // New signal for errors
 
 private slots:
@@ -50,6 +55,11 @@ private slots:
 
 private:
 	void emitLines(QByteArray &buffer, const QByteArray &chunk, bool isError);
+#ifdef TRACE
+	void trace(const QString &message, bool isError = false);
+#else
+	void trace(const QString &, bool = false);
+#endif
 
 	QProcess m_process;
 	QString m_helperPath;
@@ -57,4 +67,5 @@ private:
 	QByteArray m_stdoutBuffer;
 	QByteArray m_stderrBuffer;
 	bool m_stopping = false;
+	bool m_traceEnabled = false;
 };
