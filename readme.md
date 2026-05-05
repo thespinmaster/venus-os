@@ -18,6 +18,8 @@ Vaults>>Key chain> select id with rp4 and export
 or in windows
 copy text in file user/.ssh/keys/id_xxx.pub into the file ~/root/.ssh/authorized_keys file changing name to root@raspberypi (although name does not appear matter)
 
+https://www.victronenergy.com/live/ccgx:root_access
+
 ### set up dev environment
 
 Download and run dev_setup from github
