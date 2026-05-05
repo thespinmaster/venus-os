@@ -14,6 +14,7 @@ utils/opkg-manager/src/qmlplugin/CMakeCache.txt
 utils/opkg-manager/src/qmlplugin/cmake_install.cmake
 utils/opkg-manager/src/qmlplugin/*.autosave
 utils/opkg-manager/src/qmlplugin/*_autogen/
+feeds/.build/**/
 tooling/**/
 **/tests/output/
 /data/mnt/dev/repos/GuiMods/**/
