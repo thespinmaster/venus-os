@@ -16,7 +16,7 @@ SSH into Venus OS
 Set up ssh key (using Terminus)
 Vaults>>Key chain> select id with rp4 and export
 or in windows
-copy text in file user/.ssh/keys/id_xxx.pub into the file ~/root/.ssh changing name to root@raspberypi (although name does not appear matter)
+copy text in file user/.ssh/keys/id_xxx.pub into the file ~/root/.ssh/authorized_keys file changing name to root@raspberypi (although name does not appear matter)
 
 ### set up dev environment
 
