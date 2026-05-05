@@ -27,7 +27,7 @@ declare -a folders=("../services" "../utils")
 declare pwd_old=$PWD
 declare -A update_feeds=()
  
-cd "$this_path"
+cd "$this_path" || exit 1
 
 build_feed_index() {
   cd "${1}" || exit 1
@@ -95,8 +95,9 @@ stage_source_byref() {
   # `-a` enables archive mode (recursive copy and preserve file attributes/symlinks).
   # -L / --copy-links → follow symlinks and copy the real file/directory
   # `--mkpath` creates the destination path if it does not already exist.
-  rsync -aL --mkpath "$src_path/" "$dest_path" "${options[@]}" || return 1
+  rsync -a -L --mkpath "$src_path/" "$dest_path" "${options[@]}" || return 1
   _staging_path="$dest_path"
+ 
   return 0
 }
 

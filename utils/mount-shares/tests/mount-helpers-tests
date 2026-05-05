@@ -15,11 +15,10 @@ VENUS_ROOT_DIR="$this_path/output"
 
 . "$this_path/../../../scripts/libs/test-lib"
 . "$this_path/../../../scripts/libs/core-lib"
-. "$this_path/../src/data/mount-shares/mount-helpers"
+. "$this_path/../src/data/mount-shares/mount-common"
 
 this_dir_full="$(core_lib_realpath_nosymlinks "${this_path}")"
 output_dir="${this_dir_full}/output"
-#assets_dir="${this_dir_full}/assets"
 
 # shellcheck disable=SC2034
 LOG_INDENT_CHAR= # turn off indenting so string compares are simpler
@@ -29,690 +28,316 @@ LOGLEVEL=1 # $LOGLEVEL_ERROR
 clear_output() {
   mkdir -p "$output_dir"
   rm -fr "${output_dir:?}/"*
-  #cp -r "${ASSETS_DIR}/"* "$OUTPUT_DIR/"
-  mkdir -p "$(dirname $mountpoint_conf_file)"
+  mkdir -p "$(dirname "$mountpoint_conf_file")"
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-  #printf "\033c" # clear
   clear_output
 fi
-#Staging helpers#############################################
-stage_get_name() { echo "test"; }
+
+# staging helpers
 stage_get_server_ip() { hostname -I | cut -d' ' -f1; }
-stage_get_server_ip_path() { echo "$(hostname -I | cut -d' ' -f1;)/downloads"; }
-stage_get_server_name() { hostname; }
-stage_get_server_name_path() { hostname"//downloads"; }
+stage_get_server_ip_path() { echo "$(hostname -I | cut -d' ' -f1)/downloads"; }
 # shellcheck disable=SC1037
 stage_get_password() { echo "spoons_play_on_saturn$%#\$343@2"; }
 stage_get_user_name() { echo "$USER"; }
 stage_get_mount_point_dir() { echo "$output_dir/mountpoints/mymountpoint"; }
-stage_get_mount_point_dir2() { echo "$output_dir/mountpoints/mymountpoint2"; }
-#############################################################
 
-test_mount_cifs_prompts_for_name() {
-
-  # Arrange
-  mount_common_mount_server() { return 0; } # override, do nothing for current test
-  
-  __mount_common___read() {
-    
-    if (($#==4)) && [[ "${1}" == "-r" ]] && [[ "${2}" == "-p" ]]; then
-      if [[ "${4}" = "name" ]]; then
-        local -n _retval=${4}; _retval="$(stage_get_name)"
-        echo "$_retval" >&3
-      fi
-      return 0
-    fi
-    echo "ERROR: moked __read: unexpected args" >&3
-    exit
-  }
-  local stdout
-  exec 3>&1
-
-  # Act
-  stdout=$(mount_common_mount_cifs --source="$(stage_get_server_ip_path)" \
-            --password="$(stage_get_password)" \
-            --target="$(stage_get_mount_point_dir)" 3>&1 2>/dev/null )
-
-  # Assert
-  assert_eq "$(stage_get_name)" "$stdout"
+stage_get_mount_args() {
+  echo "-t cifs //$(stage_get_server_ip_path) -o user=$(stage_get_user_name),pass=$(stage_get_password) $(stage_get_mount_point_dir)"
 }
 
-test_mount_cifs_prompts_for_user_name() {
+test_mount_prompts_for_name() {
 
   # Arrange
-  mount_common_mount_server() { return 0; } # override, do nothing for current test
-  
-  __mount_common___read() {
-    
-    if (($#==4)) && [[ "${1}" == "-r" ]] && [[ "${2}" == "-p" ]]; then
-      if [[ "${4}" = "username" ]]; then
-        local -n _retval=${4}; _retval="$(stage_get_user_name)"
-        echo "$_retval" >&3
-      fi
-      return 0
-    fi
-    echo "ERROR: moked __read: unexpected args" >&3
-    exit
-  }
-  local stdout
-  exec 3>&1
+  mount_common_mount_server() { return 0; }
+  __mount_common___read() { echo "ERROR: __read should not be called" >&3; exit 1; }
 
-  # Act
-  stdout=$(mount_common_mount_cifs --name="$(stage_get_name)" --source="$(stage_get_server_ip_path)" --password="$(stage_get_password)" \
-            --target="$(stage_get_mount_point_dir)" 3>&1 2>/dev/null )
-  # Assert
-  assert_eq "$(stage_get_user_name)" "$stdout"
-}
-
-test_mount_cifs_prompts_for_password() {
-  
-  # Arrange
-  mount_common_mount_server() { return 0; } # override, do nothing for current test
-  __mount_common___read() {
-    
-    if (($#==5)) && [[ "${1}" == "-r" ]] && [[ "${2}" == "-s" ]] && [[ "${3}" == "-p" ]]; then
-      if [[ "${5}" = "password" ]]; then
-        local -n _retval=${5}; _retval="$(stage_get_password)"
-        echo "$_retval" >&3
-      fi
-      return 0
-    fi
-    echo "ERROR: moked __read: unexpected args" >&3
-    exit
-  }
+  local -a mount_args=()
+  read -r -a mount_args <<< "$(stage_get_mount_args)"
   local stdout
 
   # Act
-  exec 3>&1
-  stdout=$(mount_common_mount_cifs --name="$(stage_get_name)" --username="$(stage_get_user_name)" \
-          --target="$(stage_get_mount_point_dir)" \
-          --source="$(stage_get_server_ip_path)" 3>&1 2>/dev/null )
+  stdout=$(mount_common_mount --targetpath "$(stage_get_mount_point_dir)" -- "${mount_args[@]}" 2>&1)
 
   # Assert
-  assert_eq "$(stage_get_password)" "$stdout"
+  assert_eq "" "$stdout"
 }
 
-test_mount_cifs_prompts_for_source() {
+test_mount_fails_when_mount_args_missing() {
 
   # Arrange
-  mount_common_mount_server() { return 0; } # override, do nothing for current test
-
-  __mount_common___read() {
-    
-    if (($#==4)) && [[ "${1}" == "-r" ]] && [[ "${2}" == "-p" ]]; then
-      if [[ "${4}" = "source" ]]; then
-        local -n _retval=${4}; _retval="$(stage_get_server_ip_path)"
-        echo "$_retval" >&3
-      fi
-      return 0
-    fi
-    echo "ERROR: moked __read: unexpected args" >&3
-    exit
-  }
   local stdout
-  exec 3>&1
 
   # Act
-  stdout=$(mount_common_mount_cifs --name="$(stage_get_name)" --username="$(stage_get_user_name)" --password="$(stage_get_password)" \
-            --target="$(stage_get_mount_point_dir)" 3>&1 2>/dev/null )
- 
-  # Assert
-  assert_eq "$(stage_get_server_ip_path)" "$stdout"
-}
+  stdout=$(mount_common_mount -tp "$(stage_get_mount_point_dir)" 2>&1)
 
-test_mount_cifs_prompts_for_target() {
-  
-  # Arrange
-  mount_common_mount_server() { return 0; } # override, do nothing for current test
-  __mount_common___read() {
-    
-    if (($#==4)) && [[ "${1}" == "-r" ]] && [[ "${2}" == "-p" ]]; then
-      if [[ "${4}" = "target" ]]; then
-        local -n _retval=${4}; _retval="$(stage_get_mount_point_dir)"
-        echo "$_retval" >&3
-      fi
-      return 0
-    fi
-    echo "ERROR: moked __read: unexpected args" >&3
-    exit
-  }
-  local stdout
-  exec 3>&1
-
-  # Act
-  stdout=$(mount_common_mount_cifs --name="$(stage_get_name)" --username="$(stage_get_user_name)" --password="$(stage_get_password)" \
-          --source="$(stage_get_server_ip_path)" 3>&1 2>/dev/null )
-
-  # Assert
-  assert_eq "$(stage_get_mount_point_dir)" "$stdout"
-}
-
-test_mount_cifs_accepts_additional_options() {
-  
-  # Arrange
-  mount_common_mount_server() { echo "$@" >&3; } # override, do nothing for current test
- 
-  local stdout
-  exec 3>&1
-  local options="LABEL=AAA PARTLABEL=BBB"
-
-  # Act
-
-  stdout=$(mount_common_mount_cifs --name="$(stage_get_name)" --username="$(stage_get_user_name)" --password="$(stage_get_password)" \
-          --source="$(stage_get_server_ip_path)" --target="$(stage_get_mount_point_dir)" \
-          --options="$options" 3>&1  ) # 2>/dev/null
-
-  # Assert
-  assert_contains "$options" "$stdout"
-}
-
-
-test_mount_cifs_fails_when_source_prompt_not_filled() {
-
-  # Arrange
-  mount_common_mount_server() { return 0; } # override, do nothing for current test
-
-  __mount_common___read() {
-    
-    if (($#==4)) && [[ "${1}" == "-r" ]] && [[ "${2}" == "-p" ]]; then
-      if [[ "${4}" = "source" ]]; then
-        local -n _retval=${4}; _retval=""
-      fi
-      return 0
-    fi
-    echo "ERROR: moked __read: unexpected args" >&3
-    exit
-  }
-  local stdout
- 
-  # Act
-  stdout=$(mount_common_mount_cifs --name="$(stage_get_name)" --username="$(stage_get_user_name)" --password="$(stage_get_password)" \
-            --target="$(stage_get_mount_point_dir)" 2>&1 )
- 
   # Assert
   assert_exitcode 1
-  assert_eq "ERROR: required args missing" "$stdout"
+  assert_eq "ERROR: mount args missing" "$stdout"
 }
- 
-test_mount_cifs_fails_when_target_prompt_not_filled() {
+
+test_mount_fails_when_targetpath_missing() {
 
   # Arrange
-  mount_common_mount_server() { return 0; } # override, do nothing for current test
-
-  __mount_common___read() {
-    
-    if (($#==4)) && [[ "${1}" == "-r" ]] && [[ "${2}" == "-p" ]]; then
-      if [[ "${4}" = "target" ]]; then
-        local -n _retval=${4}; _retval=""
-      fi
-      return 0
-    fi
-    echo "ERROR: moked __read: unexpected args" >&3
-    exit
-  }
   local stdout
- 
+  local -a mount_args=()
+  read -r -a mount_args <<< "$(stage_get_mount_args)"
+
   # Act
-  stdout=$(mount_common_mount_cifs --name="$(stage_get_name)" --username="$(stage_get_user_name)" --password="$(stage_get_password)" \
-            --source="$(stage_get_server_ip_path)" 2>&1 )
- 
+  stdout=$(mount_common_mount -- "${mount_args[@]}" 2>&1)
+
   # Assert
   assert_exitcode 1
-  assert_eq "ERROR: required args missing" "$stdout"
+  assert_eq "ERROR: target path is required: --targetpath|-tp" "$stdout"
 }
 
-test_mount_cifs_succeeds_settings_added_to_mountpoints_conf_file() {
-   # Arrange
-  mount_common_mount_server() { return 0; } # override, do nothing for current test
-  local options="LABEL=AAA PARTLABEL=BBB"
+test_mount_succeeds_settings_added_to_mountpoints_conf_file() {
+
+  # Arrange
+  mount_common_mount_server() { return 0; }
+  local args
+  args="$(stage_get_mount_args)"
+  local -a mount_args=()
+  read -r -a mount_args <<< "${args}"
+  local target
+  target="$(stage_get_mount_point_dir)"
   local expected
-  expected="$(stage_get_name)|cifs|$(stage_get_user_name)|$(stage_get_password)|$(stage_get_server_ip_path)|$(stage_get_mount_point_dir)|$options"
-  
+  expected="${args}"
+
   assert_file_not_exist "$mountpoint_conf_file"
 
   # Act
-  mount_common_mount_cifs --name="$(stage_get_name)" --username="$(stage_get_user_name)" --password="$(stage_get_password)" \
-          --source="$(stage_get_server_ip_path)" --target="$(stage_get_mount_point_dir)" \
-          --options="$options" 2>/dev/null 
- 
+  mount_common_mount --targetpath "${target}" -- "${mount_args[@]}" 2>/dev/null
+
   # Assert
   assert_exitcode 0
   assert_file_exists "$mountpoint_conf_file"
- 
   assert_eq "${expected}" "$(<$mountpoint_conf_file)"
-
 }
 
-test_mount_cifs_succeeds_settings_already_exist_not_added_twice() {
-   # Arrange
-  mount_common_mount_server() { return 0; } # override, do nothing for current test
-  local options="LABEL=AAA PARTLABEL=BBB"
+test_mount_succeeds_settings_already_exist_not_added_twice() {
+
+  # Arrange
+  mount_common_mount_server() { return 0; }
+  local args
+  args="$(stage_get_mount_args)"
+  local -a mount_args=()
+  read -r -a mount_args <<< "${args}"
+  local target
+  target="$(stage_get_mount_point_dir)"
   local expected
-  expected="$(stage_get_name)|cifs|$(stage_get_user_name)|$(stage_get_password)|$(stage_get_server_ip_path)|$(stage_get_mount_point_dir)|$options"
-  
+  expected="${args}"
+
   assert_file_not_exist "$mountpoint_conf_file"
   echo "$expected" > "$mountpoint_conf_file"
 
   # Act
-  mount_common_mount_cifs --name="$(stage_get_name)" --username="$(stage_get_user_name)" --password="$(stage_get_password)" \
-          --source="$(stage_get_server_ip_path)" --target="$(stage_get_mount_point_dir)" \
-          --options="$options" 2>/dev/null 
- 
+  mount_common_mount --targetpath "${target}" -- "${mount_args[@]}" 2>/dev/null
+
   # Assert
   assert_exitcode 0
- 
-  local count_of=;count_of=$(grep -o "$expected" "${mountpoint_conf_file}" | wc -l)
+
+  local count_of=
+  count_of=$(grep -o -- "$expected" "${mountpoint_conf_file}" | wc -l)
   assert_eq 1 "${count_of}"
- 
   assert_eq "${expected}" "$(<$mountpoint_conf_file)"
-
 }
- 
-test_mount_cifs_succeeds_mount_server_called_with_all_args() {
 
-   # Arrange
-  local index=0
+test_mount_succeeds_mount_server_called_with_all_args() {
+
+  # Arrange
   local test_log_file="${output_dir}/test.log"
   rm -f "$test_log_file"
+  local expected
+  expected="$(stage_get_mount_args)"
+  local -a mount_args=()
+  read -r -a mount_args <<< "${expected}"
 
-  mount_common_mount_server() { 
-    for arg in "$@"; do
-      echo "$arg" >> "$test_log_file"
-    done
-  } # override, do nothing for current test
-   
-  local args=("cifs" "$(stage_get_user_name)" "$(stage_get_password)" \
-                      "$(stage_get_server_ip_path)" "$(stage_get_mount_point_dir)" "opt1=aaa")
-
-  # Act 
-  mount_common_mount_cifs --name="$(stage_get_name)" --username="${args[1]}" --password="${args[2]}" \
-          --source="${args[3]}" --target="${args[4]}" --options="${args[5]}" \
-          2>/dev/null
-  
-  # Assert
-  assert_exitcode 0
-   
-  while read -r line; do
-    assert_eq "${args[$index]}" "${line}"
-    ((index+=1))
-  done < "$test_log_file"
-
-}
- 
-test_mount_server_succeeds_mountpoint_already_exists() {
-  
-  # Arrange
-  
-  mountpoint() {
-
-    # shellcheck disable=SC2199
-    if [[ "$@" == "-q $(stage_get_mount_point_dir)" ]]; then
-      echo "moked mountpoint: mount point already exists" >&3
-      return 0
-    fi
- 
-    echo "ERROR: moked mountpoint: unexpected args" >&3
-    exit
+  mount_common_mount_server() {
+    echo "$*" >> "$test_log_file"
   }
-  local stdout
 
   # Act
-  exec 3>&1
-  stdout="$(mount_common_mount_server "cifs" "$(stage_get_user_name)" "$(stage_get_password)" \
-            "$(stage_get_server_ip_path)" "$(stage_get_mount_point_dir)" "" 2>&1 3>&1)"
+  mount_common_mount --targetpath "$(stage_get_mount_point_dir)" -- "${mount_args[@]}" 2>/dev/null
 
   # Assert
   assert_exitcode 0
-  assert_eq "moked mountpoint: mount point already exists" "$stdout"
-}
-
-test_mount_server_fails_server_is_down() {
-  
-  # Arrange
-  
-  mountpoint() { return 1; }
-  __mount_common_is_server_up() { 
-    return 1; } # error
-  local stdout
-  local host; host=$(stage_get_server_ip)
-
-  # Act
-  exec 3>&1
-  stdout="$(mount_common_mount_server "cifs" "$(stage_get_user_name)" "$(stage_get_password)" \
-            "$(stage_get_server_ip_path)" "$(stage_get_mount_point_dir)" "" 2>&1)"
-
-  # Assert
-  assert_exitcode 1
-  assert_eq "ERROR: server is down: ${host}" "$stdout"
+  assert_eq "--targetpath $(stage_get_mount_point_dir) ${expected}" "$(<$test_log_file)"
 }
 
 test_mount_server_succeeds_creates_mount_target_folder() {
-  # Arrange
-  
-  mountpoint() { return 1; }
-  __mount_common_is_server_up() { return 0; } # error
-  mount() { return 0; }
 
+  # Arrange
+  mount() { return 0; }
   local stdout
-  local mount_point_path; mount_point_path="$(stage_get_mount_point_dir)"
+  local mount_point_path
+  mount_point_path="$(stage_get_mount_point_dir)"
 
   assert_dir_not_exist "$mount_point_path"
+
   # Act
   exec 3>&1
-  stdout="$(mount_common_mount_server "cifs" "$(stage_get_user_name)" "$(stage_get_password)" \
-            "$(stage_get_server_ip_path)" "$(stage_get_mount_point_dir)" "" 2>&1)"
+  stdout="$(mount_common_mount_server --targetpath "$mount_point_path" -t cifs "//$(stage_get_server_ip_path)" "$mount_point_path" -o "user=$(stage_get_user_name),pass=$(stage_get_password)" 2>&1)"
 
   # Assert
   assert_exitcode 0
-  
   assert_dir_exists "$mount_point_path"
- 
+  assert_eq "" "$stdout"
 }
 
 test_mount_server_mount_fails_returns_exitcode_from_mount() {
+
   # Arrange
-  
   local expected_exit_code=127
-
-  mountpoint() { return 1; }
-  __mount_common_is_server_up() { return 0; } # error
   mount() { return $expected_exit_code; }
-  
   local stdout
-  local mount_point_path; mount_point_path="$(stage_get_mount_point_dir)"
-
-  assert_dir_not_exist "$mount_point_path"
-  exec 3>&1
 
   # Act
-  
-  stdout="$(mount_common_mount_server "cifs" "$(stage_get_user_name)" "$(stage_get_password)" \
-            "$(stage_get_server_ip_path)" "$(stage_get_mount_point_dir)" "" 2>&1)"
+  stdout="$(mount_common_mount_server --targetpath "$(stage_get_mount_point_dir)" -t cifs "//$(stage_get_server_ip_path)" "$(stage_get_mount_point_dir)" -o "user=$(stage_get_user_name),pass=$(stage_get_password)" 2>&1)"
 
   # Assert
   assert_exitcode $expected_exit_code
-  
   assert_eq "ERROR: mount returned exit code $expected_exit_code" "$stdout"
-
-}
-
-test_mount_server_succeeds() {
-
-  # Arrange
- 
-  mountpoint() { return 1; }
-  __mount_common_is_server_up() { return 0; } # error
-  mount() { echo "mount called" >&3; return 0; }
-  
-  local stdout
-  local mount_point_path; mount_point_path="$(stage_get_mount_point_dir)"
-
-  assert_dir_not_exist "$mount_point_path"
-
-  # Act
-  exec 3>&1
-  stdout="$(mount_common_mount_server "cifs" "$(stage_get_user_name)" "$(stage_get_password)" \
-            "$(stage_get_server_ip_path)" "$(stage_get_mount_point_dir)" "" 3>&1 2>&1)"
-
-  # Assert
-  assert_exitcode 0
-  
-  assert_eq "mount called" "$stdout"
-}
-
-test_mount_server_fails_when_host_has_invalid_args() {
-
-  # Arrange
- 
-  mountpoint() { return 1; }
-  __mount_common_is_server_up() { return 0; } # error
-  mount() { return 0; }
-  
-  local stdout
-  local mount_point_path; mount_point_path="$(stage_get_mount_point_dir)"
-  local -i exitcode
-  
-  assert_dir_not_exist "$mount_point_path"
-    
-  invalid_cifs_hosts=(
-    "//"                       # empty UNC
-    "//server"                 # missing share
-    "//server/"                # empty share
-    "///server/share"          # too many leading slashes
-    "/server/share"            # missing leading slash
-    "\\\\server\\share"        # backslashes instead of slashes
-    "//server//share"          # empty path element
-    "//server///share"
-    "//server:/share"          # illegal colon
-    "//server/share/subdir"    # subdir not allowed in CIFS source
-    "//server/."               # invalid share name
-    "//server/.."              # invalid share name
-    "//server/*"               # illegal character
-    "//server/?"               # illegal character
-  )
-
-  # Act
- 
-  #Test everything works first
-  mount_common_mount_server "cifs" "$(stage_get_user_name)" "$(stage_get_password)" \
-              "$(stage_get_server_ip_path)" "$(stage_get_mount_point_dir)" "" 3>&1 2>&1
-  exitcode=$?
-  assert_exitcode $exitcode "--This should succeed before doing any validation tests below"
-
-  (( exitcode==0 )) || return
-  for src in "${invalid_cifs_hosts[@]}"; do
-    stdout=$(mount_common_mount_server "cifs" "$(stage_get_user_name)" "$(stage_get_password)" \
-                "${src}" "$(stage_get_mount_point_dir)" "" 2>&1)
- 
-    assert_exitcode 1 "${src} should be invalid"
-    if [[ ! "$stdout" == "ERROR: host path is invalid" ]] &&
-       [[ ! "$stdout" == "ERROR: host name or ip address is invalid" ]]; then
-       assert_result false "Invalid error returned"
-    fi
-  done
-  
-}
- 
-test_mount_server_fails_when_host_ip_has_invalid_args() {
-
-  # Arrange
- 
-  mountpoint() { return 1; }
-  __mount_common_is_server_up() { return 0; } # error
-  mount() { return 0; }
-  
-  local stdout
-  local mount_point_path; mount_point_path="$(stage_get_mount_point_dir)"
-  local -i exitcode
-  
-  assert_dir_not_exist "$mount_point_path"
-    
-  invalid_cifs_ips=(
-  "//1.2.3"                  # too few octets
-  "//1.2.3.4.5/share"        # too many octets
-  "//256.1.1.1/share"        # octet out of range
-  "//1.2.3.-1/share"         # negative octet
-  "//1.2.3.4"                # missing share
-  "//1.2.3.4/"               # empty share
-  "///1.2.3.4/share"         # too many leading slashes
-  "//1.2.3.4//share"         # empty path element
-  "//1.2.3.4:/share"         # illegal colon
-  "//1.2.3.4/share/subdir"   # subdir not allowed
-  "\\\\1.2.3.4\\share"       # backslashes
-  "//.../share"              # malformed IP
- )
-
-  # Act
- 
-  #Test everything works first
-  mount_common_mount_server "cifs" "$(stage_get_user_name)" "$(stage_get_password)" \
-              "$(stage_get_server_ip_path)" "$(stage_get_mount_point_dir)" "" 3>&1 2>&1
-  exitcode=$?
-  assert_exitcode $exitcode "--This should succeed before doing any validation tests below"
-
-  (( exitcode==0 )) || return
-  for src in "${invalid_cifs_ips[@]}"; do
-    stdout=$(mount_common_mount_server "cifs" "$(stage_get_user_name)" "$(stage_get_password)" \
-                "${src}" "$(stage_get_mount_point_dir)" "" 2>&1)
-    exitcode=$?
-    assert_eq 1 $exitcode "${src} should be invalid"
-    if ((exitcode==0)) && [[ ! "$stdout" == "ERROR: host path is invalid" ]] &&
-       [[ ! "$stdout" == "ERROR: host name or ip address is invalid" ]]; then
-       assert_result false "Invalid error returned: $stdout"
-    fi
-  done
-  
 }
 
 test_mount_all_succeeds_calls_mount_correctly() {
- 
-  # Arrange
 
-  #store the results in a test.log file as mount_common_mount_server is called in the background
+  # Arrange
   local test_log_file="${output_dir}/test.log"
   rm -f "$test_log_file"
 
-  mountpoint() { return 1; }
-  __mount_common_is_server_up() { return 0; } # error
-  # shellcheck disable=SC2145
-  mount() { echo "mount called:$@" >> "$test_log_file"; return 0; }
+  mount_common_mount_server() {
+    echo "$*" >> "$test_log_file"
+  }
 
-  local mount host bad_host="1.1.2/downloads" 
-  local index=1
-  for opt in "Opt1=a" "Opt2=b" "Opt3=b" "Opt4=e"; do
-    host=$(stage_get_server_ip_path)
-    [[ "$opt" == "Opt3=b" ]] && host="$bad_host"
-    mount="test_${index}|cifs|$(stage_get_user_name)|$(stage_get_password)|${host}|$(stage_get_mount_point_dir)|$opt"
-    printf '%s\n' "${mount}" >> "${mountpoint_conf_file}"
-    ((index+=1))
-  done
- 
-  local mount_count
-  local expected_count_of_mounts=3; #as 1 of the 4 is bad
+  local args_1 args_2
+  args_1="$(stage_get_mount_args)"
+  args_2="-t cifs //$(stage_get_server_ip_path) -o user=$(stage_get_user_name),pass=$(stage_get_password) ${output_dir}/mountpoints/second"
+
+  {
+    echo "${args_1}"
+    echo "invalid_line_without_pipe"
+    echo "${output_dir}/mountpoints/empty"
+    echo "${args_2}"
+  } > "$mountpoint_conf_file"
 
   # Act
   mount_common_mount_all 2>/dev/null
-  sleep 1 # need to sleep as the mount_common_mount_server calls are executed in the background 
+  sleep 1
 
   # Assert
   assert_exitcode 0
   assert_file_exists "$test_log_file"
 
+  local mount_count
   mount_count="$(wc -l <"$test_log_file")"
-  assert_eq "${expected_count_of_mounts}" "$mount_count"
-
-  for opt in "Opt1=a" "Opt2=b" "Opt3=b" "Opt4=e"; do
-    if [[ "$opt" == "Opt3=b" ]]; then
-      assert_file_not_contain "$test_log_file" "$opt"
-    else
-      assert_file_contains "$test_log_file" "$opt"
-    fi
-  done
+  assert_eq "2" "$mount_count"
+  assert_file_contains "$test_log_file" "$args_1"
+  assert_file_contains "$test_log_file" "$args_2"
 }
- 
+
 test_mount_common_wait_on_mount_point_succeeds_when_mount_exists() {
 
   # Arrange
   mountpoint() {
     return 0
   }
+
   local stdout
   local mount_point="/mnt/some_mount_point"
- 
+
   # Act
   stdout=$(mount_common_wait_on_mount_point "$mount_point" 2>&1)
 
   # Assert
   assert_exitcode 0
   assert_eq "mountpount available: ${mount_point}" "$stdout"
-  
 }
- 
+
 test_mount_common_wait_on_mount_point_fails_when_mount_times_out() {
 
   # Arrange
   mountpoint() {
     return 1
   }
+
   local stdout
   local mount_point="/mnt/some_mount_point"
-  exec 3>&1
 
   # Act
-  stdout=$(mount_common_wait_on_mount_point "$mount_point" 2 3>&1 2>&1)
+  stdout=$(mount_common_wait_on_mount_point "$mount_point" 2 2>&1)
 
   # Assert
   assert_exitcode 1
   assert_eq "mountpount not available: ${mount_point}" "$stdout"
-  
 }
 
-test_mount_common_wait_on_mount_point_quiet_args_return_empty_stdout() {
+test_mount_common_wait_on_mount_point_quiet_returns_empty_stdout() {
 
   # Arrange
   local retval=0
   mountpoint() {
     return $retval
   }
+
   local stdout_success stdout_fail
   local mount_point="/mnt/some_mount_point"
 
   # Act
-  stdout_success=$(mount_common_wait_on_mount_point "$mount_point" 2 2>&1 )
+  stdout_success=$(mount_common_wait_on_mount_point "$mount_point" --quiet 2>&1)
   retval=1
-  stdout_fail=$(mount_common_wait_on_mount_point "$mount_point" 2>&1 )
+  stdout_fail=$(mount_common_wait_on_mount_point "$mount_point" 1 --quiet 2>&1)
 
   # Assert
-  assert_eq "mountpount available: $mount_point" "$stdout_success"
-  assert_eq "mountpount not available: $mount_point" "$stdout_fail"
-  
+  assert_eq "" "$stdout_success"
+  assert_eq "" "$stdout_fail"
 }
 
-test_mount_common_remove_mount_succeeds_removes_entry_by_name() {
+test_mount_common_remove_mount_succeeds_removes_entry_by_target() {
 
   # Arrange
   local -i index=1
-  local options="LABEL=AAA PARTLABEL=BBB"
   local -a mounts=()
+  local -a targets=()
   local mount line
-  
+
   rm -f "${mountpoint_conf_file}"
 
-  while ((index<4)); do
-    mount="test_${index}|cifs|$(stage_get_user_name)|$(stage_get_password)|$(stage_get_server_ip_path)|$(stage_get_mount_point_dir)|$options"
+  while ((index < 4)); do
+    target="${output_dir}/mountpoints/mount_${index}"
+    mount="-t cifs //$(stage_get_server_ip_path) ${target} -o user=$(stage_get_user_name),pass=$(stage_get_password)"
     mounts+=("${mount}")
+    targets+=("${target}")
     echo "$mount" >> "${mountpoint_conf_file}"
-    ((index+=1))
+    ((index += 1))
   done
-  
-  local count_of=; count_of=$(wc -l <<< "$(<"$mountpoint_conf_file")")
+
+  local count_of=
+  count_of=$(wc -l <<< "$(<"$mountpoint_conf_file")")
   assert_eq 3 "${count_of}"
 
   # Act
-  mount_common_remove_mount "test_2"
-  
+  mount_common_remove_mount "${targets[1]}"
+
   # Assert
   index=0
   while read -r line; do
-    ((index==1)) && continue
+    ((index == 1)) && { ((index += 1)); continue; }
     assert_eq "${mounts[$index]}" "${line}"
-    ((index+=1))
+    ((index += 1))
   done < "$mountpoint_conf_file"
-
 }
 
 pre_test_runner() {
   clear_output
 }
+
 post_test_runner() {
   true
 }
 
 if [[ "${0:-}" == "${BASH_SOURCE[0]}" ]]; then
-  #test_mount_cifs_fails_when_target_prompt_not_filled
-  #exit
-  test_runner_all --summary "" #"^cur_test_*"
+  test_runner_all --summary ""
   exit
 fi

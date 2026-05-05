@@ -32,11 +32,11 @@ echo "ensuring spinmaster feed"
 ensure_feed
 opkg update
 
-echo "replacing busybox"
-opkg install packagegroup-replace-busybox
+#echo "replacing busybox"
+#opkg install packagegroup-replace-busybox
 
-echo "installing python (full)"
-opkg install python3
+#echo "installing python (full)"
+#opkg install python3
 
 echo "installing git"
 opkg install git
@@ -47,14 +47,25 @@ opkg install libatomic1
 echo "installing support for mounting network shares"
 opkg install mount-shares
 
-# () keeps . (source) to within bounds
 (
-  . /data/mount-shares/mount-helpers
+   # shellcheck source=/data/dev/utils/mount-shares/src/data/mount-shares/mount-common
+  . /data/mount-shares/mount-common
 
-  # source, username and password will be prompted for
-  # store mnt under /data and not /mnt as mnt may be readonly
-  # `mfsymlinks` enables symlink support on the CIFS dev share.
-  mount_common_mount_cifs --target="/data/mnt/dev" --options="exec,mfsymlinks"
+  declare share_source share_username share_password
+
+  # source, username and password are prompted here and passed through to mount.
+  read -r -p "Enter server ip/host address and share path (example: //192.168.1.10/dev): " share_source
+  read -r -p "Enter username for share: " share_username
+  read -r -s -p "Enter password for share: " share_password
+  echo
+
+  # store mnt under /data and not /mnt as mnt may be readonly.
+  # `unix` enables real symlink support on the CIFS dev share.
+  # `unix` creates real symlinks unlike mfsymlinks.
+  mount_common_mount --targetpath "/data/mnt/dev" -- \
+    -t cifs \
+    -o "user=${share_username},pass=${share_password},exec,unix" \
+    "${share_source}"
 )
 
 if [[ ! -L "/data/dev" ]]; then
@@ -63,6 +74,7 @@ fi
 
 echo "setting up environment (bash aliases, nanorc config)"
 (
+  # shellcheck source=/data/dev/utils/opkg-manager/src/data/opkg-manager/opkg-common
   . /data/opkg-manager/opkg-common
   # priority 3 to execute after mount-shares
   declare rc_local_d_path=3
@@ -72,7 +84,7 @@ echo "setting up environment (bash aliases, nanorc config)"
   echo "#!/bin/bash
 
 # setup enviroment (do not edit)
-. /data/mount-shares/mount-helpers
+  . /data/mount-shares/mount-common
 mount_common_wait_on_mount_point \"/data/mnt/dev/\" &&
   cp /data/dev/projects/venus-os/tasks/setup-environment /data
   exec /data/setup-environment
