@@ -1,0 +1,11 @@
+ #!/usr/bin/env bash
+
+mount -o remount,rw /
+
+/opt/victronenergy/swupdate-scripts/resize2fs.sh
+echo "src/gz opkg-manager https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feeds/opkg-manager" > "/etc/opkg/opkg-manager-tmp.conf"
+opkg update
+opkg install opkg-manager
+rm /etc/opkg/opkg-manager-tmp.conf
+
+mount -o remount,ro /
