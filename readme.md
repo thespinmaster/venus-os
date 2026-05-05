@@ -9,10 +9,16 @@ Set wifi in Venus OS
 Use Victron Connect App. Select Rasperry pi, enter bluetooth pin, then connect to wifi
 Note if Wifi fails, connect ethernet cable instead and connect wifi using Venus OS GUI
 
-In Venus GUI to enable ssh, elect username then press and hold right arrow key for 5 seconds to enable root access
+In Venus GUI to enable ssh, select settings/general/accesslevel then press and hold right arrow key for 5 seconds (or drag down with mouse in browser) to enable root access
 add ssh password
 
 SSH into Venus OS
+Set up ssh key (using Terminus)
+Vaults>>Key chain> select id with rp4 and export
+or in windows
+copy text in file user/.ssh/keys/id_xxx.pub into the file ~/root/.ssh/authorized_keys file changing name to root@raspberypi (although name does not appear matter)
+
+https://www.victronenergy.com/live/ccgx:root_access
 
 ### set up dev environment
 
@@ -38,12 +44,9 @@ chmod +x /data/dev-setup
 
 ## Install opkg-manager only
 ```
-mount -o remount,ro /
-/opt/victronenergy/swupdate-scripts/resize2fs.sh
-echo "src/gz opkg-manager https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feeds/opkg-manager" > "/etc/opkg/opkg-manager-tmp.conf"
-opkg update
-opkg install opkg-manager
-rm /etc/opkg/opkg-manager-tmp.conf
+wget https://raw.githubusercontent.com/thespinmaster/venus-os/refs/heads/main/tasks/install-opkg-manager -O /tmp/install-opkg-manager
+chmod +x /tmp/install-opkg-manager
+/tmp/install-opkg-manager
 
 ```
 
