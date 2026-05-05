@@ -66,7 +66,7 @@ __get_custom_service_paths_from_dbus_settings_byref() {
 		service_path="${BASH_REMATCH[1]}"
 		[[ -z "$service_path" || -n "${seen_paths[$service_path]:-}" ]] && continue
 		seen_paths["$service_path"]=1
-		_out_paths+="$service_path "
+		_out_paths+=("$service_path")
 	done <<< "${DBUS_SETTINGS:-}"
 }
 

@@ -82,11 +82,9 @@ dbus_common_add_dbus_settings() {
 		echo "adding dbus setting: $group/$name, value:$value, type:$type, min:$min, max:$max"
 		
 		# use of -- stops values with - being interpreted as flags
-		dbus -y "$service" "/Settings/${group}/${name}" SetValue -- "${value}" >/dev/null
-		[[ $? == 0 ]] ||
-			dbus -y $service /Settings AddSetting $group "$name" "${value}" "$type" $min $max 1>/dev/null
-		
-		
+		dbus -y "$service" "/Settings/${group}/${name}" SetValue -- "${value}" &> /dev/null ||
+			dbus -y $service /Settings AddSetting "$group" "$name" "${value}" "$type" "$min" "$max"
+ 
 	done <<< "$dbus_settings"
 }
 
