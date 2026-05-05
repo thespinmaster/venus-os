@@ -44,12 +44,9 @@ chmod +x /data/dev-setup
 
 ## Install opkg-manager only
 ```
-mount -o remount,ro /
-/opt/victronenergy/swupdate-scripts/resize2fs.sh
-echo "src/gz opkg-manager https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feeds/opkg-manager" > "/etc/opkg/opkg-manager-tmp.conf"
-opkg update
-opkg install opkg-manager
-rm /etc/opkg/opkg-manager-tmp.conf
+wget https://raw.githubusercontent.com/thespinmaster/venus-os/refs/heads/main/tasks/install-opkg-manager -O /tmp/install-opkg-manager
+chmod +x /tmp/install-opkg-manager
+/tmp/install-opkg-manager
 
 ```
 
