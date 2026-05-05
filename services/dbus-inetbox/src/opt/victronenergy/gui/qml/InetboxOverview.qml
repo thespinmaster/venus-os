@@ -5,94 +5,45 @@ import QtQuick.Controls
 
 OverviewPage {
 		id: root
-
-	property string settingsPrefix: "com.victronenergy.settings/Settings/Devices/dbus_inetbox/"
  
-	property string inetboxPrefix
+	property string bindPrefix
   property int headerFont: 20
 	property int groupFont: 12
   property int textFont: 12
 
-	property color selectedColor: "#6491CC"
-	property color selectedTextColor: "#FFFFFF"
-	property color backgroundColor: "#171820"
-	property color fontColor: "#FFFFFF"
-	property color groupBackgroundColor: "#1C3749"
-	property color headerFontColor: "#FFFFFF"
-	
-	// Inetbox DBus bindings
-	VBusItem { id: customNameItem; bind: Utils.path(inetboxPrefix, "/CustomName") }
-	VBusItem { id: waterTargetTempItem; bind: Utils.path(inetboxPrefix, "/Values/WaterTargetTemp") }
-	VBusItem { id: waterCurrentTempItem; bind: Utils.path(inetboxPrefix, "/Values/WaterCurrentTemp") }
-	VBusItem { id: energyMixItem; bind: Utils.path(inetboxPrefix, "/Values/EnergyMixCombined") }
-	VBusItem { id: heatingModeItem; bind: Utils.path(inetboxPrefix, "/Values/HeatingMode") }
-	VBusItem { id: heatingTargetTempItem; bind: Utils.path(inetboxPrefix, "/Values/HeatingTargetTemp") }
-	VBusItem { id: heatingCurrentTempItem; bind: Utils.path(inetboxPrefix, "/Values/HeatingCurrentTemp") }
-	VBusItem { id: airconModeItem; bind: Utils.path(inetboxPrefix, "/Values/AirconMode") }
-	VBusItem { id: airconFanSpeedItem; bind: Utils.path(inetboxPrefix, "/Values/AirconFanSpeed") }
-	VBusItem { id: airconTargetTempItem; bind: Utils.path(inetboxPrefix, "/Values/AirconTargetTemp") }
-	VBusItem { id: airconCurrentTempItem; bind: Utils.path(inetboxPrefix, "/Values/AirconCurrentTemp") }
-	VBusItem { id: themeItem; bind: Utils.path(settingsPrefix, "Theme"); onValueChanged: applyTheme() }
-
-  VBusItem { id: showAirconItem; bind: Utils.path(settingsPrefix, "ShowAircon") }
-  //VBusItem { id: metricItem; bind: Utils.path(settingsPrefix, "Metric") }
- 
 	property MbStyle mbStyle: MbStyle {}
-	Component.onCompleted: {
-		applyTheme()
-		discoverInetboxService()
+	property MbStyle mbStyleSelected: MbStyle {isCurrentItem: true}
+
+	property color backgroundColor: mbStyle.backgroundColor
+	property color fontColor: mbStyle.textColor
+	property color headerFontColor: mbStyle.textColor
+
+	property color selectedTextColor: mbStyle.textColorSelected
+
+	property color selectedColor: mbStyleSelected.backgroundColor
+	property color groupBackgroundColor: backgroundColor
+	//property color groupBorderColor: selectedColor
+ 	onSelectedColorChanged: {
+		groupBackgroundColor = selectedColor
+		groupBackgroundColor.a = 0.1
 	}
+
+	VBusItem { id: customNameItem; bind: Utils.path(bindPrefix, "/CustomName")}
+	VBusItem { id: waterCurrentTempItem; bind: Utils.path(bindPrefix, "/Values/WaterCurrentTemp")}
+ 
+	VBusItem { id: heatingTargetTempItem; bind: Utils.path(bindPrefix, "/Values/HeatingTargetTemp")}
+	VBusItem { id: heatingCurrentTempItem; bind: Utils.path(bindPrefix, "/Values/HeatingCurrentTemp")}
+	VBusItem { id: airconTargetTempItem; bind: Utils.path(bindPrefix, "/Values/AirconTargetTemp")}
+ 
+	VBusItem { id: statusItem; bind: Utils.path(bindPrefix, "/Values/Status")}
+ 
+	Component.onCompleted: discoverInetboxService()
 	
 	Connections {
 		target: DBusServices
 		function onDbusServiceFound(service) { tryAddService(service) }
 	}
-
-	function applyTheme() {
-		if (!themeItem.valid || themeItem.value.length == 0)
-			return
  
-		//console.log("applyTheme:" + themeName)
-
-		switch (themeItem.value) {
-		case "dark":
-			backgroundColor = "#181818"
-			fontColor = "#FFFFFF"
-			groupBackgroundColor = "#313131"//"#1C3749"
-			headerFontColor = "#FFFFFF"
-			selectedColor = "#4790d0"
-			selectedTextColor = "#FFFFFF"
-			break
-		case "veBlue1":
-			backgroundColor = "#4790d0"
-			fontColor = "#4891CC"
-			groupBackgroundColor = "#f0f2f5"
-			headerFontColor = "#FFFFFF"
-			selectedColor = "#4790d0"
-			selectedTextColor = "#FFFFFF"
-			break
-		case "veBlue2":
-			backgroundColor = "#FFFFFF"
-			fontColor = "#FFFFFF"
-			groupBackgroundColor = "#4790d0"
-			headerFontColor = "#4891CC"
-			selectedColor = "#FFFFFF"
-			selectedTextColor = "#4790d0"
-			break
-		case "light":
-		default:
-			backgroundColor = "#FFFFFF"
-			fontColor = "#FFFFFF"
-			groupBackgroundColor = "#4790d0"
-			headerFontColor = "#4790d0"
-			selectedColor = "#FFFFFF"
-			selectedTextColor = "#4790d0"
-			break
-		
-		
-		}
-	}
-
 	function formatTemp(value, round) {
 		var num = parseFloat(value)
 		if (!round)
@@ -104,35 +55,55 @@ OverviewPage {
 		if (user.temperatureUnit === Unit.Fahrenheit) {
 			return (num * 9 / 5 + 32).toFixed(round) + "°F"
 		}
-		return num.toFixed(1) + "°C"
+		return num.toFixed(round) + "°C"
 	}
  
 	function tryAddService(service) {
 
-		if (!inetboxPrefix && service.type === DBusService.DBUS_SERVICE_TEMPERATURE_SENSOR && 
-				service.name.includes(".dbus_inetbox_cdt_")) {
-			console.log("found inetbox service")
-			inetboxPrefix = service.name
+		if (!bindPrefix && service.type === DBusService.DBUS_SERVICE_TEMPERATURE_SENSOR && 
+				service.name.includes(".dbus_inetbox_sid_")) {
+			//console.log("found inetbox service")
+			bindPrefix = service.name
 			return true
 		}
 	}
  
 	function discoverInetboxService() {
 		for (var i = 0; i < DBusServices.count; i++) { 
-			console.log ("Service:" + DBusServices.at(i).name)
+			//console.log ("Service:" + DBusServices.at(i).name)
       tryAddService(DBusServices.at(i))
     }  
 	}
-
-	Rectangle {
-			id: rectangle
-			anchors.fill: parent
-			color: backgroundColor
-			
-			// Header
+ 
+ 
+			Led {
+				id: aliveLed
+				value: item.valid && item.value == "ON" ? 1 : 0
+				bind: Utils.path(bindPrefix, "/Values/Alive")
+				onColor: "#58cf08"
+				radius: 4
+				anchors {
+					top: parent.top
+					topMargin: 9
+					left: parent.left
+					leftMargin: 6
+				}
+			}
+			Text {
+				text: statusItem.value
+				font.pixelSize: root.textFont
+				color: headerFontColor
+				anchors {
+					top: parent.top
+					topMargin: 6
+					left: aliveLed.right
+					leftMargin: 6
+				}
+			}
+ 
 			Text {
 					id: header
-					text: customNameItem.value || qsTr("Truma")
+					text: customNameItem.value || qsTr("Inetbox")
 					color: headerFontColor
 					font.pixelSize: headerFont
 					//font.bold: true
@@ -157,17 +128,12 @@ OverviewPage {
 					rightMargin: 6
 				}
 			}
-
-			Connections {
-				target: heatingCurrentTempItem
-				function onValueChanged() {
-					heatingCurrentTempText.text = formatTemp(heatingCurrentTempItem.value,1)
-				}
-			}
+ 
 
       // Water
 			Rectangle {
 				id: waterControlContainer
+				visible: waterModeButtonControl.item.valid
 				anchors {
 					top: header.bottom
 					topMargin: 2
@@ -175,8 +141,9 @@ OverviewPage {
 					leftMargin: 8
 				}
 				width: parent.width / 2.2 - 16
-				height: buttonControl.height + 40
+				height: waterModeButtonControl.height + 40
 				color: groupBackgroundColor
+				//border {color: groupBorderColor;width: 1}
 				radius: 12
 
 				Text {
@@ -193,14 +160,13 @@ OverviewPage {
 				}
 
 				ButtonGroupControl {
-					id: buttonControl
-					textColor: fontColor
+					id: waterModeButtonControl
+					textColor: mbStyle.textColor
 					selectedTextColor: root.selectedTextColor
 					selectedColor: root.selectedColor
+					bind: Utils.path(bindPrefix, "/Values/WaterTargetTemp")
 					model: ["Off", "Eco", "Hot", "Boost"]
-					valueMapping: ["0", "40", "60", "200"]
-					Component.onCompleted: setIndexFromValue(waterTargetTempItem.value)
-					onActivated: waterTargetTempItem.setValue(getValueAtIndex(currentIndex))
+					valueMapping: ["0", "40.0", "60.0", "200.0"]
 					anchors {
 						top: parent.top
 						topMargin: 30
@@ -223,24 +189,14 @@ OverviewPage {
 						right: parent.right
 						rightMargin: 6
 					}
-					Connections {
-						target: waterCurrentTempItem
-						function onValueChanged() {
-							waterCurrentTempDisplay.text = formatTemp(waterCurrentTempItem.value)
-						}
-					}		
+ 
 				}
-
-				Connections {
-					target: waterTargetTempItem
-					function onValueChanged() {
-						buttonControl.setIndexFromValue(waterTargetTempItem.value)
-					}
-				}
+ 
 			}
       // Energy Mix
 			Rectangle {
 				id: energyMixControlContainer
+				visible: energyMixButtonControl.item.valid && energyMixButtonControl.item.value.length > 0
 				anchors {
 					top: waterControlContainer.top
 					topMargin: waterControlContainer.topMargin
@@ -250,6 +206,7 @@ OverviewPage {
 				width: parent.width / 1.8 - 12
 				height: energyMixButtonControl.height + 40
 				color: groupBackgroundColor
+				//border {color: groupBorderColor;width: 1}
 				radius: 12
 
 				Text {
@@ -271,9 +228,8 @@ OverviewPage {
 					selectedTextColor: root.selectedTextColor
 					selectedColor: root.selectedColor
 					model: ["Gas", "Mix1", "Mix2", "El1", "El2"]
-					valueMapping: ["gas|0", "mix|900", "mix|1800", "electricity|900", "electricity|1800"]
-					Component.onCompleted: setIndexFromValue(energyMixItem.value)
-					onActivated: energyMixItem.setValue(getValueAtIndex(currentIndex))
+					valueMapping: ["Gas", "Mix1", "Mix2", "EL1", "EL2"]
+					bind: Utils.path(bindPrefix, "/Values/EnergyMixCombined")
 					anchors {
 						left: parent.left
 						leftMargin: 6
@@ -283,18 +239,13 @@ OverviewPage {
 						topMargin: 30
 					}
 				}
-				
-				Connections {
-					target: energyMixItem
-					function onValueChanged() {
-						energyMixButtonControl.setIndexFromValue(energyMixItem.value)
-					}
-				}
+ 
 			}
 
 			// Heating
 			Rectangle {
 				id: heatingControlContainer
+				visible: heatingButtonControl.item.valid && heatingButtonControl.item.value.length > 0
 				anchors {
 					top: waterControlContainer.bottom
 					topMargin: 10
@@ -304,7 +255,7 @@ OverviewPage {
 				width: waterControlContainer.width
 				height: heatingButtonControl.height + heatingSlider.height + 70
 				color: groupBackgroundColor
-				
+				//border {color: groupBorderColor;width: 1}
 				radius: 12
 
 				Text {
@@ -326,10 +277,8 @@ OverviewPage {
 					selectedTextColor: root.selectedTextColor
 					selectedColor: root.selectedColor
 					model: ["Off", "Eco", "High"]
-					valueMapping: ["Off", "eco", "high"]
-
-					Component.onCompleted: setIndexFromValue(heatingModeItem.value)
-					onActivated: heatingModeItem.setValue(getValueAtIndex(currentIndex))
+					valueMapping: ["off", "eco", "high"]
+					bind: Utils.path(bindPrefix, "/Values/HeatingMode")
 					anchors {
 						left: parent.left
 						leftMargin: 6
@@ -339,14 +288,7 @@ OverviewPage {
 						topMargin: 30
 					}
 				}
-				
-				Connections {
-					target: heatingModeItem
-					function onValueChanged() {
-						heatingButtonControl.setIndexFromValue(heatingModeItem.value)
-					}
-				}
-
+ 
 				Text {
 					text: "Target Temp"
 					color: fontColor
@@ -394,7 +336,7 @@ OverviewPage {
 
 			Text {
 				id: tempValueLabel
-				text: formatTemp(heatingSlider.value,0)
+				text: formatTemp(heatingSlider.value)
 				color: fontColor
 				font.pixelSize: textFont
 				anchors {
@@ -411,7 +353,7 @@ OverviewPage {
 		// Aircon
 		Rectangle {
 			id: airconControlContainer
-			visible: !!showAirconItem.value
+			visible: airconModeButtonControl.item.valid && airconModeButtonControl.item.value.length > 0
 			anchors {
 				top: waterControlContainer.bottom
 				topMargin: 10
@@ -421,6 +363,7 @@ OverviewPage {
 			width: energyMixControlContainer.width
 			height: airconHeader.height + airconModeButtonControl.height + airconFanButtonControl.height + airconTargetTemp.height + airconSlider.height + 50
 			color: groupBackgroundColor
+			//border {color: groupBorderColor;width: 1}
 			radius: 12
 
 			Text {
@@ -444,8 +387,7 @@ OverviewPage {
 				selectedColor: root.selectedColor
 				model: ["Off", "Vent", "Cool", "Hot", "Auto"]
 				valueMapping: ["off", "vent", "cool", "hot", "auto"]
-				Component.onCompleted: setIndexFromValue(airconModeItem.value)
-				onActivated: airconModeItem.setValue(getValueAtIndex(currentIndex))
+				bind: Utils.path(bindPrefix, "/Values/AirconMode")
 				anchors {
 					left: parent.left
 					leftMargin: 6
@@ -455,13 +397,7 @@ OverviewPage {
 					topMargin: 30
 				}
 			}
-			
-			Connections {
-				target: airconModeItem
-				function onValueChanged() {
-					airconModeButtonControl.setIndexFromValue(airconModeItem.value)
-				}
-			}
+ 
 
 			ButtonGroupControl {
 				id: airconFanButtonControl
@@ -470,8 +406,7 @@ OverviewPage {
 				selectedColor: root.selectedColor
 				model: ["Low", "Mid", "High", "Night", "Auto"]
 				valueMapping: ["low", "mid", "high", "night", "auto"]
-				Component.onCompleted: setIndexFromValue(airconFanSpeedItem.value)
-				onActivated: airconFanSpeedItem.setValue(getValueAtIndex(currentIndex))
+				bind: Utils.path(bindPrefix, "/Values/AirconFanSpeed")
 				anchors {
 					left: parent.left
 					leftMargin: 6
@@ -481,13 +416,7 @@ OverviewPage {
 					topMargin: 12
 				}
 			}
-			
-			Connections {
-				target: airconFanSpeedItem
-				function onValueChanged() {
-					airconFanButtonControl.setIndexFromValue(airconFanSpeedItem.value)
-				}
-			}
+ 
 
 			Text {
 				id: airconTargetTemp
@@ -536,7 +465,7 @@ OverviewPage {
 
 			Text {
 					id: airconTempValueLabel
-					text: formatTemp(airconSlider.value,0).replace(".0", "")
+					text: formatTemp(airconSlider.value)
 					color: fontColor
 					font.pixelSize: textFont
 					anchors {
@@ -552,4 +481,4 @@ OverviewPage {
 			}
 
 	}
-}
+ 

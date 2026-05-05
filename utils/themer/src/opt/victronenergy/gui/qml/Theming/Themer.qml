@@ -8,7 +8,10 @@ QtObject {
 	property string bindThemerPrefix: "com.victronenergy.settings/Settings/Themer/"
 
 	property VBusItem darkModeItem: VBusItem { bind: "com.victronenergy.settings/Settings/GuiMods/DarkMode" }
-	property VBusItem themeItem: VBusItem { bind: Utils.path(bindThemerPrefix, "Theme") }
+	property VBusItem themeItem: VBusItem { 
+		bind: Utils.path(bindThemerPrefix, "CurrentTheme")
+		onValueChanged: updateBindings()
+	}
  
 	property VBusItem textColorItem: VBusItem {}
 	property VBusItem backgroundColorItem: VBusItem {}
@@ -25,18 +28,11 @@ QtObject {
 	Component.onCompleted: {
 		updateBindings()
 	}
-
- 	property Connections connections: Connections{
-		target: themeItem
-		function onValueChanged() {
-			updateBindings()
-		}
-	}
-	
-  function updateBindings() {
-		//console.log("themeItem:onValueChanged:" + themeItem.value)
  
-		var themePath = Utils.path(bindThemerPrefix, themeItem.valid ? themeItem.value : "")
+  function updateBindings() {
+
+		var themePath = Utils.path(bindThemerPrefix, "Themes/", themeItem.valid ? themeItem.value : "")
+
 		textColorItem.bind = Utils.path(themePath, "/TextColor")
 		backgroundColorItem.bind = Utils.path(themePath, "/BackgroundColor")
 		backgroundColorSelectedItem.bind = Utils.path(themePath, "/BackgroundColorSelected")

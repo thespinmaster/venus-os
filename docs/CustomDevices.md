@@ -19,18 +19,14 @@ Examples:
 
 /Settings/opkg-manager/CustomServices/`[DbusProductName]`/`[Setting]`  
 
-| Setting | Value | Note |
-|---|---|---|
-| `ProductName`    | "Inetbox"      | For display can be any text
-| `ServiceName`    | "dbus-inetbox" | File system name
-| `UsbMappingName` | "inetbox"      | Used in serial-starter.rule file and serial-starter.conf file
-| `UsbProps`       | "ID_VENDOR\|ID_MODEL\|ID_SERIAL" | \| Separated props used to uniquily identify the device
- 
-#### Notes
-This dbus setting is added by the service when it starts  
-The `UsbProps` value is used to construct and remove the serial-starter.rule when "Remove Disconnected Devices" is clicked in the UI    
+| Setting | Value | Required | Notes |
+|---|---|---|---|
+| `ProductName`    | "Inetbox"      |yes| For display, can be any text
+| `ServiceName`    | "dbus-inetbox" |yes| The name of the service folder name
+| `UsbMappingName` | "inetbox"      |no| Used in serial-starter.rule file and serial-starter.conf file.<br>If not supplied the ServiceName is normalized and used.
+| `UsbProps`       | "ID_VENDOR,ID_MODEL,ID_SERIAL" |no| Comma separated props used to uniquily identify the device <br>If not supplied the following properties are used "ID_VENDOR,ID_MODEL,ID_SERIAL"
 
-### com.victronenergy.temperature.cdt_dbus_inetbox_ttyUSB0
+### com.victronenergy.temperature.dbus_inetbox_sid_c7f2
 Values added by the service (when running)  
 
 | Setting | Value | Note |
@@ -38,28 +34,28 @@ Values added by the service (when running)
 | `CustomDevicePage`    | "OpkgCustomDevicePage_neshunt"  |  The name of the qml page to use
 | `CustomName`          | "My device 1"           |  User inputed text
 | `ServiceName`         | "`[ServiceName]`"       |  From /Settings/opkg-manager/CustomServices/`[DbusProductName]`/`[ServiceName]`
-| `SdiRuleID`            | "`ecbcdb5c55f831d7`"    |  A unique value used to find the device
+| `Sid`                 | "`c7f2`"    |  A unique value used to find the device
 
  
 ## Files
 
 ### serial-starter.rules
  
-ACTION=="add", ENV{ID_BUS}=="usb", ENV{ID_SERIAL}=="`[UsbProp(n)]`", ENV{SDI_RULE_ID}="`[SdiRuleID]`", ENV{VE_SERVICE}="`[UsbMappingName]`|`[ServiceName] (normalized)`"
+ACTION=="add", ENV{ID_BUS}=="usb", ENV{ID_SERIAL}=="`[UsbProp(n)]`", ENV{SERIAL_DEVICE_ID}="`[Sid]`", ENV{VE_SERVICE}="`[UsbMappingName]`|`[ServiceName] (normalized)`"
  
 #### example
 
-ACTION=="add", ENV{ID_BUS}=="usb", ENV{ID_SERIAL}=="**FTDI_Intetbox_BG02CS2X**", ENV{SDI_RULE_ID}="**ecbcdb5c55f831d7**", ENV{VE_SERVICE}="**inetbox**"
+ACTION=="add", ENV{ID_BUS}=="usb", ENV{ID_SERIAL}=="**FTDI_Intetbox_BG02CS2X**", ENV{SERIAL_DEVICE_ID}="**c7f2**", ENV{VE_SERVICE}="**inetbox**"
 
 #### notes
-When the device is found in the serial-starter.rules file it adds
-SDI_RULE_ID=ecbcdb5c55f831d7
+When the system finds the device using the rule in the serial-starter.rules file it adds
+SERIAL_DEVICE_ID=c7f2
 VE_SERVICE=inetbox
 To the udev properties
 
-using the following you can get the SDI_RULE_ID value from the tty port name
+using the following you can get the SERIAL_DEVICE_ID value from the tty port name
 ```
- udevadm info --query=property --name="ttyUSB0" | sed -n "s/^SDI_RULE_ID=//p"
+ udevadm info --query=property --name="ttyUSB0" | sed -n "s/^SERIAL_DEVICE_ID=//p"
 ```
 
 ### serial-starter.conf
@@ -83,3 +79,9 @@ This folder is used when a device is matched to a service. The service is copied
 ```
 /opt/victronenergy/service-templetes/dbus-dummy-service -> /service/dbus-dummy-service.ttyUSB0
 ```
+
+## dbus service values
+### TODO
+
+## dbus device settings
+### TODO

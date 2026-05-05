@@ -2,12 +2,9 @@
  
 DBUS_SETTINGS="
     OpkgManager/CustomOverviewPages/NeShuntOverview:s:0:0:
-		OpkgManager/CustomMenus/PageSettings/NeShuntPageSettingsSubMenu:s:0:0:
-    OpkgManager/CustomServices/NeShunt:s:0:0:'Ne Shunt|dbus_neshunt'
-
+	
 		OpkgManager/CustomServices/NeShunt/ProductName:s:0:0:'Ne Shunt'
 		OpkgManager/CustomServices/NeShunt/ServiceName:s:0:0:dbus-neshunt
-		OpkgManager/CustomServices/NeShunt/UsbMappingName:s:0:0:neshunt
 "
 
 #DBUS_SETTINGS_DEPRECIATED="

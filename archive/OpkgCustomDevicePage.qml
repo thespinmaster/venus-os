@@ -1,4 +1,4 @@
-import QtQuick 2
+sidimport QtQuick 2
 import com.victron.velib 1.0
 import "utils.js" as Utils
 
@@ -8,13 +8,13 @@ MbPage {
 
 	property variant service
 	property string bindPrefix
-  property string sdiRuleId
+  property string sid
 
-	property VBusItem vItemSdiRuleId: VBusItem {
-		bind: Utils.path(root.bindPrefix, "/SdiRuleID")
+	property VBusItem vItemSid: VBusItem {
+		bind: Utils.path(root.bindPrefix, "/Sid")
 		onValueChanged: {
-			if (vItemSdiRuleId.value && vItemSdiRuleId.value.length > 0)
-				root.sdiRuleId = vItemSdiRuleId.value
+			if (vItemSid.value && vItemSid.value.length > 0)
+				root.sid = vItemSid.value
 		}
 	}
  
@@ -45,8 +45,8 @@ MbPage {
 					bindPrefix: root.bindPrefix
 
 					MbItemValue {
-						description: qsTr("Serial device installer ID")
-						item.text: root.sdiRuleId
+						description: qsTr("Serial device ID")
+						item.text: root.sid
 					}
 				}
 			}

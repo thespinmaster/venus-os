@@ -134,6 +134,9 @@ def string_to_aircon_vent_mode(string):
 		raise ValueError(f"Invalid heating mode: {string}")
 
 def aircon_operating_mode_to_string(aircon_operating_mode):
+	
+	if aircon_operating_mode == -1:
+		return ""
 	if aircon_operating_mode == 0:
 		return "off"
 	elif aircon_operating_mode == 4:

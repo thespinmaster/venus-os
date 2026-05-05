@@ -1,0 +1,5 @@
+#!/bin/bash
+
+"${VE_ROOT_DIR:-}/data/opkg-manager/installer" "install"
+
+

@@ -30,6 +30,17 @@ for source_file in "$QML_ICONS_SOURCE_PATH"/*; do
 	ln -sf "$source_file" "$QML_ICONS_TARGET_PATH/$dest_file"
 done
 
+SERVICE_TARGET_PATH="/opt/victronenergy/dbus-inetbox"
+SERVICE_SOURCE_PATH="$this_path/../src${SERVICE_TARGET_PATH}"
+echo "$SERVICE_SOURCE_PATH -> $SERVICE_TARGET_PATH"
+rm -rf "$SERVICE_TARGET_PATH"
+ln -sf "$SERVICE_SOURCE_PATH" "$SERVICE_TARGET_PATH"
+
+SERVICE_TEMPLATES_TARGET_PATH="/opt/victronenergy/service-templates/dbus-inetbox"
+SERVICE_TEMPLATES_SOURCE_PATH="$this_path/../src${SERVICE_TEMPLATES_TARGET_PATH}"
+rm -rf "$SERVICE_TEMPLATES_TARGET_PATH"
+cp -srf "$SERVICE_TEMPLATES_SOURCE_PATH" "$SERVICE_TEMPLATES_TARGET_PATH"
+
 # $this_path/../src/data/dbus-inetbox/installer "dev-install"
 
 echo "done"

@@ -84,9 +84,9 @@ def main():
 
 def getArgs():
 	# "--serial /dev/ttyUSB0 --debug_lin --debug_inet"
-	parser = ArgumentParser(description='truma-inetbox', add_help=True)
+	parser = ArgumentParser(description='dbus-inetbox', add_help=True)
 	parser.add_argument('-s', '--serial', help='tty port (required)')
-	parser.add_argument("-i", "--sdiruleid", help="serial device rule id (required)")
+	parser.add_argument("-i", "--sid", help="serial device rule id (required)")
 	parser.add_argument('-di', '--debug_inet', help='enable debug logging of the inetbox app',
 											action='store_true')
 	parser.add_argument('-dl', '--debug_lin', help='enable debug logging of the lin bus',
@@ -97,8 +97,8 @@ def getArgs():
 	if not args.serial:
 		log.error('No serial port specified, see -h')
 		exit(1)
-	if not args.sdiruleid:
-		log.error('No sdiruleid specified, see -h')
+	if not args.sid:
+		log.error('No sid specified, see -h')
 		exit(1)
   
 	return args

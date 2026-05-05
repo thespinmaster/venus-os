@@ -26,7 +26,7 @@ import sys
 import time
 
 class Lin:
-		done=False
+
 		ts_response_buffer = []
 		cpp_in_buffer = [bytes([]),bytes([]),bytes([]),bytes([]),bytes([]),bytes([])]
 		updates_to_send = False
@@ -265,7 +265,6 @@ class Lin:
 				self._loop_serial()
 				if not(self.stop_async): # full performance to send buffer
 					await asyncio.sleep(0.001)
-					#await asyncio.sleep(0.5)
 
 		def _loop_serial(self):
 			self.status_monitor()
@@ -363,10 +362,7 @@ class Lin:
 					return
 				else:
 					return
-
-			if self.done == 2:
-				return
-
+ 
 			cmd = line.hex(" ")
 			cmd_ctrl = {
 				"00 55 3c 7f 06 b2 00 17 46 00 1f 4b": [self.prepare_tl_str_response, "03 06 f2 17 46 00 1f 00 87", "_B2 - response request"],
@@ -384,6 +380,6 @@ class Lin:
 	
 			#self.log.debug(cmd_ctrl[cmd][2])
    
-			print(f"[LIN-DEBUG] executing command: {cmd_ctrl[cmd][2]}")
+			##print(f"[LIN-DEBUG] executing command: {cmd_ctrl[cmd][2]}")
 			cmd_ctrl[cmd][0](cmd_ctrl[cmd][1], cmd_ctrl[cmd][2])
 			return

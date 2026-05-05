@@ -6,7 +6,7 @@ exec 2>&1
 # load the variables from the network-gps.conf
 # network-gps.conf is created in the
 # shellcheck disable=SC1091
-. /data/network-gps/network-gps.conf
+. /data/conf/network-gps.conf
 
 # shellcheck disable=SC2086
 

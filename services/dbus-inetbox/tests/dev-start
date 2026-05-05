@@ -13,7 +13,7 @@
 tty=${1}
 [[ -z $tty || ! -e "/dev/$tty" ]] && { echo "ERROR:invalid TTY:$tty"; exit 1; }
 
-sdi_rule_id=$(udevadm info --query=property --name="/dev/$tty" | sed -n "s/^SDI_RULE_ID=//p")
+sid=$(udevadm info --query=property --name="/dev/$tty" | sed -n "s/^SERIAL_DEVICE_ID=//p")
 
 declare _this_path=$(dirname "${BASH_SOURCE[0]}")
 app="${_this_path}/../src/opt/victronenergy/dbus-inetbox/__main__.py"
@@ -21,4 +21,4 @@ app="${_this_path}/../src/opt/victronenergy/dbus-inetbox/__main__.py"
 
 echo "path=${_this_path}"
 
-python $app -s "/dev/$tty" -i "$sdi_rule_id"
+python $app -s "/dev/$tty" -i "$sid"

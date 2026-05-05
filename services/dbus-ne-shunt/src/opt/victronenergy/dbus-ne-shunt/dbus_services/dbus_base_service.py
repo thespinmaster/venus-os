@@ -43,7 +43,7 @@ class dbus_base_service(object):
 		classAndVrmInstanceParts = classAndVrmInstance.split(':')
 		className = classAndVrmInstanceParts[0]
 		deviceInstance = int(classAndVrmInstanceParts[1]) #!IMPORTANT MUST BE AN INT
- 
+	 
 		serviceName = "com.victronenergy.{}.id_{}.{}".format(
 			className, deviceInstance, dbus_constants.SAFE_PRODUCT_NAME + "_" + serviceIdentifier)
 		

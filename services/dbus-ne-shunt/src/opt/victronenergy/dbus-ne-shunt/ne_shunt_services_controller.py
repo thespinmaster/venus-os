@@ -39,9 +39,9 @@ class ne_shunt_services_controller:
 	# serial port is passed from the SerialStarter 
 	# service. i.e. /dev/ttyACM0
 	############################################
-	def __init__(self, serialPort, sdiRuleId, readonly):
+	def __init__(self, serialPort, sid, readonly):
 		self._serialPort = serialPort
-		self._sdiRuleId = sdiRuleId
+		self._sid = sid
 		self._readonly = readonly
 		
   
@@ -84,26 +84,27 @@ class ne_shunt_services_controller:
   
 		# unique path used to generate unique ClassAndVrmInstance value 
 		# see https://github.com/victronenergy/localsettings#using-addsetting-to-allocate-a-vrm-device-instance
-		portName = os.path.basename(self._serialPort)
-		settingsPath = f'/Settings/Devices/{dbus_constants.SAFE_PRODUCT_NAME}_{self._sdiRuleId}'
+		#portName = os.path.basename(self._serialPort)
+		settingsPath = f'/Settings/Devices/{dbus_constants.SAFE_PRODUCT_NAME}_sid_{self._sid}'
     
 		self._settings = SettingsDevice(
 			bus = dbusconnection(),
 			supportedSettings = {
+				'sid': [f'{settingsPath}/Sid', self._sid, 0, 1],
 				'show_fresh_water_tank': [f'{settingsPath}/ShowFreshWaterTank', 1, 0, 1],
 				'show_grey_waste_tank': [f'{settingsPath}/ShowGreyWasteTank', 1, 0, 1],  # When empty, default path will be used.
 				'show_grey_waste_tank2': [f'{settingsPath}/ShowGreyWasteTank2', 1, 0, 1],
-				'fresh_water_tank_class_and_vrm_instance' : [f'{settingsPath}_fresh_water_tank/ClassAndVrmInstance', 
+				'fresh_water_tank_class_and_vrm_instance' : [f'{settingsPath}FreshWaterTank/ClassAndVrmInstance', 
 													f"{dbus_constants.SERVICE_TYPE_TANK}:{dbus_constants.DEFAULT_DEVICE_INSTANCE}", 0, 0],
-				'grey_waste_tank_class_and_vrm_instance' : [f'{settingsPath}_grey_waste_tank/ClassAndVrmInstance', 
+				'grey_waste_tank_class_and_vrm_instance' : [f'{settingsPath}/GreyWasteTank/ClassAndVrmInstance', 
 													f"{dbus_constants.SERVICE_TYPE_TANK}:{dbus_constants.DEFAULT_DEVICE_INSTANCE}", 0, 0],
-				'grey_waste_tank2_class_and_vrm_instance' : [f'{settingsPath}_grey_waste_tank_2/ClassAndVrmInstance', 
+				'grey_waste_tank2_class_and_vrm_instance' : [f'{settingsPath}/GreyWasteTank2/ClassAndVrmInstance', 
 													f"{dbus_constants.SERVICE_TYPE_TANK}:{dbus_constants.DEFAULT_DEVICE_INSTANCE}", 0, 0],
-				'cab_battery_class_and_vrm_instance' : [f'{settingsPath}_cab_battery/ClassAndVrmInstance', 
+				'cab_battery_class_and_vrm_instance' : [f'{settingsPath}/CabBattery/ClassAndVrmInstance', 
 													f"{dbus_constants.SERVICE_TYPE_BATTERY}:{dbus_constants.DEFAULT_DEVICE_INSTANCE}", 0, 0],
-				'leisure_battery_class_and_vrm_instance' : [f'{settingsPath}_leisure_battery/ClassAndVrmInstance', 
+				'leisure_battery_class_and_vrm_instance' : [f'{settingsPath}/LeisureBattery/ClassAndVrmInstance', 
 													f"{dbus_constants.SERVICE_TYPE_BATTERY}:{dbus_constants.DEFAULT_DEVICE_INSTANCE}", 0, 0],
-				'switches_class_and_vrm_instance' : [f'{settingsPath}_switches/ClassAndVrmInstance', 
+				'switches_class_and_vrm_instance' : [f'{settingsPath}/Switches/ClassAndVrmInstance', 
 													f"{dbus_constants.SERVICE_TYPE_TEMPERATURE}:{dbus_constants.DEFAULT_DEVICE_INSTANCE}", 0, 0]
 				},
 			eventCallback = self._handle_changed_setting)
@@ -117,7 +118,8 @@ class ne_shunt_services_controller:
  
 		if (self._serialService == None or self._curData == None):
 			return False
-		
+
+
 		if (path == '/SwitchableOutput/ExternalLights/State'):    
 			self._try_toggle_serial_switch_value("external_lights", newvalue)
 		elif (path == "/SwitchableOutput/InternalLights/State"):
@@ -165,12 +167,10 @@ class ne_shunt_services_controller:
 			if not (newvalue == 1 or newvalue == 0):
 				logging.debug('_try_toggle_serial_switch_value: invalid value. value must be 0 or 1 for ' + name)
 				return False
-
-			logging.debug('getting current value for ' + name)
+ 
 			curValue = self._curData.get_value(name)
-			logging.debug(f"{name}: curValue = {str(curValue)}")
+ 
 			if (curValue != newvalue):
-				logging.debug(f"value changed, toggle {name} switch")
 				return self._serialService.toggle_switch(name)
 		
 		except Exception as ex:
@@ -237,7 +237,7 @@ class ne_shunt_services_controller:
 		if len(switches) != 0:
 			logging.debug("_start_stop_switch_service: starting")
    
-			serviceIdentifier = "cdt_" + self._sdiRuleId
+			serviceIdentifier = "sid_" + self._sid
 			classAndVrmInstance = self._settings['switches_class_and_vrm_instance']
  
 			self._services["switches"] = switch_service(
@@ -258,7 +258,7 @@ class ne_shunt_services_controller:
 
 		logging.debug("_start_battery_services in")
 
-		serviceIdentifier = "cdt_" + self._sdiRuleId
+		serviceIdentifier = "sid_" + self._sid
   
 		service = self._services.get("cab_battery", None)
 		if (service == None):
@@ -280,13 +280,14 @@ class ne_shunt_services_controller:
 														classAndVrmInstance,
 														capacity = None,
 														onValueChanged = self._dbus_leisure_battery_value_changed)
+
 	############################################
 	# starts and stops all services 
 	# note: only starts the vehicle battery service
 	############################################
 	def _start_stop_services(self, dbusSettingName = "", newValue = None):
 		
-		serviceIdentifier = "cdt_" + self._sdiRuleId
+		serviceIdentifier = "sid_" + self._sid
   
 		if (dbusSettingName == "" or dbusSettingName.endswith("FreshWaterTank")):
 			classAndVrmInstance = self._settings['fresh_water_tank_class_and_vrm_instance']

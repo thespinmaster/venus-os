@@ -56,16 +56,16 @@ class InetboxService:
   
 	log = logging.getLogger(__name__)
 	_serialPort : str
-	_sdiRuleID: str
+	_sid: str
 	_app : InetboxApp
 	_lin : Lin
 	_settings : SettingsDevice
 	_dbusInetboxService : dbusInetboxService
 	
-	def __init__(self, tasks: TaskManager, serialPort: str, sdiRuleId:str, debug_lin, debug_inet, record_file=None):
+	def __init__(self, tasks: TaskManager, serialPort: str, sid:str, debug_lin, debug_inet, record_file=None):
 		self.log.setLevel(logging.DEBUG)
 		self._serialPort = serialPort
-		self._sdiRuleID = sdiRuleId
+		self._sid = sid
   
 		self._initializeSettings()
 		
@@ -76,7 +76,7 @@ class InetboxService:
 		
 		classAndVrmInstance = self._settings['class_and_vrm_instance']
 		
-		serviceIdentifier = "cdt_" + self._sdiRuleID
+		serviceIdentifier = "sid_" + self._sid
 
 		self._dbusInetboxService = dbusInetboxService("Inetbox", serialPort, serviceIdentifier, classAndVrmInstance, self._onInetboxValueChanged)
 	
@@ -95,13 +95,13 @@ class InetboxService:
 	def _onInetboxValueChanged(self, path : str, value : str):
 		if not path.startswith(self.DBUS_PATH):
 			return 1
-		name=path.removeprefix(self.DBUS_PATH)
+		name = path.removeprefix(self.DBUS_PATH)
   
 		if (name == "EnergyMixCombined"):
 			self._fromEnergyMixCombined(value)
 			return 0
  
-		linName=self.map_or_debug(self.DBUS_TO_LIN_MAPPING, name)
+		linName = self.map_or_debug(self.DBUS_TO_LIN_MAPPING, name)
 		if linName == "": 
 			return 1
  
@@ -120,30 +120,62 @@ class InetboxService:
  
 	
 		return True
+
+	def _fromEnergyMixCombined(self, value):
+		energyMixCombined = value
+		mix = ""
+		elpower = ""
+		
+		if (energyMixCombined == "Gas"):
+			mix = "gas"
+		elif (energyMixCombined == "EL1"):
+			elpower = "900"
+			mix = "electricity"
+		elif (energyMixCombined == "EL2"):
+			elpower = "1800"
+			mix = "electricity"
+		elif (energyMixCombined == "Mix1"):
+			elpower = "900"
+			mix = "mix"
+		elif (energyMixCombined == "Mix2"):
+			elpower = "1800"
+			mix = "mix"
+		else:
+			return
  
-	def _fromEnergyMixCombined(self,value):
- 
-		mix, elpower = value.split('|')
-		if mix:
-			self._app.set_status("energy_mix", mix)
-			self._dbusInetboxService.set_value(self.DBUS_PATH + "EnergyMix", mix)
-		if elpower:
-			self._app.set_status("el_power_level", elpower)
-			self._dbusInetboxService.set_value(self.DBUS_PATH + "ElectricityPowerLevel", elpower)
-   
+		self._app.set_status("energy_mix", mix)
+		self._dbusInetboxService.set_value(self.DBUS_PATH + "EnergyMix", mix)
+
+		self._app.set_status("el_power_level", elpower)
+		self._dbusInetboxService.set_value(self.DBUS_PATH + "ElectricityPowerLevel", elpower)
+	
 	def _toEnergyMixCombined(self,name,value):
-		energyLevel=""
+		energyMix = ""
+		elpower = ""
+		energyMixCombined=""
 		if (name == "EnergyMix"):
-			el=self._dbusInetboxService.get_value(self.DBUS_PATH + "ElectricityPowerLevel")
-			if el:
-				energyLevel =f"{value}|{el}"
+			if (value != "gas"):
+				elpower = self._dbusInetboxService.get_value(self.DBUS_PATH + "ElectricityPowerLevel")
+ 
 		elif (name == "ElectricityPowerLevel"):
-			mix=self._dbusInetboxService.get_value(self.DBUS_PATH + "EnergyMix")
-			if mix:
-				energyLevel = f"{mix}|{value}"
+			energyMix = self._dbusInetboxService.get_value(self.DBUS_PATH + "EnergyMix")
+			elpower = value
     
-		if energyLevel:
-			self._dbusInetboxService.set_value(self.DBUS_PATH + "EnergyMixCombined", energyLevel)
+		if (energyMix == "gas"):
+			energyMixCombined = "Gas"
+		elif (energyMix == "mix"):
+			if elpower == "900":
+				energyMixCombined = "Mix1"
+			elif elpower == "1800":
+				energyMixCombined = "Mix2"
+		elif (energyMix == "electricity"):
+			if elpower == "900":
+				energyMixCombined = "EL1"
+			elif elpower == "1800":
+				energyMixCombined = "EL2"
+    
+		if (energyMixCombined):
+			self._dbusInetboxService.set_value(self.DBUS_PATH + "EnergyMixCombined", energyMixCombined)
       
 	############################################
 	# Initializes the dbus device settings
@@ -157,7 +189,7 @@ class InetboxService:
 		# unique path used to generate unique ClassAndVrmInstance value 
 		# see https://github.com/victronenergy/localsettings#using-addsetting-to-allocate-a-vrm-device-instance
  
-		settingsPath = f'/Settings/Devices/{dbus_constants.SAFE_PRODUCT_NAME}_{self._sdiRuleID}'
+		settingsPath = f'/Settings/Devices/{dbus_constants.SAFE_PRODUCT_NAME}_{self._sid}'
 		
 		self._settings = SettingsDevice(
 			bus = dbusconnection(),

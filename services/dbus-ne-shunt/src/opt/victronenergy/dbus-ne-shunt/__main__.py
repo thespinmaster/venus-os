@@ -26,14 +26,14 @@ def main():
 		serial="/dev/" + serial
  
 	log.info("Serial port:" + serial)
-	log.info("Serial device rule id:" + args.sdiruleid)
+	log.info("Serial device id:" + args.sid)
   
 	from dbus.mainloop.glib import DBusGMainLoop
 
 	# Have a mainloop, so we can send/receive asynchronous calls to and from dbus
 	DBusGMainLoop(set_as_default=True)
  
-	nuss = ne_shunt_services_controller(serial, args.sdiruleid, args.readonly)
+	nuss = ne_shunt_services_controller(serial, args.sid, args.readonly)
 	nuss.initialize()
 
 	time.sleep(2)
@@ -57,7 +57,7 @@ def getArgs():
 	parser.add_argument("-d", "--debug", help="enable debug logging", action="store_true")
 	parser.add_argument("-r", "--readonly", help="only read data from the serial port", action="store_true")
 	parser.add_argument("-v", "--verbose", help="output extra logging", action="store_true")
-	parser.add_argument("-i", "--sdiruleid", help="serial device rule id (required)")
+	parser.add_argument("-i", "--sid", help="serial device id (required)")
 	parser.add_argument("-s", "--serial", help="tty (required)")
  
 	args = parser.parse_args()
@@ -65,8 +65,8 @@ def getArgs():
 		log.error("No serial port specified, see -h")
 		exit(1)
   
-	if not args.sdiruleid:
-		log.error("No serial device rule id, see -h")
+	if not args.sid:
+		log.error("No serial device id, see -h")
 		exit(1)
   
 	return args

@@ -2,25 +2,49 @@ import QtQuick 2
 import com.victron.velib 1.0
 import "utils.js" as Utils
 import "opkg-custom-service.js" as CustomService
+import "color-utils.js" as ColorUtils
 
 OverviewPage {
   id: root
  
   property string settingsPrefix: "com.victronenergy.settings/Settings/Devices/dbus_neshunt/"
   property MbStyle mbStyle: MbStyle {isCurrentItem: true}
-  property string vebusPrefix
- 
-  VBusItem { id: customNameItem; bind: vebusPrefix ? Utils.path(vebusPrefix, "/CustomName") : undefined}
-  VBusItem { id: internalLightItem; bind: vebusPrefix ? Utils.path(vebusPrefix, "/SwitchableOutput/InternalLights/State") : undefined }
-  VBusItem { id: externalLightItem; bind: vebusPrefix ? Utils.path(vebusPrefix, "/SwitchableOutput/ExternalLights/State") : undefined }
-  VBusItem { id: waterPumpItem; bind: vebusPrefix ? Utils.path(vebusPrefix, "/SwitchableOutput/WaterPump/State") : undefined }
-  VBusItem { id: auxPowerItem; bind: vebusPrefix ? Utils.path(vebusPrefix, "/SwitchableOutput/Aux/State") : undefined }
   
-  VBusItem { id: internalLightCustomNameItem; bind: vebusPrefix ? Utils.path(vebusPrefix, "/SwitchableOutput/InternalLights/Settings/CustomName") : undefined }
-  VBusItem { id: externalLightCustomNameItem; bind: vebusPrefix ? Utils.path(vebusPrefix, "/SwitchableOutput/ExternalLights/Settings/CustomName") : undefined }
-  VBusItem { id: waterPumpCustomNameItem; bind: vebusPrefix ? Utils.path(vebusPrefix, "/SwitchableOutput/WaterPump/Settings/CustomName") : undefined }
-  VBusItem { id: auxPowerCustomNameItem; bind: vebusPrefix ? Utils.path(vebusPrefix, "/SwitchableOutput/Aux/Settings/CustomName") : undefined }
-    // Header
+  property string iconSuffix
+  property string iconSuffixSelected
+  
+  property string bindPrefix
+ 
+  VBusItem { id: customNameItem; bind: bindPrefix ? Utils.path(bindPrefix, "/CustomName") : undefined}
+  VBusItem { id: internalLightItem; bind: bindPrefix ? Utils.path(bindPrefix, "/SwitchableOutput/InternalLights/State") : undefined }
+  VBusItem { id: externalLightItem; bind: bindPrefix ? Utils.path(bindPrefix, "/SwitchableOutput/ExternalLights/State") : undefined }
+  VBusItem { id: waterPumpItem; bind: bindPrefix ? Utils.path(bindPrefix, "/SwitchableOutput/WaterPump/State") : undefined }
+  VBusItem { id: auxPowerItem; bind: bindPrefix ? Utils.path(bindPrefix, "/SwitchableOutput/Aux/State") : undefined }
+  
+  VBusItem { id: internalLightCustomNameItem; bind: bindPrefix ? Utils.path(bindPrefix, "/SwitchableOutput/InternalLights/Settings/CustomName") : undefined }
+  VBusItem { id: externalLightCustomNameItem; bind: bindPrefix ? Utils.path(bindPrefix, "/SwitchableOutput/ExternalLights/Settings/CustomName") : undefined }
+  VBusItem { id: waterPumpCustomNameItem; bind: bindPrefix ? Utils.path(bindPrefix, "/SwitchableOutput/WaterPump/Settings/CustomName") : undefined }
+  VBusItem { id: auxPowerCustomNameItem; bind: bindPrefix ? Utils.path(bindPrefix, "/SwitchableOutput/Aux/Settings/CustomName") : undefined }
+ 
+	Connections {
+		target: mbStyle
+
+    property color colorHelper
+
+		function onTextColorChanged() {root.iconSuffix = getIconSuffix(mbStyle.textColor)}
+    function onTextColorSelectedChanged() {root.iconSuffixSelected = getIconSuffix(mbStyle.textColorSelected)}
+    function getIconSuffix(clr) {
+      colorHelper = clr
+      return ColorUtils.isDarkColor(colorHelper) ? "-dark" : "-light" 
+    }
+    
+    Component.onCompleted: {
+      onTextColorChanged()
+      onTextColorSelectedChanged()
+    }
+  }
+ 
+  // Header
   Text {
       id: header
       text: customNameItem.value || qsTr("Ne-Shunt")
@@ -47,26 +71,26 @@ OverviewPage {
       text: internalLightCustomNameItem.value && internalLightCustomNameItem.length > 0 || qsTr("Indoor Lights") 
       checked: internalLightItem.valid && internalLightItem.value != 0
       onCheckedChanged: { internalLightItem.setValue(checked ? 1 : 0)}
-      iconId: "ne-shunt-inside-light"
+      iconId: Utils.path("ne-shunt-inside-light", checked ? root.iconSuffixSelected : root.iconSuffix) 
     }
     LargeRoundButton {
       text: externalLightCustomNameItem.value && externalLightCustomNameItem.length > 0 || qsTr("Outdoor Light")
       checked: externalLightItem.valid && externalLightItem.value != 0
       onCheckedChanged: { externalLightItem.setValue(checked ? 1 : 0)}
-      iconId: "ne-shunt-outside-light"
+      iconId:  Utils.path("ne-shunt-outside-light", checked ? root.iconSuffixSelected : root.iconSuffix)
     }
     LargeRoundButton {
       text: waterPumpCustomNameItem.value && waterPumpCustomNameItem.length > 0 || qsTr("Water Pump")
       checked: waterPumpItem.valid && waterPumpItem.value != 0
 
       onCheckedChanged: { waterPumpItem.setValue(checked ? 1 : 0)}
-      iconId: "ne-shunt-water-pump"
+      iconId: Utils.path("ne-shunt-water-pump", checked ? root.iconSuffixSelected : root.iconSuffix)
     }
     LargeRoundButton {
       text: auxPowerCustomNameItem.value && auxPowerCustomNameItem.length > 0 || qsTr("Aux Power")
       checked: auxPowerItem.valid && auxPowerItem.value != 0
       onCheckedChanged: { auxPowerItem.setValue(checked ? 1 : 0)}
-      iconId: "ne-shunt-aux-power"
+      iconId: Utils.path("ne-shunt-aux-power", checked ? root.iconSuffixSelected : root.iconSuffix)
       longPressDuration: 3000
     }
   }
@@ -80,10 +104,10 @@ OverviewPage {
 
 	function tryAddService(service) {
 
-    if (!vebusPrefix) {
+    if (!bindPrefix) {
       if (service.type === DBusService.DBUS_SERVICE_TEMPERATURE_SENSOR && 
-          service.name.includes(".dbus_ne_shunt_cdt_")) {
-        vebusPrefix = service.name
+          service.name.includes(".dbus_ne_shunt_sid_")) {
+        bindPrefix = service.name
       }
     }
 	}

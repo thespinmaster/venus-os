@@ -9,12 +9,12 @@
 # Arguments
 # -d -debug  : debug logging
 # -s -serial : serial port such as ttyACM0
-# -i -sdiruleid : SDI_RULE_ID value added from the serial-starter.rules file
+# -i -sid : SERIAL_DEVICE_ID value added from the serial-starter.rules file
 
 . /opt/victronenergy/serial-starter/run-service.sh
 
-sdi_rule_id=$(udevadm info --query=property --name="/dev/$tty" | sed -n "s/^SDI_RULE_ID=//p")
+sid=$(udevadm info --query=property --name="/dev/$tty" | sed -n "s/^SERIAL_DEVICE_ID=//p")
 
-app=/opt/victronenergy/dbus-inetbox/__main__.py
+app=$(dirname $0)/__main__.py
  
-start -s "/dev/$tty" -i "$sdi_rule_id"
+start -s "/dev/$tty" -i "$sid"

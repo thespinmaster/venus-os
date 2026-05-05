@@ -1,23 +1,26 @@
 #!/usr/bin/env bash
 
 RESTART_GUI_SERVICE=1
+DBUS_AVAILABLE_THEMES="Dark" # space separated list of themes
 DBUS_SETTINGS="
-	  Themer/Theme:s:0:0:'Dark'
-		Themer/Dark/TextColor:s:0:0:'#ffffff'
-		Themer/Dark/WindowBackgroundColor:s:0:0:'#202020'
-		Themer/Dark/BackgroundColor:s:0:0:'transparent'
-		Themer/Dark/BackgroundColorSelected:s:0:0:'#4790d0'
-		Themer/Dark/BackgroundColor2:s:0:0:'#313131'
-		Themer/Dark/IconSuffixNormal:s:0:0:'-active'
-		Themer/Dark/IconSuffixSelected:s:0:0:'-active'
-		Themer/Dark/BorderColor:s:0:0:'#3c3c3c'
-		Themer/Dark/ServiceBackgroundColor:s:0:0:'#b07c04'
-		Themer/Dark/BackgroundColorSelected:s:0:0:'#2969a1'
-		Themer/Dark/BackgroundTankColor:s:0:0:'#cccccc'
+		Themer/AvailableThemes:s:0:0:Dark
+	  Themer/CurrentTheme:s:0:0:
+		Themer/Themes/Dark/TextColor:s:0:0:#ffffff
+		Themer/Themes/Dark/WindowBackgroundColor:s:0:0:#202020
+		Themer/Themes/Dark/BackgroundColor:s:0:0:#202020
+		Themer/Themes/Dark/BackgroundColorSelected:s:0:0:#4790d0
+		Themer/Themes/Dark/BackgroundColor2:s:0:0:#313131
+		Themer/Themes/Dark/IconSuffixNormal:s:0:0:-active
+		Themer/Themes/Dark/IconSuffixSelected:s:0:0:-active
+		Themer/Themes/Dark/BorderColor:s:0:0:#3c3c3c
+		Themer/Themes/Dark/ServiceBackgroundColor:s:0:0:#b07c04
+		Themer/Themes/Dark/BackgroundColorSelected:s:0:0:#2969a1
+		Themer/Themes/Dark/BackgroundTankColor:s:0:0:#cccccc
 
 		OpkgManager/CustomMenus/PageSettingsDisplay/ThemerPageSettingsSubMenu:s:0:0:
 "
 #DBUS_SETTINGS_DEPRECIATED=""
+
 
 if [[ "$1" == "dev-install" ]]; then
   VE_ROOT_DIR=/data/dev/utils/opkg-manager/src
@@ -25,16 +28,32 @@ fi
 
 source ${VE_ROOT_DIR:-}/data/opkg-manager/install-helper
 
-if [[ "$1" == "install" || "$1" == "post-install" || "$1" == "dev-install" ]]; then
+themer_installer_install() {
+	install_helper_add_remove_dbus_csv_items "add" "Themer/AvailableThemes" "$DBUS_AVAILABLE_THEMES"
+}
+themer_installer_remove() {
+	install_helper_add_remove_dbus_csv_items "remove" "Themer/AvailableThemes" "$DBUS_AVAILABLE_THEMES" 
+}
+
+source /data/dev/utils/opkg-manager/src/data/opkg-manager/dbus-common
+source /data/dev/utils/opkg-manager/src/data/opkg-manager/install-helper
+themer_installer_install
+dbus_common_add_dbus_settings "$DBUS_SETTINGS"
+
+if [[ "${1:-}" == "install" || "${1:-}" == "post-install" || "${1:-}" == "dev-install" ]]; then
 	install_helper_post_install
- 
-elif [[ "$1" == "remove" || "$1" == "post-remove" ]]; then
+  themer_installer_install
+
+elif [[ "${1:-}" == "remove" || "${1:-}" == "post-remove" ]]; then
 	install_helper_pre_remove
- 
+  themer_installer_remove
 else
-	echo args are 'install/post-install' or 'remove/pre-remove'
+	echo installer: invalid args: 'install/post-install' or 'remove/pre-remove'
   exit 1
 fi
+
+
+
 
 # install_helper_finished
  

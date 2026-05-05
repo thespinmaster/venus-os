@@ -39,7 +39,7 @@ async def async_main(args):
 	InetboxController(
 		tasks,
 		args.serial,
-		args.sdiruleid,
+		args.sid,
 		args.debug_lin,
 		args.debug_inet,
 		args.record,
@@ -99,7 +99,7 @@ def main():
 
 	args.debug_lin = False
 	log.info('Using serial port: ' + args.serial)
-	log.info('SDI Rule ID: ' + args.sdiruleid)
+	log.info('Serial device ID: ' + args.sid)
 	log.info('debug_lin: ' + str(args.debug_lin))
 	log.info('debug_inet: ' + str(args.debug_inet))
 	if args.record:
@@ -121,7 +121,7 @@ def getArgs():
 	# "--serial /dev/ttyUSB0 --debug_lin --debug_inet"
 	parser = ArgumentParser(description='truma-inetbox', add_help=True)
 	parser.add_argument('-s', '--serial', help='tty port (required)')
-	parser.add_argument("-i", "--sdiruleid", help="serial device rule id (required)")
+	parser.add_argument("-i", "--sid", help="serial device id (required)")
 	parser.add_argument('-di', '--debug_inet', help='enable debug logging of the inetbox app',
 											action='store_true')
 	parser.add_argument('-dl', '--debug_lin', help='enable debug logging of the lin bus',
@@ -132,8 +132,8 @@ def getArgs():
 	if not args.serial:
 		log.error('No serial port specified, see -h')
 		exit(1)
-	if not args.sdiruleid:
-		log.error('No sdiRuleId specified, see -h')
+	if not args.sid:
+		log.error('No sid specified, see -h')
 		exit(1)
   
 	return args

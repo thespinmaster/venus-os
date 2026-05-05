@@ -37,11 +37,11 @@ def operating_status_to_string(operating_status):
 	elif operating_status == 4:
 		return "start/cool down"
 	elif operating_status == 5:
-		return "On(5)"
+		return "On (5)"
 	elif operating_status == 6:
-		return "On(6)"
+		return "On (heating)" # "On(6)"
 	elif operating_status == 7:
-		return "On(7)"
+		return "On (temp reached)" # "On(7)"
 	else:
 		return f"On({operating_status})"
 

@@ -3,6 +3,7 @@ set -euo pipefail
 
 readonly this_path="$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")"
 readonly usb_lib="$this_path/libs/usb-lib"
+readonly dbus_common="/data/dev/utils/opkg-manager/src/data/opkg-manager/dbus-common"
 readonly serial_starter_rules="/etc/udev/rules.d/serial-starter.rules"
 readonly serial_starter_conf="/etc/venus/serial-starter.conf"
 readonly service_templates_dir="/opt/victronenergy/service-templates"
@@ -170,18 +171,26 @@ check_service() {
 print_help() {
   cat <<'EOF'
 Dev helper commands:
-  dev restart 
-      Restart the Venus GUI service.
+  dev start 
+      Start the supplied service.
+  dev restart
+      Restart the supplied service.
   dev monitor gui
       Follow the GUI log.
   dev monitor service <serviceName>
       Follow the GUI log.
   dev usb reconnect <ttyUSB0>
       Reconnect a USB tty device using `scripts/libs/usb-lib`.
+  dev usb remove|disconnect [ttyUSB0]
+      Disconnects a usb device
+  dev usb add|connect [1-1.4]
+      Connects a previously disconnected USB device`scripts/libs/usb-lib`.
   dev usb list [ttyUSB0]
       Show `udevadm` properties for one tty, or all USB tty devices.
   dev check service <name>
       Check the udev -> serial-starter -> service-template chain for a service.
+  dev show diskspace
+      Shows the available storage space.
   dev reset service <ttyUSB0> <service-name>
       Stop the tty-backed service, remove its `/service` entry, and clear serial-starter tty/lock files.
   dev shell shorten
@@ -191,25 +200,56 @@ Dev helper commands:
 EOF
 }
 
+dbus_run() {
+  case "${1:-}" in
+    delete-tree)
+      [[ -n "${2:-}" ]] || { echo "ERROR: invalid path'" >&2; return 1; }
+      "${dbus_common}" dbus-delete-tree "${2}" 
+      ;;
+    
+    *)
+      echo "ERROR: Unknown dbus command: ${1:-<missing>}" >&2
+      print_help >&2
+      return 1
+      ;;
+  esac
+}
+
 run_monitor() {
-  if [[ ! -f /var/log/${1}/current ]]; then
+
+  [[ -z "${1:-}" ]] && { echo "ERROR: Unknown monitor target" >&2; return 1; }
+
+  local serviceName=${1#/service/}
+  
+  if [[ ! -f /var/log/${serviceName}/current ]]; then
  
     echo "ERROR: Unknown monitor target: ${1:-}" >&2
     return 1
   fi
-  tail -F /var/log/${1}/current
+  tail -F /var/log/${serviceName}/current
 }
 
-run_restart() {
+run_service() {
+  local serviceArg=${1:-}
+  shift
   if [[ -n "${1:-}" ]]; then
-    svc -t "/service/${1:-}"
+    local serviceName=${1#/service/}
+    svc ${serviceArg} "/service/${serviceName}"
+    [[ -n "${2:-}" ]] && {
+      shift
+      main "$@" "/service/${serviceName}"
+    }
     return
   fi
-  echo "ERROR: Unknown restart target: ${1:-<missing>}" >&2
+  echo "ERROR: Unknown service: ${1:-<missing>}" >&2
   print_help >&2
   return 1
- 
+  [[ -z "${2}" ]]
+
 }
+run_restart() { run_service -t "$@"; }
+run_start() { run_service -u "$@"; }
+run_stop() { run_service -d "$@"; }
 
 run_shell() {
   case "${1:-}" in
@@ -260,6 +300,9 @@ run_check() {
     service)
       [[ -n "${2:-}" ]] || { print_error "service name is required for 'dev check service'"; return 1; }
       check_service "$2"
+      ;;
+    diskspace)
+      df -h --total
       ;;
     *)
       print_error "Unknown check command: ${1:-<missing>}"
@@ -329,40 +372,48 @@ run_reset() {
 }
 
 main() {
-  case "${1:-help}" in
-    hh)
-      echo $this_path 
-      echo $usb_lib
+  
+  local command="${1:-help}"
+  shift
+
+  case "${command}" in
+    paths)
+      echo "$this_path" 
+      echo "$usb_lib"
+      echo "$dbus_common"
       ;;
     help|--help|"")
       print_help
       ;;
     shell)
-      shift
       run_shell "$@"
       ;;
     monitor)
-      shift
-      run_monitor "$@"
+      run_monitor "${1:-$(</dev/stdin)}"
+      ;;
+    start)
+      run_start "$@"
+      ;;
+    stop)
+      run_stop "$@"
       ;;
     restart)
-      shift
       run_restart "$@"
       ;;
+    dbus)
+      dbus_run "$@"
+      ;;
     usb)
-      shift
       run_usb "$@"
       ;;
     check)
-      shift
       run_check "$@"
       ;;
     reset)
-      shift
       run_reset "$@"
       ;;
     *)
-      echo "ERROR: Unknown command: ${1}" >&2
+      echo "ERROR: Unknown command: ${command}" >&2
       print_help >&2
       return 1
       ;;

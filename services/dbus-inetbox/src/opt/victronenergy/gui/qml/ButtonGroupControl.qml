@@ -8,13 +8,23 @@ Item {
     property var model: []
     property var valueMapping: []  // Array of values corresponding to each model index
     property int currentIndex: -1
+    property int defaultIndex: -1
     property string currentText: group.checkedButton ? group.checkedButton.text : ""
     property color textColor: "#FFFFFF"
     property color selectedColor: "#6491CC"
     property color selectedTextColor: "#FFFFFF"
+    property alias item: vItem
+    property alias bind: vItem.bind
+    property alias value: vItem.value
+    property MbStyle mbStyle: MbStyle { isCurrentItem: root.ListView.isCurrentItem }
 
-    signal activated(int index, string text)
-
+    VBusItem { 
+        id: vItem
+        onValueChanged: setIndexFromValue(value)
+    }
+    
+    Component.onCompleted: setIndexFromValue(value)
+ 
     implicitHeight: row.implicitHeight
     implicitWidth: row.implicitWidth
 
@@ -33,12 +43,12 @@ Item {
 
     function setIndexFromValue(value) {
         if (!value) {
-            root.currentIndex = 0
+            root.currentIndex = root.defaultIndex
             return
         }
         var strValue = String(value)
         var index = root.valueMapping.indexOf(strValue)
-        if (index >= 0) {
+        if (index != -1) {
             root.currentIndex = index
             if (index < row.children.length) {
                 row.children[index].checked = true
@@ -86,7 +96,8 @@ Item {
                 onCheckedChanged: {
                     if (checked) {
                         root.currentIndex = index
-                        root.activated(index, text)
+                        var newValue = getValueAtIndex(index)
+                        root.item.setValue(newValue)
                     }
                     bgCanvas.requestPaint()
                 }

@@ -5,56 +5,16 @@
 			"path": "."
 		},
 		{
-			"name": "data",
-			"path": ".."
-		},
-		{
-			"name": "opkg-manager",
-			"path": "utils/opkg-manager"
-		},
-		{
-			"name": "dbus-inetbox",
-			"path": "services/dbus-inetbox"
-		},
-		{
-			"name": "dbus-ne-shunt",
-			"path": "services/dbus-ne-shunt"
-		},
-		{
-			"name": "themer",
-			"path": "utils/themer"
-		},
-		{
-			"name": "qml  (/opt/victronenergy/gui/qml)",
-			"path": "../../opt/victronenergy/gui/qml"
-		},
-		{
-			"name": "opt/victronenergy  (/opt)",
-			"path": "../../opt/victronenergy"
-		},
-		{
-			"name": "opkg-manager (/data)",
-			"path": "../opkg-manager"
-		},
-		{
-			"name": "/tmp ",
-			"path": "../../tmp"
-		},
-		{
-			"name": "icons  (/opt/victronenergy/themes/ccgx/icons)",
-			"path": "../../opt/victronenergy/themes/ccgx/icons"
-		},
-		{
-			"name": "opkg  (/etc/opkg)",
-			"path": "../../etc/opkg"
-		},
-		{
-			"name": "venus",
-			"path": "../../etc/venus"
-		},
-		{
-			"name": "rules.d",
-			"path": "../../etc/udev/rules.d"
+			"name": "qml",
+			"path": "/opt/victronenergy/gui/qml"
 		}
-	]
+	],
+	"settings": {
+		"python.analysis.include": [
+			"./utils",
+			"./scripts",
+			"./services",
+			"./python"
+		]
+	}
 }

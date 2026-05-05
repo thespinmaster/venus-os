@@ -61,28 +61,28 @@ stage_service_paths() {
 }
 
 stage_get_expected_serial_starter_header_and_rule() {
-  local -n _header="${1}"; _header='# sdi dummy_service'
-  local -n _rule="${2}"; _rule='ACTION=="add", ENV{ID_BUS}=="usb", ENV{ID_MODEL}=="FT232R_USB_UART", ENV{ID_SERIAL}=="FTDI_FT232R_USB_UART_B0001AJ7", ENV{ID_VENDOR}=="FTDI", ENV{VE_SERVICE}="ve_dummy_service"'
+  local -n _header="${1}"; _header='# sid:ef2d:dummy_service'
+  local -n _rule="${2}"; _rule='ACTION=="add", ENV{ID_BUS}=="usb", ENV{ID_MODEL}=="FT232R_USB_UART", ENV{ID_SERIAL}=="FTDI_FT232R_USB_UART_B0001AJ7", ENV{ID_VENDOR}=="FTDI", ENV{VE_SERVICE}="ve_dummy_service", ENV{SERIAL_DEVICE_ID}="ef2d"'
 }
 stage_get_expected_ve_service_mapping() {
   local -n _mapping="${1}"; _mapping='service ve_dummy_service dummy_service'
 }
 stage_get_filled_UDEVADM_PROPS() {
   local -n _udevadm_props="${1}"
-  _udevadm_props='ID_MODEL=FT232R_USB_UART|ID_SERIAL=FTDI_FT232R_USB_UART_B0001AJ7|ID_BUS=usb|ID_VENDOR=FTDI'
+  _udevadm_props='ID_MODEL=FT232R_USB_UART,ID_SERIAL=FTDI_FT232R_USB_UART_B0001AJ7,ID_BUS=usb|ID_VENDOR=FTDI'
 }
 stage_get_filled_UDEVADM_PROPS_no_match() {
   local -n _udevadm_props="${1}"
-  _udevadm_props='ID_MODEL=THIS_WONT_MATCH|ID_SERIAL=FTDI_FT232R_USB_UART_B0001AJ7|ID_BUS=usb|ID_VENDOR=FTDI'
+  _udevadm_props='ID_MODEL=THIS_WONT_MATCH,ID_SERIAL=FTDI_FT232R_USB_UART_B0001AJ7,ID_BUS=usb,ID_VENDOR=FTDI'
 }
 # shellcheck disable=SC2120
 stage_reset_vars() {
   local -a vars=()
   # shellcheck disable=SC2199
   if [[ -n "$@" ]]; then
-    vars=(SERVICE_NAME SERVICE_MAPPING_NAME TTY SERVICE_PATH SERIAL_STARTER_START_SERVICE_PATH
+    vars=(SID SERVICE_NAME SERVICE_MAPPING_NAME TTY SERVICE_PATH SERIAL_STARTER_START_SERVICE_PATH
           SERIAL_STARTER_RULES_FILE SERIAL_STARTER_CONFIG_FILE SERIAL_STARTER_RULES_TEXT_MATCH
-          UDEVADM_PROPS USE_UDEVADM_MONITOR USB_TIMEOUT)
+          UDEVADM_PROPS USE_UDEVADM_MONITOR)
   else
     vars=("$@")
   fi
@@ -92,6 +92,7 @@ stage_reset_vars() {
 
 # shellcheck disable=SC2120
 stage_default_vars() {
+  SID= #ef2d
   SERVICE_NAME="${1:-dummy_service}"
   SERVICE_MAPPING_NAME="ve_${SERVICE_NAME}"
   TTY=
@@ -101,9 +102,8 @@ stage_default_vars() {
   SERIAL_STARTER_RULES_FILE="$output_dir/serial-starter.rules"
   SERIAL_STARTER_CONFIG_FILE="$output_dir/serial-starter.conf"
   SERIAL_STARTER_RULES_TEXT_MATCH='RUN+="/opt/victronenergy/serial-starter/cleanup.sh %k"'
-  UDEVADM_PROPS="ID_BUS|ID_VENDOR|ID_MODEL|ID_SERIAL"
+  UDEVADM_PROPS="ID_BUS,ID_VENDOR,ID_MODEL,ID_SERIAL"
   USE_UDEVADM_MONITOR="1"
-  USB_TIMEOUT=3
 }
 
 # shellcheck disable=SC2120
@@ -471,6 +471,7 @@ test_install_succeeds_serial_starter_rule_added() {
   stage_default_vars
   stage_files "${SERIAL_STARTER_CONFIG_FILE##*/}" "${SERIAL_STARTER_RULES_FILE##*/}"
   _TTY=ttyUSB0
+  
   local expected_serial_starter_rule_header expected_serial_starter_rule
   stage_get_expected_serial_starter_header_and_rule expected_serial_starter_rule_header expected_serial_starter_rule
  
@@ -564,20 +565,20 @@ test_install_succeeds_serial_starter_rule_not_added_twice_when_already_exists() 
  
 # serial_device_installer_remove
 
-test_remove_rule_succeeds_when_sdi_rule_id_set_removes_comment_and_rule_line() {
+test_remove_rule_succeeds_when_sid_set_removes_comment_and_rule_line() {
 
   # Arrange
   stage_default_vars
   cat >"${SERIAL_STARTER_RULES_FILE}" <<'EOF'
 # keep: unrelated
 ACTION=="add", ENV{ID_BUS}=="usb", ENV{ID_SERIAL}=="KEEP", ENV{VE_SERVICE}="ve_keep"
-# sdi rule id:abc123: dummy_service
-ACTION=="add", ENV{ID_BUS}=="usb", ENV{SDI_RULE_ID}="abc123", ENV{ID_SERIAL}=="REMOVE", ENV{VE_SERVICE}="ve_remove"
+# # sid:abc123: dummy_service
+ACTION=="add", ENV{ID_BUS}=="usb", ENV{SERIAL_DEVICE_ID}="abc123", ENV{ID_SERIAL}=="REMOVE", ENV{VE_SERVICE}="ve_remove"
 # keep: unrelated 2
 ACTION=="add", ENV{ID_BUS}=="usb", ENV{ID_SERIAL}=="KEEP2", ENV{VE_SERVICE}="ve_keep2"
 EOF
 
-  UDEVADM_PROPS="ID_SERIAL=REMOVE|+SDI_RULE_ID=abc123"
+  UDEVADM_PROPS="ID_SERIAL=REMOVE,+SERIAL_DEVICE_ID=abc123"
 
   local stderr=
 
@@ -587,10 +588,10 @@ EOF
   # Assert
   assert_exitcode 0
   local count_of=
-  count_of=$(grep -c '^# sdi rule id:abc123:' "${SERIAL_STARTER_RULES_FILE}")
+  count_of=$(grep -c '^# sid:abc123:' "${SERIAL_STARTER_RULES_FILE}")
   assert_eq 0 "$count_of"
 
-  count_of=$(grep -c 'ENV{SDI_RULE_ID}="abc123"' "${SERIAL_STARTER_RULES_FILE}")
+  count_of=$(grep -c 'ENV{SERIAL_DEVICE_ID}="abc123"' "${SERIAL_STARTER_RULES_FILE}")
   assert_eq 0 "$count_of"
 
   count_of=$(grep -c 'ENV{ID_SERIAL}=="KEEP"' "${SERIAL_STARTER_RULES_FILE}")
@@ -601,19 +602,19 @@ EOF
   assert_empty "$stderr"
 }
 
-test_remove_rule_succeeds_when_sdi_rule_id_not_found_file_unchanged() {
+test_remove_rule_succeeds_when_sid_id_not_found_file_unchanged() {
 
   # Arrange
   stage_default_vars
   cat >"${SERIAL_STARTER_RULES_FILE}" <<'EOF'
 # keep: unrelated
 ACTION=="add", ENV{ID_BUS}=="usb", ENV{ID_SERIAL}=="KEEP", ENV{VE_SERVICE}="ve_keep"
-# sdi rule id:other-id: dummy_service
-ACTION=="add", ENV{ID_BUS}=="usb", ENV{SDI_RULE_ID}="other-id", ENV{ID_SERIAL}=="OTHER", ENV{VE_SERVICE}="ve_other"
+# sid:other-id: dummy_service
+ACTION=="add", ENV{ID_BUS}=="usb", ENV{SERIAL_DEVICE_ID}="other-id", ENV{ID_SERIAL}=="OTHER", ENV{VE_SERVICE}="ve_other"
 EOF
 
   cp "${SERIAL_STARTER_RULES_FILE}" "${SERIAL_STARTER_RULES_FILE}.orig"
-  UDEVADM_PROPS="ID_SERIAL=REMOVE|+SDI_RULE_ID=abc123"
+  UDEVADM_PROPS="ID_SERIAL=REMOVE,+SERIAL_DEVICE_ID=abc123"
 
   local stderr=
 
@@ -648,8 +649,6 @@ oldtest_remove_succeeds_when_serial_starter_rule_not_set() {
   assert_eq "SERIAL_STARTER_RULE not set, nothing to do" "$stderr" 
   
 }
-
-oldtest_remove_succeeds_when_serial_starter_rule_set() {
 
    # Arrange
   stage_default_vars

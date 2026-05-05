@@ -20,11 +20,11 @@ stage_default_vars() {
   TTY=
   SERVICE_PATH="$output_dir/service"
   SERIAL_STARTER_START_SERVICE_PATH="$output_dir/serial-starter"
-  #SERIAL_STARTER_RULE=
+
   SERIAL_STARTER_RULES_FILE="$output_dir/serial-starter.rules"
   SERIAL_STARTER_CONFIG_FILE="$output_dir/serial-starter.conf"
   SERIAL_STARTER_RULES_TEXT_MATCH='RUN+="/opt/victronenergy/serial-starter/cleanup.sh %k"'
-  UDEVADM_PROPS="ID_BUS|ID_VENDOR|ID_MODEL|ID_SERIAL"
+  UDEVADM_PROPS="ID_BUS,ID_VENDOR,ID_MODEL,ID_SERIAL"
   USE_UDEVADM_MONITOR="1"
   USB_TIMEOUT=3
 }
@@ -45,7 +45,7 @@ install() {
   chmod +w+r "${output_dir}/"*
 
   TTY=
-  UDEVADM_PROPS="ID_BUS=usb|ID_VENDOR=FTDI|ID_MODEL=FT232R_USB_UART|ID_SERIAL=FTDI_FT232R_USB_UART_A5069RR4"
+  UDEVADM_PROPS="ID_BUS=usb,ID_VENDOR=FTDI,ID_MODEL=FT232R_USB_UAR,ID_SERIAL=FTDI_FT232R_USB_UART_A5069RR4"
 
   # Act
   serial_device_installer_install

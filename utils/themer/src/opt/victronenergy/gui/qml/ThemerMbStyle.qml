@@ -2,9 +2,13 @@ import QtQuick 2
 import Theming 1.0
 
 QtObject {
- 
+
+
  	Component.onCompleted: {
- 
+		
+		if (Themer == undefined)
+			return
+
 		if (textColor) {
 			textColor = Qt.binding(function() { return Themer.textColor})
 		}

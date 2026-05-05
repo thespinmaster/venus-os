@@ -1,10 +1,9 @@
 #
 #
 # version 2.1.0
-# slighty changes, hidden status display, typros
+# slight changes, hidden status display, typos
 # modify logging structure
-
-import asyncio
+ 
 from typing import Callable
 from taskmanager import TaskManager
 from tools import calculate_checksum
@@ -30,7 +29,7 @@ class InetboxApp:
 		0x3: "mix",
 	}
 	VENT_MODE_MAPPING = {
-		0x00: "Off",
+		0x00: "off",
 		0xB: "eco",
 		0xD: "high",
 		0x1: "fan 1",
@@ -307,24 +306,22 @@ class InetboxApp:
 	status = {
 		"command_counter": [1, False, False],
 		"alive": ["OFF", False, False],
-		"target_temp_water": [0, True, False],
+		"target_temp_water": [0, False, False],
 		"checksum": [0, False, False],
-		"target_temp_room": [0, True, False],
-		"heating_mode": [0, True, False],
+		"target_temp_room": [0, False, False],
+		"heating_mode": [0, False, False],
 		"el_power_level": [0, False, False],
 		"energy_mix": [1, False, False],
-		"current_temp_water": [0, True, False],
-		"current_temp_room": [0, True, False],
-		"operating_status": [0, True, False],
+		"current_temp_water": [0, False, False],
+		"current_temp_room": [0, False, False],
+		"operating_status": [0, False, False],
 		"error_code": [0, False, False],
-		"aircon_operating_mode": [0, True, False],
-		"aircon_vent_mode": [114, True, False],
-		"target_temp_aircon": [2990, True, False],
+		"aircon_operating_mode": [-1, False, False], # -1 until value is filled
+		"aircon_vent_mode": [114, False, False],
+		"target_temp_aircon": [2990, False, False],
 		"aircon_on": [1, False, False],
 	}
-
-	#status_updated = False
-
+ 
 	upload_buffer = 0
 	upload02_buffer = 0
 	upload_wait = 1
@@ -332,38 +329,37 @@ class InetboxApp:
 
 	display_status = {}
 	log = logging.getLogger(__name__)
-	publish_callback: list[Callable[[str, str], None]] = []
+	publish_callback: list[Callable[[str, None], None]] = []
 
 	def __init__(self, tasks: TaskManager, debug, reflect=True):
 		# when requested, set logger to debug level
+		debug = True
 		if debug:
 			self.log.setLevel(logging.DEBUG)
 		else:
 			self.log.setLevel(logging.INFO)
 			
 		self.log.debug(f"Status: {self.status}")
+
 		self.reflect = reflect
 
 		tasks.add_task("inetbox_publish_loop", self._publish_loop)
 
 	async def _publish_loop(self):
 			i = 0
-			while True:
-					await asyncio.sleep(2)  # Update every 2sec
-					# if file: logging._stream.flush()
-					s = self.get_all(True)
-					for idx, key in enumerate(s.keys()):
-							try:
-									for callback in self.publish_callback:
-											callback(key, str(s[key]))
-							except Exception as e:
-									self.log.exception(f"Error in publish_loop, index {idx}, key {key}")
-					i += 1
-					if not (i % 6):
-							i = 0
-							#self.status["alive"][1] = True  # publish alive-heartbeat every min
+			items = self.get_all(True)
+			for idx, key in enumerate(items.keys()):
+					try:
+							for callback in self.publish_callback:
+									callback(key, items[key])
+					except Exception as e:
+							self.log.exception(f"Error in publish_loop, index {idx}, key {key}: {e}" )
+			i += 1
+			if not (i % 6):
+					i = 0
+					self.status["alive"][1] = True  # publish alive-heartbeat every min
  
-	def add_publish_callback(self, callback: Callable[[str, str], None]):
+	def add_publish_callback(self, callback: Callable[[str, None], None]):
 		self.publish_callback.append(callback)
 
 	def map_or_debug(self, mapping, value):
@@ -712,8 +708,10 @@ class InetboxApp:
 			)
 		#        self.log.info(f"Setting {key} to {value}")
 		self.log.debug(f"set_status: {key}:{value}")
+		
 		old_data = self.status[key][0]
 		old_flg = self.status[key][2]
+		self.log.debug(f"set_status: old_data:{old_data}, old_flg:{old_flg}")
 		# self.reflect chance the behavior of system control: True means that set commands reflected in control_status
 		# False means that the control_status only changed after feedback from truma
     
@@ -757,16 +755,16 @@ class InetboxApp:
 	# Status-Dump - with False, it sends all status-values
 	# with True it sends only a list of changed values - but resets the change-flag
 	def get_all(self, only_updates):
-		#        print("Status:", self.status)
+ 
 		if not (only_updates):
 			#self.status_updated = False
 			return {key: self.get_status(key) for key in self.status.keys()}
 		else:
-			s = {}
+			items = {}
 			for key in self.status.keys():
-				#self.status_updated = False
+				
 				if self.status[key][1]:
 					self.status[key][1] = False
-					#self.status_updated = True
-					s.update({key: self.get_status(key)})
-			return s
+					 
+					items.update({key: self.get_status(key)})
+			return items

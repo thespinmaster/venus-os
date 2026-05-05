@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
- 
+
 DBUS_SETTINGS="
 		OpkgManager/CustomOverviewPages/InetboxOverview:s:0:0:
 		OpkgManager/CustomMenus/PageSettings/InetboxPageSettingsSubMenu:s:0:0:
 		OpkgManager/CustomServices/Inetbox/ProductName:s:0:0:Inetbox
 		OpkgManager/CustomServices/Inetbox/ServiceName:s:0:0:dbus-Inetbox
-		OpkgManager/CustomServices/Inetbox/UsbMappingName:s:0:0:inetbox
 "
 
 #use defaults
-#Settings/OpkgManager/CustomServices/Inetbox/UsbProps:s:0:0:ID_VENDOR|ID_MODEL|ID_SERIAL
+# OpkgManager/CustomServices/Inetbox/UsbProps:s:0:0:ID_VENDOR|ID_MODEL|ID_SERIAL
+# OpkgManager/CustomServices/Inetbox/UsbMappingName:s:0:0:inetbox
 
 #DBUS_SETTINGS_DEPRECIATED="
 #		Devices/dbus_inetbox/Port:s:0:0

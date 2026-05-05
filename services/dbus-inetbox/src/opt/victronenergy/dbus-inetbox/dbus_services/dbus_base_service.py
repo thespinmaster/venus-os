@@ -15,7 +15,7 @@ from gi.repository import GLib
 import platform
 import logging
 import os
-from dbus_constants import dbus_constants
+
 from dbus_connection import dbusconnection
 from ext.vedbus import VeDbusService
 
@@ -36,43 +36,37 @@ class dbus_base_service(object):
 			logging.debug("No dbus service to unregister")
 	
 		  
-	def _registerCore(self, portName, serviceIdentifier, classAndVrmInstance, paths, onValueChanged = None):
+	def _registerCore(self, connection:str, 
+                   deviceInstance: int, 
+                   serviceName:str, 
+                   productId:int,
+                   productName:str,
+                   firmwareVersion:str,
+                   hardwareVersion:str,
+                   paths, onValueChanged = None):
 		
 		logging.debug("_registerCore in")
- 
-		classAndVrmInstanceParts = classAndVrmInstance.split(':')
-		className = classAndVrmInstanceParts[0]
-		deviceInstance = int(classAndVrmInstanceParts[1]) #!IMPORTANT MUST BE AN INT
- 
-		serviceName = "com.victronenergy.{}.id_{}.{}".format(
-			className, deviceInstance, dbus_constants.SAFE_PRODUCT_NAME + "_" + serviceIdentifier)
-		
+
 		self._dbusservice = VeDbusService(serviceName, bus=dbusconnection(), register=False)
   
 		self._paths = paths
- 
-		logging.debug(f"{serviceName} /DeviceInstance = {classAndVrmInstance}")
 
-		portName = os.path.basename(portName) # convert from /dev/ttyxxx to ttyxxx
-  
 		# Create the management objects, as specified in the ccgx dbus-api document
 		self._dbusservice.add_mandatory_paths(__file__,
 			'Unknown version, and running on Python ' + platform.python_version(),
-			portName,
+			connection,
 			deviceInstance,
-			dbus_constants.PRODUCT_ID,
-			dbus_constants.PRODUCT_NAME,
-			dbus_constants.FIRMWARE_VERSION,
-			dbus_constants.HARDWARE_VERSION,
+			productId,
+			productName,
+			firmwareVersion,
+			hardwareVersion,
 			1)
-		
-		self._dbusservice.add_path("/ServiceName", dbus_constants.SAFE_PRODUCT_NAME)
-
+ 
 		for path, settings in self._paths.items():
 			self._dbusservice.add_path(
 				path, 
-				value = settings[dbus_constants.PATH_SETTING_INITIAL],
-				writeable = settings[dbus_constants.PATH_SETTING_WRITABLE], 
+				value = settings["initial"],
+				writeable = settings["writable"], 
 				onchangecallback = onValueChanged)
 		
 		self._dbusservice.register()
@@ -85,8 +79,7 @@ class dbus_base_service(object):
 		if (self._dbusservice == None):
 			return None
 		
-		with self._dbusservice as s:
-			return s[path]
+		return self._dbusservice[path]
 	
 	
 	def set_value(self, path, value):
