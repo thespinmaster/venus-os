@@ -1,5 +1,9 @@
 #!/bin/bash
 
-"${VE_ROOT_DIR:-}/data/opkg-manager/installer" "install"
+if [[ ! -f "/data/opkg-manager/installer" ]]; then
+  exit 0
+fi
+
+"/data/opkg-manager/installer" "install"
 
 
