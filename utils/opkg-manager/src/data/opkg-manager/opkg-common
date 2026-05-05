@@ -267,7 +267,7 @@ opkg_common_ensure_installed() {
     # ignore comments and empty lines
     [[ -z "${line//[[:space:]]/}" || $line == \#* ]] && continue
     
-    if [[ isfirst == 1 ]]; then
+    if (( isfirst == 1 )); then
       isfirst=0
     else
       sleep 1
