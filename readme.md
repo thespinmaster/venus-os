@@ -9,10 +9,14 @@ Set wifi in Venus OS
 Use Victron Connect App. Select Rasperry pi, enter bluetooth pin, then connect to wifi
 Note if Wifi fails, connect ethernet cable instead and connect wifi using Venus OS GUI
 
-In Venus GUI to enable ssh, elect username then press and hold right arrow key for 5 seconds to enable root access
+In Venus GUI to enable ssh, select settings/general/accesslevel then press and hold right arrow key for 5 seconds (or drag down with mouse in browser) to enable root access
 add ssh password
 
 SSH into Venus OS
+Set up ssh key (using Terminus)
+Vaults>>Key chain> select id with rp4 and export
+or in windows
+copy text in file user/.ssh/keys/id_xxx.pub into the file ~/root/.ssh changing name to root@raspberypi (although name does not appear matter)
 
 ### set up dev environment
 
