@@ -7,7 +7,7 @@ RC_LOCAL_SCRIPT="
 
 DBUS_SETTINGS="
     {'path':'/Settings/OpkgManager/CustomMenus/PageSettings/OpkgPageSettingsSubMenu'}
-		{'path':"/Settings/OpkgManager/CustomMenus/PageSettingsDisplay/OpkgPageSettingsDisplaySubMenu"}
+		{'path':'/Settings/OpkgManager/CustomMenus/PageSettingsDisplay/OpkgPageSettingsDisplaySubMenu'}
 "
 
 if [[ "$1" == "dev-install" ]]; then
@@ -26,6 +26,7 @@ if [[ "$1" == "install" || "$1" == "post-install" || "$1" == "dev-install" ]]; t
   
   echo "please wait, updating packages..."
   opkg_common_update_packages
+  echo "done"
 
 elif [[ "$1" == "remove" || "$1" == "post-remove" ]]; then
 
@@ -34,7 +35,7 @@ elif [[ "$1" == "remove" || "$1" == "post-remove" ]]; then
   opkg_common_remove_feed_symlink
 
   opkg_common_update_packages
-
+  echo "done"
 fi
 
 # install_helper_finished

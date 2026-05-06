@@ -10,10 +10,17 @@ set -o nounset
 # Accepts any stdin source: <<< string, < file, or pipe.
 dbus_common_add_settings () {
 	local settings
-	settings="$(tr '\n' ',')"
+	local line
+
+	while IFS= read -r line; do
+		line="${line#"${line%%[![:space:]]*}"}"
+		[[ -z "$line" || "$line" == \#* ]] && continue
+		settings+="${line}, "
+	done
+
 	[[ -n "$settings" ]] &&
-		dbus -y com.victronenergy.settings / AddSettings "%[ $settings  ]" &> /dev/null
- 
+		dbus -y com.victronenergy.settings / AddSettings "%[ $settings ]" &> /dev/null
+
 }
 # Function: dbus_common_remove_settings
 # Removes all settings listed in the file or string.
