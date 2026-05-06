@@ -4,8 +4,8 @@ Depends: opkg-manager, python3
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: 840bb06c13e0f19c343011e694e2e769
-Size: 120378
+MD5Sum: a341059224d7ca34865a7dd94687cec1
+Size: 120912
 Filename: dbus-inetbox_0.0.1_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feeds/main/dbus-inetbox
 Description: Adds support for Truma inetbox to Venus-OS
@@ -20,8 +20,8 @@ Depends: opkg-manager, python3
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: 2a01826268773b7e7eb099a3103d7667
-Size: 70318
+MD5Sum: 5a577247ddd8340ef970232c05f78683
+Size: 69914
 Filename: dbus-ne-shunt_1.0.19_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feeds/main/dbus-ne-shunt
 Description: Adds support for NordElectronica shunt NE196/NE319 board to Venus-OS
@@ -36,8 +36,8 @@ Depends: opkg-manager
 Section: utilities
 Architecture: all
 Maintainer: Lucien Denisey <ldenisey@gmail.com>
-MD5Sum: f72aae31ca8d87af4bf9472016d00901
-Size: 16188
+MD5Sum: 6193d1209b5c82793e7521251fefd4a5
+Size: 16204
 Filename: dbus-relay-board_1.0.0_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feeds/main/dbus-relay-board
 Description: Add support to RS485, RS232 and TTL232 relay boards
@@ -52,8 +52,8 @@ Depends: opkg-manager
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: ff35efd24354b053649d24a0db30d1fa
-Size: 66774
+MD5Sum: 98b9ad88eb223d1df2a097735fcf4de1
+Size: 66676
 Filename: mount-shares_1.0.1_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feeds/main/mount-shares
 Description: Adds support for nfs and cifs shares to Venus OS
@@ -68,8 +68,8 @@ Depends: opkg-manager
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: fbf8a8ebb7895e58a195d48f24076ab3
-Size: 2084
+MD5Sum: f3ee429d9a0cca927b52dcecdb746614
+Size: 2072
 Filename: network-gps_1.0.0_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feeds/main/network-gps
 Description: Network GPS using NMEA
@@ -84,8 +84,8 @@ Depends: opkg-manager
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: 1e73c03be8fbebef15ab1f0d944e38fc
-Size: 1016
+MD5Sum: d02ee7bcd7746b207fc00e1190385a59
+Size: 1018
 Filename: test-install_1.0.4_all.ipk
 Source: https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feed/test-install
 Description: A simple app for testing install
@@ -100,8 +100,8 @@ Depends: opkg-manager, python3
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: f9495aa74b135cce92e98d13377d211a
-Size: 2338
+MD5Sum: f5cb56ba01e6b99927960eb1785d69ec
+Size: 2340
 Filename: test-service_1.0.0_all.ipk
 Source: https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feed/test-service
 Description: A simple service for testing
@@ -116,8 +116,8 @@ Depends: opkg-manager
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: 99a3c668f658c5508c13cfe06c8c576e
-Size: 4464
+MD5Sum: eba2df200ab57501d0841e6f6ad2d226
+Size: 4428
 Filename: themer_1.0.0_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feeds/main/themer
 Description: Adds basic theming support on the Venus OS

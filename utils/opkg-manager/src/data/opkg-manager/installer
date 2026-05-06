@@ -6,8 +6,8 @@ RC_LOCAL_SCRIPT="
 "
 
 DBUS_SETTINGS="
-    {'path':'/Settings/OpkgManager/CustomMenus/PageSettings/OpkgPageSettingsSubMenu'}
-		{'path':'/Settings/OpkgManager/CustomMenus/PageSettingsDisplay/OpkgPageSettingsDisplaySubMenu'}
+    {'path':'/Settings/OpkgManager/CustomMenus/PageSettings/OpkgPageSettingsSubMenu', 'default':''}
+		{'path':'/Settings/OpkgManager/CustomMenus/PageSettingsDisplay/OpkgPageSettingsDisplaySubMenu', 'default':''}
 "
 
 if [[ "$1" == "dev-install" ]]; then

@@ -18,7 +18,7 @@ DBUS_SETTINGS="
 		{'path':'/Settings/Themer/Themes/Dark/BackgroundColorSelected', 'default':'#2969a1'}
 		{'path':'/Settings/Themer/Themes/Dark/BackgroundTankColor', 'default':'#cccccc'}
 
-		{'path':'/Settings/OpkgManager/CustomMenus/PageSettingsDisplay/ThemerPageSettingsSubMenu'}
+		{'path':'/Settings/OpkgManager/CustomMenus/PageSettingsDisplay/ThemerPageSettingsSubMenu', 'default':''}
 "
 
 #DBUS_SETTINGS_DEPRECIATED=""

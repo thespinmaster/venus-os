@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 DBUS_SETTINGS="
-		{'path':'/Settings/OpkgManager/CustomOverviewPages/InetboxOverview'}
-		{'path':'/Settings/OpkgManager/CustomMenus/PageSettings/InetboxPageSettingsSubMenu'}
+		{'path':'/Settings/OpkgManager/CustomOverviewPages/InetboxOverview', 'default':''}
+		{'path':'/Settings/OpkgManager/CustomMenus/PageSettings/InetboxPageSettingsSubMenu', 'default':''}
 		{'path':'/Settings/OpkgManager/CustomServices/Inetbox/ProductName', 'default':'Inetbox'}
 		{'path':'/Settings/OpkgManager/CustomServices/Inetbox/ServiceName', 'default':'dbus-Inetbox'}
 "
