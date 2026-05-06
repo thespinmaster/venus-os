@@ -31,17 +31,16 @@ __load_source_file() {
 
 install_helper_add_remove_dbus_csv_items() {
 	
-	local cvs_string=
+	local csv_string=
 	local command="$1"
   local dbusPath="$2"
 	shift 2
  
-	dbus_common_get_value "${dbusPath}" cvs_string
+	dbus_common_get_value "${dbusPath}" csv_string
  
-	__install_helper_add_remove_comma_delimited_string "$command" cvs_string "$@" 
-
-	# TODO UPDATE
-	dbus_common_set_string_value <<< "{'path':'${dbusPath}', 'default': '${cvs_string}'}"
+	__install_helper_add_remove_comma_delimited_string "$command" csv_string "$@" 
+ 
+	dbus_common_set_string_value "${dbusPath}" "${csv_string}"
 }
 
 install_helper_add_remove_custom_service_path() {
