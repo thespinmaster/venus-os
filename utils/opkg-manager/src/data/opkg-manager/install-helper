@@ -133,6 +133,7 @@ install_helper_add_remove_patch() {
 			file_patcher_revert_patch "$patchfile"
 		fi
 	done
+	echo "RESTART_GUI_SERVICE:$RESTART_GUI_SERVICE" 
 }
 
 install_helper_post_install() {
@@ -211,6 +212,7 @@ install_helper_pre_remove() {
 }
 
 install_helper_restart_gui_service() {
+	
 	((RESTART_GUI_SERVICE)) || return
 
 	echo "restarting gui service..."
