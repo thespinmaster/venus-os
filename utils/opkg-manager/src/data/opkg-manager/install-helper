@@ -78,7 +78,6 @@ __get_custom_service_paths_from_dbus_settings_byref() {
 #				The comma delimited string
 # arg3: 
 #				The items to add|remove from the string
-
 __install_helper_add_remove_comma_delimited_string() {
 	local command="${1}"
 	local -n _csv_string="${2}"
@@ -174,6 +173,7 @@ install_helper_post_install() {
 	}
 	
 	install_helper_restart_gui_service
+	return 0
 }
  
 install_helper_pre_remove() {
@@ -207,6 +207,7 @@ install_helper_pre_remove() {
 		dbus_common_remove_settings <<< "$DBUS_SETTINGS_DEPRECIATED"
 
 	install_helper_restart_gui_service
+	return 0
 }
 
 install_helper_restart_gui_service() {

@@ -123,7 +123,7 @@ opkg_common_update_packages() {
   
   local opkg_pid=$!
   wait "$opkg_pid"
- 
+  return 0
 }
  
 opkg_common_remove_feed_symlink() {
