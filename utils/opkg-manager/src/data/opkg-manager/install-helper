@@ -49,7 +49,7 @@ install_helper_add_remove_custom_service_path() {
 
 	__get_custom_service_paths_from_dbus_settings_byref service_paths
  
-	install_helper_add_remove_dbus_csv_items "$1" "OpkgManager/AvailableCustomServices" "${service_paths[@]}" 
+	install_helper_add_remove_dbus_csv_items "$1" "/Settings/OpkgManager/AvailableCustomServices" "${service_paths[@]}" 
 
 }
 
