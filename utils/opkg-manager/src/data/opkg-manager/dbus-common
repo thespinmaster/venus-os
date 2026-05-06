@@ -69,6 +69,7 @@ dbus_common_set_string_value() {
 			echo "setting value"
 			dbus -y com.victronenergy.settings "${path}" SetValue "${value}" &> /dev/null &&
 					exit 1
+			echo dbus -y com.victronenergy.settings / AddSettings "%[ {'path':'${path}', 'default':''} ]"
 		fi
 		echo "error adding value" >&2
 	fi
