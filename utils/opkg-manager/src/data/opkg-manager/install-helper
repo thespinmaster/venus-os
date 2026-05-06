@@ -175,9 +175,13 @@ install_helper_post_install() {
  
 	[[ -n "${DBUS_SETTINGS:-}" ]] && {
 		dbus_common_add_settings <<< "$DBUS_SETTINGS"
+		echo "AAAAA"
 		install_helper_add_remove_custom_service_path "add"
+		echo "BBBBB"
 	}
 	
+	echo "CCCCC"
+
 	install_helper_restart_gui_service
 	return 0
 }
@@ -217,8 +221,9 @@ install_helper_pre_remove() {
 }
 
 install_helper_restart_gui_service() {
-	
+	echo "DDDD"
 	((RESTART_GUI_SERVICE)) || return
+	echo "EEEE"
 
 	echo "restarting gui service..."
   svc -t /service/gui
