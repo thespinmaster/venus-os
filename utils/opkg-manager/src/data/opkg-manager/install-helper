@@ -130,8 +130,11 @@ install_helper_add_remove_patch() {
 	local remove=0
 	[[ "${1:-}" == "remove" ]] && remove=1
 	
+	shopt -s nullglob
+
 	for patchfile in "$installer_path"/*.patch; do
 		RESTART_GUI_SERVICE=1
+		echo "install_helper_add_remove_patch:RESTART_GUI_SERVICE=$RESTART_GUI_SERVICE"
 		if ((remove==0)); then
 			file_patcher_apply_patch "$patchfile"
 		else
@@ -159,13 +162,9 @@ install_helper_post_install() {
 		opkg_common_add_script_to_rc_local "${RC_LOCAL_SCRIPT}"
  
 	echo "patching files"
- 
-	shopt -s nullglob #required to ensure if no .patch files exists,
-										# patchfile is not filled with the path instead
-	for patchfile in "$installer_path"/*.patch; do
-		file_patcher_apply_patch "$patchfile"
-	done
- 
+
+	install_helper_add_remove_patch add
+	
 	echo "adding dbus settings"
 
 	[[ -n "${DBUS_SETTINGS_DEPRECIATED:-}" ]] &&
