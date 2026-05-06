@@ -1,26 +1,27 @@
 #!/usr/bin/env bash
 
 DBUS_SETTINGS="
-		OpkgManager/CustomOverviewPages/InetboxOverview:s:0:0:
-		OpkgManager/CustomMenus/PageSettings/InetboxPageSettingsSubMenu:s:0:0:
-		OpkgManager/CustomServices/Inetbox/ProductName:s:0:0:Inetbox
-		OpkgManager/CustomServices/Inetbox/ServiceName:s:0:0:dbus-Inetbox
+		{'path':'/Settings/OpkgManager/CustomOverviewPages/InetboxOverview'}
+		{'path':'/Settings/OpkgManager/CustomMenus/PageSettings/InetboxPageSettingsSubMenu'}
+		{'path':'/Settings/OpkgManager/CustomServices/Inetbox/ProductName', 'default':'Inetbox'}
+		{'path':'/Settings/OpkgManager/CustomServices/Inetbox/ServiceName', 'default':'dbus-Inetbox'}
 "
 
 #use defaults
-# OpkgManager/CustomServices/Inetbox/UsbProps:s:0:0:ID_VENDOR|ID_MODEL|ID_SERIAL
-# OpkgManager/CustomServices/Inetbox/UsbMappingName:s:0:0:inetbox
+# {'path':'/Settings/OpkgManager/CustomServices/Inetbox/UsbProps', 'default':'ID_VENDOR,ID_MODEL,ID_SERIAL'}
+# {'path':'/Settings/OpkgManager/CustomServices/Inetbox/UsbMappingName', 'default':'inetbox'}
 
-#DBUS_SETTINGS_DEPRECIATED="
-#		Devices/dbus_inetbox/Port:s:0:0
-#		Devices/dbus_inetbox/ServiceName:s:0:0:dbus-inetbox
-#"
+#DBUS_SETTINGS_DEPRECIATED='
+#		{'path':'/Settings/Devices/dbus_inetbox/Port'}
+#		{'path':'/Settings/Devices/dbus_inetbox/ServiceName'}
+#'
  
 if [[ "$1" == "dev-install" ]]; then
   VE_ROOT_DIR=/data/dev/utils/opkg-manager/src
 fi
 
-source ${VE_ROOT_DIR:-}/data/opkg-manager/install-helper
+# shellcheck source=/data/dev/utils/opkg-manager/src/data/opkg-manager/install-helper
+source "${VE_ROOT_DIR:-}/data/opkg-manager/install-helper"
 
 if [[ "${1:-}" == "install" || "${1:-}" == "dev-install" ]]; then
 	install_helper_post_install 

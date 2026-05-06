@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
  
 DBUS_SETTINGS="
-    OpkgManager/CustomOverviewPages/NeShuntOverview:s:0:0:
+    {'path':'/Settings/OpkgManager/CustomOverviewPages/NeShuntOverview'}
 	
-		OpkgManager/CustomServices/NeShunt/ProductName:s:0:0:'Ne Shunt'
-		OpkgManager/CustomServices/NeShunt/ServiceName:s:0:0:dbus-neshunt
+		{'path':'/Settings/OpkgManager/CustomServices/NeShunt/ProductName', 'default': 'Ne Shunt'}
+		{'path':'/Settings/OpkgManager/CustomServices/NeShunt/ServiceName', 'default':'dbus-neshunt'}
 "
 
 #DBUS_SETTINGS_DEPRECIATED="
-#		OpkgManager/CustomMenus/PageSettingsDisplay/PageSettingsNeShuntSubMenu:s:0:0:
+#		{'path':'/Settings/OpkgManager/CustomMenus/PageSettingsDisplay/PageSettingsNeShuntSubMenu'}
 #"
 
 if [[ "$1" == "dev-install" ]]; then

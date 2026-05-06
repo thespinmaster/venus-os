@@ -54,12 +54,12 @@ __version_check_single() {
     
     # Handle equality
     if [[ $op == "=" ]]; then
-        [[ $required_version == $version ]]
+        [[ $required_version == "$version" ]]
         return
     fi
     
     # Handle version comparison
-    if [[ $required_version == $version ]]; then
+    if [[ $required_version == "$version" ]]; then
         # Equal versions
         case $op in
             ">="|"<="|"=") return 0 ;;
@@ -322,6 +322,8 @@ file_patcher_apply_patch() {
             _getCommandBounds $p patch_start patch_end
             # ensure patch has not already been applied
             # search FILE_LINES for matching lines contained in PATCH_LINES (upto end ''===='')
+            
+            # shellcheck disable=SC2034
             local -i fstart=$file_start fend=-1
             _find $direction $patch_start $patch_end fstart fend
             

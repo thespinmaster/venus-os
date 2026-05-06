@@ -40,7 +40,7 @@ install_helper_add_remove_dbus_csv_items() {
  
 	__install_helper_add_remove_comma_delimited_string "$command" cvs_string "$@" 
 
-	dbus_common_add_dbus_settings "${dbusPath}:s:0:0:$cvs_string"
+	dbus_common_add_settings <<< "{path:\"${dbusPath}\", \"default\": \"$cvs_string\"}"
 }
 
 install_helper_add_remove_custom_service_path() {
@@ -124,11 +124,11 @@ __install_helper_add_remove_comma_delimited_string() {
 # arguments {1} (optional): set to remove to remove
 install_helper_add_remove_patch() {
 	local remove=0
-	[[ "{1:-}" == "remove" ]] && remove=1
+	[[ "${1:-}" == "remove" ]] && remove=1
 	
 	for patchfile in "$installer_path"/*.patch; do
 		RESTART_GUI_SERVICE=1
-		if (($remove==0)); then
+		if ((remove==0)); then
 			file_patcher_apply_patch "$patchfile"
 		else
 			file_patcher_revert_patch "$patchfile"
@@ -137,9 +137,11 @@ install_helper_add_remove_patch() {
 }
 
 install_helper_post_install() {
- 
-  local installer_path="$(dirname "${BASH_SOURCE[1]}")"
+
   [[ -z "$PACKAGE_NAME" ]] && { echo "ERROR: PACKAGE_NAME not set"; return 1; }
+
+	local installer_path
+	installer_path="$(dirname "${BASH_SOURCE[1]}")"
 
 	__load_source_file "opkg-common"
 	__load_source_file "dbus-common"
@@ -164,10 +166,10 @@ install_helper_post_install() {
 	echo "adding dbus settings"
 
 	[[ -n "${DBUS_SETTINGS_DEPRECIATED:-}" ]] &&
-		dbus_common_remove_dbus_settings "$DBUS_SETTINGS_DEPRECIATED"
+		dbus_common_remove_settings <<< "$DBUS_SETTINGS_DEPRECIATED"
  
 	[[ -n "${DBUS_SETTINGS:-}" ]] && {
-		dbus_common_add_dbus_settings "$DBUS_SETTINGS"
+		dbus_common_add_settings <<< "$DBUS_SETTINGS"
 		install_helper_add_remove_custom_service_path "add"
 	}
 	
@@ -176,9 +178,11 @@ install_helper_post_install() {
  
 install_helper_pre_remove() {
  
- 	local installer_path="$(dirname "${BASH_SOURCE[1]}")"
 	[[ -z "$PACKAGE_NAME" ]] && { echo "ERROR: PACKAGE_NAME not set"; return 1; }
 	
+	local installer_path; 
+	installer_path="$(dirname "${BASH_SOURCE[1]}")"
+
 	__load_source_file "opkg-common"
  	__load_source_file "dbus-common"
  
@@ -195,12 +199,12 @@ install_helper_pre_remove() {
 	echo "removing dbus settings"
 
 	[[ -n "${DBUS_SETTINGS:-}" ]] && {
-		dbus_common_remove_dbus_settings "$DBUS_SETTINGS"
+		dbus_common_remove_settings <<< "$DBUS_SETTINGS"
 		install_helper_add_remove_custom_service_path "remove"
 	}
 
 	[[ -n "${DBUS_SETTINGS_DEPRECIATED:-}" ]] &&
-		dbus_common_remove_dbus_settings "$DBUS_SETTINGS_DEPRECIATED"
+		dbus_common_remove_settings <<< "$DBUS_SETTINGS_DEPRECIATED"
 
 	install_helper_restart_gui_service
 }

@@ -2,31 +2,29 @@
 
 RESTART_GUI_SERVICE=1
 DBUS_AVAILABLE_THEMES="Dark" # space separated list of themes
+
 DBUS_SETTINGS="
-		Themer/AvailableThemes:s:0:0:Dark
-	  Themer/CurrentTheme:s:0:0:
-		Themer/Themes/Dark/TextColor:s:0:0:#ffffff
-		Themer/Themes/Dark/WindowBackgroundColor:s:0:0:#202020
-		Themer/Themes/Dark/BackgroundColor:s:0:0:#202020
-		Themer/Themes/Dark/BackgroundColorSelected:s:0:0:#4790d0
-		Themer/Themes/Dark/BackgroundColor2:s:0:0:#313131
-		Themer/Themes/Dark/IconSuffixNormal:s:0:0:-active
-		Themer/Themes/Dark/IconSuffixSelected:s:0:0:-active
-		Themer/Themes/Dark/BorderColor:s:0:0:#3c3c3c
-		Themer/Themes/Dark/ServiceBackgroundColor:s:0:0:#b07c04
-		Themer/Themes/Dark/BackgroundColorSelected:s:0:0:#2969a1
-		Themer/Themes/Dark/BackgroundTankColor:s:0:0:#cccccc
+		{'path':'/Settings/Themer/AvailableThemes', 'default':'Dark'}
+	  {'path':'/Settings/Themer/CurrentTheme', 'default':''}
+		{'path':'/Settings/Themer/Themes/Dark/TextColor', 'default':'#ffffff'}
+		{'path':'/Settings/Themer/Themes/Dark/WindowBackgroundColor', 'default':'#202020'}
+		{'path':'/Settings/Themer/Themes/Dark/BackgroundColor', 'default':'#202020'}
+		{'path':'/Settings/Themer/Themes/Dark/BackgroundColorSelected', 'default':'#4790d0'}
+		{'path':'/Settings/Themer/Themes/Dark/BackgroundColor2', 'default':'#313131'}
+		{'path':'/Settings/Themer/Themes/Dark/IconSuffixNormal', 'default':'-active'}
+		{'path':'/Settings/Themer/Themes/Dark/IconSuffixSelected', 'default':'-active'}
+		{'path':'/Settings/Themer/Themes/Dark/BorderColor', 'default':'#3c3c3c'}
+		{'path':'/Settings/Themer/Themes/Dark/ServiceBackgroundColor', 'default':'#b07c04'}
+		{'path':'/Settings/Themer/Themes/Dark/BackgroundColorSelected', 'default':'#2969a1'}
+		{'path':'/Settings/Themer/Themes/Dark/BackgroundTankColor', 'default':'#cccccc'}
 
-		OpkgManager/CustomMenus/PageSettingsDisplay/ThemerPageSettingsSubMenu:s:0:0:
+		{'path':'/Settings/OpkgManager/CustomMenus/PageSettingsDisplay/ThemerPageSettingsSubMenu'}
 "
+
 #DBUS_SETTINGS_DEPRECIATED=""
-
-
-if [[ "$1" == "dev-install" ]]; then
-  VE_ROOT_DIR=/data/dev/utils/opkg-manager/src
-fi
-
-source ${VE_ROOT_DIR:-}/data/opkg-manager/install-helper
+ 
+# shellcheck source=/data/dev/utils/opkg-manager/src/data/opkg-manager/install-helper
+source /data/opkg-manager/install-helper
 
 themer_installer_install() {
 	install_helper_add_remove_dbus_csv_items "add" "Themer/AvailableThemes" "$DBUS_AVAILABLE_THEMES"
@@ -35,10 +33,10 @@ themer_installer_remove() {
 	install_helper_add_remove_dbus_csv_items "remove" "Themer/AvailableThemes" "$DBUS_AVAILABLE_THEMES" 
 }
 
-source /data/dev/utils/opkg-manager/src/data/opkg-manager/dbus-common
-source /data/dev/utils/opkg-manager/src/data/opkg-manager/install-helper
-themer_installer_install
-dbus_common_add_dbus_settings "$DBUS_SETTINGS"
+#source /data/dev/utils/opkg-manager/src/data/opkg-manager/dbus-common
+#source /data/dev/utils/opkg-manager/src/data/opkg-manager/install-helper
+#themer_installer_install
+#dbus_common_add_settings <<< "$DBUS_SETTINGS"
 
 if [[ "${1:-}" == "install" || "${1:-}" == "post-install" || "${1:-}" == "dev-install" ]]; then
 	install_helper_post_install
@@ -52,11 +50,8 @@ else
   exit 1
 fi
 
-
-
-
 # install_helper_finished
- 
+
 #__add_remove_dbus_settings 0
 #install_helper_post_install
 #themer_common_patch_files

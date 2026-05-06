@@ -2,19 +2,20 @@
 
 RC_LOCAL_SCRIPT="
 # opkg-manager (do not edit)
-${VE_ROOT_DIR:-}/data/opkg-manager/rc.local.d/startup
+/data/opkg-manager/rc.local.d/startup
 "
 
 DBUS_SETTINGS="
-    OpkgManager/CustomMenus/PageSettings/OpkgPageSettingsSubMenu:s:0:0:
-		OpkgManager/CustomMenus/PageSettingsDisplay/OpkgPageSettingsDisplaySubMenu:s:0:0:
+    {'path':'/Settings/OpkgManager/CustomMenus/PageSettings/OpkgPageSettingsSubMenu'}
+		{'path':"/Settings/OpkgManager/CustomMenus/PageSettingsDisplay/OpkgPageSettingsDisplaySubMenu"}
 "
 
 if [[ "$1" == "dev-install" ]]; then
   VE_ROOT_DIR=/data/dev/utils/opkg-manager/src
 fi
 
-source ${VE_ROOT_DIR:-}/data/opkg-manager/install-helper
+# shellcheck disable=SC1091
+source "${VE_ROOT_DIR:-}/data/opkg-manager/install-helper"
 
 if [[ "$1" == "install" || "$1" == "post-install" || "$1" == "dev-install" ]]; then
 	install_helper_post_install
