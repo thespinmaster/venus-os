@@ -150,23 +150,21 @@ install_helper_post_install() {
 
 	__load_source_file "opkg-common"
 	__load_source_file "dbus-common"
+	__load_source_file "file-patcher"
 
 	echo "registering package: $PACKAGE_NAME"
 	opkg_common_register_package "$PACKAGE_NAME"
 
 	[[ -n "${RC_LOCAL_SCRIPT:-}" ]] &&
 		opkg_common_add_script_to_rc_local "${RC_LOCAL_SCRIPT}"
-	
-	(
-		echo "patching files"
-		
-		__load_source_file "file-patcher"
-		shopt -s nullglob #required to ensure if no .patch files exists,
-											# patchfile is not filled with the path instead
-		for patchfile in "$installer_path"/*.patch; do
-			file_patcher_apply_patch "$patchfile"
-		done
-	)
+ 
+	echo "patching files"
+ 
+	shopt -s nullglob #required to ensure if no .patch files exists,
+										# patchfile is not filled with the path instead
+	for patchfile in "$installer_path"/*.patch; do
+		file_patcher_apply_patch "$patchfile"
+	done
  
 	echo "adding dbus settings"
 
@@ -200,12 +198,10 @@ install_helper_pre_remove() {
 		opkg_common_remove_script_from_rc_local "${RC_LOCAL_SCRIPT}"
  
 	opkg_common_unregister_package "$PACKAGE_NAME"
+ 
+	__load_source_file "file-patcher"
+	install_helper_add_remove_patch remove
 
-	(
-		__load_source_file "file-patcher"
-		install_helper_add_remove_patch remove
-	)
-	
 	echo "removing dbus settings"
 
 	[[ -n "${DBUS_SETTINGS:-}" ]] && {
@@ -221,7 +217,7 @@ install_helper_pre_remove() {
 }
 
 install_helper_restart_gui_service() {
-	echo "DDDD"
+	echo "DDDD:RESTART_GUI_SERVICE=$RESTART_GUI_SERVICE"
 	((RESTART_GUI_SERVICE)) || return
 	echo "EEEE"
 
