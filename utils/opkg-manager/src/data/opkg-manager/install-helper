@@ -40,7 +40,8 @@ install_helper_add_remove_dbus_csv_items() {
  
 	__install_helper_add_remove_comma_delimited_string "$command" cvs_string "$@" 
 
-	dbus_common_add_settings <<< "{path:\"${dbusPath}\", \"default\": \"$cvs_string\"}"
+	# TODO UPDATE
+	dbus_common_add_settings <<< "{'path':'${dbusPath}', 'default': '${cvs_string}'}"
 }
 
 install_helper_add_remove_custom_service_path() {
