@@ -134,14 +134,12 @@ install_helper_add_remove_patch() {
 
 	for patchfile in "$installer_path"/*.patch; do
 		RESTART_GUI_SERVICE=1
-		echo "install_helper_add_remove_patch:RESTART_GUI_SERVICE=$RESTART_GUI_SERVICE"
 		if ((remove==0)); then
 			file_patcher_apply_patch "$patchfile"
 		else
 			file_patcher_revert_patch "$patchfile"
 		fi
 	done
-	echo "RESTART_GUI_SERVICE:$RESTART_GUI_SERVICE" 
 }
 
 install_helper_post_install() {
@@ -172,12 +170,8 @@ install_helper_post_install() {
  
 	[[ -n "${DBUS_SETTINGS:-}" ]] && {
 		dbus_common_add_settings <<< "$DBUS_SETTINGS"
-		echo "AAAAA"
 		install_helper_add_remove_custom_service_path "add"
-		echo "BBBBB"
 	}
-	
-	echo "CCCCC"
 
 	install_helper_restart_gui_service
 	return 0
@@ -192,13 +186,14 @@ install_helper_pre_remove() {
 
 	__load_source_file "opkg-common"
  	__load_source_file "dbus-common"
- 
+  __load_source_file "file-patcher"
+
 	[[ -n "${RC_LOCAL_SCRIPT:-}" ]] &&
 		opkg_common_remove_script_from_rc_local "${RC_LOCAL_SCRIPT}"
  
 	opkg_common_unregister_package "$PACKAGE_NAME"
- 
-	__load_source_file "file-patcher"
+  
+	echo "reverting patched files"
 	install_helper_add_remove_patch remove
 
 	echo "removing dbus settings"
@@ -216,10 +211,8 @@ install_helper_pre_remove() {
 }
 
 install_helper_restart_gui_service() {
-	echo "DDDD:RESTART_GUI_SERVICE=$RESTART_GUI_SERVICE"
 	((RESTART_GUI_SERVICE)) || return
-	echo "EEEE"
-
+ 
 	echo "restarting gui service..."
   svc -t /service/gui
 }
