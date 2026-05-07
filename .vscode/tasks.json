@@ -134,9 +134,9 @@
       "problemMatcher": []
     },
     {
-      "label": "build opkg-manager mount-shares packages",
+      "label": "build opkg-manager",
       "type": "shell",
-      "command": "bash ${workspaceFolder}/tasks/make-packages opkg-manager mount-shares",
+      "command": "bash ${workspaceFolder}/tasks/make-packages opkg-manager",
       "presentation": {
         "echo": true,
         "reveal": "always",

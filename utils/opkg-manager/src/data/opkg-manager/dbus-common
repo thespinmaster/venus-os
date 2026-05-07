@@ -90,7 +90,8 @@ dbus_common_get_value() {
 	local -n __value="$2"
 	local default_value="${3:-}"
 	local value
- 
+	
+	echo "dbus_common_get_value in"
 	value="$(dbus -y "com.victronenergy.settings" "$path" GetValue 2>/dev/null)"
 
 	#strip single quotes from the start and end
