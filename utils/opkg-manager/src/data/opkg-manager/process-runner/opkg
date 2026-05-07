@@ -4,9 +4,9 @@
 
 set -o nounset
 
-declare __this_path=$(dirname "${BASH_SOURCE[0]}")
+declare __this_path;__this_path=$(dirname "${BASH_SOURCE[0]}")
 
-. $__this_path/../opkg-common
+. "$__this_path/../opkg-common"
  
 declare OPKG_PACKAGES_JSON_CACHE_FILE="/tmp/opkg-common-list-packages.json"
 declare OPKG_FEEDS_JSON_CACHE_FILE="/tmp/opkg-common-feeds.json"
@@ -39,7 +39,7 @@ opkg_get_feeds() {
 		while IFS= read -r line; do
 			[[ -z "$line" || "$line" == \#* ]] && continue
 			[[ "$line" != src/gz* ]] && continue
-			set -- $line
+			set -- "$line"
 			local name="$2"
 			local url="$3"
 			local builtin=false
@@ -99,7 +99,7 @@ __opkg_qml_feed_crud() {
     retval=$?; [[ $retval == 0 ]] && _exists=1;
   }
 
-  feedNameExists ${existing_feed_name} exists
+  feedNameExists "${existing_feed_name}" exists
 
   if [[ $mode == add ]]; then
     ((exists)) && { 
@@ -115,9 +115,9 @@ __opkg_qml_feed_crud() {
     [[ -z "${feed_url}" ]] && { 
       echo "edit: feed url required" >&2; return 1; }
  
-    [[ -n $old_feed_name && ! $feed_name == $old_feed_name ]] && {
+    [[ -n $old_feed_name && ! "${feed_name}" == "${old_feed_name}" ]] && {
       # check new feed name does not exist
-      feedNameExists ${feed_name} exists
+      feedNameExists "${feed_name}" exists
       ((exists)) && { 
         echo "Feed not found: $feed_name" >&2; return 1; }
     }
@@ -248,7 +248,7 @@ opkg_qml_list_packages() {
     callUpdate=1
   fi
  
-  if (($callUpdate)); then
+  if ((callUpdate==1)); then
     opkg update
   fi
 
@@ -256,7 +256,7 @@ opkg_qml_list_packages() {
     while IFS= read -r line; do
       [[ -z "${line}" || "${line}" == \#* ]] && continue
       [[ "${line}" != src/gz* ]] && continue
-      set -- ${line} # DONT QUOTE set -- splits on whitespace
+      set -- "${line}" # DONT QUOTE set -- splits on whitespace
       [[ -n "${2:-}" ]] && feeds["${2}"]=1
     done < "${OPKG_FEED_LOCAL_CONFIG_FILE}"
 
