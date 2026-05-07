@@ -36,7 +36,6 @@ install_helper_add_remove_dbus_csv_items() {
   local dbusPath="$2"
 	shift 2
 
-	echo "install_helper_add_remove_dbus_csv_items in"
 	dbus_common_get_value "${dbusPath}" csv_string
  
 	__install_helper_add_remove_comma_delimited_string "$command" csv_string "$@" 
