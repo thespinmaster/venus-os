@@ -9,8 +9,8 @@ else
   . "$__this_path/../../../../opkg-manager/src/data/opkg-manager/libs/log-lib"
 fi
 
-readonly mount_common_path="${VENUS_ROOT_DIR:-}/data/mount-shares"
-readonly mountpoint_conf_file="${mount_common_path}/mountpoints.conf"
+# readonly mount_common_path="${VENUS_ROOT_DIR:-}/data/mount-shares"
+readonly mountshares_conf_file="/data/conf/mountshares.conf"
 
 # exposed so can override for mocking
 __mount_common___read() {
@@ -25,9 +25,9 @@ __update_mount_settings() {
   local -i found=0
   local temp_file
 
-  [[ -f "${mountpoint_conf_file}" ]] || {
-    mkdir -p "$(dirname "${mountpoint_conf_file}")"
-    echo "${mount_settings}" >> "${mountpoint_conf_file}"
+  [[ -f "${mountshares_conf_file}" ]] || {
+    mkdir -p "$(dirname "${mountshares_conf_file}")"
+    echo "${mount_settings}" >> "${mountshares_conf_file}"
     return 0
   }
 
@@ -39,10 +39,10 @@ __update_mount_settings() {
     else
       echo "${line}" >> "${temp_file}"
     fi
-  done < "${mountpoint_conf_file}"
+  done < "${mountshares_conf_file}"
 
   ((found == 0)) && echo "${mount_settings}" >> "${temp_file}"
-  mv "${temp_file}" "${mountpoint_conf_file}"
+  mv "${temp_file}" "${mountshares_conf_file}"
 
   return 0
 }
@@ -139,7 +139,7 @@ mount_common_mount_all() {
   local -a mount_args=()
   local -i target_index=0
 
-  if [[ ! -f ${mountpoint_conf_file} ]]; then
+  if [[ ! -f ${mountshares_conf_file} ]]; then
     log "missing mountpoint.conf file"
     return 0
   fi
@@ -155,7 +155,7 @@ mount_common_mount_all() {
 
     [[ "$target" == /* ]] || continue
     (mount_common_mount_server --targetpath "$target" "${mount_args[@]}" &) || true
-  done <"${mountpoint_conf_file}"
+  done <"${mountshares_conf_file}"
 
   return 0
 }
@@ -250,7 +250,7 @@ mount_common_mountprompt() {
 # Args:
 #   {1} mount target path
 mount_common_remove_mount() {
-  [[ -f "${mountpoint_conf_file}" ]] || return 0
+  [[ -f "${mountshares_conf_file}" ]] || return 0
 
   local mount_target="${1}"
   local line
@@ -260,9 +260,9 @@ mount_common_remove_mount() {
   while IFS= read -r line || [[ -n "${line}" ]]; do
     [[ "${line##* }" == "${mount_target}" ]] && continue
     echo "${line}" >> "${temp_file}"
-  done < "${mountpoint_conf_file}"
+  done < "${mountshares_conf_file}"
 
-  mv "${temp_file}" "${mountpoint_conf_file}"
+  mv "${temp_file}" "${mountshares_conf_file}"
 
   return 0
 }
