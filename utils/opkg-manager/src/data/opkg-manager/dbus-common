@@ -27,8 +27,10 @@ dbus_common_add_settings () {
 
 __call_dbus_settings() {
 	if (( ${LOGLEVEL:-0} == ${LOGLEVEL_TRACE:-1} )); then
+		echo "aaa"
 		dbus -y com.victronenergy.settings "$@"		
 	else
+		echo "bbb"
 		dbus -y com.victronenergy.settings  "$@" 2>&1
 	fi
 }
