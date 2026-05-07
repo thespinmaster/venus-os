@@ -382,6 +382,7 @@ EOF
   [[ -z "${target}" ]] && __mount_common___read -r -p "Enter local mount point folder: " target
   [[ -z "${username}" ]] && __mount_common___read -r -p "Enter username for share: " username
   [[ -z "${password}" ]] && __mount_common___read -r -s -p "Enter password for share: " password
+  [[ -z "${options}" ]] && __mount_common___read -r -s -p "Enter options for share: " options
 
   if [[ -z "${source}" ]] || [[ -z "${target}" ]]; then
     log_error "ERROR: required args missing"

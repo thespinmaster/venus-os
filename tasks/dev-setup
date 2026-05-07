@@ -64,7 +64,7 @@ opkg install mount-shares
   # `unix` creates real symlinks unlike mfsymlinks.
   mount_common_mount --targetpath "/data/mnt/dev" -- \
     -t cifs \
-    -o "user=${share_username},pass=${share_password},exec,unix" \
+    -o "username=${share_username},password=${share_password},exec,mfsymlinks" \
     "${share_source}"
 )
 

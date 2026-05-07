@@ -218,7 +218,34 @@ mount_common_mount() {
   mount_settings="${persisted_args[*]}"
   __update_mount_settings "${mount_target}" "${mount_settings}"
 }
- 
+
+mount_common_mountprompt() {
+  local source target username password options type
+
+  read -r -p "Enter the mount type cifs|nfs [default cifs]: " type
+  read -r -p "Enter server ip/host address and path: " source
+  [[ -z "${source}" ]] && { echo "cancelled"; return 1; }
+  read -r -p "Enter local mount point folder: [default folder /data/mnt/]: " target
+  [[ -z "${target}" ]] && { echo "cancelled"; return 1; }
+  read -r -p "Enter username for share: " username
+  read -r -s -p "Enter password for share: " password
+  echo
+  read -r -p "Enter extra options [defaults exec,mfsymlinks ('none'; no options)]: " options
+
+  type="${type:-cifs}"
+  options="${options:-exec,mfsymlinks}"
+  [[ "${source:0:2}" != "//" ]] && source="//${source}"
+  [[ "${target:0:1}" != "/" ]] && target="/data/mnt/$target"
+  [[ "${options}" == "none" ]] && options=""
+  [[ -n "${options}" ]] && options=",${options}"
+
+  # shellcheck disable=SC2140
+  mount_common_mount --targetpath="$target" -t "${type}" -o "username=${username},password=${password}${options}" "${source}" "${target}"
+  echo "done"
+
+}
+
+
 # Removes a saved mount entry by target path from mountpoints.conf.
 # Args:
 #   {1} mount target path
@@ -258,6 +285,7 @@ case "${1:-}" in
     mount_common_wait_on_mount_point "$@"
     ;;
   *)
-    [[ -n "${1:-}" ]] && echo "invalid command: ${1:-}"
+    shift
+    mount_common_mountprompt
     ;;
 esac
