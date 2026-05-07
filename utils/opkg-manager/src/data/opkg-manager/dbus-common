@@ -18,7 +18,6 @@ dbus_common_add_settings () {
 		settings+="${line}, "
 	done
 
-	
 	[[ -n "$settings" ]] && {
 		__call_dbus_settings / AddSettings "%[ $settings ]"
 	}
@@ -27,11 +26,9 @@ dbus_common_add_settings () {
 
 __call_dbus_settings() {
 	if (( ${LOGLEVEL:-0} == ${LOGLEVEL_TRACE:-1} )); then
-		echo "aaa"
-		dbus -y com.victronenergy.settings "$@"		
+		dbus -y com.victronenergy.settings "$@"
 	else
-		echo "bbb"
-		dbus -y com.victronenergy.settings  "$@" 2>&1
+		dbus -y com.victronenergy.settings "$@" &> /dev/null
 	fi
 }
 
@@ -100,7 +97,7 @@ dbus_common_get_value() {
 	local default_value="${3:-}"
 	local value
  
-	value="$(__call_dbus_settings "$path" GetValue &>/dev/null)"
+	value="$(dbus -y com.victronenergy.settings "$path" GetValue 2>/dev/null)"
 
 	#strip single quotes from the start and end
 	value="${value#\'}"
@@ -112,7 +109,7 @@ dbus_common_get_value() {
 			return 1 # return 1 if no value or default is provided
 		fi
 	else
-			__value="$value"
+		__value="$value"
 	fi
 	return 0
 }
