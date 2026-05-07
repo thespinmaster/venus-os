@@ -10,7 +10,8 @@ set -e
 __usb_get_device() {
   local port="$1"
   local -n out_usbdev=$2
-  local path=$(readlink -f /sys/class/tty/${port}/device)
+  local path; path=$(readlink -f /sys/class/tty/"${port}"/device)
+  # shellcheck disable=SC2034
   out_usbdev=$(basename "$(dirname "$(dirname "$path")")")
 }
 
@@ -25,8 +26,8 @@ usb_get_tty() {
   local device="${2:-}"
   local tty=
 
-  [[ -n "$bus" ]] || { echo "arg2: Bus number missing"; return 1; }
-  [[ -n "$device" ]] || { echo "arg3: Device number missing"; return 1; }
+  [[ -n "$bus" ]] || { echo "arg1: Bus number missing"; return 1; }
+  [[ -n "$device" ]] || { echo "arg2: Device number missing"; return 1; }
 
   tty=$(udevadm info --query=path --name="/dev/bus/usb/${bus}/${device}" \
     | xargs -I% find "/sys%" -path '*/tty*' -name 'device' \
@@ -35,34 +36,6 @@ usb_get_tty() {
 
   [[ -n "$tty" ]] || { echo "port not found" >&2; return 1; }
   echo "$tty"
-}
-
-# List `udevadm` properties for one USB tty device, or all USB tty devices.
-# Args:
-#   $1: optional tty port name under `/dev` (for example `ttyUSB0`).
-# Outputs:
-#   Prints `udevadm` properties for the requested tty device(s).
-usb_list() {
-  local port="${1:-}"
-  local devpath=
-  local found=0
-
-  if [[ -n "$port" ]]; then
-    devpath="/dev/$port"
-    [[ -e "$devpath" ]] || { echo "ERROR: Device not found: $devpath" >&2; return 1; }
-    udevadm info --query=property --name="$devpath"
-    return 0
-  fi
-
-  for devpath in /dev/ttyUSB* /dev/ttyACM*; do
-    [[ -e "$devpath" ]] || continue
-    found=1
-    echo "### $(basename "$devpath") ###"
-    udevadm info --query=property --name="$devpath"
-    echo
-  done
-
-  (( found )) || { echo "ERROR: No USB tty devices found" >&2; return 1; }
 }
 
 # Disconnect a USB device by unbinding the driver for the tty port.
@@ -137,6 +110,22 @@ usb_reconnect() {
     return 1
   fi
 }
+usb_get_prop() {
+  udevadm info --query=property --name="$1" | sed -n "s/^$2=//p"
+}
+
+usb_get_props() {
+  local devpath="$1"
+  local props prop
+  shift
+ 
+  props=$(udevadm info --query=property --name="$devpath" || echo "")
+  [[ -z "$*" ]] && return "$props"
+
+  for prop in "$@"; do
+    printf '%s\n' "$props" | sed -n "s/^${prop}=//p"
+  done
+}
 
 # Validate that a required positional argument was provided.
 # Args:
@@ -165,6 +154,8 @@ Usage:
       Resolve the tty from the bus:device values shown by `lsusb`.
   usb-device list [ttyUSB0]
       Show all `udevadm` properties for one tty, or all USB tty devices.
+    usb-device get-prop ttyUSB0 ID_MODEL [ID_VENDOR ...]
+      Gets one or more udev properties for the given tty device.
 EOF
 }
 
@@ -174,8 +165,6 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
       usb_help
       ;;
     get-tty)
-      [[ -n "${2:-}" ]] || { echo "arg2: Bus number missing" >2 ; exit 1; }
-      [[ -n "${3:-}" ]] || { echo "arg3: Device number missing" >2; exit 1; }
       shift
       usb_get_tty "${1}" "${2}"
       ;;
@@ -197,6 +186,16 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
       __validatePort "${2:-}"
       shift
       usb_reconnect "${1}"
+      ;;
+    usb_get_props)
+      __validatePort "${2:-}"
+      shift
+      usb_get_props "$@"
+      ;;
+    get-prop)
+      __validatePort "${2:-}"
+      shift
+      usb_get_prop "$@"
       ;;
     *)
       echo "ERROR: Unknown command: ${1}" >&2

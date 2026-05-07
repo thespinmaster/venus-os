@@ -378,7 +378,7 @@ opkg_common_unregister_package() {
   fi
 
 }
- 
+
 case "${1:-}" in
   opkg_common_ensure_installed)
     if [[ "${2:-}" == "--dry-run" ]]; then

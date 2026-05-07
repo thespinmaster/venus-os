@@ -19,7 +19,7 @@ dbus_common_add_settings () {
 	done
 
 	[[ -n "$settings" ]] &&
-		dbus -y com.victronenergy.settings / AddSettings "%[ $settings ]" &> /dev/null
+		dbus -y com.victronenergy.settings / AddSettings "%[ $settings ]" # &> /dev/null
 
 }
 # Function: dbus_common_remove_settings
@@ -63,12 +63,13 @@ dbus_common_set_string_value() {
 	local path="${1}"
 	local value="${2}"
 	#&>/dev/null;
+	echo "dbus_common_set_string_value in"
 	if ! dbus -y com.victronenergy.settings "${path}" SetValue "${value}"; then
 		echo "adding new setting"
-		if dbus -y com.victronenergy.settings / AddSettings "%[ {'path':'${path}', 'default':''} ]" &>/dev/null; then
+		if dbus -y com.victronenergy.settings / AddSettings "%[ {'path':'${path}', 'default':''} ]"; then # &>/dev/null; then
 			echo "setting value"
 			echo dbus -y com.victronenergy.settings / AddSettings "%[ {'path':'${path}', 'default':''} ]"
-			dbus -y com.victronenergy.settings "${path}" SetValue "${value}" &> /dev/null &&
+			dbus -y com.victronenergy.settings "${path}" SetValue "${value}" && # &> /dev/null &&
 					exit 1
 			
 		fi

@@ -35,7 +35,7 @@ install_helper_add_remove_dbus_csv_items() {
 	local command="$1"
   local dbusPath="$2"
 	shift 2
- 
+
 	dbus_common_get_value "${dbusPath}" csv_string
  
 	__install_helper_add_remove_comma_delimited_string "$command" csv_string "$@" 
@@ -146,15 +146,18 @@ install_helper_post_install() {
 
   [[ -z "$PACKAGE_NAME" ]] && { echo "ERROR: PACKAGE_NAME not set"; return 1; }
 
-	local installer_path
-	installer_path="$(dirname "${BASH_SOURCE[1]}")"
+	local installer_path; installer_path="$(dirname "${BASH_SOURCE[1]}")"
 
 	__load_source_file "opkg-common"
 	__load_source_file "dbus-common"
 	__load_source_file "file-patcher"
+ 
+	echo "registering package: ${PACKAGE_NAME}"
+	opkg_common_register_package "${PACKAGE_NAME}"
 
-	echo "registering package: $PACKAGE_NAME"
-	opkg_common_register_package "$PACKAGE_NAME"
+	if [[ -f "/data/${PACKAGE_NAME}/buildtime" ]]; then
+		echo "Package build time: $(cat /data/"${PACKAGE_NAME}"/buildtime)"
+	fi
 
 	[[ -n "${RC_LOCAL_SCRIPT:-}" ]] &&
 		opkg_common_add_script_to_rc_local "${RC_LOCAL_SCRIPT}"
@@ -166,10 +169,10 @@ install_helper_post_install() {
 	echo "adding dbus settings"
 
 	[[ -n "${DBUS_SETTINGS_DEPRECIATED:-}" ]] &&
-		dbus_common_remove_settings <<< "$DBUS_SETTINGS_DEPRECIATED"
+		dbus_common_remove_settings <<< "${DBUS_SETTINGS_DEPRECIATED}"
  
 	[[ -n "${DBUS_SETTINGS:-}" ]] && {
-		dbus_common_add_settings <<< "$DBUS_SETTINGS"
+		dbus_common_add_settings <<< "${DBUS_SETTINGS}"
 		install_helper_add_remove_custom_service_path "add"
 	}
 

@@ -132,6 +132,9 @@ build_package() {
   local staging_path;
   stage_source_byref "$build_path" "$path" staging_path || return 1
   
+  mkdir -p "${staging_path}/data/${name}"
+  echo "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" > "${staging_path}/data/${name}/buildtime"
+  
   opkg-build -o root -g root "${staging_path}" ./
 
   rm -r "${build_path:?}/"*
