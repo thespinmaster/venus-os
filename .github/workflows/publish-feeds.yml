@@ -61,3 +61,11 @@ EOF
 
       echo "</body></html>" >> "$dir/index.html"
     done
+
+- name: Deploy to gh-pages
+  uses: peaceiris/actions-gh-pages@v4
+  with:
+    github_token: ${{ secrets.GITHUB_TOKEN }}
+    publish_branch: gh-pages
+    publish_dir: ./public
+    force_orphan: true
