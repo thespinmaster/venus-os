@@ -1,49 +1,59 @@
-name: Publish multi-feed opkg repo
+- name: Build static feed dashboard
+  run: |
+    rm -rf public
+    mkdir -p public
 
-on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'feeds/**'
+    cp -r feeds/* public/
 
-jobs:
-  publish:
-    runs-on: ubuntu-latest
+    # Generate root landing page
+    cat > public/index.html << 'EOF'
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>opkg Feed Repository</title>
+  <style>
+    body { font-family: sans-serif; margin: 40px; }
+    a { display: block; margin: 8px 0; }
+  </style>
+</head>
+<body>
+  <h1>opkg Feed Repository</h1>
+  <h2>Feeds</h2>
+  <a href="release/main/">📦 Release</a>
+  <a href="testing/main/">🧪 Testing</a>
+</body>
+</html>
+EOF
 
-    permissions:
-      contents: write
+    # Generate directory index pages (like http.server)
+    find public -type d | while read dir; do
+      if [ "$dir" = "public" ]; then continue; fi
 
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      echo "Generating index for $dir"
 
-      - name: Validate feeds
-        run: |
-          set -e
-          for feed in feeds/*; do
-            [ -d "$feed" ] || continue
-            for sub in "$feed"/*; do
-              [ -d "$sub" ] || continue
-              if ls "$sub"/*.ipk >/dev/null 2>&1; then
-                if [ ! -f "$sub/Packages.gz" ]; then
-                  echo "ERROR: Missing Packages.gz in $sub"
-                  exit 1
-                fi
-              fi
-            done
-          done
+      files=$(ls "$dir" 2>/dev/null || true)
 
-      - name: Prepare publish directory
-        run: |
-          rm -rf public
-          mkdir public
-          cp -r feeds/* public/
+      cat > "$dir/index.html" << EOF
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Index of $dir</title>
+  <style>
+    body { font-family: sans-serif; margin: 40px; }
+    a { display: block; margin: 4px 0; }
+  </style>
+</head>
+<body>
+  <h1>Index of $(basename "$dir")</h1>
+  <a href="../">⬅ Parent</a>
+EOF
 
-      - name: Deploy to gh-pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_branch: gh-pages
-          publish_dir: ./public
-          force_orphan: true
+      for f in $files; do
+        [ "$f" = "index.html" ] && continue
+        echo "<a href=\"$f\">$f</a>" >> "$dir/index.html"
+      done
+
+      echo "</body></html>" >> "$dir/index.html"
+    done
