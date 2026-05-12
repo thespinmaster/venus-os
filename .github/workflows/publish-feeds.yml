@@ -1,7 +1,14 @@
-- name: Create landing page
+- name: Build and deploy opkg feeds to GitHub Pages
   run: |
+    set -e
+
+    rm -rf public
     mkdir -p public
 
+    # Preserve full feeds structure under /feeds
+    cp -r feeds public/feeds
+
+    # Root landing page (fixes 404)
     cat > public/index.html << 'EOF'
 <!doctype html>
 <html>
@@ -11,18 +18,28 @@
 </head>
 <body>
   <h1>opkg Feed Repository</h1>
-
+  <h2>Feeds</h2>
   <ul>
-    <li><a href="feeds/">Feeds</a></li>
+EOF
+
+    find public/feeds -mindepth 2 -maxdepth 2 -type d | while read d; do
+      rel=${d#public/}
+      echo "    <li><a href=\"/$rel/\">$rel</a></li>" >> public/index.html
+    done
+
+    cat >> public/index.html << 'EOF'
   </ul>
 </body>
 </html>
 EOF
 
-- name: Deploy to gh-pages
-  uses: peaceiris/actions-gh-pages@v4
-  with:
-    github_token: ${{ secrets.GITHUB_TOKEN }}
-    publish_branch: gh-pages
-    publish_dir: ./public
-    force_orphan: true
+    # Deploy to gh-pages
+    git config user.name "github-actions"
+    git config user.email "github-actions@github.com"
+
+    cd public
+    git init
+    git add .
+    git commit -m "Deploy feeds"
+    git branch -M gh-pages
+    git push --force "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" gh-pages
