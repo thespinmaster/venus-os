@@ -19,41 +19,39 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Build static site
+      - name: Build static opkg site
         run: |
           set -e
 
           rm -rf public
-          mkdir -p public
+          mkdir -p public/feeds
 
-          # Preserve feeds structure exactly
-          cp -r feeds public/feeds
+          # Copy feeds EXACTLY as-is (no restructuring)
+          cp -r feeds/* public/feeds/
 
-          # Root landing page (fixes 404)
-          cat > public/index.html << 'EOF'
-<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>opkg Feed Repository</title>
-</head>
-<body>
-  <h1>opkg Feed Repository</h1>
-  <h2>Feeds</h2>
-  <ul>
-EOF
+          # Create root landing page (fixes 404)
+          {
+            echo "<!doctype html>"
+            echo "<html>"
+            echo "<head>"
+            echo "  <meta charset='utf-8'>"
+            echo "  <title>opkg Feed Repository</title>"
+            echo "</head>"
+            echo "<body>"
+            echo "  <h1>opkg Feed Repository</h1>"
+            echo "  <h2>Feeds</h2>"
+            echo "  <ul>"
 
-          # Dynamically list feeds (no hardcoding release/testing)
-          find public/feeds -mindepth 2 -maxdepth 2 -type d | while read d; do
-            rel=${d#public/}
-            echo "    <li><a href=\"/$rel/\">$rel</a></li>" >> public/index.html
-          done
+            # Dynamically list feed directories
+            for d in $(find public/feeds -mindepth 2 -maxdepth 2 -type d); do
+              rel=${d#public/}
+              echo "    <li><a href=\"/$rel/\">$rel</a></li>"
+            done
 
-          cat >> public/index.html << 'EOF'
-  </ul>
-</body>
-</html>
-EOF
+            echo "  </ul>"
+            echo "</body>"
+            echo "</html>"
+          } > public/index.html
 
       - name: Deploy to gh-pages
         uses: peaceiris/actions-gh-pages@v4
