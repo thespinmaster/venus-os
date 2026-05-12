@@ -19,7 +19,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Build static site
+      - name: Build static opkg site
         run: |
           set -e
 
@@ -29,54 +29,55 @@ jobs:
           # Copy feeds exactly as-is
           cp -r feeds/* public/feeds/
 
-          # Root index page
-          cat > public/index.html << 'EOF'
-<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>opkg Feed Repository</title>
-</head>
-<body>
-  <h1>opkg Feed Repository</h1>
+          # -----------------------------
+          # ROOT INDEX (fixes 404)
+          # -----------------------------
+          {
+            echo "<!doctype html>"
+            echo "<html>"
+            echo "<head>"
+            echo "  <meta charset='utf-8'>"
+            echo "  <title>opkg Feed Repository</title>"
+            echo "</head>"
+            echo "<body>"
+            echo "  <h1>opkg Feed Repository</h1>"
+            echo "  <h2>Feeds</h2>"
+            echo "  <ul>"
+            echo "    <li><a href=\"feeds/\">feeds</a></li>"
+            echo "  </ul>"
+            echo "</body>"
+            echo "</html>"
+          } > public/index.html
 
-  <h2>Feeds</h2>
-  <ul>
-    <li><a href="feeds/">feeds</a></li>
-  </ul>
-</body>
-</html>
-EOF
-
-      - name: Generate directory index files
-        run: |
-          set -e
-
-          # Create index.html in EVERY directory under feeds
+          # -----------------------------
+          # DIRECTORY INDEX GENERATION
+          # (THIS FIXES YOUR CLICK 404s)
+          # -----------------------------
           find public/feeds -type d | while read dir; do
 
-            rel=${dir#public/feeds/}
+            {
+              echo "<!doctype html>"
+              echo "<html>"
+              echo "<head>"
+              echo "  <meta charset='utf-8'>"
+              echo "  <title>Index</title>"
+              echo "</head>"
+              echo "<body>"
+              echo "  <h1>Index</h1>"
+              echo "  <ul>"
 
-            cat > "$dir/index.html" << EOF
-<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>${rel:-feeds}</title>
-</head>
-<body>
-  <h1>${rel:-feeds}</h1>
-  <ul>
-EOF
+              for f in "$dir"/*; do
+                [ -e "$f" ] || continue
+                name=$(basename "$f")
+                [ "$name" = "index.html" ] && continue
+                echo "    <li><a href=\"$name\">$name</a></li>"
+              done
 
-            for f in "$dir"/*; do
-              [ -e "$f" ] || continue
-              name=$(basename "$f")
-              [ "$name" = "index.html" ] && continue
-              echo "    <li><a href=\"$name\">$name</a></li>" >> "$dir/index.html"
-            done
+              echo "  </ul>"
+              echo "</body>"
+              echo "</html>"
+            } > "$dir/index.html"
 
-            echo "  </ul></body></html>" >> "$dir/index.html"
           done
 
       - name: Deploy to gh-pages
