@@ -1,0 +1,46 @@
+name: Publish multi-feed opkg repo
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'feeds/**'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+
+      - name: Validate feeds
+        run: |
+          set -e
+          for feed in feeds/*; do
+            [ -d "$feed" ] || continue
+            for sub in "$feed"/*; do
+              [ -d "$sub" ] || continue
+              if ls "$sub"/*.ipk >/dev/null 2>&1; then
+                if [ ! -f "$sub/Packages.gz" ]; then
+                  echo "ERROR: Missing Packages.gz in $sub"
+                  exit 1
+                fi
+              fi
+            done
+          done
+
+      - name: Prepare publish directory
+        run: |
+          rm -rf public
+          mkdir public
+          cp -r feeds/* public/
+
+      - name: Deploy to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: ./public
+          force_orphan: true
