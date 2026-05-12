@@ -1,3 +1,8 @@
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
 - name: Build and deploy opkg feeds to GitHub Pages
   run: |
     set -e
