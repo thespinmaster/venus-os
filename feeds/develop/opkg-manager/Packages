@@ -6,7 +6,7 @@ Maintainer: thespinmaster@github.com
 MD5Sum: d94b6eae75c5312ec3f8001e027d2bba
 Size: 79888
 Filename: opkg-manager_1.0.1_all.ipk
-Source: https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feeds/release/opkg-manager
+Source: https://github.com/thespinmaster/venus-os
 Description: A manager for installing opkg packages on the Venus OS
  A manager for installing opkg packages on the Venus OS
 OE: einstine

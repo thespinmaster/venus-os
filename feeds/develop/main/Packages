@@ -7,7 +7,7 @@ Maintainer: thespinmaster@github.com
 MD5Sum: 2dcc347657c664cab33f7cfae28dcc3d
 Size: 122396
 Filename: dbus-inetbox_0.0.1_all.ipk
-Source: https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feeds/release/main/dbus-inetbox
+Source: https://github.com/thespinmaster/venus-os
 Description: Adds support for Truma inetbox to Venus-OS
  Adds support for Truma inetbox to Venus-OS
 OE: dbus-inetbox
@@ -23,7 +23,7 @@ Maintainer: thespinmaster@github.com
 MD5Sum: bfe9c697d7d0d76e0f0cc51df78ae692
 Size: 69214
 Filename: dbus-ne-shunt_1.0.19_all.ipk
-Source: https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feeds/release/main/dbus-ne-shunt
+Source: https://github.com/thespinmaster/venus-os
 Description: Adds support for NordElectronica shunt NE196/NE319 board to Venus-OS
  Adds support for NordElectronica shunt NE196/NE319 board to Venus-OS
 OE: dbus-ne-shunt
@@ -39,7 +39,7 @@ Maintainer: Lucien Denisey <ldenisey@gmail.com>
 MD5Sum: 04fc8d2563201a32e1a6c59bbc414aee
 Size: 16274
 Filename: dbus-relay-board_1.0.0_all.ipk
-Source: https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feeds/release/main/dbus-relay-board
+Source: https://github.com/thespinmaster/venus-os
 Description: Add support to RS485, RS232 and TTL232 relay boards
  Add support to RS485, RS232 and TTL232 relay boards
 OE: dbus-relay-board
@@ -55,7 +55,7 @@ Maintainer: thespinmaster@github.com
 MD5Sum: f730aaa0ac3ff0a311c1b5fba4c8daa0
 Size: 67148
 Filename: mount-shares_1.0.1_all.ipk
-Source: https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feeds/release/main/mount-shares
+Source: https://github.com/thespinmaster/venus-os
 Description: Adds support for nfs and cifs shares to Venus OS
  Adds support for nfs and cifs shares to Venus OS
 OE: mount-shares
@@ -71,7 +71,7 @@ Maintainer: thespinmaster@github.com
 MD5Sum: da610abc0cb123330b5d6be33559eca0
 Size: 2190
 Filename: network-gps_1.0.0_all.ipk
-Source: https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feeds/release/main/network-gps
+Source: https://github.com/thespinmaster/venus-os
 Description: Network GPS using NMEA
  Network GPS using NMEA
 OE: network-gps
@@ -87,7 +87,7 @@ Maintainer: thespinmaster@github.com
 MD5Sum: 3622b48c6a8bc4fabeb0aa4f5fd9ee1a
 Size: 1086
 Filename: test-install_1.0.4_all.ipk
-Source: https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feeds/release/main/test-install
+Source: https://github.com/thespinmaster/venus-os
 Description: A simple app for testing install
  A simple app for testing install
 OE: einstine
@@ -103,7 +103,7 @@ Maintainer: thespinmaster@github.com
 MD5Sum: bd7a67283dd438d3296d0ba74f8ced64
 Size: 2402
 Filename: test-service_1.0.0_all.ipk
-Source: https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feeds/release/main/test-service
+Source: https://github.com/thespinmaster/venus-os
 Description: A simple service for testing
  A simple service for testing
 OE: einstine
