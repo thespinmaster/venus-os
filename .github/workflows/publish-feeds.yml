@@ -42,7 +42,7 @@ jobs:
               echo "  <title>Index</title>"
               echo "</head>"
               echo "<body>"
-              echo "  <h1>Index</h1>"
+              echo "  <h1>$dir</h1>"
               echo "  <ul>"
               
               # -----------------------------
