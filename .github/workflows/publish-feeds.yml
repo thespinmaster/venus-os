@@ -50,7 +50,7 @@ jobs:
               # -----------------------------
               parent=$(dirname "$dir")
               if [ -f "$parent/index.html" ]; then
-                echo "    <li><a href=\"../\">⬅ Parent</a></li>"
+                echo "    <li><a href=\"../\">..</a></li>"
               fi
           
               # -----------------------------
