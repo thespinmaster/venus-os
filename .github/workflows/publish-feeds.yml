@@ -1,66 +1,23 @@
-- name: Build opkg static site (generic)
+- name: Create landing page
   run: |
-    rm -rf public
     mkdir -p public
 
-    # 1. Copy feeds exactly as-is (NO hardcoding)
-    cp -r feeds public/feeds
-
-    # 2. Root landing page (auto-discovery)
     cat > public/index.html << 'EOF'
 <!doctype html>
 <html>
 <head>
   <meta charset="utf-8">
   <title>opkg Feed Repository</title>
-  <style>
-    body { font-family: sans-serif; margin: 40px; }
-    a { display: block; margin: 6px 0; }
-  </style>
 </head>
 <body>
   <h1>opkg Feed Repository</h1>
-  <h2>Feeds</h2>
+
+  <ul>
+    <li><a href="feeds/">Feeds</a></li>
+  </ul>
+</body>
+</html>
 EOF
-
-    # Dynamically list everything under /feeds
-    find public/feeds -mindepth 1 -maxdepth 2 -type d | while read d; do
-      rel=${d#public/}
-      echo "<a href=\"/$rel/\">$rel</a>" >> public/index.html
-    done
-
-    echo "</body></html>" >> public/index.html
-
-    # 3. Generate recursive directory indexes (http-server style)
-    find public/feeds -type d | while read dir; do
-
-      echo "Indexing $dir"
-
-      cat > "$dir/index.html" << EOF
-<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Index of $dir</title>
-  <style>
-    body { font-family: sans-serif; margin: 40px; }
-    a { display: block; margin: 4px 0; }
-  </style>
-</head>
-<body>
-  <h1>Index of ${dir#public/}</h1>
-  <a href="../">⬅ Parent</a>
-EOF
-
-      # list files + folders
-      for f in "$dir"/*; do
-        [ -e "$f" ] || continue
-        name=$(basename "$f")
-        echo "<a href=\"$name\">$name</a>" >> "$dir/index.html"
-      done
-
-      echo "</body></html>" >> "$dir/index.html"
-    done
 
 - name: Deploy to gh-pages
   uses: peaceiris/actions-gh-pages@v4
