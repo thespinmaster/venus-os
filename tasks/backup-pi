@@ -40,7 +40,7 @@ fi
 # -e 11 (exclude CDROM drives")
 
 echo
-if lsblk -e 11 -o rm | grep -q " 1"; then
+if ! lsblk -e 11 -o rm | grep -q " 1"; then
    echo "no removable disks found; exiting..."
    exit
 fi

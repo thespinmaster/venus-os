@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+# Used by task label: "opkg promote feeds (prompt)" in .vscode/tasks.json.
+# Promotes develop feeds to release feeds
+# and persists last-used task values in .vscode/.opkg-task-state.
+
+set -euo pipefail
+
+workspace_folder="${1:?workspace folder is required}"
+feed_in="${2:-}"
+
+state="${workspace_folder}/.vscode/.opkg-task-state"
+mkdir -p "${workspace_folder}/.vscode"
+# shellcheck disable=SC1090
+[[ -f "$state" ]] && . "$state"
+
+if [[ -n "$feed_in" ]]; then
+  echo "Promoting develop feed: $feed_in"
+  bash "${workspace_folder}/tasks/make-packages" --promote "$feed_in"
+else
+  echo "Promoting develop feeds"
+  bash "${workspace_folder}/tasks/make-packages" --promote
+fi
+
+rc=$?
+if [[ $rc -eq 0 ]]; then
+  {
+    printf 'LAST_OPKG_PACKAGE=%q\n' "${LAST_OPKG_PACKAGE:-opkg-manager}"
+  } > "$state"
+fi
+
+exit $rc

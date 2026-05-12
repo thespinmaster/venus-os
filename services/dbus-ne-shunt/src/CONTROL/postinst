@@ -1,24 +1,3 @@
 #!/bin/bash
  
-##############################################################
-# Install-helper. Prompts and detects usb serial devices
-# Creates /data/dbus-ne-shunt/serial-starter.rule file
-# Creates /data/dbus-ne-shunt/serial-starter.devname file
-# containing device name (ttyACM0, used to start and stop the service) 
-# Adds serial-starter.rule content to serial-serter.rules file
-##############################################################
-
-declare package_name="dbus-ne-shunt"
-#VE_SERVICE_MAPPING_NAME="neshunt"
-#TTY_FILE="/data/${SERVICE_NAME}/serial-starter.devname"
-#SERIAL_STARTER_RULE_FILE="/data/${SERVICE_NAME}/serial-starter.rule"
-#DBUS_MESSAGE_PATH="" #"com.victronenergy.packageManager /GuiEditStatus"
-
-source "${VENUS_ROOT_DIR:-}/data/opkg-manager/opkg-common"
-opkg_common_register_package "${package_name}"
-
-source "${VENUS_ROOT_DIR:-}/data/opkg-manager/serial-device-installer"
-serial_device_installer_install && serial_device_installer_start_service
-
-echo "${package_name} installed"
-
+"${VE_ROOT_DIR:-}/data/dbus-ne-shunt/installer" "install"

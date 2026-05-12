@@ -6,82 +6,8 @@ declare -i PATCH_LENGTH=0
 declare -a PATCH_LINES=()
 declare -a FILE_LINES=()
 
-
-__get_venus_verion_byref() {
-  local -n __version="${1}"
-
-  if [ -f "/opt/victronenergy/version" ]; then
-    __version="$(cat /opt/victronenergy/version | head -n 1)"
-    __version=${__version:1}
-  else
-    __version=""
-  fi
-}
-
-__version_check() {
-    local conditions=$1  # e.g., "<3.66", ">3.66", "=3.66", ">=3.70", ">3.66 <3.70"
-    local version=$2    # e.g., "3.62"
-    
-    # Handle multiple conditions (AND logic)
-    local condition
-    for condition in $conditions; do
-        __version_check_single "$condition" "$version" || return 1
-    done
-    return 0
-}
-
-# Check a single version condition
-__version_check_single() {
-    local condition=$1
-    local version=$2
-    
-    # Extract operator and required version
-    # Handle >=, <=, =, >, <
-    local op op_len required_version
-    
-    if [[ $condition == ">="* ]]; then
-        op=">="
-        op_len=2
-    elif [[ $condition == "<="* ]]; then
-        op="<="
-        op_len=2
-    else
-        op=${condition:0:1}
-        op_len=1
-    fi
-    
-    required_version=${condition:$op_len}
-    
-    # Handle equality
-    if [[ $op == "=" ]]; then
-        [[ $required_version == "$version" ]]
-        return
-    fi
-    
-    # Handle version comparison
-    if [[ $required_version == "$version" ]]; then
-        # Equal versions
-        case $op in
-            ">="|"<="|"=") return 0 ;;
-            ">"|"<") return 1 ;;
-        esac
-    fi
-    
-    # Use sort -V to determine ordering
-    if [[ $(printf '%s\n' "$required_version" "$version" | sort -V | head -n1) == "$required_version" ]]; then
-        # required_version < version, so version > required_version
-        case $op in
-            ">" | ">=") return 0 ;;
-            "<" | "<=") return 1 ;;
-        esac
-    else
-        # required_version > version, so version < required_version
-        case $op in
-            "<" | "<=") return 0 ;;
-            ">" | ">=") return 1 ;;
-        esac
-    fi
-}
+declare __this_path;__this_path="$(dirname "${BASH_SOURCE[0]}")"
+source "$__this_path/libs/version-lib"
 
 # reads the patch file into the PATCH_LINES array.
 # $1: the filename of the file to read
@@ -278,7 +204,7 @@ file_patcher_apply_patch() {
 
     local venus_version="" patch_line="" command="" version_condition=""
 
-    __get_venus_verion_byref venus_version
+    version_lib_get_venus_verion_byref venus_version
 
     while ((p < PATCH_LENGTH)); do
        
@@ -292,7 +218,7 @@ file_patcher_apply_patch() {
         # Check if there's a version condition
         if [[ "$patch_line" != "$command" ]]; then
             version_condition="${patch_line#* }"
-            if ! __version_check "$version_condition" "$venus_version"; then
+            if ! version_lib_check "$version_condition" "$venus_version"; then
                 _getCommandBounds $p patch_start patch_end
                 p=$((patch_end+2)) # +2 to jmp direct to next cmd
                 continue
@@ -372,7 +298,7 @@ file_patcher_revert_patch() {
 
     local venus_version="" patch_line="" command="" version_condition=""
 
-    __get_venus_verion_byref venus_version
+    version_lib_get_venus_verion_byref venus_version
 
     while ((p < PATCH_LENGTH)); do
  
@@ -386,7 +312,7 @@ file_patcher_revert_patch() {
         # Check if there's a version condition
         if [[ "$patch_line" != "$command" ]]; then
             version_condition="${patch_line#* }"
-            if ! __version_check "$version_condition" "$venus_version"; then
+            if ! version_lib_check "$version_condition" "$venus_version"; then
                 _getCommandBounds $p patch_start patch_end
                 p=$((patch_end+1))
                 continue

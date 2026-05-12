@@ -1,6 +1,60 @@
 {
   "version": "2.0.0",
+  "inputs": [
+    {
+      "id": "opkgPackage",
+      "type": "promptString",
+      "description": "Package to build (leave empty to reuse last; e.g. opkg-manager, mount-shares, themer, or all)",
+      "default": ""
+    },
+    {
+      "id": "opkgPromoteFeed",
+      "type": "promptString",
+      "description": "Feed to promote (leave empty for all; e.g. main or opkg-manager)",
+      "default": ""
+    }
+  ],
   "tasks": [
+    {
+      "label": "opkg develop build (prompt)",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "${workspaceFolder}/.vscode/opkg-develop-build-task",
+        "${workspaceFolder}",
+        "${input:opkgPackage}"
+      ],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "shared",
+        "showReuseMessage": false,
+        "clear": true
+      },
+      "problemMatcher": [],
+      "detail": "Develop-only build with prompt for package."
+    },
+    {
+      "label": "Promote feed target (blank = all)",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "${workspaceFolder}/.vscode/opkg-promote-feed-task",
+        "${workspaceFolder}",
+        "${input:opkgPromoteFeed}"
+      ],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "shared",
+        "showReuseMessage": false,
+        "clear": true
+      },
+      "problemMatcher": [],
+      "detail": "Promote develop feeds into release feeds."
+    },
     {
       "label": "cleanup vscode server installs",
       "type": "shell",
@@ -120,6 +174,21 @@
       "problemMatcher": []
     },
     {
+      "label": "cleanup opkg develop feed",
+      "type": "shell",
+      "command": "bash ${workspaceFolder}/tasks/make-packages --clean-develop",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "shared",
+        "showReuseMessage": false,
+        "clear": true
+      },
+      "problemMatcher": [],
+      "detail": "Clears the opkg develop feeds folder used by package builds."
+    },
+    {
       "label": "run all venus-os tests",
       "type": "shell",
       "command": "bash ${workspaceFolder}/tasks/run-tests",
@@ -151,6 +220,20 @@
       "label": "build mount-shares",
       "type": "shell",
       "command": "bash ${workspaceFolder}/tasks/make-packages mount-shares",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "shared",
+        "showReuseMessage": false,
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "build themer",
+      "type": "shell",
+      "command": "bash ${workspaceFolder}/tasks/make-packages themer",
       "presentation": {
         "echo": true,
         "reveal": "always",

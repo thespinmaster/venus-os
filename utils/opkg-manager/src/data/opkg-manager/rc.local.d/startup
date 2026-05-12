@@ -3,7 +3,7 @@
 declare __this_path; __this_path="$(dirname "${BASH_SOURCE[0]}")"
 . "$__this_path/../libs/log-lib"
 
-declare logfile="$__this_path/startup.log"
+declare logfile="/var/log/opkg-manager/startup.log"
 
 init_logging_to_file "$logfile"
 

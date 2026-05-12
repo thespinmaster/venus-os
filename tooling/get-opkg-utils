@@ -1,20 +1,30 @@
 #!/bin/bash
 
+set -euo pipefail
+
+require_cmd() {
+  local cmd="$1"
+  if ! command -v "$cmd" >/dev/null 2>&1; then
+    echo "Error: required command '$cmd' is not available in PATH" >&2
+    exit 1
+  fi
+}
+
+require_cmd git
+
 if [[ ! -d ./opkg-utils ]]; then
   git clone https://github.com/shr-project/opkg-utils
 else
   echo "opkg-utils exists"
 fi
 
-if ! command -v make >/dev/null 2>&1; then
+if ! opkg list-installed 2>/dev/null | grep -q "^coreutils "; then
   opkg update
   opkg install coreutils
-  # opkg install make
 fi
 
-cur_dir=$PWD
+cur_dir="$PWD"
+trap 'cd "$cur_dir"' EXIT
 
 cd ./opkg-utils/
 make install
-
-PWD=$cur_dir

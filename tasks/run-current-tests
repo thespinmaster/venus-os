@@ -9,4 +9,3 @@ test_file="$1"
 test_file="/home/admin/dev/projects/venus-os/utils/opkg-manager/tests/serial-device-installer-tests"
 test_function_filter="^cur_test_.*"
 test_runner_on_source_file "$test_file" "$test_function_filter"
-

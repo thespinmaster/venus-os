@@ -23,7 +23,7 @@ MbPage {
     }
     
     MbSwitch {
-      name: qsTr("Compact rows")
+      name: qsTr("Show Compact")
       bind: Utils.path("com.victronenergy.settings", "/Settings/OpkgManager/ShowCompact")
     }
     MbSwitch {

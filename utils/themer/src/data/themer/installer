@@ -22,22 +22,18 @@ DBUS_SETTINGS="
 "
 
 #DBUS_SETTINGS_DEPRECIATED=""
- 
-# shellcheck source=/data/dev/utils/opkg-manager/src/data/opkg-manager/install-helper
-source /data/opkg-manager/install-helper
+
+# shellcheck source="/data/dev/utils/opkg-manager/src/data/opkg-manager/source-common"
+source "/data/opkg-manager/source-common"
+setsource install-helper
 
 themer_installer_install() {
-	install_helper_add_remove_dbus_csv_items "add" "Themer/AvailableThemes" "$DBUS_AVAILABLE_THEMES"
+	install_helper_add_remove_dbus_csv_items "add" "/Settings/Themer/AvailableThemes" "$DBUS_AVAILABLE_THEMES"
 }
 themer_installer_remove() {
-	install_helper_add_remove_dbus_csv_items "remove" "Themer/AvailableThemes" "$DBUS_AVAILABLE_THEMES" 
+	install_helper_add_remove_dbus_csv_items "remove" "/Settings/Themer/AvailableThemes" "$DBUS_AVAILABLE_THEMES" 
 }
-
-#source /data/dev/utils/opkg-manager/src/data/opkg-manager/dbus-common
-#source /data/dev/utils/opkg-manager/src/data/opkg-manager/install-helper
-#themer_installer_install
-#dbus_common_add_settings <<< "$DBUS_SETTINGS"
-
+ 
 if [[ "${1:-}" == "install" || "${1:-}" == "post-install" || "${1:-}" == "dev-install" ]]; then
 	install_helper_post_install
   themer_installer_install
@@ -49,11 +45,3 @@ else
 	echo installer: invalid args: 'install/post-install' or 'remove/pre-remove'
   exit 1
 fi
-
-# install_helper_finished
-
-#__add_remove_dbus_settings 0
-#install_helper_post_install
-#themer_common_patch_files
-#themer_common_remove_patch_from_files
-#themer_common_add_remove_dbus_settings 1

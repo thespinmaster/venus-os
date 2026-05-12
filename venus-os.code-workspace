@@ -7,6 +7,9 @@
 		{
 			"name": "qml",
 			"path": "/opt/victronenergy/gui/qml"
+		},
+		{
+			"path": ".."
 		}
 	],
 	"settings": {

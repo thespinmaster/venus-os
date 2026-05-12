@@ -4,31 +4,14 @@ set -o nounset
  
 # set package name using the path of the calling file's location
 
-declare PACKAGE_NAME="${PACKAGE_NAME-$(basename "$(dirname "${BASH_SOURCE[1]-}")")}"
-declare RESTART_GUI_SERVICE="${RESTART_GUI_SERVICE:=0}"
-declare DBUS_SETTINGS="${DBUS_SETTINGS-}"
-declare RC_LOCAL_SCRIPT="${RC_LOCAL_SCRIPT-}"
+PACKAGE_NAME="${PACKAGE_NAME-$(basename "$(dirname "${BASH_SOURCE[2]-}")")}"
+RESTART_GUI_SERVICE="${RESTART_GUI_SERVICE:=0}"
+DBUS_SETTINGS="${DBUS_SETTINGS-}"
+RC_LOCAL_SCRIPT="${RC_LOCAL_SCRIPT-}"
  
-__appendDataDir() {
-	local VENUS_DATA_DIR="/data/dev/utils/opkg-manager/src"; [ -d $VENUS_DATA_DIR ] || VENUS_DATA_DIR=
-  local file="${1}"
-	local -n _out_dir=${2}
-	_out_dir="${VENUS_DATA_DIR:-}/data/opkg-manager/${file}"
-}
-# List of special pages (without .qml)
-__load_source_file() {
-		# may require symlink to /data/dev 
-  local source_file=
-	__appendDataDir "${1}" source_file
-	[[ -f ${source_file} ]] || { echo "ERROR: source file does not exist:${source_file}" >&2; exit 1; }
-
-	set -- # resets $1, $2, ...
-	
-	# shellcheck disable=SC1090
-	. "${source_file}"
-	
-}
-
+# shellcheck source="/data/dev/utils/opkg-manager/src/data/opkg-manager/source-common"
+source "/data/opkg-manager/source-common"
+ 
 install_helper_add_remove_dbus_csv_items() {
 	
 	local csv_string=
@@ -59,7 +42,8 @@ install_helper_add_remove_custom_service_path() {
 }
 
 __get_custom_service_paths_from_dbus_settings_byref() {
-	local -n _out_paths="$1"
+  # shellcheck disable=SC2178 # false positve
+	local -n _out_paths="$1" 
 	local -A seen_paths=()
 	local line=
 	local service_path=
@@ -131,6 +115,8 @@ install_helper_add_remove_patch() {
 	[[ "${1:-}" == "remove" ]] && remove=1
 	
 	shopt -s nullglob
+  
+  local installer_path="${BASH_SOURCE[1]}"
 
 	for patchfile in "$installer_path"/*.patch; do
 		RESTART_GUI_SERVICE=1
@@ -140,17 +126,25 @@ install_helper_add_remove_patch() {
 			file_patcher_revert_patch "$patchfile"
 		fi
 	done
+
+}
+
+__initialize=0
+
+install_helper_initialize() {
+	(( ${__initialize:-0} )) && return
+	__initialize=1
+	setsource "opkg-common"
+	setsource "dbus-common"
+	setsource "file-patcher"
+	
 }
 
 install_helper_post_install() {
 
-  [[ -z "$PACKAGE_NAME" ]] && { echo "ERROR: PACKAGE_NAME not set"; return 1; }
-
-	local installer_path; installer_path="$(dirname "${BASH_SOURCE[1]}")"
-
-	__load_source_file "opkg-common"
-	__load_source_file "dbus-common"
-	__load_source_file "file-patcher"
+  [[ -z "${PACKAGE_NAME:-}" ]] && { echo "ERROR: PACKAGE_NAME not set"; return 1; }
+ 
+	install_helper_initialize
  
 	echo "registering package: ${PACKAGE_NAME}"
 	opkg_common_register_package "${PACKAGE_NAME}"
@@ -165,7 +159,7 @@ install_helper_post_install() {
 	echo "patching files"
 
 	install_helper_add_remove_patch add
-	
+ 
 	echo "adding dbus settings"
 
 	[[ -n "${DBUS_SETTINGS_DEPRECIATED:-}" ]] &&
@@ -181,16 +175,11 @@ install_helper_post_install() {
 }
  
 install_helper_pre_remove() {
- 
+
 	[[ -z "$PACKAGE_NAME" ]] && { echo "ERROR: PACKAGE_NAME not set"; return 1; }
 	
-	local installer_path; 
-	installer_path="$(dirname "${BASH_SOURCE[1]}")"
-
-	__load_source_file "opkg-common"
- 	__load_source_file "dbus-common"
-  __load_source_file "file-patcher"
-
+	install_helper_initialize
+ 
 	[[ -n "${RC_LOCAL_SCRIPT:-}" ]] &&
 		opkg_common_remove_script_from_rc_local "${RC_LOCAL_SCRIPT}"
  
@@ -217,6 +206,7 @@ install_helper_restart_gui_service() {
 	((RESTART_GUI_SERVICE)) || return
  
 	echo "restarting gui service..."
-  svc -t /service/gui
+  #svc -t /service/gui &
+	nohup svc -t /service/gui >/dev/null 2>&1 &
 }
  

@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+# Used by task label: "opkg develop build (prompt)" in .vscode/tasks.json.
+# Stages package build output into the develop feed,
+# and persists last-used task values in .vscode/.opkg-task-state.
+
+set -euo pipefail
+
+workspace_folder="${1:?workspace folder is required}"
+pkg_in="${2:-}"
+
+state="${workspace_folder}/.vscode/.opkg-task-state"
+mkdir -p "${workspace_folder}/.vscode"
+# shellcheck disable=SC1090
+[[ -f "$state" ]] && . "$state"
+
+pkg="${pkg_in:-${LAST_OPKG_PACKAGE:-opkg-manager}}"
+
+echo "Using package: $pkg"
+
+bash "${workspace_folder}/tasks/make-packages" --develop-only "$pkg"
+
+rc=$?
+if [[ $rc -eq 0 ]]; then
+  {
+    printf 'LAST_OPKG_PACKAGE=%q\n' "$pkg"
+  } > "$state"
+fi
+
+exit $rc

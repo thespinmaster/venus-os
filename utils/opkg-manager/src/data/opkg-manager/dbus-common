@@ -70,16 +70,18 @@ dbus_common_remove_settings() {
 
 dbus_common_set_string_value() {
 	local path="${1}"
-	local value="${2}"
-
+  local value="${2}"
+	
 	if ! __call_dbus_settings "${path}" SetValue "${value}"; then
 		echo "adding new setting"
 		if __call_dbus_settings / AddSettings "%[ {'path':'${path}', 'default':''} ]"; then
 			echo "setting value"
-			__call_dbus_settings SetValue "${value}" &&
-					exit 1
+			__call_dbus_settings "${path}" SetValue "${value}" && return 0
+			echo "error setting value: \"${path}\" SetValue \"${value}\""  
+		else
+			echo "error adding setting: AddSettings \"%[ {'path':'${path}', 'default':''} ]\"" 
 		fi
-		echo "error adding value" >&2
+		return 1
 	fi
 }
 

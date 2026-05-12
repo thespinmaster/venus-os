@@ -14,9 +14,9 @@ OPKG_MAIN_FEED_NAME="thespinmaster"
 OPKG_MAIN_FEED_PATH="main"
 
 OPKG_FEED_PATH="${VENUS_ROOT_DIR:-}/etc/opkg"
-OPKG_FEED_LOCAL_CONFIG_FILE="${opkg_helpers_path}/opkg-manager.conf"
+OPKG_FEED_LOCAL_CONFIG_FILE="/data/conf/opkg-manager-release.conf"
 OPKG_FEED_CONFIG_FILE="${OPKG_FEED_PATH}/opkg-manager.conf"
-OPKG_FEED_BASE_URL="https://github.com/${OPKG_MAIN_FEED_NAME}/venus-os/raw/refs/heads/main/feeds"
+OPKG_FEED_BASE_URL="https://github.com/${OPKG_MAIN_FEED_NAME}/venus-os/raw/refs/heads/main/feeds/release"
 
 # OPKG_VENUS_VERSION=
  
@@ -122,11 +122,9 @@ opkg_common_update_packages() {
 }
  
 opkg_common_remove_feed_symlink() {
-  #if [[ ! -f "${OPKG_FEED_LOCAL_CONFIG_FILE}" ]]; then
-    if [ -L "${OPKG_FEED_CONFIG_FILE}" ]; then
-      rm "${OPKG_FEED_CONFIG_FILE}"
-    fi
-  #fi
+  if [ -L "${OPKG_FEED_CONFIG_FILE}" ]; then
+    rm "${OPKG_FEED_CONFIG_FILE}"
+  fi
 }
 
 __ensure_rc_local() {

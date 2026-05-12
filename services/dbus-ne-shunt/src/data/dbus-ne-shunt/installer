@@ -15,13 +15,12 @@ if [[ "$1" == "dev-install" ]]; then
   VE_ROOT_DIR=/data/dev/utils/opkg-manager/src
 fi
 
-source ${VE_ROOT_DIR:-}/data/opkg-manager/install-helper
+# shellcheck disable=SC1091
+source "${VE_ROOT_DIR:-}/data/opkg-manager/install-helper"
 
 if [[ "$1" == "install" || "$1" == "dev-install" ]]; then
 	install_helper_post_install
 elif [[ "$1" == "remove" ]]; then
 	install_helper_pre_remove
 fi
-
-# install_helper_finished
  

@@ -1,13 +1,13 @@
 Package: dbus-inetbox
 Version: 0.0.1
-Depends: opkg-manager, python3
+Depends: opkg-manager
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: a341059224d7ca34865a7dd94687cec1
-Size: 120912
+MD5Sum: 2dcc347657c664cab33f7cfae28dcc3d
+Size: 122396
 Filename: dbus-inetbox_0.0.1_all.ipk
-Source: https://github.com/thespinmaster/venus-os/tree/main/feeds/main/dbus-inetbox
+Source: https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feeds/release/main/dbus-inetbox
 Description: Adds support for Truma inetbox to Venus-OS
  Adds support for Truma inetbox to Venus-OS
 OE: dbus-inetbox
@@ -16,14 +16,14 @@ Priority: optional
 
 Package: dbus-ne-shunt
 Version: 1.0.19
-Depends: opkg-manager, python3
+Depends: opkg-manager
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: 5a577247ddd8340ef970232c05f78683
-Size: 69914
+MD5Sum: bfe9c697d7d0d76e0f0cc51df78ae692
+Size: 69214
 Filename: dbus-ne-shunt_1.0.19_all.ipk
-Source: https://github.com/thespinmaster/venus-os/tree/main/feeds/main/dbus-ne-shunt
+Source: https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feeds/release/main/dbus-ne-shunt
 Description: Adds support for NordElectronica shunt NE196/NE319 board to Venus-OS
  Adds support for NordElectronica shunt NE196/NE319 board to Venus-OS
 OE: dbus-ne-shunt
@@ -36,10 +36,10 @@ Depends: opkg-manager
 Section: utilities
 Architecture: all
 Maintainer: Lucien Denisey <ldenisey@gmail.com>
-MD5Sum: 6193d1209b5c82793e7521251fefd4a5
-Size: 16204
+MD5Sum: 04fc8d2563201a32e1a6c59bbc414aee
+Size: 16274
 Filename: dbus-relay-board_1.0.0_all.ipk
-Source: https://github.com/thespinmaster/venus-os/tree/main/feeds/main/dbus-relay-board
+Source: https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feeds/release/main/dbus-relay-board
 Description: Add support to RS485, RS232 and TTL232 relay boards
  Add support to RS485, RS232 and TTL232 relay boards
 OE: dbus-relay-board
@@ -52,10 +52,10 @@ Depends: opkg-manager
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: 443b7913bc932ae8a55b2d623872327c
-Size: 67140
+MD5Sum: f730aaa0ac3ff0a311c1b5fba4c8daa0
+Size: 67148
 Filename: mount-shares_1.0.1_all.ipk
-Source: https://github.com/thespinmaster/venus-os/tree/main/feeds/main/mount-shares
+Source: https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feeds/release/main/mount-shares
 Description: Adds support for nfs and cifs shares to Venus OS
  Adds support for nfs and cifs shares to Venus OS
 OE: mount-shares
@@ -68,10 +68,10 @@ Depends: opkg-manager
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: f3ee429d9a0cca927b52dcecdb746614
-Size: 2072
+MD5Sum: da610abc0cb123330b5d6be33559eca0
+Size: 2190
 Filename: network-gps_1.0.0_all.ipk
-Source: https://github.com/thespinmaster/venus-os/tree/main/feeds/main/network-gps
+Source: https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feeds/release/main/network-gps
 Description: Network GPS using NMEA
  Network GPS using NMEA
 OE: network-gps
@@ -84,10 +84,10 @@ Depends: opkg-manager
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: d02ee7bcd7746b207fc00e1190385a59
-Size: 1018
+MD5Sum: 3622b48c6a8bc4fabeb0aa4f5fd9ee1a
+Size: 1086
 Filename: test-install_1.0.4_all.ipk
-Source: https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feed/test-install
+Source: https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feeds/release/main/test-install
 Description: A simple app for testing install
  A simple app for testing install
 OE: einstine
@@ -100,10 +100,10 @@ Depends: opkg-manager, python3
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: f5cb56ba01e6b99927960eb1785d69ec
-Size: 2340
+MD5Sum: bd7a67283dd438d3296d0ba74f8ced64
+Size: 2402
 Filename: test-service_1.0.0_all.ipk
-Source: https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feed/test-service
+Source: https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feeds/release/main/test-service
 Description: A simple service for testing
  A simple service for testing
 OE: einstine
@@ -116,8 +116,8 @@ Depends: opkg-manager
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: eba2df200ab57501d0841e6f6ad2d226
-Size: 4428
+MD5Sum: d3cf29c7e81c20bf02b0c6cb66c3ff68
+Size: 4414
 Filename: themer_1.0.0_all.ipk
 Source: https://github.com/thespinmaster/venus-os/tree/main/feeds/main/themer
 Description: Adds basic theming support on the Venus OS

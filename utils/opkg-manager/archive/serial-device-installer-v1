@@ -117,7 +117,7 @@ _create_serial_starter_rule() {
   fi
 
   [[ -z "${SERVICE_NAME}" ]] && {
-    log_error "ERROR: SERVICE_NAME not set"
+    log_error "ERROR : SERVICE_NAME not set"
     return 1
   }
   [[ -z "${SERVICE_MAPPING_NAME}" ]] && {

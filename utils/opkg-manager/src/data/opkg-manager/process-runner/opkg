@@ -39,7 +39,7 @@ opkg_get_feeds() {
 		while IFS= read -r line; do
 			[[ -z "$line" || "$line" == \#* ]] && continue
 			[[ "$line" != src/gz* ]] && continue
-			set -- "$line"
+			set -- $line # DONT QUOTE set -- splits on whitespace
 			local name="$2"
 			local url="$3"
 			local builtin=false
@@ -256,7 +256,7 @@ opkg_qml_list_packages() {
     while IFS= read -r line; do
       [[ -z "${line}" || "${line}" == \#* ]] && continue
       [[ "${line}" != src/gz* ]] && continue
-      set -- "${line}" # DONT QUOTE set -- splits on whitespace
+      set -- ${line} # DONT QUOTE set -- splits on whitespace
       [[ -n "${2:-}" ]] && feeds["${2}"]=1
     done < "${OPKG_FEED_LOCAL_CONFIG_FILE}"
 
@@ -457,6 +457,9 @@ opkg_qml_list_packages() {
   
   return 0
 }
+
+opkg_get_feeds
+exit 0
 
 case "${1:-}" in
 	get-feeds)

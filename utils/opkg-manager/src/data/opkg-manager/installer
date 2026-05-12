@@ -8,14 +8,15 @@ RC_LOCAL_SCRIPT="
 DBUS_SETTINGS="
     {'path':'/Settings/OpkgManager/CustomMenus/PageSettings/OpkgPageSettingsSubMenu', 'default':''}
 		{'path':'/Settings/OpkgManager/CustomMenus/PageSettingsDisplay/OpkgPageSettingsDisplaySubMenu', 'default':''}
+
+    {'path':'/Settings/OpkgManager/ShowCompact', 'default':0, 'min':0, 'max':1}
+    {'path':'/Settings/OpkgManager/NoAction', 'default':0, 'min':0, 'max':1}
+
 "
 
-if [[ "$1" == "dev-install" ]]; then
-  VE_ROOT_DIR=/data/dev/utils/opkg-manager/src
-fi
-
-# shellcheck disable=SC1091
-source "${VE_ROOT_DIR:-}/data/opkg-manager/install-helper"
+# shellcheck source="/data/dev/utils/opkg-manager/src/data/opkg-manager/source-common"
+source "/data/opkg-manager/source-common"
+setsource install-helper
 
 if [[ "$1" == "install" || "$1" == "post-install" || "$1" == "dev-install" ]]; then
 	install_helper_post_install
@@ -32,6 +33,8 @@ if [[ "$1" == "install" || "$1" == "post-install" || "$1" == "dev-install" ]]; t
 elif [[ "$1" == "remove" || "$1" == "post-remove" ]]; then
 
 	install_helper_pre_remove
+  
+  rm -f "${VE_ROOT_DIR:-}/var/log/opkg-manager/startup.log"
 
   opkg_common_remove_feed_symlink
 

@@ -1,0 +1,121 @@
+#!/usr/bin/env bash
+
+ ###############################################################################
+# Selects a removable drive to use for vscode server
+# if ~/.vscode-server already exists it moves it to the new drive
+# a symlink is created from ~/.vscode-server to the new drive
+# This stops the venus-os drive filling up
+###############################################################################
+
+set -o nounset
+
+echo "Installing libatomic1"
+opkg install libatomic1
+
+echo "Optionaly select storage location for vscode-server"
+
+###############################################################################
+# CHECK FOR REMOVABLE DISKS
+###############################################################################
+
+if ! lsblk -nr -e 11 -o rm | awk '$1==1 {found=1} END{exit !found}'; then
+  echo "no removable disks found; exiting..."
+  exit 1
+fi
+
+echo "=Removable Disks================================================="
+lsblk -e 11 -o rm,name,size,type,tran,model,rm,mountpoint | awk '$1 != RM' | cut -c4-
+echo "================================================================="
+
+###############################################################################
+# MENU
+###############################################################################
+
+PS3='Select the removable disk to use (or CTRL+C): '
+
+disks=()
+mounts=()
+
+while read -r name mount; do
+  disks+=("$name")
+  mounts+=("$mount")
+done < <(lsblk -nr -e 11 -o name,rm,type,mountpoint \
+  | awk '$2==1 && $3=="part" {print $1, $4}')
+
+select disk in "${disks[@]}"; do
+  if [[ -z "${disk:-}" ]]; then
+    echo "$REPLY is not a valid number"
+    continue
+  fi
+
+  mountpoint="${mounts[$((REPLY-1))]}"
+
+  if [[ -z "$mountpoint" || ! -d "$mountpoint" ]]; then
+    echo "Selected device is not mounted"
+    exit 1
+  fi
+
+  break
+done
+
+###############################################################################
+# TARGET SETUP
+###############################################################################
+
+HOME_DIR="$HOME"
+TARGET_LINK="$HOME_DIR/.vscode-server"
+DEST="$mountpoint/.vscode-server"
+
+###############################################################################
+# VALIDATE DEST CONFLICT
+###############################################################################
+
+if [[ -e "$DEST" ]]; then
+  echo "ERROR: destination already exists: $DEST"
+  exit 1
+fi
+
+###############################################################################
+# HANDLE EXISTING HOME CONFIG
+###############################################################################
+
+if [[ -e "$TARGET_LINK" && ! -L "$TARGET_LINK" ]]; then
+  echo "Existing ~/.vscode-server detected."
+
+  printf "Move it to %s? [y/N]: " "$DEST"
+  read -r ans
+
+  case "$ans" in
+    y|Y|yes|YES)
+      echo "Moving existing data..."
+      mv "$TARGET_LINK" "$DEST"
+      ;;
+    *)
+      echo "Aborting."
+      exit 1
+      ;;
+  esac
+
+elif [[ -L "$TARGET_LINK" ]]; then
+  echo "Existing symlink found. Removing it..."
+  rm -f "$TARGET_LINK"
+fi
+
+###############################################################################
+# ENSURE DESTINATION
+###############################################################################
+
+mkdir -p "$DEST"
+
+# fix ownership (best effort)
+chown -R "$(id -u)":"$(id -g)" "$DEST" 2>/dev/null || true
+
+###############################################################################
+# CREATE SYMLINK
+###############################################################################
+
+ln -s "$DEST" "$TARGET_LINK"
+
+echo "$TARGET_LINK -> $DEST"
+
+echo "done"

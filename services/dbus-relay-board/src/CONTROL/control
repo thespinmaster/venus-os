@@ -7,5 +7,5 @@ Maintainer: Lucien Denisey <ldenisey@gmail.com>
 License: MIT
 Architecture: all
 OE: dbus-relay-board
-Source: https://github.com/thespinmaster/venus-os/tree/main/feeds/main/dbus-relay-board
+Source: https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feeds/release/main/dbus-relay-board
 Depends: opkg-manager
