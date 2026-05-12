@@ -30,28 +30,7 @@ jobs:
           cp -r feeds/* public/feeds/
 
           # -----------------------------
-          # ROOT INDEX (fixes 404)
-          # -----------------------------
-          {
-            echo "<!doctype html>"
-            echo "<html>"
-            echo "<head>"
-            echo "  <meta charset='utf-8'>"
-            echo "  <title>opkg Feed Repository</title>"
-            echo "</head>"
-            echo "<body>"
-            echo "  <h1>opkg Feed Repository</h1>"
-            echo "  <h2>Feeds</h2>"
-            echo "  <ul>"
-            echo "    <li><a href=\"feeds/\">feeds</a></li>"
-            echo "  </ul>"
-            echo "</body>"
-            echo "</html>"
-          } > public/index.html
-
-          # -----------------------------
           # DIRECTORY INDEX GENERATION
-          # (THIS FIXES YOUR CLICK 404s)
           # -----------------------------
           find public/feeds -type d | while read dir; do
 
@@ -65,7 +44,18 @@ jobs:
               echo "<body>"
               echo "  <h1>Index</h1>"
               echo "  <ul>"
-
+              
+              # -----------------------------
+              # BACK LINK (if parent has index.html)
+              # -----------------------------
+              parent=$(dirname "$dir")
+              if [ -f "$parent/index.html" ]; then
+                echo "    <li><a href=\"../\">⬅ Parent</a></li>"
+              fi
+          
+              # -----------------------------
+              # DIRECTORY CONTENTS
+              # -----------------------------
               for f in "$dir"/*; do
                 [ -e "$f" ] || continue
                 name=$(basename "$f")
