@@ -1,11 +1,12 @@
-- name: Build static feed dashboard
+- name: Build opkg static site (generic)
   run: |
     rm -rf public
     mkdir -p public
 
-    cp -r feeds/* public/
+    # 1. Copy feeds exactly as-is (NO hardcoding)
+    cp -r feeds public/feeds
 
-    # Generate root landing page
+    # 2. Root landing page (auto-discovery)
     cat > public/index.html << 'EOF'
 <!doctype html>
 <html>
@@ -14,25 +15,26 @@
   <title>opkg Feed Repository</title>
   <style>
     body { font-family: sans-serif; margin: 40px; }
-    a { display: block; margin: 8px 0; }
+    a { display: block; margin: 6px 0; }
   </style>
 </head>
 <body>
   <h1>opkg Feed Repository</h1>
   <h2>Feeds</h2>
-  <a href="release/main/">📦 Release</a>
-  <a href="testing/main/">🧪 Testing</a>
-</body>
-</html>
 EOF
 
-    # Generate directory index pages (like http.server)
-    find public -type d | while read dir; do
-      if [ "$dir" = "public" ]; then continue; fi
+    # Dynamically list everything under /feeds
+    find public/feeds -mindepth 1 -maxdepth 2 -type d | while read d; do
+      rel=${d#public/}
+      echo "<a href=\"/$rel/\">$rel</a>" >> public/index.html
+    done
 
-      echo "Generating index for $dir"
+    echo "</body></html>" >> public/index.html
 
-      files=$(ls "$dir" 2>/dev/null || true)
+    # 3. Generate recursive directory indexes (http-server style)
+    find public/feeds -type d | while read dir; do
+
+      echo "Indexing $dir"
 
       cat > "$dir/index.html" << EOF
 <!doctype html>
@@ -46,13 +48,15 @@ EOF
   </style>
 </head>
 <body>
-  <h1>Index of $(basename "$dir")</h1>
+  <h1>Index of ${dir#public/}</h1>
   <a href="../">⬅ Parent</a>
 EOF
 
-      for f in $files; do
-        [ "$f" = "index.html" ] && continue
-        echo "<a href=\"$f\">$f</a>" >> "$dir/index.html"
+      # list files + folders
+      for f in "$dir"/*; do
+        [ -e "$f" ] || continue
+        name=$(basename "$f")
+        echo "<a href=\"$name\">$name</a>" >> "$dir/index.html"
       done
 
       echo "</body></html>" >> "$dir/index.html"
