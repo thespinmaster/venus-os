@@ -84,7 +84,7 @@ jobs:
                 # Modified time (YYYY-MM-DD HH:MM)
                 mtime=$(stat -c %y "$f" | cut -d'.' -f1)
               
-                echo "    <span class=\"name\"><li><a href=\"$name\">$name$folder</a></span> \
+                echo "    <li><span class=\"name\"><a href=\"$name\">$name$folder</a></span> \
                       <span class=\"mtime\">$mtime</span> \
                       <span class=\"size\">$human_size</span></li>"
               done
