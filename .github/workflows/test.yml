@@ -1,17 +1,11 @@
-- name: Build static opkg site
-  on:
-    workflow_dispatch:
-  run: |
-    set -e
+name: Debug
 
-    html="$(cat <<'EOF'
-    <html>
-    <head>
-      <meta charset='utf-8'>
-      <title>Index</title>
-    </head>
-    </html>
-EOF
-)"
+on:
+  workflow_dispatch:
 
-    echo "$html"
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "hello"
+
