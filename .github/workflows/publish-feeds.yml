@@ -31,7 +31,7 @@ jobs:
           # -----------------------------
           # DIRECTORY INDEX GENERATION
           # -----------------------------
-          html=$(cat <<EOF
+          html="$(cat <<EOF
           <html>
           <head>
             <meta charset='utf-8'>
@@ -45,7 +45,7 @@ jobs:
               .size  { display:inline-block; width:10ch; text-align:right; }
             </style>
           </head>
-          EOF)
+          EOF)"
 
           find public/feeds -type d | while read dir; do
 
@@ -59,9 +59,10 @@ jobs:
               # BACK LINK (if parent has index.html)
               # -----------------------------
               parent=$(dirname "$dir")
-              [ -f "$parent/index.html" ] && {
-                echo "    <li><a href=\"../\">.. Parent Directory</a></li>" }
-          
+              if [ -f "$parent/index.html" ]; then
+                echo "    <li><a href=\"../\">.. Parent Directory</a></li>"
+              fi
+              
               # -----------------------------
               # DIRECTORY CONTENTS
               # -----------------------------
