@@ -53,7 +53,7 @@ jobs:
             {
               echo "$html"
               echo "<body>"
-              echo "  <h1>${dir#public/feeds/} v1</h1>"
+              echo "  <h1>${dir#public/*} v1</h1>"
               echo "  <ul>"
               
               # -----------------------------
