@@ -1,0 +1,14 @@
+- name: Build static opkg site
+  run: |
+    set -e
+
+    html="$(cat <<EOF
+<html>
+<head>
+  <meta charset='utf-8'>
+  <title>Index</title>
+</head>
+EOF
+)"
+
+    echo "$html"
