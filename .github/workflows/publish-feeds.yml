@@ -31,23 +31,26 @@ jobs:
           # -----------------------------
           # DIRECTORY INDEX GENERATION
           # -----------------------------
+          html=$(cat <<EOF
+          <html>
+          <head>
+            <meta charset='utf-8'>
+            <title>Index</title>
+            <style>
+              body { font-family: monospace; }
+              ul { padding: 0; list-style: none; }
+              li { padding: 4px 0; }
+              .name  { display:inline-block; width:40ch; }
+              .mtime { display:inline-block; width:20ch; }
+              .size  { display:inline-block; width:10ch; text-align:right; }
+            </style>
+          </head>
+          EOF)
+
           find public/feeds -type d | while read dir; do
 
             {
-              echo "<!doctype html>"
-              echo "<html>"
-              echo "<head>"
-              echo "  <meta charset='utf-8'>"
-              echo "  <title>Index</title>"
-              echo "    <style>
-              echo "      body { font-family: monospace; }
-              echo "      ul { padding: 0; list-style: none; }
-              echo "      li { padding: 4px 0; }
-              echo "      .name  { display:inline-block; width:40ch; }
-              echo "      .mtime { display:inline-block; width:20ch; }
-              echo "      .size  { display:inline-block; width:10ch; text-align:right; }
-              echo "    </style>
-              echo "</head>"
+              echo "$html"
               echo "<body>"
               echo "  <h1>${dir#public/feeds/}</h1>"
               echo "  <ul>"
@@ -56,9 +59,8 @@ jobs:
               # BACK LINK (if parent has index.html)
               # -----------------------------
               parent=$(dirname "$dir")
-              if [ -f "$parent/index.html" ]; then
-                echo "    <li><a href=\"../\">.. Parent Directory</a></li>"
-              fi
+              [ -f "$parent/index.html" ] && {
+                echo "    <li><a href=\"../\">.. Parent Directory</a></li>" }
           
               # -----------------------------
               # DIRECTORY CONTENTS
