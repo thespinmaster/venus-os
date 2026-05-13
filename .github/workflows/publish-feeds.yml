@@ -57,9 +57,10 @@ jobs:
               # -----------------------------
               for f in "$dir"/*; do
                 [ -e "$f" ] || continue
+                [ -f "$f" ] && folder="" || folder="/"
                 name=$(basename "$f")
                 [ "$name" = "index.html" ] && continue
-                echo "    <li><a href=\"$name\">$name/</a></li>"
+                echo "    <li><a href=\"$name\">$name$folder</a></li>"
               done
 
               echo "  </ul>"
