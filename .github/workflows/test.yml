@@ -1,4 +1,6 @@
 - name: Build static opkg site
+  on:
+    workflow_dispatch:
   run: |
     set -e
 
