@@ -3,12 +3,12 @@
     set -e
 
     html="$(cat <<'EOF'
-<html>
-<head>
-  <meta charset='utf-8'>
-  <title>Index</title>
-</head>
-</html>
+    <html>
+    <head>
+      <meta charset='utf-8'>
+      <title>Index</title>
+    </head>
+    </html>
 EOF
 )"
 
