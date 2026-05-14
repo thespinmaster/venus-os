@@ -2,7 +2,7 @@
 
 set -o nounset
 
-declare base_feed_url="https://github.com/thespinmaster/venus-os/raw/refs/heads/main/feeds"
+declare base_feed_url="https://thespinmaster.github.io/venus-os/feeds"
 declare feeds_file_develop="/data/conf/opkg-manager-develop.conf"
 declare feeds_file_release="/data/conf/opkg-manager-release.conf"
 declare dev_mount_point="/data/mnt/dev"
@@ -31,6 +31,8 @@ dev_setup_prompt_run_yes_no() {
 
 dev_setup_set_feed() {
   ln -sf "/data/conf/opkg-manager-${1}.conf" "$opkg_feed_file"
+  echo "using feed: /data/conf/opkg-manager-${1}.conf"
+  cat $feeds_file_develop | sed 's/^/    /' # sed does some indenting
 }
 
 # Basic IPv4 format check
@@ -84,7 +86,7 @@ dev_setup_opkg_develop_feeds() {
 
   cat > "$feeds_file_develop" << EOF
 src/gz opkg-manager $feeds_server_host/develop/opkg-manager
-src/gz main $feeds_server_host/develop/main
+src/gz addons $feeds_server_host/develop/addons
 EOF
  
   echo ✅ created develop feeds: $feeds_file_develop
@@ -97,9 +99,21 @@ dev_setup_opkg_release_feeds() {
  
   cat > "$feeds_file_release" << EOF
   src/gz opkg-manager $base_feed_url/release/opkg-manager
-  src/gz main $base_feed_url/release/main
+  src/gz addons $base_feed_url/release/addons
 EOF
  echo ✅ created release feeds: $feeds_file_release
+}
+dev_setup_create_dev_symlink() {
+  
+  if [ ! -L "$dev_link" ] || [ ! -e "$dev_link" ]; then
+    local path=
+    read -r -p "Enter path for $dev_link symlink [/mnt/dev/repos/venus-os]: " path
+    [[ -z "$path" ]] && path="${dev_mount_point}/repos/venus-os"
+    [[ ! -d "$path" ]] && { echo "ERROR:path does not exist" >&2; return 1; }
+    ln -sfn "${path}" "$dev_link"
+  fi
+
+  echo "✅ dev share setup: $(readlink "$dev_link") -> $dev_link"
 }
 
 dev_setup_share() {
@@ -121,7 +135,9 @@ dev_setup_share() {
     -o "username=${share_username},password=${share_password},exec" \
     "${share_source}"
  
-  ln -sf "$dev_mount_point" "$dev_link"
+  
+  /repos/venus-os
+  ln -sf "$dev_mount_point/repos/venus-os" "$dev_link"
  
 }
 
@@ -212,7 +228,7 @@ setup_vs_code_drive() {
 }
 
 dev_setup_package_installed() {
-  local installed; installed=$(opkg list-installed "$1" | grep -q "^$1 ")
+  local installed; installed=$(opkg list-installed "$1" | grep "^$1 ")
   
   if [[ -n "$installed" ]]; then
     echo ✅ "$installed" already installed
@@ -257,7 +273,6 @@ dev_setup() {
 
   dev_setup_dns_resolver
 
-  declare dev_feeds_installed=
   declare -i installed=
   
   if ! opkg list-installed | grep -q "git -"; then
@@ -307,16 +322,16 @@ dev_setup() {
   if [[ ! -L ~/.vscode-server ]]; then
     dev_setup_prompt_run_yes_no "Setup vscode on external drive" setup_vs_code_drive
   else
-    echo ✅ vscode-server already sym-linked: ~/.vscode-server -\> "$(readlink -f ~/.vscode-server)"
+    echo "✅ vscode-server already sym-linked: $(readlink -f ~/.vscode-server) -> ~/.vscode-server"
   fi
 
- 
+  dev_setup_create_dev_symlink
   
 }
 
 dev_setup_help() {
   echo "dev-setup setup"
-  echo "dev-setup update-feeds"
+  echo "dev-setup set-feed"
 }
 
 case "${1:-}" in
@@ -327,9 +342,9 @@ case "${1:-}" in
       shift
       dev_setup
       ;;
-    --update-feeds|update-feeds)
+    --set-feed|set-feed)
       shift
-      dev_setup_opkg_feeds
+      dev_setup_set_feed "${1:-develop}"
       ;;
     *)
       echo "ERROR: Unknown command: ${1}" >&2

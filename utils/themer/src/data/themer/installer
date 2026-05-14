@@ -22,9 +22,12 @@ DBUS_SETTINGS="
 "
 
 #DBUS_SETTINGS_DEPRECIATED=""
+ 
+[[ ${DEV_INSTALL:-} == 1 ]] && [[ -f /data/dev/utils/opkg-manager/src ]] && 
+		export VE_ROOT_PATH=/data/dev/utils/opkg-manager/src
+# shellcheck source=/data/dev/utils/opkg-manager/src/data/opkg-manager/source-common
+source "${VE_ROOT_PATH:-}/data/opkg-manager/source-common"
 
-# shellcheck source="/data/dev/utils/opkg-manager/src/data/opkg-manager/source-common"
-source "/data/opkg-manager/source-common"
 setsource install-helper
 
 themer_installer_install() {

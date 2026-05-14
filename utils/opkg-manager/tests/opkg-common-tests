@@ -248,7 +248,7 @@ test_opkg_common_register_package_fails_package_name_empty() {
   #echo "stderr:$stderr"
 
   assert_eq "ERROR: no package name supplied" "$stderr" 
-  assert_file_not_exist "$opkg_registered_packages_file"
+  assert_file_not_exist "$opkg_installed_packages_file"
 
 }
  
@@ -265,8 +265,8 @@ test_opkg_common_register_package_succeeds() {
   assert_exitcode 0
   #echo "stderr:$stderr"
  
-  assert_file_exists "$opkg_registered_packages_file"
-  assert_file_contains "$opkg_registered_packages_file" "my_test_package"
+  assert_file_exists "$opkg_installed_packages_file"
+  assert_file_contains "$opkg_installed_packages_file" "my_test_package"
 
 }
 
@@ -276,10 +276,10 @@ test_opkg_common_register_package_succeeds_not_added_twice() {
   local package_name="my_test_package"
   local stderr=
 
-  [[ -f "$opkg_registered_packages_file" ]] && rm "$opkg_registered_packages_file"
+  [[ -f "$opkg_installed_packages_file" ]] && rm "$opkg_installed_packages_file"
   
-  echo "$package_name" > "$opkg_registered_packages_file"
-  local count_of=;count_of=$(grep -o "$package_name" "$opkg_registered_packages_file" | wc -l)
+  echo "$package_name" > "$opkg_installed_packages_file"
+  local count_of=;count_of=$(grep -o "$package_name" "$opkg_installed_packages_file" | wc -l)
   assert_eq 1 "${count_of}" "--"
 
   # Act
@@ -290,7 +290,7 @@ test_opkg_common_register_package_succeeds_not_added_twice() {
   #echo "stderr:$stderr"
   assert_empty "$stderr"
 
-  local count_of=;count_of=$(grep -o "$package_name" "$opkg_registered_packages_file" | wc -l)
+  local count_of=;count_of=$(grep -o "$package_name" "$opkg_installed_packages_file" | wc -l)
   assert_eq 1 "${count_of}" "--"
 
 }
@@ -320,11 +320,11 @@ test_opkg_common_register_package_succeeds_package_removed_from_registered_packa
   local package_name_after="the_package_before"
   local stderr=
   
-  [[ -f "$opkg_registered_packages_file" ]] && rm "$opkg_registered_packages_file"
+  [[ -f "$opkg_installed_packages_file" ]] && rm "$opkg_installed_packages_file"
 
-  echo "$package_name_before" > "$opkg_registered_packages_file"
-  echo "$package_name" >> "$opkg_registered_packages_file"
-  echo "$package_name_after" >> "$opkg_registered_packages_file"
+  echo "$package_name_before" > "$opkg_installed_packages_file"
+  echo "$package_name" >> "$opkg_installed_packages_file"
+  echo "$package_name_after" >> "$opkg_installed_packages_file"
 
   # Act
   stderr=$(opkg_common_unregister_package "${package_name}" 2>&1)
@@ -335,9 +335,9 @@ test_opkg_common_register_package_succeeds_package_removed_from_registered_packa
 
   assert_empty "$stderr" 
 
-  assert_file_not_contain "$opkg_registered_packages_file" "$package_name"
-  assert_file_contains "$opkg_registered_packages_file" "$package_name_before"
-  assert_file_contains "$opkg_registered_packages_file" "$package_name_after"
+  assert_file_not_contain "$opkg_installed_packages_file" "$package_name"
+  assert_file_contains "$opkg_installed_packages_file" "$package_name_before"
+  assert_file_contains "$opkg_installed_packages_file" "$package_name_after"
 
 }
  
@@ -421,14 +421,14 @@ test_startup_script_is_run_in_seperate_processes() {
 test_ensure_package_succeeds_when_custom_packages_conf_does_not_exist() {
 
   # Arrange
-  assert_file_not_exist "$opkg_registered_packages_file" "--"
+  assert_file_not_exist "$opkg_installed_packages_file" "--"
 
   # Act
   opkg_common_ensure_installed
 
   # Assert
   assert_exitcode 0
-  assert_file_not_exist "$opkg_registered_packages_file" "--"
+  assert_file_not_exist "$opkg_installed_packages_file" "--"
   
 }
 
@@ -452,7 +452,7 @@ test_ensure_package_succeeds_nothing_installed_when_already_installed() {
   [[ -f "$test_log_file" ]] && rm "$test_log_file"
   
   # Add test package name to registered-packages.conf file
-  echo "$package_name" > "$opkg_registered_packages_file"
+  echo "$package_name" > "$opkg_installed_packages_file"
 
   # Act
   opkg_common_ensure_installed
@@ -491,7 +491,7 @@ test_ensure_package_succeeds_installed() {
   [[ -f "$test_log_file" ]] && rm "$test_log_file"
   
   # Add test package name to registered-packages.conf file
-  echo "$package_name" > "$opkg_registered_packages_file"
+  echo "$package_name" > "$opkg_installed_packages_file"
 
   # Act
   opkg_common_ensure_installed
@@ -531,7 +531,7 @@ test_ensure_package_when_fs_is_writable_mount_not_called() {
   [[ -f "$test_log_file" ]] && rm "$test_log_file"
   
   # Add test package name to custom-packages.conf file
-  echo "$package_name" > "$opkg_registered_packages_file"
+  echo "$package_name" > "$opkg_installed_packages_file"
 
   # Act
   opkg_common_ensure_installed
@@ -572,7 +572,7 @@ test_ensure_package_when_fs_is_readonly_mount_and_unmount_are_called() {
   [[ -f "$test_log_file" ]] && rm "$test_log_file"
   
   # Add test package name to custom-packages.conf file
-  echo "$package_name" > "$opkg_registered_packages_file"
+  echo "$package_name" > "$opkg_installed_packages_file"
 
   # Act
   opkg_common_ensure_installed

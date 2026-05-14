@@ -1,1 +1,0 @@
-/mnt/storage/dev/repos/venus-os/utils/opkg-helpers/src/opt/victronenergy/gui/qml/PageSettingsOPKGPackageDetails.qml

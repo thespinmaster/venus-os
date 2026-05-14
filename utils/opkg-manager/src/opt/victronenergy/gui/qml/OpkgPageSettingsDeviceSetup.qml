@@ -127,7 +127,6 @@ MbPage {
  
 		root.serviceTypesModel = values
 	}
-
  
 	listview.footer: Item {
 		id: footerItem

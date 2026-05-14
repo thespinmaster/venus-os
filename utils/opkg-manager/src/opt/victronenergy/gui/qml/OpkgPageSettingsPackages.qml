@@ -26,6 +26,21 @@ MbPage {
 		bind: Utils.path("com.victronenergy.settings", "/Settings/OpkgManager/NoAction")
 	}
 
+	// Status indicator for alarm level
+		MbItemOptions {
+			description: qsTr("Feed Type")
+			bind: Utils.path("com.victronenergy.settings", "/Settings/OpkgManager/FeedType")
+			readonly: true
+			possibleValues: [
+				MbOption { description: qsTr("Release"); value: "release" },
+				MbOption { description: qsTr("Developer"); value: "develop" }
+			]
+			onValueChanged: {
+				processRunner.operationName = "set-feed"
+				processRunner.start(["set-feed", value])
+			}
+		}
+
 	Component.onCompleted: {
 		Vm.loadPackages(processRunner, packagesModel, "list-packages", "")
  
@@ -86,6 +101,7 @@ MbPage {
 			switch (processRunner.operationName) {
 				case "install":
 				case "upgrade":
+				case "set-feed":
 				case "remove":
 					isBusy = true
 					curPage.status = PageStatus.Inactive
@@ -126,6 +142,7 @@ MbPage {
 							break;
 						case "install":
 						case "upgrade":
+						case "set-feed":
 						case "remove":
 							if (logCallback)
 								logCallback("--- Finished " + processRunner.operationName + ". Exit code: " + exitCode + ", status: " + exitStatus + " ---"); 

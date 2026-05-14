@@ -11,13 +11,13 @@ DBUS_SETTINGS="
 #		{'path':'/Settings/OpkgManager/CustomMenus/PageSettingsDisplay/PageSettingsNeShuntSubMenu'}
 #"
 
-if [[ "$1" == "dev-install" ]]; then
-  VE_ROOT_DIR=/data/dev/utils/opkg-manager/src
-fi
+[[ ${DEV_INSTALL:-} == 1 ]] && [[ -f /data/dev/utils/opkg-manager/src ]] && 
+		export VE_ROOT_PATH=/data/dev/utils/opkg-manager/src
+# shellcheck source=/data/dev/utils/opkg-manager/src/data/opkg-manager/source-common
+source "${VE_ROOT_PATH:-}/data/opkg-manager/source-common"
 
-# shellcheck disable=SC1091
-source "${VE_ROOT_DIR:-}/data/opkg-manager/install-helper"
-
+setsource install-helper
+ 
 if [[ "$1" == "install" || "$1" == "dev-install" ]]; then
 	install_helper_post_install
 elif [[ "$1" == "remove" ]]; then

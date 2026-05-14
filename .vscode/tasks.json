@@ -4,13 +4,13 @@
     {
       "id": "opkgPackage",
       "type": "promptString",
-      "description": "Package to build (leave empty to reuse last; e.g. opkg-manager, mount-shares, themer, or all)",
+      "description": "Package(s) to build (space-separated; leave empty to reuse last; e.g. opkg-manager mount-shares, themer, or all)",
       "default": ""
     },
     {
       "id": "opkgPromoteFeed",
       "type": "promptString",
-      "description": "Feed to promote (leave empty for all; e.g. main or opkg-manager)",
+      "description": "Feed to promote (leave empty for all; e.g. addons or opkg-manager)",
       "default": ""
     }
   ],

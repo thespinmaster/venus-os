@@ -3,20 +3,13 @@
 set -o nounset
 
 readonly rc_local_file="${VENUS_ROOT_DIR:-}/data/rc.local"
-readonly opkg_helpers_path="${VENUS_ROOT_DIR:-}/data/opkg-manager"
-readonly opkg_registered_packages_file="/data/conf/registered-packages.conf"
+readonly opkg_installed_packages_file="/data/conf/opkg-manager-installed-packages.conf"
 # shellcheck disable=SC2034
-readonly opkg_rc_local_d_dir="${opkg_helpers_path}/rc.local.d"
+readonly opkg_rc_local_d_dir="${VENUS_ROOT_DIR:-}/data/opkg-manager/rc.local.d"
 readonly resize2fs_file="/opt/victronenergy/swupdate-scripts/resize2fs.sh"
+readonly OPKG_MANAGER_FEED_NAME="addons" # used by sourcing code
 
-OPKG_MANAGER_FEED_NAME="opkg-manager"
-OPKG_MAIN_FEED_NAME="thespinmaster"
-OPKG_MAIN_FEED_PATH="main"
-
-OPKG_FEED_PATH="${VENUS_ROOT_DIR:-}/etc/opkg"
-OPKG_FEED_LOCAL_CONFIG_FILE="/data/conf/opkg-manager-release.conf"
-OPKG_FEED_CONFIG_FILE="${OPKG_FEED_PATH}/opkg-manager.conf"
-OPKG_FEED_BASE_URL="https://github.com/${OPKG_MAIN_FEED_NAME}/venus-os/raw/refs/heads/main/feeds/release"
+OPKG_FEED_CONFIG_FILE="${VENUS_ROOT_DIR:-}/etc/opkg/opkg-manager.conf"
 
 # OPKG_VENUS_VERSION=
  
@@ -70,25 +63,27 @@ __restore_previous_fs_access() {
   
 }
 
-opkg_common_ensure_feeds() {
+opkg_common_ensure_feed() {
+  
+  local source="/data/conf/opkg-manager-${1:-release}.conf"
 
-  log "ensure opkg feed"
- 
-  local feed_manager="src/gz ${OPKG_MANAGER_FEED_NAME} ${OPKG_FEED_BASE_URL}/${OPKG_MANAGER_FEED_NAME}"
+  # If an existing, valid feed exists keep it; else create new one
 
-  if [[ ! -f "${OPKG_FEED_LOCAL_CONFIG_FILE}" ]]; then
-    echo "$feed_manager" > "${OPKG_FEED_LOCAL_CONFIG_FILE}" 
+  # If link is missing → create it (only if source exists)
+  # If source is missing → do nothing (prevents broken symlink)
+  # If both exist → leaves it unchanged
 
-    local feed_main="src/gz ${OPKG_MAIN_FEED_NAME} ${OPKG_FEED_BASE_URL}/${OPKG_MAIN_FEED_PATH}"
-    echo "$feed_main" >> "${OPKG_FEED_LOCAL_CONFIG_FILE}" 
- 
-  elif ! grep -q "$feed_manager" "$OPKG_FEED_LOCAL_CONFIG_FILE"; then
-    echo "$feed_manager" >> "${OPKG_FEED_LOCAL_CONFIG_FILE}" 
+  # -L checks if the path is a symlink.
+  if [ ! -L "${OPKG_FEED_CONFIG_FILE}" ] || [ ! -e "${source}" ]; then
+    if [ -e "${source}" ]; then
+      ln -sfn "${source}" "${OPKG_FEED_CONFIG_FILE}"
+    fi
   fi
- 
-  log "creating opkg feed symlink"
-  ln -sf "$OPKG_FEED_LOCAL_CONFIG_FILE" "$OPKG_FEED_CONFIG_FILE"
- 
+}
+
+opkg_common_set_feed() {
+  log "set opkg feed ${1}"
+  ln -sf "/data/conf/opkg-manager-${1}.conf" "${OPKG_FEED_CONFIG_FILE}"
 }
 
 opkg_common_get_venus_verion_byref() {
@@ -185,7 +180,7 @@ __init_opkg() {
 
   log "__init_opkg: initializing"
 
-  opkg_common_ensure_feeds
+  opkg_common_ensure_feed 
   if [ ! $dry_run ]; then
     opkg update
   fi
@@ -241,14 +236,14 @@ opkg_common_ensure_rc_local_d() {
 }
 
 # loops through all the lines in
-# the opkg_registered_packages_file 
+# the opkg_installed_packages_file 
 # and proceeds to install each
 # package.
 # takes care of read write access
 opkg_common_ensure_installed() {
 
-  [[ -f "$opkg_registered_packages_file" ]] || {
-     log "opkg_registered_packages_file does not exist"; return 0; }
+  [[ -f "$opkg_installed_packages_file" ]] || {
+     log "opkg_installed_packages_file does not exist"; return 0; }
 
   log "opkg_common_ensure_installed"
  
@@ -270,7 +265,7 @@ opkg_common_ensure_installed() {
     
     __opkg_common_try_install_package "${line}"
 
-  done < "${opkg_registered_packages_file}"
+  done < "${opkg_installed_packages_file}"
 
   __restore_previous_fs_access
 
@@ -346,10 +341,10 @@ opkg_common_register_package() {
 
   local package_name="${1:-}"
   
-  if [[ ! -f "${opkg_registered_packages_file}" ]] || ! grep -q "^${package_name}$" "${opkg_registered_packages_file}" ; then
-    log "adding ${package_name} to ${opkg_registered_packages_file}"
+  if [[ ! -f "${opkg_installed_packages_file}" ]] || ! grep -q "^${package_name}$" "${opkg_installed_packages_file}" ; then
+    log "adding ${package_name} to ${opkg_installed_packages_file}"
     if [ ! $dry_run ]; then
-      echo "${package_name}" >> "${opkg_registered_packages_file}"
+      echo "${package_name}" >> "${opkg_installed_packages_file}"
     fi
   else
     log "package ${package_name} already added"
@@ -362,14 +357,14 @@ opkg_common_register_package() {
 opkg_common_unregister_package() {
 
   [[ -z "${1:-}" ]] && { log_error "ERROR: no package name supplied" ; return 1; }
-  [[ -f "${opkg_registered_packages_file}" ]] || return 0
+  [[ -f "${opkg_installed_packages_file}" ]] || return 0
 
   local package_name="${1:-}"
 
-  if grep -q "^${package_name}$" "${opkg_registered_packages_file}" ; then
-    log "Removing ${package_name} from ${opkg_registered_packages_file}"
+  if grep -q "^${package_name}$" "${opkg_installed_packages_file}" ; then
+    log "Removing ${package_name} from ${opkg_installed_packages_file}"
     if [ ! $dry_run ]; then
-      sed -i "/^$package_name/d" "${opkg_registered_packages_file}"
+      sed -i "/^$package_name/d" "${opkg_installed_packages_file}"
     fi
   else
     log "package '${package_name}' not found"
@@ -387,7 +382,8 @@ case "${1:-}" in
     ;;
  
   ensure-feeds)
-    opkg_common_ensure_feeds
+    shift
+    opkg_common_ensure_feed "${1:-}"
     ;;
   remove-feed-symlink)
     opkg_common_remove_feed_symlink

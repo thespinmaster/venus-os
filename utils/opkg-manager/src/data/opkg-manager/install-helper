@@ -1,17 +1,18 @@
 #!/usr/bin/env bash
 
 set -o nounset
- 
-# set package name using the path of the calling file's location
 
-PACKAGE_NAME="${PACKAGE_NAME-$(basename "$(dirname "${BASH_SOURCE[2]-}")")}"
+# set package name using the path of the calling file's location
+PACKAGE_NAME="${PACKAGE_NAME-"$(basename "$(dirname "$(realpath "${0}")")")"}"
 RESTART_GUI_SERVICE="${RESTART_GUI_SERVICE:=0}"
 DBUS_SETTINGS="${DBUS_SETTINGS-}"
 RC_LOCAL_SCRIPT="${RC_LOCAL_SCRIPT-}"
- 
-# shellcheck source="/data/dev/utils/opkg-manager/src/data/opkg-manager/source-common"
-source "/data/opkg-manager/source-common"
- 
+
+[[ ${DEV_INSTALL:-} == 1 ]] && [[ -f /data/dev/utils/opkg-manager/src ]] && 
+		export VE_ROOT_PATH=/data/dev/utils/opkg-manager/src
+# shellcheck source=/data/dev/utils/opkg-manager/src/data/opkg-manager/source-common
+source "${VE_ROOT_PATH:-}/data/opkg-manager/source-common"
+
 install_helper_add_remove_dbus_csv_items() {
 	
 	local csv_string=
@@ -112,13 +113,22 @@ __install_helper_add_remove_comma_delimited_string() {
 # arguments {1} (optional): set to remove to remove
 install_helper_add_remove_patch() {
 	local remove=0
-	[[ "${1:-}" == "remove" ]] && remove=1
-	
+	local msg=
+
+	if [[ "${1:-}" == "remove" ]]; then
+		remove=1
+		msg="Reverting patched files"
+  else
+		msg="Patching files"
+	fi
+ 
 	shopt -s nullglob
   
-  local installer_path="${BASH_SOURCE[1]}"
+  local installer_path; installer_path="$(dirname "$(realpath "${0}")")"
 
 	for patchfile in "$installer_path"/*.patch; do
+		[[ -n "$msg" ]] && { echo "$msg"; msg=; }
+
 		RESTART_GUI_SERVICE=1
 		if ((remove==0)); then
 			file_patcher_apply_patch "$patchfile"
@@ -146,7 +156,7 @@ install_helper_post_install() {
  
 	install_helper_initialize
  
-	echo "registering package: ${PACKAGE_NAME}"
+	echo "Registering package: ${PACKAGE_NAME}"
 	opkg_common_register_package "${PACKAGE_NAME}"
 
 	if [[ -f "/data/${PACKAGE_NAME}/buildtime" ]]; then
@@ -155,13 +165,12 @@ install_helper_post_install() {
 
 	[[ -n "${RC_LOCAL_SCRIPT:-}" ]] &&
 		opkg_common_add_script_to_rc_local "${RC_LOCAL_SCRIPT}"
- 
-	echo "patching files"
 
 	install_helper_add_remove_patch add
  
-	echo "adding dbus settings"
-
+  [[ -n "${DBUS_SETTINGS:-}" || -n "${DBUS_SETTINGS_DEPRECIATED:-}" ]] &&
+		echo "Adding dbus settings"
+		
 	[[ -n "${DBUS_SETTINGS_DEPRECIATED:-}" ]] &&
 		dbus_common_remove_settings <<< "${DBUS_SETTINGS_DEPRECIATED}"
  
@@ -184,11 +193,11 @@ install_helper_pre_remove() {
 		opkg_common_remove_script_from_rc_local "${RC_LOCAL_SCRIPT}"
  
 	opkg_common_unregister_package "$PACKAGE_NAME"
-  
-	echo "reverting patched files"
-	install_helper_add_remove_patch remove
-
-	echo "removing dbus settings"
+ 
+	install_helper_add_remove_patch remove 
+ 
+  [[ -n "${DBUS_SETTINGS:-}" || -n "${DBUS_SETTINGS_DEPRECIATED:-}" ]] &&
+		echo "Removing dbus settings"
 
 	[[ -n "${DBUS_SETTINGS:-}" ]] && {
 		dbus_common_remove_settings <<< "$DBUS_SETTINGS"
@@ -205,7 +214,7 @@ install_helper_pre_remove() {
 install_helper_restart_gui_service() {
 	((RESTART_GUI_SERVICE)) || return
  
-	echo "restarting gui service..."
+	echo "Restarting gui service..."
   #svc -t /service/gui &
 	nohup svc -t /service/gui >/dev/null 2>&1 &
 }

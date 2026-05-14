@@ -13,7 +13,7 @@ set -euo pipefail
 #   Arg1:"all" (default): Builds all folders under under services & utils.
 #   Arg[n]: Or a list of folders under services or utils to built
 # Options:
-#   --develop-only              Build and index into develop folders only
+#   --develop-only              Build and index into develop folders only (stamps version with +dev.YYYYMMDD.HHMMSS)
 #   --promote                  Promote develop feed to release feed
 #   --clean-develop            Remove all contents from the develop feeds folder
 ####################################################################
@@ -27,6 +27,7 @@ this_path="$(dirname "${BASH_SOURCE[0]}")"
 declare -a build_items=()
 declare -a folders=("../services" "../utils")
 declare -a cli_build_args=()
+declare -a normalized_cli_build_args=()
 declare pwd_old="$PWD"
 declare -A update_feeds=()
 declare promote_target=
@@ -40,7 +41,9 @@ usage() {
 Usage: $(basename "$0") [options] [all|<package> ...]
 
 Options:
-  --develop-only           Build and index packages in develop only
+  --develop-only           Build and index packages in develop only.
+                           Version is stamped as MAJOR.MINOR.PATCH+dev.YYYYMMDD.HHMMSS
+                           Old develop packages for the same name are removed before placing the new one.
   --promote                Promote develop feed to release feed
   --clean-develop          Remove all contents from the develop feeds folder
   -h, --help               Show this help
@@ -74,6 +77,21 @@ while [[ $# -gt 0 ]]; do
   shift
 done
 
+# Normalize positional package arguments so both of these forms work:
+#   make-packages opkg-manager mount-shares
+#   make-packages "opkg-manager mount-shares"
+# This is especially useful for task runners that pass prompt input as one arg.
+for arg in "${cli_build_args[@]}"; do
+  if [[ "$arg" =~ [[:space:]] ]]; then
+    read -r -a _split <<< "$arg"
+    normalized_cli_build_args+=("${_split[@]}")
+  else
+    normalized_cli_build_args+=("$arg")
+  fi
+done
+
+cli_build_args=("${normalized_cli_build_args[@]}")
+
 (( develop_only == 0 || promote_only == 0 )) || {
   echo "ERROR: --develop-only and --promote cannot be combined" >&2
   exit 1
@@ -101,7 +119,7 @@ feed_name_for_package() {
   if [[ "$name" == "opkg-manager" ]]; then
     echo "opkg-manager"
   else
-    echo "main"
+    echo "addons"
   fi
 }
 
@@ -218,6 +236,20 @@ develop_source_byref() {
   return 0
 }
 
+# Appends a develop build stamp (+dev.YYYYMMDD.HHMMSS) to the Version field in
+# the copied CONTROL/control file. Never touches the source control file.
+stamp_develop_version() {
+  local develop_path="${1}"
+  local control_file="${develop_path}/CONTROL/control"
+  local stamp
+
+  [[ -f "$control_file" ]] || { echo "ERROR: control file not found: $control_file" >&2; return 1; }
+
+  stamp="+dev.$(date -u +'%Y%m%d.%H%M%S')"
+
+  sed -i "s/^\(Version:.*\)$/\1${stamp}/" "$control_file"
+}
+
 build_package() {
 
   local pkg_root="${1}"
@@ -238,7 +270,13 @@ build_package() {
   local build_path="../.build/${name}.$$.${RANDOM}"
   local develop_path;
   develop_source_byref "$build_path" "$path" develop_path || return 1
-  
+
+  if (( develop_only == 1 )); then
+    stamp_develop_version "$develop_path" || return 1
+    # Remove superseded develop packages for this package before placing the new one
+    find "$feed_path_abs" -maxdepth 1 -name "${name}_*.ipk" -exec rm -f {} +
+  fi
+
   mkdir -p "${develop_path}/data/${name}"
   # shellcheck disable=SC2005 
   # echo "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" > "${develop_path}/data/${name}/buildtime"
@@ -268,7 +306,7 @@ promote_release() {
   local -a feeds_to_promote=()
 
   if [[ -n "$promote_target" ]]; then
-    [[ "$promote_target" == "main" || "$promote_target" == "opkg-manager" ]] || {
+    [[ "$promote_target" == "addons" || "$promote_target" == "opkg-manager" ]] || {
       echo "ERROR: invalid promote feed: ${promote_target}" >&2
       return 1
     }
@@ -278,7 +316,7 @@ promote_release() {
       feeds_to_promote+=("$feed_name")
     done
   else
-    for feed_name in "main" "opkg-manager"; do
+    for feed_name in "addons" "opkg-manager"; do
       [[ -d "${develop_root}/${feed_name}" ]] && feeds_to_promote+=("$feed_name")
     done
   fi

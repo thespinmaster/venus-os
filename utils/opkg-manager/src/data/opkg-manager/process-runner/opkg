@@ -1,4 +1,5 @@
 #!/bin/bash
+# shellcheck disable=SC2317,SC2329  # Don't warn about unreachable commands in this file
 
 # Moved from opkg-common for QML ProcessRunner usage
 
@@ -11,41 +12,183 @@ declare __this_path;__this_path=$(dirname "${BASH_SOURCE[0]}")
 declare OPKG_PACKAGES_JSON_CACHE_FILE="/tmp/opkg-common-list-packages.json"
 declare OPKG_FEEDS_JSON_CACHE_FILE="/tmp/opkg-common-feeds.json"
  
-opkg_get_feeds() {
+__opkg_qml_feed_crud() {
+	local mode="${1:-}"
+	local feed_name="${2:-}"
+	local feed_url="${3:-}"
+	local old_feed_name="${4:-}"
+ 
+	# Validate feed_name
+	[[ -z "${feed_name}" ]] && { echo "Invalid name" >&2; return 1; }
+	[[ "${feed_name}" =~ [^a-zA-Z0-9_-] ]] && { echo "Invalid name" >&2; return 1; }
+	if [[ -n "${old_feed_name}" ]] && [[ "${old_feed_name}" =~ [^a-zA-Z0-9_] ]]; then
+		echo "Invalid old name" >&2
+		return 1
+	fi
+
+  [[ ! -f "${OPKG_FEED_CONFIG_FILE}" ]] &&
+    opkg_common_ensure_feed
+ 
+  #for clarity use new var
+  local existing_feed_name=$feed_name;
+  [[ -n $old_feed_name ]] && existing_feed_name=$old_feed_name
+  
+  # echo "$mode,$feed_name,$feed_url,$old_feed_name,$existing_feed_name" >&2
+
+  local -i exists=0
+  local -a feedNames=()
+ 
+  feedNameExists() {
+    local retval=0
+    local -n _exists=$2; _exists=0
+    grep -qE "^src/gz ${1} " "${OPKG_FEED_CONFIG_FILE}"
+    [[ $? == 0 ]] && { _exists=1; return; }
+    grep -qE "^src/gz ${1} " "/etc/opkg/venus.conf"
+    [[ $? == 0 ]] && _exists=1;
+  }
+
+  feedNameExists "${existing_feed_name}" exists
+  
+  local feed_line="src/gz ${feed_name} ${feed_url}"
+
+  if [[ $mode == add ]]; then
+    # if adding and name does not exist; shortcut to just adding feed to the end and exiting
+    ((exists)) && { 
+      echo "Feed already exists: $feed_name" >&2; return 1; }
+    echo "$feed_line" >> "${OPKG_FEED_LOCAL_CONFIG_FILE}"
+    return 0
+  fi
+ 
+  ((!exists)) && { echo "Feed not found: $feed_name" >&2; return 1; }
+  
+  if [[ $mode == edit ]]; then
+    # if an edit make sure new name does not already exist if name given is diff from old
+    [[ -z "${feed_url}" ]] && { echo "edit: feed url required" >&2; return 1; }
+ 
+    [[ -n $old_feed_name && ! "${feed_name}" == "${old_feed_name}" ]] && {
+      # make sure the new feed name does not exist if name is different from existing
+      feedNameExists "${feed_name}" exists
+      ((exists)) && { echo "Invalid name; feed name already exists: $feed_name" >&2; return 1; }
+    }
+
+  fi
+ 
+  tmp_file=$(mktemp)
+  local -i found=0
+  
+  # create new contents
+  # skip line if removing, else if edit find line and replace
+  while IFS= read -r line; do
+    if [[ "$line" == src/gz\ ${existing_feed_name}\ * ]]; then
+      [[ ! "$mode" == remove ]] && echo "$feed_line"
+      found=1
+      continue
+    fi
+    echo "$line"
+  done < "${OPKG_FEED_LOCAL_CONFIG_FILE}" > "$tmp_file"
+
+  ((!found)) && echo "$feed_line" >> "$tmp_file"  # add to end if not found
+
+  # make sure we update the real file and not the symlink
+  local feedfile="${OPKG_FEED_CONFIG_FILE}"
+  [[ -L "${OPKG_FEED_CONFIG_FILE}" ]] && feedfile="$(readlink "${OPKG_FEED_CONFIG_FILE}")"
+
+  mv "$tmp_file" "${feedfile}" || echo "Error writing to ${feedfile}" >&2
+ 
+  return $retval
+
+}
+
+__validate_package_name() {
+  if [[ -z "$1" ]]; then
+    log_error "opkg_qml_package_commond: package name not supplied"
+    return 1
+  fi
+  return 0
+}
+ 
+__opkg_qml_package_command() {
+   
+  local command="${1}"
+  local package_name="${2}"
+
+  shift
+ 
+  __init_root_fs_for_writing
+ 
+  opkg "$command" "${package_name}"
+  local status=$?
+
+  __restore_previous_fs_access
+ 
+  if [[ $status == 0 ]]; then
+    log "$package_name $command succeded"
+  else
+    log "$package_name $command failed (status $status)"
+  fi
+
+  return status
+}
+
+# Helper to install a package and log output/errors
+opkg_qml_install_package() {
+  local package_name="$1"
+  
+  __validate_package_name "${package_name}" || return
+
+  log "Installing $package_name $*"
+  __opkg_qml_package_command install "$package_name" "$@"
+
+}
+
+opkg_qml_upgrade_package() {
+  local package_name="$1"
+ 
+  __validate_package_name "${package_name}" || return
+  
+  log "Upgrading $package_name $*"
+  __opkg_qml_package_command upgrade "$package_name" "$@"
+ 
+}
+
+opkg_qml_remove_package() {
+  local package_name="$1"
+
+  __validate_package_name "${package_name}" || return
+
+  if [[ -z $(opkg list-installed "${package_name}") ]]; then
+    log "Not Installed ${package_name}, exiting"
+    return 0
+  fi
+  
+  log "Removing $package_name $*"
+  __opkg_qml_package_command remove "${package_name}"
+  
+}
+
+opkg_create_json_feeds_list() {
   
 	local feeds_file="${OPKG_FEED_CONFIG_FILE}"
 	local cache_file="${OPKG_FEEDS_JSON_CACHE_FILE}"
-	local feeds_mtime=0
-	local cache_mtime=0
+	local feeds_mtime=0 cache_mtime=0
 
   # note use stat -L so it follows symlinks for getting the time
 
-	if [[ -f "$feeds_file" ]]; then
-		feeds_mtime=$(stat -L -c %Y "$feeds_file" 2>/dev/null || echo 0)
-	fi
-	if [[ -f "$cache_file" ]]; then
-		cache_mtime=$(stat -L -c %Y "$cache_file" 2>/dev/null || echo 0)
-	fi
-
-	if [[ -f "$cache_file" && $cache_mtime -ge $feeds_mtime ]]; then
-		echo "$cache_file"
-		return 0
-	fi
-  echo "Feeds" >&2
-
+	[[ -f "$feeds_file" ]] && feeds_mtime=$(stat -L -c %Y "$feeds_file" 2>/dev/null || echo 0)
+	[[ -f "$cache_file" ]] && cache_mtime=$(stat -L -c %Y "$cache_file" 2>/dev/null || echo 0)
+	[[ -f "$cache_file" && $cache_mtime -ge $feeds_mtime ]] && { echo "$cache_file"; return 0; } # cache still valid 
+ 
 	local first=1
 	printf '[' > "$cache_file"
 	if [[ -f "$feeds_file" ]]; then
 		while IFS= read -r line; do
 			[[ -z "$line" || "$line" == \#* ]] && continue
 			[[ "$line" != src/gz* ]] && continue
+			# shellcheck disable=SC2086
 			set -- $line # DONT QUOTE set -- splits on whitespace
-			local name="$2"
-			local url="$3"
-			local builtin=false
-			if [[ "$name" == "$OPKG_MANAGER_FEED_NAME" ]]; then
-				builtin=true
-			fi
+			local type="$1" name="$2" url="$3" builtin=false
+			[[ "$name" == "$OPKG_MANAGER_FEED_NAME" ]] && builtin=true || builtin=false
+ 
 			if [[ $first -eq 0 ]]; then printf ',' >> "$cache_file"; fi
 			printf '{"name":"%s","url":"%s","builtin":%s}' "${name}" "${url}" "$builtin" >> "$cache_file"
 			first=0
@@ -55,174 +198,14 @@ opkg_get_feeds() {
 	echo "$cache_file"
 	return 0
 }
-
+ 
 opkg_qml_feed_crud() {
-	[[ "${2}" == "opkg-manager" ]] && { echo "The opkg-manager cannot be removed/edited"; exit 1; }
+
+	[[ "${2}" == "opkg-manager" ]] && { echo "The opkg-manager cannot be removed/edited"; return 1; }
 	__opkg_qml_feed_crud "$@"
 }
 
-__opkg_qml_feed_crud() {
-	local mode="${1:-}"
-	local feed_name="${2:-}"
-	local feed_url="${3:-}"
-	local old_feed_name="${4:-}"
-
-  #echo "$mode,$feed_name,$feed_url,$old_feed_name" >&2
-  #return 1
-
-	# Validate feed_name
-	[[ -z "${feed_name}" ]] && { echo "Invalid name" >&2; return 1; }
-	[[ "${feed_name}" =~ [^a-zA-Z0-9_-] ]] && { echo "Invalid name" >&2; return 1; }
-	if [[ -n "${old_feed_name}" ]] && [[ "${old_feed_name}" =~ [^a-zA-Z0-9_] ]]; then
-		echo "Invalid old name" >&2
-		return 1
-	fi
-
-  [[ ! -f "${OPKG_FEED_LOCAL_CONFIG_FILE}" ]] &&
-    opkg_common_ensure_feeds
- 
-  local feed_line="src/gz ${feed_name} ${feed_url}"
- 
-  #for clarity use new var
-  local existing_feed_name=$feed_name;
-  [[ -n $old_feed_name ]] && existing_feed_name=$old_feed_name
-  
-  # echo "$mode,$feed_name,$feed_url,$old_feed_name,$existing_feed_name" >&2
-
-  local -i exists=0
-
-  feedNameExists() {
-    local retval=0
-    local -n _exists=$2
-    _exists=0
-    grep -qE "^src/gz ${1} " "${OPKG_FEED_LOCAL_CONFIG_FILE}"
-    retval=$?; [[ $retval == 0 ]] && _exists=1;
-  }
-
-  feedNameExists "${existing_feed_name}" exists
-
-  if [[ $mode == add ]]; then
-    ((exists)) && { 
-      echo "Feed already exists: $feed_name" >&2; return 1; }
-    echo "$feed_line" >> "${OPKG_FEED_LOCAL_CONFIG_FILE}"
-    return 0
-  fi
- 
-  ((!exists)) && { 
-    echo "Feed not found: $feed_name" >&2; return 1; }
-
-  if [[ $mode == edit ]]; then
-    [[ -z "${feed_url}" ]] && { 
-      echo "edit: feed url required" >&2; return 1; }
- 
-    [[ -n $old_feed_name && ! "${feed_name}" == "${old_feed_name}" ]] && {
-      # check new feed name does not exist
-      feedNameExists "${feed_name}" exists
-      ((exists)) && { 
-        echo "Feed not found: $feed_name" >&2; return 1; }
-    }
-
-  fi
-
-  [[ ${dry_run:-} ]] && { 
-    echo "edit feed line-$mode: $feed_line"; 
-    return 0; }
- 
-  tmp_file=$(mktemp)
-  local -i found=0
-  
-  while IFS= read -r line; do
-    if [[ "$line" == src/gz\ ${existing_feed_name}\ * ]]; then
-      [[ ! $mode == remove ]] && echo "$feed_line"
-      found=1
-      continue
-    fi
-    echo "$line"
-  done < "${OPKG_FEED_LOCAL_CONFIG_FILE}" > "$tmp_file"
-  ((!found)) && {
-    # not found add to end
-    echo "$feed_line" >> "$tmp_file"
-  }
-
-  local -i retval;
-  mv "$tmp_file" "${OPKG_FEED_LOCAL_CONFIG_FILE}"
-  retval=$?
-  ((retval)) &&
-    echo "Error writing to ${OPKG_FEED_LOCAL_CONFIG_FILE}" >&2
- 
-  return $retval
-
-}
-
-# Helper to install a package and log output/errors
-opkg_qml_install_package() {
-  local package_name="$1"
-  shift
-  if [[ -z "$package_name" ]]; then
-    log_error "install-package: package name not supplied"
-    return 1
-  fi
-  log "Installing $package_name $*"
-  opkg install "$package_name" "$@"
-  local status=$?
-  if [ $status -eq 0 ]; then
-    log "install_package: $package_name installed successfully"
-  else
-    log_error "install_package: failed to install $package_name (status $status)"
-  fi
-  return $status
-}
-
-opkg_qml_upgrade_package() {
-  local package_name="$1"
-  shift
-  if [[ -z "$package_name" ]]; then
-    log_error "update-package: package name not supplied"
-    return 1
-  fi
-  log "Upgrade $package_name $*"
-  opkg upgrade "$package_name" "$@"
-  local status=$?
-  if [ $status -eq 0 ]; then
-    log "update-package: $package_name updated successfully"
-  else
-    log_error "update-package: failed to updated $package_name (status $status)"
-  fi
-  return $status
-}
-
-opkg_qml_remove_package() {
- 
-  local package_name="$1"
-  shift
-  if [[ -z "$package_name" ]]; then
-    log_error "remove-package: package name not supplied"
-    return 1
-  fi
-
-  # see if the ipk is installed
-  # list-installed only returns an exact match
-  local installed; installed=$(opkg list-installed "${package_name}")
-
-  # if not installed then exit
-  if [[ -z "${installed}" ]]; then
-    log "Not Installed ${package_name}, exiting"
-    return 0
-  fi
-
-  __init_root_fs_for_writing
-  __init_opkg
- 
-  opkg remove "${package_name}"
- 
-  __restore_previous_fs_access
-
-  log_pop_indent
- 
-  return 0
-}
-
-opkg_qml_list_packages() {
+opkg_qml_create_json_package_list() {
   local -A feeds
   local line
   local feed
@@ -242,28 +225,29 @@ opkg_qml_list_packages() {
   [[ "${1:-}" == "update" ]] && callUpdate=1
 
   if [[ ! -f "${OPKG_FEED_LOCAL_CONFIG_FILE}" ]]; then
-    opkg_common_ensure_feeds
-    callUpdate=1
-  elif [[ ! -f "${OPKG_FEED_LOCAL_CONFIG_FILE}" ]]; then
+    opkg_common_ensure_feed
     callUpdate=1
   fi
  
   if ((callUpdate==1)); then
     opkg update
   fi
-
-  if [[ -f "${OPKG_FEED_LOCAL_CONFIG_FILE}" ]]; then
+  
+  # get feed each line from opkg-manager.conf file
+  # skip comments and blank lines
+  if [[ -f "${OPKG_FEED_CONFIG_FILE}" ]]; then
     while IFS= read -r line; do
       [[ -z "${line}" || "${line}" == \#* ]] && continue
       [[ "${line}" != src/gz* ]] && continue
       set -- ${line} # DONT QUOTE set -- splits on whitespace
+      echo "2=${2}"
       [[ -n "${2:-}" ]] && feeds["${2}"]=1
-    done < "${OPKG_FEED_LOCAL_CONFIG_FILE}"
+    done < "${OPKG_FEED_CONFIG_FILE}"
 
     mtime=$(stat -L -c %Y "${OPKG_FEED_LOCAL_CONFIG_FILE}" 2>/dev/null || echo 0)
     (( mtime > latest_mtime )) && latest_mtime=${mtime}
   fi
-
+exit 0
   if [[ "${#feeds[@]}" -eq 0 ]]; then
     printf '[]' > "${OPKG_PACKAGES_JSON_CACHE_FILE}"
     echo "No feeds" >&2
@@ -458,13 +442,13 @@ opkg_qml_list_packages() {
   return 0
 }
 
-opkg_get_feeds
+opkg_create_json_feeds_list
 exit 0
 
 case "${1:-}" in
 	get-feeds)
 
-		opkg_get_feeds
+		opkg_create_json_feeds_list
 		;;
 	add-feed)
 		opkg_qml_feed_crud "add" "${2:-}" "${3:-}" "${4:-}"
@@ -477,7 +461,7 @@ case "${1:-}" in
 		;;
 
   list-packages)
-    opkg_qml_list_packages "${2:-}"
+    opkg_qml_create_json_package_list "${2:-}"
     ;;
   install-package)
     shift
@@ -490,6 +474,9 @@ case "${1:-}" in
   upgrade-package)
     shift
     opkg_qml_upgrade_package "$@"
+    ;;
+  set-feed)
+    opkg_common_set_feed "${1}"
     ;;
   *)
     if [[ -n ${1:-} ]]; then

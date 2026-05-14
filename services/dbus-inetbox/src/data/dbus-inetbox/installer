@@ -17,16 +17,16 @@ DBUS_SETTINGS="
 #		{'path':'/Settings/Devices/dbus_inetbox/Port'}
 #		{'path':'/Settings/Devices/dbus_inetbox/ServiceName'}
 #'
- 
-# shellcheck source=/data/dev/utils/opkg-manager/src/data/opkg-manager/source-common
-source "/data/opkg-manager/source-common"
-setsource install-helper
 
+[[ ${DEV_INSTALL:-} == 1 ]] && [[ -f /data/dev/utils/opkg-manager/src ]] && 
+		export VE_ROOT_PATH=/data/dev/utils/opkg-manager/src
+# shellcheck source=/data/dev/utils/opkg-manager/src/data/opkg-manager/source-common
+source "${VE_ROOT_PATH:-}/data/opkg-manager/source-common"
+
+setsource install-helper
+ 
 if [[ "${1:-}" == "install" || "${1:-}" == "dev-install" ]]; then
-	# shellcheck disable=SC2034
 	install_helper_post_install 
 elif [[ "${1:-}" == "remove" ]]; then
 	install_helper_pre_remove
 fi
-
-# install_helper_finished
