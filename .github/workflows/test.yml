@@ -1,0 +1,21 @@
+name: Debug
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          html="$(cat <<'EOF'
+          <html>
+          <head>
+            <meta charset='utf-8'>
+            <title>Index</title>
+          </head>
+          </html>
+          EOF
+          )"
+
+          echo "$html"
