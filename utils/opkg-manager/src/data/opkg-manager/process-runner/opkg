@@ -1,8 +1,6 @@
 #!/bin/bash
 # shellcheck disable=SC2317,SC2329  # Don't warn about unreachable commands in this file
 
-# Moved from opkg-common for QML ProcessRunner usage
-
 set -o nounset
 
 declare __this_path;__this_path=$(dirname "${BASH_SOURCE[0]}")
@@ -55,7 +53,7 @@ __opkg_qml_feed_crud() {
     # if adding and name does not exist; shortcut to just adding feed to the end and exiting
     ((exists)) && { 
       echo "Feed already exists: $feed_name" >&2; return 1; }
-    echo "$feed_line" >> "${OPKG_FEED_LOCAL_CONFIG_FILE}"
+    echo "$feed_line" >> "${OPKG_FEED_CONFIG_FILE}"
     return 0
   fi
  
@@ -85,17 +83,17 @@ __opkg_qml_feed_crud() {
       continue
     fi
     echo "$line"
-  done < "${OPKG_FEED_LOCAL_CONFIG_FILE}" > "$tmp_file"
+  done < "${OPKG_FEED_CONFIG_FILE}" > "$tmp_file"
 
   ((!found)) && echo "$feed_line" >> "$tmp_file"  # add to end if not found
 
   # make sure we update the real file and not the symlink
   local feedfile="${OPKG_FEED_CONFIG_FILE}"
-  [[ -L "${OPKG_FEED_CONFIG_FILE}" ]] && feedfile="$(readlink "${OPKG_FEED_CONFIG_FILE}")"
+  [[ -L "${feedfile}" ]] && feedfile="$(readlink "${OPKG_FEED_CONFIG_FILE}")"
 
-  mv "$tmp_file" "${feedfile}" || echo "Error writing to ${feedfile}" >&2
+  mv "$tmp_file" "${feedfile}" || { echo "Error writing to ${feedfile}" >&2; return 1; }
  
-  return $retval
+  return 0
 
 }
 
@@ -128,6 +126,19 @@ __opkg_qml_package_command() {
   fi
 
   return status
+}
+
+opkg_qml_get_feed_type() {
+
+  local feedfile="${OPKG_FEED_CONFIG_FILE}"
+  local feedType=
+  [[ -L "${feedfile}" ]] && feedfile="$(readlink "${OPKG_FEED_CONFIG_FILE}")"
+  if [[ -f "${feedfile}" ]]; then
+    feedType="${feedfile##*-}"    # remove everything up to last '-'
+    feedType="${feedType%.conf}"  # remove suffix
+  fi
+  # default to release, as opkg_common_ensure_feed will take care of missing conf.
+  echo "${feedType:-release}" 
 }
 
 # Helper to install a package and log output/errors
@@ -171,7 +182,7 @@ opkg_create_json_feeds_list() {
 	local feeds_file="${OPKG_FEED_CONFIG_FILE}"
 	local cache_file="${OPKG_FEEDS_JSON_CACHE_FILE}"
 	local feeds_mtime=0 cache_mtime=0
-
+ 
   # note use stat -L so it follows symlinks for getting the time
 
 	[[ -f "$feeds_file" ]] && feeds_mtime=$(stat -L -c %Y "$feeds_file" 2>/dev/null || echo 0)
@@ -181,6 +192,7 @@ opkg_create_json_feeds_list() {
 	local first=1
 	printf '[' > "$cache_file"
 	if [[ -f "$feeds_file" ]]; then
+
 		while IFS= read -r line; do
 			[[ -z "$line" || "$line" == \#* ]] && continue
 			[[ "$line" != src/gz* ]] && continue
@@ -224,7 +236,7 @@ opkg_qml_create_json_package_list() {
  
   [[ "${1:-}" == "update" ]] && callUpdate=1
 
-  if [[ ! -f "${OPKG_FEED_LOCAL_CONFIG_FILE}" ]]; then
+  if [[ ! -f "${OPKG_FEED_CONFIG_FILE}" ]]; then
     opkg_common_ensure_feed
     callUpdate=1
   fi
@@ -441,10 +453,7 @@ exit 0
   
   return 0
 }
-
-opkg_create_json_feeds_list
-exit 0
-
+ 
 case "${1:-}" in
 	get-feeds)
 
@@ -477,6 +486,9 @@ case "${1:-}" in
     ;;
   set-feed)
     opkg_common_set_feed "${1}"
+    ;;
+  get-feed-type)
+    opkg_qml_get_feed_type
     ;;
   *)
     if [[ -n ${1:-} ]]; then

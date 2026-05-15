@@ -1,22 +1,15 @@
 #include "ProcessRunner.h"
 
-#include "ProcessRunner.h"
-
 #include <QByteArray>
 #include <QDebug>
 #include <QStandardPaths>
 
 #include <QProcess>
 
-#define Q_OS_UNIX
 // #define TRACE
 
 #ifdef Q_OS_UNIX
 #include <signal.h>
-#endif
-
-#ifndef TRACE
-#define trace(...) ((void)0)
 #endif
 
 
@@ -107,18 +100,12 @@ void ProcessRunner::start(const QStringList &args)
 	m_stderrBuffer.clear();
 
 	try {
- 
 #ifdef TRACE
-			trace(QString("start(): resetting child signal defaults via %1").arg(envProgram));
+		trace(QString("start(): program=%1 args=%2").arg(m_helperPath, args.join(" ")));
 #endif
-		}
- 
+
 		m_process.setProgram(m_helperPath);
 		m_process.setArguments(args);
-		#ifdef TRACE
-		trace(QString("start(): program=%1 args=%2")
-					.arg(program, processArgs.join(" ")));
-		#endif
 		m_process.start();
 	} catch (const std::exception &e) {
 		emit processError(QString("Exception: %1").arg(e.what()));

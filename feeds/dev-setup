@@ -32,7 +32,7 @@ dev_setup_prompt_run_yes_no() {
 dev_setup_set_feed() {
   ln -sf "/data/conf/opkg-manager-${1}.conf" "$opkg_feed_file"
   echo "using feed: /data/conf/opkg-manager-${1}.conf"
-  cat $feeds_file_develop | sed 's/^/    /' # sed does some indenting
+  cat "/data/conf/opkg-manager-${1}.conf"| sed 's/^/    /' # sed does some indenting
 }
 
 # Basic IPv4 format check
@@ -89,9 +89,9 @@ src/gz opkg-manager $feeds_server_host/develop/opkg-manager
 src/gz addons $feeds_server_host/develop/addons
 EOF
  
-  echo ✅ created develop feeds: $feeds_file_develop
+  echo ✅ created develop feeds: "$feeds_file_develop"
   
-  cat $feeds_file_develop | sed 's/^/    /' # sed does some indenting
+  cat "$feeds_file_develop" | sed 's/^/    /' # sed does some indenting
  
 }
 
@@ -290,8 +290,8 @@ dev_setup() {
   dev_setup_opkg_release_feeds
 
   if [[ -f "$feeds_file_develop" ]]; then
-    echo ✅ dev opkg feeds file already exists: $feeds_file_develop 
-    cat $feeds_file_develop | sed 's/^/    /' # sed does some indenting
+    echo ✅ dev opkg feeds file already exists: $feeds_file_develop
+    cat "$feeds_file_develop" | sed 's/^/    /' # sed does some indenting
   fi
 
   dev_setup_prompt_run_yes_no "Setup dev opkg feeds" dev_setup_opkg_develop_feeds

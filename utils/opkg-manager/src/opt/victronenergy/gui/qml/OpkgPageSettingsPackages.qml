@@ -25,22 +25,7 @@ MbPage {
 		id: noActionSetting
 		bind: Utils.path("com.victronenergy.settings", "/Settings/OpkgManager/NoAction")
 	}
-
-	// Status indicator for alarm level
-		MbItemOptions {
-			description: qsTr("Feed Type")
-			bind: Utils.path("com.victronenergy.settings", "/Settings/OpkgManager/FeedType")
-			readonly: true
-			possibleValues: [
-				MbOption { description: qsTr("Release"); value: "release" },
-				MbOption { description: qsTr("Developer"); value: "develop" }
-			]
-			onValueChanged: {
-				processRunner.operationName = "set-feed"
-				processRunner.start(["set-feed", value])
-			}
-		}
-
+ 
 	Component.onCompleted: {
 		Vm.loadPackages(processRunner, packagesModel, "list-packages", "")
  

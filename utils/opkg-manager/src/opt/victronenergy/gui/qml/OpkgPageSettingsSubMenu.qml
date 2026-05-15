@@ -6,6 +6,6 @@ MbSubMenu {
  
   property var pageStack
   property var mbTools
- 
+  property Toast toast
 }
 

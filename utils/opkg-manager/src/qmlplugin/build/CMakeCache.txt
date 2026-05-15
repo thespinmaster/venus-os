@@ -247,7 +247,7 @@ OpkgManagerQmlPlugin_IS_TOP_LEVEL:STATIC=ON
 OpkgManagerQmlPlugin_SOURCE_DIR:STATIC=/data/dev/utils/opkg-manager/src/qmlplugin
 
 //Qt major version to use: 5, 6, or auto
-QMLPLUGIN_QT_MAJOR:STRING=auto
+QMLPLUGIN_QT_MAJOR:STRING=6
 
 //Additional directories where find(Qt6 ...) host Qt components
 // are searched
@@ -460,6 +460,10 @@ CMAKE_TAPI-ADVANCED:INTERNAL=1
 CMAKE_UNAME:INTERNAL=/usr/bin/uname
 //ADVANCED property for variable: CMAKE_VERBOSE_MAKEFILE
 CMAKE_VERBOSE_MAKEFILE-ADVANCED:INTERNAL=1
+//Details about finding Threads
+FIND_PACKAGE_MESSAGE_DETAILS_Threads:INTERNAL=[TRUE][v()]
+//Details about finding WrapAtomic
+FIND_PACKAGE_MESSAGE_DETAILS_WrapAtomic:INTERNAL=[1][v()]
 //Test HAVE_STDATOMIC
 HAVE_STDATOMIC:INTERNAL=1
 //Qt feature: aesni (from target Qt6::Core)

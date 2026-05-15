@@ -58,12 +58,9 @@ QtObject {
     }
  
     if (args.length == 1) {
-      console.log("nope")
       return
     }
-
-    console.log("args:" + args)
-
+ 
     processRunner.waitForFinished() //just in case
     processRunner.start(args)
     

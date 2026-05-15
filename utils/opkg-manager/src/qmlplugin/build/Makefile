@@ -130,6 +130,84 @@ OpkgManagerplugin/fast:
 .PHONY : OpkgManagerplugin/fast
 
 #=============================================================================
+# Target rules for targets named OpkgManagerplugin_automoc_json_extraction
+
+# Build rule for target.
+OpkgManagerplugin_automoc_json_extraction: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 OpkgManagerplugin_automoc_json_extraction
+.PHONY : OpkgManagerplugin_automoc_json_extraction
+
+# fast build rule for target.
+OpkgManagerplugin_automoc_json_extraction/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerplugin_automoc_json_extraction.dir/build.make CMakeFiles/OpkgManagerplugin_automoc_json_extraction.dir/build
+.PHONY : OpkgManagerplugin_automoc_json_extraction/fast
+
+#=============================================================================
+# Target rules for targets named OpkgManagerplugin_qmltyperegistration
+
+# Build rule for target.
+OpkgManagerplugin_qmltyperegistration: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 OpkgManagerplugin_qmltyperegistration
+.PHONY : OpkgManagerplugin_qmltyperegistration
+
+# fast build rule for target.
+OpkgManagerplugin_qmltyperegistration/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerplugin_qmltyperegistration.dir/build.make CMakeFiles/OpkgManagerplugin_qmltyperegistration.dir/build
+.PHONY : OpkgManagerplugin_qmltyperegistration/fast
+
+#=============================================================================
+# Target rules for targets named all_qmltyperegistrations
+
+# Build rule for target.
+all_qmltyperegistrations: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 all_qmltyperegistrations
+.PHONY : all_qmltyperegistrations
+
+# fast build rule for target.
+all_qmltyperegistrations/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/all_qmltyperegistrations.dir/build.make CMakeFiles/all_qmltyperegistrations.dir/build
+.PHONY : all_qmltyperegistrations/fast
+
+#=============================================================================
+# Target rules for targets named OpkgManagerplugin_other_files
+
+# Build rule for target.
+OpkgManagerplugin_other_files: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 OpkgManagerplugin_other_files
+.PHONY : OpkgManagerplugin_other_files
+
+# fast build rule for target.
+OpkgManagerplugin_other_files/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerplugin_other_files.dir/build.make CMakeFiles/OpkgManagerplugin_other_files.dir/build
+.PHONY : OpkgManagerplugin_other_files/fast
+
+#=============================================================================
+# Target rules for targets named OpkgManagerpluginplugin
+
+# Build rule for target.
+OpkgManagerpluginplugin: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 OpkgManagerpluginplugin
+.PHONY : OpkgManagerpluginplugin
+
+# fast build rule for target.
+OpkgManagerpluginplugin/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerpluginplugin.dir/build.make CMakeFiles/OpkgManagerpluginplugin.dir/build
+.PHONY : OpkgManagerpluginplugin/fast
+
+#=============================================================================
+# Target rules for targets named qt_internal_plugins
+
+# Build rule for target.
+qt_internal_plugins: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 qt_internal_plugins
+.PHONY : qt_internal_plugins
+
+# fast build rule for target.
+qt_internal_plugins/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/qt_internal_plugins.dir/build.make CMakeFiles/qt_internal_plugins.dir/build
+.PHONY : qt_internal_plugins/fast
+
+#=============================================================================
 # Target rules for targets named OpkgManagerplugin_autogen_timestamp_deps
 
 # Build rule for target.
@@ -154,6 +232,32 @@ OpkgManagerplugin_autogen: cmake_check_build_system
 OpkgManagerplugin_autogen/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerplugin_autogen.dir/build.make CMakeFiles/OpkgManagerplugin_autogen.dir/build
 .PHONY : OpkgManagerplugin_autogen/fast
+
+#=============================================================================
+# Target rules for targets named OpkgManagerpluginplugin_autogen_timestamp_deps
+
+# Build rule for target.
+OpkgManagerpluginplugin_autogen_timestamp_deps: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 OpkgManagerpluginplugin_autogen_timestamp_deps
+.PHONY : OpkgManagerpluginplugin_autogen_timestamp_deps
+
+# fast build rule for target.
+OpkgManagerpluginplugin_autogen_timestamp_deps/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerpluginplugin_autogen_timestamp_deps.dir/build.make CMakeFiles/OpkgManagerpluginplugin_autogen_timestamp_deps.dir/build
+.PHONY : OpkgManagerpluginplugin_autogen_timestamp_deps/fast
+
+#=============================================================================
+# Target rules for targets named OpkgManagerpluginplugin_autogen
+
+# Build rule for target.
+OpkgManagerpluginplugin_autogen: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 OpkgManagerpluginplugin_autogen
+.PHONY : OpkgManagerpluginplugin_autogen
+
+# fast build rule for target.
+OpkgManagerpluginplugin_autogen/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerpluginplugin_autogen.dir/build.make CMakeFiles/OpkgManagerpluginplugin_autogen.dir/build
+.PHONY : OpkgManagerpluginplugin_autogen/fast
 
 FileHelper.o: FileHelper.cpp.o
 .PHONY : FileHelper.o
@@ -203,30 +307,6 @@ OpkgManagerPlugin.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerplugin.dir/build.make CMakeFiles/OpkgManagerplugin.dir/OpkgManagerPlugin.cpp.s
 .PHONY : OpkgManagerPlugin.cpp.s
 
-OpkgManagerplugin_autogen/EWIEGA46WW/qrc_resources.o: OpkgManagerplugin_autogen/EWIEGA46WW/qrc_resources.cpp.o
-.PHONY : OpkgManagerplugin_autogen/EWIEGA46WW/qrc_resources.o
-
-# target to build an object file
-OpkgManagerplugin_autogen/EWIEGA46WW/qrc_resources.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerplugin.dir/build.make CMakeFiles/OpkgManagerplugin.dir/OpkgManagerplugin_autogen/EWIEGA46WW/qrc_resources.cpp.o
-.PHONY : OpkgManagerplugin_autogen/EWIEGA46WW/qrc_resources.cpp.o
-
-OpkgManagerplugin_autogen/EWIEGA46WW/qrc_resources.i: OpkgManagerplugin_autogen/EWIEGA46WW/qrc_resources.cpp.i
-.PHONY : OpkgManagerplugin_autogen/EWIEGA46WW/qrc_resources.i
-
-# target to preprocess a source file
-OpkgManagerplugin_autogen/EWIEGA46WW/qrc_resources.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerplugin.dir/build.make CMakeFiles/OpkgManagerplugin.dir/OpkgManagerplugin_autogen/EWIEGA46WW/qrc_resources.cpp.i
-.PHONY : OpkgManagerplugin_autogen/EWIEGA46WW/qrc_resources.cpp.i
-
-OpkgManagerplugin_autogen/EWIEGA46WW/qrc_resources.s: OpkgManagerplugin_autogen/EWIEGA46WW/qrc_resources.cpp.s
-.PHONY : OpkgManagerplugin_autogen/EWIEGA46WW/qrc_resources.s
-
-# target to generate assembly for a file
-OpkgManagerplugin_autogen/EWIEGA46WW/qrc_resources.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerplugin.dir/build.make CMakeFiles/OpkgManagerplugin.dir/OpkgManagerplugin_autogen/EWIEGA46WW/qrc_resources.cpp.s
-.PHONY : OpkgManagerplugin_autogen/EWIEGA46WW/qrc_resources.cpp.s
-
 OpkgManagerplugin_autogen/mocs_compilation.o: OpkgManagerplugin_autogen/mocs_compilation.cpp.o
 .PHONY : OpkgManagerplugin_autogen/mocs_compilation.o
 
@@ -250,6 +330,54 @@ OpkgManagerplugin_autogen/mocs_compilation.s: OpkgManagerplugin_autogen/mocs_com
 OpkgManagerplugin_autogen/mocs_compilation.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerplugin.dir/build.make CMakeFiles/OpkgManagerplugin.dir/OpkgManagerplugin_autogen/mocs_compilation.cpp.s
 .PHONY : OpkgManagerplugin_autogen/mocs_compilation.cpp.s
+
+OpkgManagerpluginplugin_OpkgManagerPlugin.o: OpkgManagerpluginplugin_OpkgManagerPlugin.cpp.o
+.PHONY : OpkgManagerpluginplugin_OpkgManagerPlugin.o
+
+# target to build an object file
+OpkgManagerpluginplugin_OpkgManagerPlugin.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerpluginplugin.dir/build.make CMakeFiles/OpkgManagerpluginplugin.dir/OpkgManagerpluginplugin_OpkgManagerPlugin.cpp.o
+.PHONY : OpkgManagerpluginplugin_OpkgManagerPlugin.cpp.o
+
+OpkgManagerpluginplugin_OpkgManagerPlugin.i: OpkgManagerpluginplugin_OpkgManagerPlugin.cpp.i
+.PHONY : OpkgManagerpluginplugin_OpkgManagerPlugin.i
+
+# target to preprocess a source file
+OpkgManagerpluginplugin_OpkgManagerPlugin.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerpluginplugin.dir/build.make CMakeFiles/OpkgManagerpluginplugin.dir/OpkgManagerpluginplugin_OpkgManagerPlugin.cpp.i
+.PHONY : OpkgManagerpluginplugin_OpkgManagerPlugin.cpp.i
+
+OpkgManagerpluginplugin_OpkgManagerPlugin.s: OpkgManagerpluginplugin_OpkgManagerPlugin.cpp.s
+.PHONY : OpkgManagerpluginplugin_OpkgManagerPlugin.s
+
+# target to generate assembly for a file
+OpkgManagerpluginplugin_OpkgManagerPlugin.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerpluginplugin.dir/build.make CMakeFiles/OpkgManagerpluginplugin.dir/OpkgManagerpluginplugin_OpkgManagerPlugin.cpp.s
+.PHONY : OpkgManagerpluginplugin_OpkgManagerPlugin.cpp.s
+
+OpkgManagerpluginplugin_autogen/mocs_compilation.o: OpkgManagerpluginplugin_autogen/mocs_compilation.cpp.o
+.PHONY : OpkgManagerpluginplugin_autogen/mocs_compilation.o
+
+# target to build an object file
+OpkgManagerpluginplugin_autogen/mocs_compilation.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerpluginplugin.dir/build.make CMakeFiles/OpkgManagerpluginplugin.dir/OpkgManagerpluginplugin_autogen/mocs_compilation.cpp.o
+.PHONY : OpkgManagerpluginplugin_autogen/mocs_compilation.cpp.o
+
+OpkgManagerpluginplugin_autogen/mocs_compilation.i: OpkgManagerpluginplugin_autogen/mocs_compilation.cpp.i
+.PHONY : OpkgManagerpluginplugin_autogen/mocs_compilation.i
+
+# target to preprocess a source file
+OpkgManagerpluginplugin_autogen/mocs_compilation.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerpluginplugin.dir/build.make CMakeFiles/OpkgManagerpluginplugin.dir/OpkgManagerpluginplugin_autogen/mocs_compilation.cpp.i
+.PHONY : OpkgManagerpluginplugin_autogen/mocs_compilation.cpp.i
+
+OpkgManagerpluginplugin_autogen/mocs_compilation.s: OpkgManagerpluginplugin_autogen/mocs_compilation.cpp.s
+.PHONY : OpkgManagerpluginplugin_autogen/mocs_compilation.s
+
+# target to generate assembly for a file
+OpkgManagerpluginplugin_autogen/mocs_compilation.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerpluginplugin.dir/build.make CMakeFiles/OpkgManagerpluginplugin.dir/OpkgManagerpluginplugin_autogen/mocs_compilation.cpp.s
+.PHONY : OpkgManagerpluginplugin_autogen/mocs_compilation.cpp.s
 
 ProcessRunner.o: ProcessRunner.cpp.o
 .PHONY : ProcessRunner.o
@@ -275,6 +403,54 @@ ProcessRunner.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerplugin.dir/build.make CMakeFiles/OpkgManagerplugin.dir/ProcessRunner.cpp.s
 .PHONY : ProcessRunner.cpp.s
 
+build/.rcc/qrc_qmake_OpkgManager.o: build/.rcc/qrc_qmake_OpkgManager.cpp.o
+.PHONY : build/.rcc/qrc_qmake_OpkgManager.o
+
+# target to build an object file
+build/.rcc/qrc_qmake_OpkgManager.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerplugin.dir/build.make CMakeFiles/OpkgManagerplugin.dir/build/.rcc/qrc_qmake_OpkgManager.cpp.o
+.PHONY : build/.rcc/qrc_qmake_OpkgManager.cpp.o
+
+build/.rcc/qrc_qmake_OpkgManager.i: build/.rcc/qrc_qmake_OpkgManager.cpp.i
+.PHONY : build/.rcc/qrc_qmake_OpkgManager.i
+
+# target to preprocess a source file
+build/.rcc/qrc_qmake_OpkgManager.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerplugin.dir/build.make CMakeFiles/OpkgManagerplugin.dir/build/.rcc/qrc_qmake_OpkgManager.cpp.i
+.PHONY : build/.rcc/qrc_qmake_OpkgManager.cpp.i
+
+build/.rcc/qrc_qmake_OpkgManager.s: build/.rcc/qrc_qmake_OpkgManager.cpp.s
+.PHONY : build/.rcc/qrc_qmake_OpkgManager.s
+
+# target to generate assembly for a file
+build/.rcc/qrc_qmake_OpkgManager.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerplugin.dir/build.make CMakeFiles/OpkgManagerplugin.dir/build/.rcc/qrc_qmake_OpkgManager.cpp.s
+.PHONY : build/.rcc/qrc_qmake_OpkgManager.cpp.s
+
+opkgmanagerplugin_qmltyperegistrations.o: opkgmanagerplugin_qmltyperegistrations.cpp.o
+.PHONY : opkgmanagerplugin_qmltyperegistrations.o
+
+# target to build an object file
+opkgmanagerplugin_qmltyperegistrations.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerplugin.dir/build.make CMakeFiles/OpkgManagerplugin.dir/opkgmanagerplugin_qmltyperegistrations.cpp.o
+.PHONY : opkgmanagerplugin_qmltyperegistrations.cpp.o
+
+opkgmanagerplugin_qmltyperegistrations.i: opkgmanagerplugin_qmltyperegistrations.cpp.i
+.PHONY : opkgmanagerplugin_qmltyperegistrations.i
+
+# target to preprocess a source file
+opkgmanagerplugin_qmltyperegistrations.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerplugin.dir/build.make CMakeFiles/OpkgManagerplugin.dir/opkgmanagerplugin_qmltyperegistrations.cpp.i
+.PHONY : opkgmanagerplugin_qmltyperegistrations.cpp.i
+
+opkgmanagerplugin_qmltyperegistrations.s: opkgmanagerplugin_qmltyperegistrations.cpp.s
+.PHONY : opkgmanagerplugin_qmltyperegistrations.s
+
+# target to generate assembly for a file
+opkgmanagerplugin_qmltyperegistrations.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerplugin.dir/build.make CMakeFiles/OpkgManagerplugin.dir/opkgmanagerplugin_qmltyperegistrations.cpp.s
+.PHONY : opkgmanagerplugin_qmltyperegistrations.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -285,22 +461,39 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... OpkgManagerplugin_autogen"
 	@echo "... OpkgManagerplugin_autogen_timestamp_deps"
+	@echo "... OpkgManagerplugin_automoc_json_extraction"
+	@echo "... OpkgManagerplugin_other_files"
+	@echo "... OpkgManagerplugin_qmltyperegistration"
+	@echo "... OpkgManagerpluginplugin_autogen"
+	@echo "... OpkgManagerpluginplugin_autogen_timestamp_deps"
+	@echo "... all_qmltyperegistrations"
+	@echo "... qt_internal_plugins"
 	@echo "... OpkgManagerplugin"
+	@echo "... OpkgManagerpluginplugin"
 	@echo "... FileHelper.o"
 	@echo "... FileHelper.i"
 	@echo "... FileHelper.s"
 	@echo "... OpkgManagerPlugin.o"
 	@echo "... OpkgManagerPlugin.i"
 	@echo "... OpkgManagerPlugin.s"
-	@echo "... OpkgManagerplugin_autogen/EWIEGA46WW/qrc_resources.o"
-	@echo "... OpkgManagerplugin_autogen/EWIEGA46WW/qrc_resources.i"
-	@echo "... OpkgManagerplugin_autogen/EWIEGA46WW/qrc_resources.s"
 	@echo "... OpkgManagerplugin_autogen/mocs_compilation.o"
 	@echo "... OpkgManagerplugin_autogen/mocs_compilation.i"
 	@echo "... OpkgManagerplugin_autogen/mocs_compilation.s"
+	@echo "... OpkgManagerpluginplugin_OpkgManagerPlugin.o"
+	@echo "... OpkgManagerpluginplugin_OpkgManagerPlugin.i"
+	@echo "... OpkgManagerpluginplugin_OpkgManagerPlugin.s"
+	@echo "... OpkgManagerpluginplugin_autogen/mocs_compilation.o"
+	@echo "... OpkgManagerpluginplugin_autogen/mocs_compilation.i"
+	@echo "... OpkgManagerpluginplugin_autogen/mocs_compilation.s"
 	@echo "... ProcessRunner.o"
 	@echo "... ProcessRunner.i"
 	@echo "... ProcessRunner.s"
+	@echo "... build/.rcc/qrc_qmake_OpkgManager.o"
+	@echo "... build/.rcc/qrc_qmake_OpkgManager.i"
+	@echo "... build/.rcc/qrc_qmake_OpkgManager.s"
+	@echo "... opkgmanagerplugin_qmltyperegistrations.o"
+	@echo "... opkgmanagerplugin_qmltyperegistrations.i"
+	@echo "... opkgmanagerplugin_qmltyperegistrations.s"
 .PHONY : help
 
 

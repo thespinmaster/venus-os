@@ -1,5 +1,13 @@
 /data/dev/utils/opkg-manager/src/qmlplugin/build/CMakeFiles/OpkgManagerplugin.dir
+/data/dev/utils/opkg-manager/src/qmlplugin/build/CMakeFiles/OpkgManagerplugin_automoc_json_extraction.dir
+/data/dev/utils/opkg-manager/src/qmlplugin/build/CMakeFiles/OpkgManagerplugin_qmltyperegistration.dir
+/data/dev/utils/opkg-manager/src/qmlplugin/build/CMakeFiles/all_qmltyperegistrations.dir
+/data/dev/utils/opkg-manager/src/qmlplugin/build/CMakeFiles/OpkgManagerplugin_other_files.dir
+/data/dev/utils/opkg-manager/src/qmlplugin/build/CMakeFiles/OpkgManagerpluginplugin.dir
+/data/dev/utils/opkg-manager/src/qmlplugin/build/CMakeFiles/qt_internal_plugins.dir
 /data/dev/utils/opkg-manager/src/qmlplugin/build/CMakeFiles/edit_cache.dir
 /data/dev/utils/opkg-manager/src/qmlplugin/build/CMakeFiles/rebuild_cache.dir
 /data/dev/utils/opkg-manager/src/qmlplugin/build/CMakeFiles/OpkgManagerplugin_autogen_timestamp_deps.dir
 /data/dev/utils/opkg-manager/src/qmlplugin/build/CMakeFiles/OpkgManagerplugin_autogen.dir
+/data/dev/utils/opkg-manager/src/qmlplugin/build/CMakeFiles/OpkgManagerpluginplugin_autogen_timestamp_deps.dir
+/data/dev/utils/opkg-manager/src/qmlplugin/build/CMakeFiles/OpkgManagerpluginplugin_autogen.dir

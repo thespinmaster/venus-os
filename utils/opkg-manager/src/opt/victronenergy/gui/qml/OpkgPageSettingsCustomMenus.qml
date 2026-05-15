@@ -31,9 +31,7 @@ QtObject {
     //console.log("PPP:" + Object.keys(_subpageInstance))
     //console.log("yyy:" + _subpageInstance.listview.contentItem + ", " + _subpageInstance.listview.children[0])
     var pStack = rootWindow.pageStack ?? pageStack //3.71 fix
-    //_subpageInstance.listview.children[0]
-    //_subpageInstance.listview.contentItem
-		return {parent: _subpageInstance.listview.contentItem, args: { pageStack: pStack, mbTools: mbTools}}
+		return {parent: _subpageInstance.listview.contentItem, args: { pageStack: pStack, mbTools: mbTools, toast: toast}}
   }
 
   function _onSubpageInstanceChanged()
@@ -41,7 +39,6 @@ QtObject {
     if (_subpageInstance == null)
       return
  
-    
     var pageName = _subpageInstance.toString()
     pageName = pageName.split("_")[0]
 		if (pageName)

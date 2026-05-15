@@ -13,7 +13,7 @@ set -euo pipefail
 #   Arg1:"all" (default): Builds all folders under under services & utils.
 #   Arg[n]: Or a list of folders under services or utils to built
 # Options:
-#   --develop-only              Build and index into develop folders only (stamps version with +dev.YYYYMMDD.HHMMSS)
+#   --develop-only             Build and index into develop folders only (stamps version with +dev.YYYYMMDD.HHMMSS)
 #   --promote                  Promote develop feed to release feed
 #   --clean-develop            Remove all contents from the develop feeds folder
 ####################################################################
@@ -265,7 +265,7 @@ build_package() {
 
   echo "building ${name}"
  
-  [[ -d "${path}" ]] || { echo "invalid path:${path}" >&2 ; return 1; }
+  [[ -d "${path}" ]] || { echo "invalid path: ${path}" >&2 ; return 1; }
   
   local build_path="../.build/${name}.$$.${RANDOM}"
   local develop_path;

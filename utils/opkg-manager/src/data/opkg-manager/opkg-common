@@ -7,7 +7,7 @@ readonly opkg_installed_packages_file="/data/conf/opkg-manager-installed-package
 # shellcheck disable=SC2034
 readonly opkg_rc_local_d_dir="${VENUS_ROOT_DIR:-}/data/opkg-manager/rc.local.d"
 readonly resize2fs_file="/opt/victronenergy/swupdate-scripts/resize2fs.sh"
-readonly OPKG_MANAGER_FEED_NAME="addons" # used by sourcing code
+readonly OPKG_MANAGER_FEED_NAME="opkg-manager" # used by sourcing code
 
 OPKG_FEED_CONFIG_FILE="${VENUS_ROOT_DIR:-}/etc/opkg/opkg-manager.conf"
 
@@ -367,7 +367,7 @@ opkg_common_unregister_package() {
       sed -i "/^$package_name/d" "${opkg_installed_packages_file}"
     fi
   else
-    log "package '${package_name}' not found"
+    log_trace "opkg_common_unregister_package:package '${package_name}' not found"
   fi
 
 }

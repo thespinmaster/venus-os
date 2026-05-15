@@ -8,6 +8,7 @@ MbPage {
 	id: root
 	title: qsTr("Feeds")
 	model: feedsModel
+
 	property var feedsModel: []
 	property bool showCompact: compactSetting.valid && compactSetting.value !== 0
   
@@ -17,13 +18,13 @@ MbPage {
 	}
 
 	Component.onCompleted: {
-		//console.log("opkg-feeds:onCompleted")
 		processRunner.operationName = "get-feeds"
 		processRunner.start(["get-feeds"])
 	}
 
 	Component.onDestruction: {
-		//console.log("opkg-feeds:onDestruction")
+
+
 		if (processRunner)
 				processRunner.cleanup()
 	}
@@ -41,7 +42,7 @@ MbPage {
 
 					MbEditBox {
 						id: feedNameEdit
-						readonly: !userHasWriteAccess || feedModel.builtin
+						readonly: !userHasWriteAccess || (feedModel?.builtin ?? true)
 						useVirtualKeyboard: false
 						description: qsTr("Name")
 						maximumLength: 20
@@ -53,7 +54,7 @@ MbPage {
 				
 					OpkgEditBoxLargeText {
 						id: feedUrlEdit
-						readonly: !userHasWriteAccess || feedModel.builtin
+						readonly: !userHasWriteAccess || (feedModel?.builtin ?? true)
 						description: qsTr("Url")
 						maximumLength: 256
 						matchString: "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ~!@#$%^&*()-_=+[]{}\\;:|/.,<>?"
@@ -68,13 +69,13 @@ MbPage {
 						width: parent ? parent.width : 0
 						horizontalAlignment: Text.AlignHCenter
 						//anchors.horizontalCenter: parent.horizontalCenter
-						visible: feedModel.builtin
+						visible: feedModel?.builtin
 					}
 				}
 			
 				pageToolbarHandler: ToolbarHandler {
-					leftIcon: feedModel.builtin ? "" : "icon-toolbar-cancel"
-					rightIcon: feedModel.builtin ? "" :"icon-toolbar-ok"
+					leftIcon: (feedModel?.builtin) ? "" : "icon-toolbar-cancel"
+					rightIcon: (feedModel?.builtin) ? "" :"icon-toolbar-ok"
 					function leftAction() { pageStack.pop() }
 					function rightAction() {
 						root.add_update_feed(isNew, feedNameEdit.item.value, feedUrlEdit.item.value)		 
@@ -247,7 +248,7 @@ MbPage {
 			opkgErrorLine = line
 		}
 		onFinished: function(exitCode, exitStatus) {
-			//console.log("onFinished:" + exitCode)
+			console.log("onFinished:" + operationName + ", " + exitCode)
 			
 			try {
 
@@ -280,7 +281,8 @@ MbPage {
  
 			} catch (err) {
 				console.log("ERROR:" + err.message);
-				toast.createToast(qsTr(err.message));
+				if (toast != undefined)
+					toast.createToast(qsTr(err.message));
 			}
 
 			reset()

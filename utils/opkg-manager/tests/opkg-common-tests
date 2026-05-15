@@ -451,7 +451,7 @@ test_ensure_package_succeeds_nothing_installed_when_already_installed() {
   
   [[ -f "$test_log_file" ]] && rm "$test_log_file"
   
-  # Add test package name to registered-packages.conf file
+  # Add test package name to opkg-manager-installed-packages.conf file
   echo "$package_name" > "$opkg_installed_packages_file"
 
   # Act
@@ -490,7 +490,7 @@ test_ensure_package_succeeds_installed() {
   
   [[ -f "$test_log_file" ]] && rm "$test_log_file"
   
-  # Add test package name to registered-packages.conf file
+  # Add test package name to opkg-manager-installed-packages.conf file
   echo "$package_name" > "$opkg_installed_packages_file"
 
   # Act

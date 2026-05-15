@@ -1,13 +1,5 @@
 # Hashes of file build rules.
 a5987f92947d9071e68c8bf47e312145 .rcc/qrc_qmake_OpkgManager.cpp
-08748017d9ebce3af55e7384ee888818 /data/dev/utils/opkg-manager/src/qmlplugin/opt/victronenergy/gui/qml/OpkgEditBoxLargeText.qml
-566bedcf8557c8a639f5841d2d4a623c /data/dev/utils/opkg-manager/src/qmlplugin/opt/victronenergy/gui/qml/OpkgHeaderDescriptionItem.qml
-8de1a9519b2558ab77e1d56cd2472a25 /data/dev/utils/opkg-manager/src/qmlplugin/opt/victronenergy/gui/qml/OpkgObjectCustomOverviewPages.qml
-e6c77bd30bc9f3093e95081399a50d71 /data/dev/utils/opkg-manager/src/qmlplugin/opt/victronenergy/gui/qml/OpkgPageSettingsCustomMenus.qml
-1c21e538bde99ea752d6940be6377782 /data/dev/utils/opkg-manager/src/qmlplugin/opt/victronenergy/gui/qml/OpkgPageSettingsSubMenu.qml
-823e9097851df202f5d2f8a9228d8776 /data/dev/utils/opkg-manager/src/qmlplugin/opt/victronenergy/gui/qml/PageSettingsOpkgFeeds.qml
-bc484d3ca2d16cf3fbf02899e7e33e7d /data/dev/utils/opkg-manager/src/qmlplugin/opt/victronenergy/gui/qml/PageSettingsOpkgPackageInstall.qml
-9832f89310693c3e0db977c1eccaf80b /data/dev/utils/opkg-manager/src/qmlplugin/opt/victronenergy/gui/qml/PageSettingsOpkgPackages.qml
 ea7262996c46b3b9f5bc90f553d78a91 CMakeFiles/OpkgManagerplugin_autogen
 ea7262996c46b3b9f5bc90f553d78a91 CMakeFiles/OpkgManagerplugin_autogen_timestamp_deps
 9c5485a450d7b8c090d4d22fb185b98d CMakeFiles/OpkgManagerplugin_automoc_json_extraction

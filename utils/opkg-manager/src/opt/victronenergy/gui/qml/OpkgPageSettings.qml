@@ -5,7 +5,7 @@ import "utils.js" as Utils
 MbPage {
 	id: root
 	title: qsTr("Open Package Manager")
-
+ 
   model: VisibleItemModel {
     MbSubMenu {
       description: qsTr("Packages")
@@ -31,6 +31,6 @@ MbPage {
       // description: "For testing installs, does not install" // Removed, MbSwitch does not have a description property
       bind: Utils.path("com.victronenergy.settings", "/Settings/OpkgManager/NoAction")
     }
-
+    
   }
 }

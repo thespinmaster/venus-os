@@ -186,7 +186,8 @@ install_helper_post_install() {
 install_helper_pre_remove() {
 
 	[[ -z "$PACKAGE_NAME" ]] && { echo "ERROR: PACKAGE_NAME not set"; return 1; }
-	
+	local action="${1-}"
+
 	install_helper_initialize
  
 	[[ -n "${RC_LOCAL_SCRIPT:-}" ]] &&
@@ -195,19 +196,19 @@ install_helper_pre_remove() {
 	opkg_common_unregister_package "$PACKAGE_NAME"
  
 	install_helper_add_remove_patch remove 
- 
-  [[ -n "${DBUS_SETTINGS:-}" || -n "${DBUS_SETTINGS_DEPRECIATED:-}" ]] &&
-		echo "Removing dbus settings"
+	
+	if [[ "$action" != "upgrade" ]]; then
+		[[ -n "${DBUS_SETTINGS:-}" || -n "${DBUS_SETTINGS_DEPRECIATED:-}" ]] &&
+			echo "Removing dbus settings"
 
-	[[ -n "${DBUS_SETTINGS:-}" ]] && {
-		dbus_common_remove_settings <<< "$DBUS_SETTINGS"
-		install_helper_add_remove_custom_service_path "remove"
-	}
+		[[ -n "${DBUS_SETTINGS:-}" ]] && {
+			dbus_common_remove_settings <<< "$DBUS_SETTINGS"
+			install_helper_add_remove_custom_service_path "remove"
+		}
 
-	[[ -n "${DBUS_SETTINGS_DEPRECIATED:-}" ]] &&
-		dbus_common_remove_settings <<< "$DBUS_SETTINGS_DEPRECIATED"
+		install_helper_restart_gui_service
+	fi
 
-	install_helper_restart_gui_service
 	return 0
 }
 

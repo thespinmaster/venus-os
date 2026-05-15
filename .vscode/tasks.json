@@ -4,24 +4,24 @@
     {
       "id": "opkgPackage",
       "type": "promptString",
-      "description": "Package(s) to build (space-separated; leave empty to reuse last; e.g. opkg-manager mount-shares, themer, or all)",
+      "description": "Package(s) (all or opkg-manager mount-shares themer etc)",
       "default": ""
     },
     {
       "id": "opkgPromoteFeed",
-      "type": "promptString",
-      "description": "Feed to promote (leave empty for all; e.g. addons or opkg-manager)",
-      "default": ""
+      "type":"pickString",
+      "description": "Packages to promote (addons or opkg-manager)",
+      "options": ["all", "opkg-manager", "addons"],
+      "default": "all"
     }
   ],
   "tasks": [
     {
-      "label": "opkg develop build (prompt)",
+      "label": "opkg build packages (develop)",
       "type": "shell",
-      "command": "bash",
+      "command": "${workspaceFolder}/tasks/make-packages",
       "args": [
-        "${workspaceFolder}/.vscode/opkg-develop-build-task",
-        "${workspaceFolder}",
+        "--develop-only",
         "${input:opkgPackage}"
       ],
       "presentation": {
@@ -36,12 +36,11 @@
       "detail": "Develop-only build with prompt for package."
     },
     {
-      "label": "Promote feed target (blank = all)",
+      "label": "Promote develop feed to release",
       "type": "shell",
-      "command": "bash",
+      "command": "${workspaceFolder}/tasks/make-packages",
       "args": [
-        "${workspaceFolder}/.vscode/opkg-promote-feed-task",
-        "${workspaceFolder}",
+        "--promote",
         "${input:opkgPromoteFeed}"
       ],
       "presentation": {
@@ -58,7 +57,7 @@
     {
       "label": "cleanup vscode server installs",
       "type": "shell",
-      "command": "${workspaceFolder}/tasks/cleanup-vscode-server.sh",
+      "command": "${workspaceFolder}/tasks/cleanup-vscode-server",
       //"args": ["--dry-run"],
       "problemMatcher": [],
       "group": "none",
@@ -129,7 +128,7 @@
       }
     },
     {
-      "label": "build qmlplugin armhf",
+      "label": "build qmlplugin armhf rpi4",
       "type": "shell",
       "problemMatcher":[],
       "command": "${workspaceFolder}/tasks/build-qmlplugin",
@@ -159,24 +158,10 @@
       }
     },
     {
-      "label": "build all opkg packages",
-      "type": "shell",
-      "command": "bash ${workspaceFolder}/tasks/make-packages",
-      
-      "presentation": {
-        "echo": true,
-        "reveal": "always",
-        "focus": true,
-        "panel": "shared",
-        "showReuseMessage": false,
-        "clear": true
-      },
-      "problemMatcher": []
-    },
-    {
       "label": "cleanup opkg develop feed",
       "type": "shell",
-      "command": "bash ${workspaceFolder}/tasks/make-packages --clean-develop",
+      "command": "bash ${workspaceFolder}/tasks/make-packages" ,
+      "args": ["--clean-develop"],
       "presentation": {
         "echo": true,
         "reveal": "always",
@@ -192,48 +177,6 @@
       "label": "run all venus-os tests",
       "type": "shell",
       "command": "bash ${workspaceFolder}/tasks/run-tests",
-      "presentation": {
-        "echo": true,
-        "reveal": "always",
-        "focus": true,
-        "panel": "shared",
-        "showReuseMessage": false,
-        "clear": true
-      },
-      "problemMatcher": []
-    },
-    {
-      "label": "build opkg-manager",
-      "type": "shell",
-      "command": "bash ${workspaceFolder}/tasks/make-packages opkg-manager",
-      "presentation": {
-        "echo": true,
-        "reveal": "always",
-        "focus": true,
-        "panel": "shared",
-        "showReuseMessage": false,
-        "clear": true
-      },
-      "problemMatcher": []
-    },
-    {
-      "label": "build mount-shares",
-      "type": "shell",
-      "command": "bash ${workspaceFolder}/tasks/make-packages mount-shares",
-      "presentation": {
-        "echo": true,
-        "reveal": "always",
-        "focus": true,
-        "panel": "shared",
-        "showReuseMessage": false,
-        "clear": true
-      },
-      "problemMatcher": []
-    },
-    {
-      "label": "build themer",
-      "type": "shell",
-      "command": "bash ${workspaceFolder}/tasks/make-packages themer",
       "presentation": {
         "echo": true,
         "reveal": "always",

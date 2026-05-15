@@ -10,7 +10,7 @@ else
 fi
 
 # readonly mount_common_path="${VENUS_ROOT_DIR:-}/data/mount-shares"
-readonly mountshares_conf_file="/data/conf/mountshares.conf"
+readonly mountshares_conf_file="/data/conf/mount-shares.conf"
 
 # exposed so can override for mocking
 __mount_common___read() {
