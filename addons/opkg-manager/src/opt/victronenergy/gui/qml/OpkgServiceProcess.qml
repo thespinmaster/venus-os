@@ -5,7 +5,7 @@ QtObject {
 	id: root
 
 	property string operationName: ""
-	property string jsonResult: jsonResultItem.valid && jsonResultItem.value !== undefined ? String(jsonResultItem.value) : ""
+ 
 	property bool running: runningItem.valid && Number(runningItem.value) !== 0
 	property bool stopping: stoppingItem.valid && Number(stoppingItem.value) !== 0
 
@@ -17,9 +17,14 @@ QtObject {
 	signal outputLine(string line)
 	signal errorLine(string line)
 	signal finished(int exitCode, int exitStatus)
+	signal httpJsonReady(string jsonText)
+	signal httpJsonError(string message)
 
 	function start(args) {
-		argsJsonItem.setValue(JSON.stringify(args || []))
+		var normalizedArgs = _normalizeArgs(args)
+ 
+		argsJsonItem.setValue(JSON.stringify(normalizedArgs))
+		console.log("PPP:start:" + JSON.stringify(normalizedArgs))
 		startItem.setValue((Number(startItem.value) || 0) + 1)
 	}
 
@@ -35,6 +40,45 @@ QtObject {
 
 	function waitForFinished() {
 		return !running
+	}
+
+	function requestPackagesFromServer() {
+		start(["package", "list"])
+	}
+
+	function _normalizeArgs(args) {
+		if (args === undefined || args === null)
+			return []
+		if (Array.isArray(args))
+			return args.map(function(arg) { return String(arg) })
+		return [String(args)]
+	}
+ 
+	function fetchJsonFromHttp() {
+		console.log("PPP:fetchJsonFromHttp:1")
+		if (!httpServerSourceItem.valid || httpServerSourceItem.value == undefined)
+			return
+		console.log("PPP:fetchJsonFromHttp:2")
+		var xhr = new XMLHttpRequest()
+		xhr.onreadystatechange = function() {
+			if (xhr.readyState !== XMLHttpRequest.DONE)
+				return
+
+			// Signal download completion back to service so it can stop HTTP server.
+			httpServerSourceItem.setValue("")
+
+			if (xhr.status !== 200 && xhr.status !== 0) {
+				root.httpJsonError("Failed to load package JSON, status: " + xhr.status)
+				return
+			}
+
+			root.httpJsonReady(String(xhr.responseText || ""))
+		}
+ 
+		var sourceFile = String(root.httpSource || "packages.json")
+		sourceFile = sourceFile.replace(/^\/+/, "")
+		xhr.open("GET", "http://127.0.0.1:8888/" + sourceFile)
+		xhr.send()
 	}
 
 	Component.onCompleted: {
@@ -55,7 +99,7 @@ QtObject {
 	property var cancelItem: VBusItem {
 		bind: "com.victronenergy.opkgmanager/Request/Cancel"
 	}
-
+ 
 	property var runningItem: VBusItem {
 		bind: "com.victronenergy.opkgmanager/State/Running"
 	}
@@ -101,7 +145,12 @@ QtObject {
 			if (!root._initialized || seq === root._lastFinishedSeq)
 				return
 			root._lastFinishedSeq = seq
-			root.finished(Number(exitCodeItem.value) || 0, Number(exitStatusItem.value) || 0)
+
+			var exitCode = Number(exitCodeItem.value) || 0
+			var exitStatus = Number(exitStatusItem.value) || 0
+			console.log("PPP:finished")
+			root.finished(exitCode, exitStatus)
+ 
 		}
 	}
 
@@ -113,7 +162,8 @@ QtObject {
 		bind: "com.victronenergy.opkgmanager/Result/ExitStatus"
 	}
 
-	property var jsonResultItem: VBusItem {
-		bind: "com.victronenergy.opkgmanager/Result/Json"
+	property var httpServerSourceItem: VBusItem {
+		bind: "com.victronenergy.opkgmanager/HttpServer/Source"
+		onValueChanged: fetchJsonFromHttp()
 	}
 }

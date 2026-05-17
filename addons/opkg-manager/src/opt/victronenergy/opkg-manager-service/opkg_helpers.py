@@ -15,19 +15,36 @@ Original bash sources:
 import json
 import os
 import re
-import subprocess
+import subprocess          
 import sys
 import tempfile
 import time
 from typing import Any, Dict, List, Optional, Set, Tuple
 
-OPKG_FEEDS_JSON_CACHE_FILE="/tmp/opkg-manager-feeds-cache.json"
-OPKG_ALL_PACKAGES_JSON_CACHE_FILE="/tmp/opkg-manager-all-packages-cache.json"
+QML_FILE_SERVER_DIR="/tmp/opkg-manager-fs"
+OPKG_FEEDS_JSON_CACHE_FILE=f"{QML_FILE_SERVER_DIR}/feeds.json"
+OPKG_ALL_PACKAGES_JSON_CACHE_FILE=f"{QML_FILE_SERVER_DIR}/packages.json"
 OPKG_FEEDS_FILE="/etc/opkg/opkg-manager.conf"
 
 CACHE_UP_TO_DATE = 0
 CACHE_UPDATE_FEEDS = 1
 CACHE_UPDATE_ALL_PACKAGES = 2
+
+
+def ensure_feed_config(feed_type: str = "release") -> None:
+    source = f"/data/conf/opkg-manager-{feed_type}.conf"
+
+    if os.path.islink(OPKG_FEEDS_FILE) and os.path.exists(source):
+        return
+
+    if os.path.exists(source):
+        os.symlink(source, OPKG_FEEDS_FILE, target_is_directory=False)
+ 
+def update_packages() -> int:
+    result = _run_subprocess(["opkg", "update"], timeout=60.0)
+    if result is None:
+        return 1
+    return int(result.returncode)
 
 
 def _get_mtime(path: str) -> Optional[float]:
@@ -259,25 +276,37 @@ def get_stable_tty_process_pid(
 
 
 
-def map_opkg_list_files_to_json(list_files: List[str], output_file: str):
+def map_opkg_list_files_to_json(
+    list_files: List[str],
+    output_file: str,
+    allowed_fields: Optional[List[str]] = None
+):
     """
     Parse and combine multiple opkg stanza files into one JSON array.
 
     Args:
         list_files: Input opkg list file paths.
         output_file: Optional output path. If provided, combined JSON is written.
+        allowed_fields: Optional list of field names to include. If provided, only
+                   matching stanza fields are included in the output. Matching is
+                   exact and case-sensitive against the original field names in the
+                   list/status files (e.g. "Package", "Version", "Size").
     """
     try:
+        allowed_field_set: Optional[Set[str]] = None
+        if allowed_fields is not None:
+            allowed_field_set = set(allowed_fields)
+
         combined: List[Dict[str, Any]] = []
         for path in list_files:
-            combined.extend(_parse_opkg_stanza_file(path))
+            combined.extend(_parse_opkg_stanza_file(path, allowed_field_set))
 
         _write_json_file(output_file, combined)
  
     except Exception as err:
         print(f"Error mapping opkg files to JSON: {err}", file=sys.stderr)
 
-def _parse_opkg_stanza_file(list_file: str) -> List[Dict[str, Any]]:
+def _parse_opkg_stanza_file(list_file: str, allowed_fields: Optional[Set[str]] = None) -> List[Dict[str, Any]]:
     entries: List[Dict[str, Any]] = []
     current: Dict[str, Any] = {}
     last_key = ""
@@ -307,9 +336,15 @@ def _parse_opkg_stanza_file(list_file: str) -> List[Dict[str, Any]]:
                 continue
 
             key, value = line.split(":", 1)
-            normalized_key = key.strip().lower().replace("-", "_").replace(" ", "_")
-            value = value.strip()
+            key = key.strip()
+            # Skip field if it's not in allowed_fields
+            if allowed_fields is not None and key not in allowed_fields:
+                last_key = ""
+                continue
 
+            normalized_key = key.lower().replace("-", "_").replace(" ", "_")
+            value = value.strip()
+ 
             if normalized_key in current:
                 existing = current[normalized_key]
                 if isinstance(existing, list):
@@ -332,8 +367,9 @@ def create_installed_package_lookup():
     
     fd, tmp_path = tempfile.mkstemp(suffix=".json")
     os.close(fd)
-
-    map_opkg_list_files_to_json(["/usr/lib/opkg/status"], tmp_path)
+    
+    fields_list = ["Package", "Version", "Status"]
+    map_opkg_list_files_to_json(["/usr/lib/opkg/status"], tmp_path, fields_list)
     status = load_json(tmp_path)
     os.unlink(tmp_path)
 
@@ -418,31 +454,78 @@ def _feed_list_files(refresh_feeds: bool = False):
 
     return list_files
 
-def test():
-
+def createFeeds_Json():
     all_feeds_list = _feed_list_files(refresh_feeds=False)
     update_code = _cache_update_code(all_feeds_list)
     if update_code == CACHE_UP_TO_DATE:
         return
-
     if update_code & CACHE_UPDATE_FEEDS:
         all_feeds_list = _feed_list_files(refresh_feeds=True)
 
-    map_opkg_list_files_to_json(all_feeds_list, OPKG_ALL_PACKAGES_JSON_CACHE_FILE)
+def createPackages_Json(force_refresh: bool = False):
+
+    all_feeds_list = _feed_list_files(refresh_feeds=force_refresh)
+    update_code = _cache_update_code(all_feeds_list)
+    if update_code == CACHE_UP_TO_DATE and not force_refresh:
+        return
+
+    if force_refresh or update_code & CACHE_UPDATE_FEEDS:
+        all_feeds_list = _feed_list_files(refresh_feeds=True)
+
+    fields_list = ["Package", "Version", "Size"]
+    map_opkg_list_files_to_json(all_feeds_list, OPKG_ALL_PACKAGES_JSON_CACHE_FILE, fields_list)
  
     all_packages_json = load_json(OPKG_ALL_PACKAGES_JSON_CACHE_FILE)
     if all_packages_json:
         status_by_package_json = create_installed_package_lookup()
 
         for pkg in all_packages_json:
-            name = pkg.get("package") or pkg.get("name")
+            name = pkg.get("package") # or pkg.get("name")
             pkg["installed_version"] = status_by_package_json.get(name, "")
 
     _write_json_file(OPKG_ALL_PACKAGES_JSON_CACHE_FILE, all_packages_json)
 
     return update_code
-
  
+def list_packages(force_refresh) -> int:
+
+    ensure_feed_config()
+
+    if force_refresh:
+        status = update_packages()
+        if status != 0:
+            return status
+
+    createPackages_Json(force_refresh=force_refresh)
+
+    if not os.path.isfile(OPKG_ALL_PACKAGES_JSON_CACHE_FILE):
+        print("Package JSON cache was not created", file=sys.stderr)
+        return 1
+
+    return 0
+ 
+def main() -> int:
+
+    if len(sys.argv) < 3:
+        raise Exception("Invalid args: expected '<family> <action>'")
+
+    family = sys.argv[1]
+    action = sys.argv[2]
+
+    try:
+        if family == "feed" and action == "list":
+            create_json_feeds_list(OPKG_FEEDS_FILE, OPKG_FEEDS_JSON_CACHE_FILE)
+            return 0
+        if family == "package" and action == "list":
+            force_refresh = len(sys.argv) > 3 and sys.argv[3] == "update"
+            return list_packages(force_refresh)
+        
+        return 0
+    except Exception as err:
+        print(f"Error creating package JSON cache: {err}", file=sys.stderr)
+        return 1
+
+
 if __name__ == "__main__":
-    test()
+    raise SystemExit(main())
 

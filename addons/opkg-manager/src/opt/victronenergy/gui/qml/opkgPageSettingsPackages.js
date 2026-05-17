@@ -73,12 +73,12 @@ function loadPackagesFromJson(jsonText, packageModel) {
   for (var i = 0; i < packages.length; i++) {
     var pkg = packages[i]
     packageModel.append({
-      name: pkg.name || "",
+      name: pkg.name || pkg.package || "",
       description_short: pkg.description_short || "",
       description_long: pkg.description_long || "",
       version: pkg.version || "",
       feed: pkg.feed || "",
-      installedVersion: pkg.installedVersion || ""
+      installedVersion: pkg.installedVersion || pkg.installed_version || ""
     })
   }
  

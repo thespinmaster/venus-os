@@ -11,6 +11,7 @@ from dataclasses import dataclass, field
 from typing import List, Optional
 
 import dbus
+import dbus.service
 from dbus.mainloop.glib import DBusGMainLoop
 from gi.repository import GLib # type: ignore
 
@@ -20,22 +21,80 @@ EXT_DIR = os.path.join(THIS_DIR, "ext")
 if EXT_DIR not in sys.path:
     sys.path.insert(0, EXT_DIR)
 
+if THIS_DIR not in sys.path:
+    sys.path.insert(0, THIS_DIR)
+
 from vedbus import VeDbusService # type: ignore
-
-from opkg_helpers import create_json_feeds_list, send_props_as_json, get_stable_tty_process_pid
-
+from opkg_helpers import QML_FILE_SERVER_DIR
 
 SERVICE_NAME = "com.victronenergy.opkgmanager"
 VERSION = "2.0.0"
 
 LIB_FOLDER_PATH=f"{THIS_DIR}/libs"
 
-INLINE_JSON_COMMANDS = {
-    ("feed", "list"),
-    ("package", "list"),
-    ("device", "detect"),
-}
+HTTP_PORT = 8888
+HTTP_HOST = "127.0.0.1"
 
+# Central command registry: one place to add/update command families and actions.
+COMMAND_REGISTRY = {
+    "test": {
+        "default": {
+            "helper_name": "test",
+            "helper_path": f"{LIB_FOLDER_PATH}/test",
+        },
+        "actions": {
+            "test1": {},
+            "test2": {},
+            "test3": {},
+            "hello-world": {},
+        },
+    },
+    "feed": {
+        "default": {
+            "helper_name": "feed",
+            "helper_path": f"{LIB_FOLDER_PATH}/feed",
+        },
+        "actions": {
+            "list": {
+                "helper_path": sys.executable,
+                "prefix_args": [os.path.join(THIS_DIR, "opkg_helpers.py"), "package"],
+                "source_files": "feeds.json"
+            },
+            "add": {},
+            "edit": {},
+            "remove": {},
+            "set": {},
+            "type": {},
+        },
+    },
+    "package": {
+        "default": {
+            "helper_name": "package",
+            "helper_path": f"{LIB_FOLDER_PATH}/package",
+        },
+        "actions": {
+            "list": {
+                "helper_path": sys.executable,
+                "prefix_args": [os.path.join(THIS_DIR, "opkg_helpers.py"), "package"],
+                "source_files": "packages.json"
+            },
+            "install": {},
+            "remove": {},
+            "upgrade": {},
+        },
+    },
+    "device": {
+        "default": {
+            "helper_name": "device",
+            "helper_path": f"{LIB_FOLDER_PATH}/device",
+        },
+        "actions": {
+            "detect": {},
+            "apply": {},
+            "remove": {},
+        },
+    },
+}
 
 @dataclass
 class CommandState:
@@ -44,25 +103,26 @@ class CommandState:
     helper_path: str
     args: List[str]
     operation_name: str
+    source_files: str
     process: subprocess.Popen
     stdout_done: bool = False
     stderr_done: bool = False
-    stdout_lines: List[str] = field(default_factory=list)
     stderr_lines: List[str] = field(default_factory=list)
-
 
 class OpkgManagerService:
         
     @dbus.service.method(dbus_interface='com.example.Sample',
                          in_signature='v', out_signature='s')
-    def GetJsonResult():
-        pass
+    def GetJsonResult(self, value):
+        return ""
 
     def __init__(self):
         DBusGMainLoop(set_as_default=True)
 
         self._lock = threading.RLock()
         self._active: Optional[CommandState] = None
+        self._http_server_process: Optional[subprocess.Popen] = None
+        self._allow_internal_http_source_write = False
 
         self._dbusservice = VeDbusService(SERVICE_NAME, bus=dbus.SystemBus(), register=False)
         self._dbusservice.add_mandatory_paths(
@@ -108,14 +168,24 @@ class OpkgManagerService:
 
         self._dbusservice.add_path("/Result/ExitCode", 0, valuetype=dbus.Int32)
         self._dbusservice.add_path("/Result/ExitStatus", dbus.UInt16(0), valuetype=dbus.UInt16)
-        self._dbusservice.add_path("/Result/Json", "", valuetype=dbus.String)
         self._dbusservice.add_path("/Result/Error", "", valuetype=dbus.String)
+ 
+        self._dbusservice.add_path(
+            "/HttpServer/Source",
+            "",
+            writeable=True,
+            valuetype=dbus.String,
+            onchangecallback=self._on_http_server_source_requested,
+        )
 
         self._dbusservice.register()
         self._loop = GLib.MainLoop()
 
     def run(self):
-        self._loop.run()
+        try:
+            self._loop.run()
+        finally:
+            self._stop_http_server()
 
     def _on_start_requested(self, _path, _value):
         GLib.idle_add(self._start_command)
@@ -124,6 +194,72 @@ class OpkgManagerService:
     def _on_cancel_requested(self, _path, _value):
         GLib.idle_add(self._cancel_command)
         return True
+
+    def _on_http_server_source_requested(self, _path, value):
+        requested = str(value or "")
+        if self._allow_internal_http_source_write:
+            return True
+
+        if requested == "":
+            GLib.idle_add(self._handle_http_source_cleared)
+            return True
+
+        # Reject external attempts to set non-empty sources.
+        return False
+
+    def _handle_http_source_cleared(self):
+        self._stop_http_server()
+        return False
+
+    def _set_http_source_internal(self, source: str):
+        self._allow_internal_http_source_write = True
+        try:
+            self._dbusservice["/HttpServer/Source"] = source
+        finally:
+            self._allow_internal_http_source_write = False
+        return False
+
+    def _is_http_server_running(self) -> bool:
+        """Check if HTTP server process is running."""
+        if self._http_server_process is None:
+            return False
+        return self._http_server_process.poll() is None
+
+    def _start_http_server(self) -> bool:
+        """Start HTTP server via subprocess."""
+        if self._is_http_server_running():
+            return True
+
+        try:
+            os.makedirs(QML_FILE_SERVER_DIR, exist_ok=True)
+            self._http_server_process = subprocess.Popen(
+                [
+                    "python3", "-m", "http.server",
+                    str(HTTP_PORT),
+                    "--bind", HTTP_HOST,
+                    "--directory", QML_FILE_SERVER_DIR,
+                ],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            return True
+        except Exception as e:
+            print(f"Failed to start HTTP server: {e}")
+            self._http_server_process = None
+            return False
+
+    def _stop_http_server(self) -> None:
+        """Stop HTTP server process."""
+        if self._http_server_process is not None:
+            try:
+                self._http_server_process.terminate()
+                self._http_server_process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                self._http_server_process.kill()
+            except Exception as e:
+                print(f"Error stopping HTTP server: {e}")
+            finally:
+                self._http_server_process = None
 
     def _start_command(self):
         with self._lock:
@@ -143,7 +279,7 @@ class OpkgManagerService:
             return False
 
         try:
-            helper_name, helper_path, helper_args, operation_name = self._resolve_command(args)
+            helper_name, helper_path, helper_args, source_files, operation_name = self._resolve_command(args)
         except ValueError as err:
             self._set_error(str(err))
             return False
@@ -160,9 +296,10 @@ class OpkgManagerService:
                 universal_newlines=True,
                 start_new_session=True,
             )
+ 
         except Exception as err:
             self._set_error(f"Failed to start process: {err}")
-            self._finish_command(None, 1, 1, "")
+            self._finish_command(None, 1, 1)
             return False
 
         state = CommandState(
@@ -170,6 +307,7 @@ class OpkgManagerService:
             helper_name=helper_name,
             helper_path=helper_path,
             args=helper_args,
+            source_files=source_files,
             operation_name=operation_name,
             process=process,
         )
@@ -181,6 +319,7 @@ class OpkgManagerService:
         self._dbusservice["/State/Stopping"] = dbus.UInt16(0)
         self._dbusservice["/State/OperationName"] = operation_name
         self._dbusservice["/State/RequestId"] = state.request_id
+        
 
         threading.Thread(target=self._stream_output, args=(state, True), daemon=True).start()
         threading.Thread(target=self._stream_output, args=(state, False), daemon=True).start()
@@ -217,9 +356,7 @@ class OpkgManagerService:
             for raw_line in iter(stream.readline, ""):
                 line = raw_line.rstrip("\r\n")
                 if is_stdout:
-                    state.stdout_lines.append(line)
-                    if not self._is_structured_result_line(state, line):
-                        GLib.idle_add(self._emit_stdout_line, line)
+                    GLib.idle_add(self._emit_stdout_line, line)
                 else:
                     state.stderr_lines.append(line)
                     GLib.idle_add(self._emit_stderr_line, line)
@@ -248,11 +385,12 @@ class OpkgManagerService:
             exit_status = 1
         elif return_code < 0:
             exit_status = 1
+        elif state.source_files:
+            GLib.idle_add(self._publish_http_source, str(state.source_files))
 
-        json_result = self._extract_json_result(state)
-        GLib.idle_add(self._finish_command, state, int(return_code), int(exit_status), json_result)
+        GLib.idle_add(self._finish_command, state, int(return_code), int(exit_status))
 
-    def _finish_command(self, state: Optional[CommandState], exit_code: int, exit_status: int, json_result: str):
+    def _finish_command(self, state: Optional[CommandState], exit_code: int, exit_status: int):
         active_request = ""
 
         with self._lock:
@@ -262,7 +400,6 @@ class OpkgManagerService:
 
         self._dbusservice["/Result/ExitCode"] = int(exit_code)
         self._dbusservice["/Result/ExitStatus"] = dbus.UInt16(exit_status)
-        self._dbusservice["/Result/Json"] = json_result or ""
         self._dbusservice["/State/Running"] = dbus.UInt16(0)
         self._dbusservice["/State/Stopping"] = dbus.UInt16(0)
         self._dbusservice["/State/OperationName"] = ""
@@ -286,11 +423,17 @@ class OpkgManagerService:
     def _reset_result_state(self, operation_name: str):
         self._dbusservice["/Result/ExitCode"] = 0
         self._dbusservice["/Result/ExitStatus"] = dbus.UInt16(0)
-        self._dbusservice["/Result/Json"] = ""
         self._dbusservice["/Result/Error"] = ""
         self._dbusservice["/Event/StdoutLine"] = ""
         self._dbusservice["/Event/StderrLine"] = ""
         self._dbusservice["/State/OperationName"] = operation_name
+
+    def _publish_http_source(self, source: str):
+        if not source:
+            return False
+        if self._start_http_server():
+            self._set_http_source_internal(source)
+        return False
 
     def _set_error(self, message: str):
         self._dbusservice["/Result/Error"] = message
@@ -318,110 +461,34 @@ class OpkgManagerService:
                 if state.stdout_done and state.stderr_done:
                     return
             threading.Event().wait(0.02)
-
-    def _extract_json_result(self, state: CommandState) -> str:
-        if not state.args:
-            return ""
-
-        if (state.helper_name, state.args[0]) not in INLINE_JSON_COMMANDS:
-            return ""
-
-        for line in reversed(state.stdout_lines):
-            candidate = line.strip()
-            if not candidate:
-                continue
-            if os.path.isfile(candidate):
-                return self._read_json_file(candidate)
-            if self._looks_like_json(candidate):
-                return candidate
-
-        return ""
-
-    def _is_structured_result_line(self, state: CommandState, line: str) -> bool:
-        if not state.args:
-            return False
-        if (state.helper_name, state.args[0]) not in INLINE_JSON_COMMANDS:
-            return False
-
-        candidate = line.strip()
-        if not candidate:
-            return False
-        return os.path.isfile(candidate) or self._looks_like_json(candidate)
-
-    @staticmethod
-    def _looks_like_json(candidate: str) -> bool:
-        try:
-            json.loads(candidate)
-            return True
-        except Exception:
-            return False
-
-    @staticmethod
-    def _read_json_file(file_path: str) -> str:
-        try:
-            with open(file_path, "r", encoding="utf-8") as file_obj:
-                text = file_obj.read()
-            json.loads(text)
-            return text
-        except Exception:
-            return ""
-
+ 
     @staticmethod
     def _resolve_command(args: List[str]):
         family = (args[0] if args else "").strip()
         action = (args[1] if len(args) > 1 else "").strip()
         tail = [str(arg) for arg in args[2:]]
 
-        if family == "feed":
-            return OpkgManagerService._resolve_feed_command(action, tail)
-        if family == "package":
-            return OpkgManagerService._resolve_package_command(action, tail)
-        if family == "device":
-            return OpkgManagerService._resolve_device_command(action, tail)
-        if family == "test":
-            return OpkgManagerService._resolve_test_command(action, tail)
-        
-        raise ValueError(f"Unable to resolve helper for command='{family}' args={args}")
-    
-    @staticmethod
-    def _resolve_test_command(action: str, tail: List[str]):
-        public_command = f"test {action}".strip()
-        lib = f"{LIB_FOLDER_PATH}/test"
-        if action in {"test1", "test2", "test3", "hello-world"}:
-            return "test", lib, [action] + tail, public_command
-        raise ValueError(f"Unsupported device command: {action}")
+        family_spec = COMMAND_REGISTRY.get(family)
+        if not family_spec:
+            raise ValueError(f"Unable to resolve helper for command='{family}' args={args}")
 
-    @staticmethod
-    def _resolve_feed_command(action: str, tail: List[str]):
-        public_command = f"feed {action}".strip()
-        lib = f"{LIB_FOLDER_PATH}/feed"
-        no_tail_actions = {"list", "type"}
-        if action in {"list", "add", "edit", "remove", "set", "type"}:
-            args = [action] if action in no_tail_actions else [action] + tail
-            return "feed", lib, args, public_command
-        raise ValueError(f"Unsupported feed command: {action}")
+        actions = family_spec["actions"]
+        action_spec = actions.get(action)
+        if action_spec is None:
+            raise ValueError(f"Unsupported {family} command: {action}")
 
-    @staticmethod
-    def _resolve_package_command(action: str, tail: List[str]):
-        public_command = f"package {action}".strip()
-        lib = f"{LIB_FOLDER_PATH}/package"
-        if action in {"list", "install", "remove", "upgrade"}:
-            return "package", lib, [action] + tail, public_command
-        raise ValueError(f"Unsupported package command: {action}")
-
-    @staticmethod
-    def _resolve_device_command(action: str, tail: List[str]):
-        public_command = f"device {action}".strip()
-        lib = f"{LIB_FOLDER_PATH}/device"
-        if action in {"detect", "apply", "remove"}:
-            return "device", lib, [action] + tail, public_command
-        raise ValueError(f"Unsupported device command: {action}")
-
+        default_spec = family_spec["default"]
+        helper_name = action_spec.get("helper_name", default_spec["helper_name"])
+        helper_path = action_spec.get("helper_path", default_spec["helper_path"])
+        source_files = action_spec.get("source_files")
+        prefix_args = list(action_spec.get("prefix_args", []))
+        helper_args = prefix_args + [action] + tail
+        public_command = f"{family} {action}".strip()
+        return helper_name, helper_path, helper_args, source_files, public_command
 
 def main():
     service = OpkgManagerService()
     service.run()
-
 
 if __name__ == "__main__":
     main()

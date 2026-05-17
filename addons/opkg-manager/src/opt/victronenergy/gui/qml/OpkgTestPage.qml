@@ -1,6 +1,7 @@
 import QtQuick 2
 import com.victron.velib 1.0
 import "utils.js" as Utils
+import "opkgPageSettingsPackages.js" as Vm
  
 MbPage {
 	id: root
@@ -26,8 +27,18 @@ MbPage {
 		service_status()
 	}
  
-	model: VisibleItemModel {
- 
+	model: packageModel
+
+	ListModel {
+		id: packageModel
+	}
+
+	delegate: Component {
+		OpkgHeaderDescriptionItem {
+			header: model.name
+			description: (model.installedVersion ? "Installed: " + model.installedVersion + "  " : "") +
+						 "Available: " + model.version + "  Feed: " + model.feed
+		}
 	}
  
 	listview.footer: Item {
@@ -96,17 +107,37 @@ MbPage {
 		}
 
 		function leftAction(mouse) {
-
-			processRunner.operationName = "feed-list"
-			console.log("running feed-list")
-			processRunner.start(["feed", "list"])
-
+			processRunner.operationName = "package list"
+			processRunner.start(["package", "list"])
 		}
  
 	}
- 
+
 	OpkgServiceProcess {
 		id: processRunner
+
+		onHttpJsonReady: function(jsonText) {
+			try {
+				packageModel.clear()
+				Vm.loadPackagesFromJson(jsonText, packageModel)
+				var msg = "Loaded " + packageModel.count + " packages"
+				console.log(msg)
+				if (root.outputLog)
+					root.outputLog.addLine(msg)
+			} catch (e) {
+				var errMsg = "Error loading packages: " + e
+				console.log(errMsg)
+				if (root.outputLog)
+					root.outputLog.addLine(errMsg)
+			}
+		}
+
+		onHttpJsonError: function(message) {
+			console.log(message)
+			if (root.outputLog)
+				root.outputLog.addLine(message)
+		}
+
 		onOutputLine: function(line) {
 			if (processRunner.stopping) {
 				console.log("stopping:" + line)

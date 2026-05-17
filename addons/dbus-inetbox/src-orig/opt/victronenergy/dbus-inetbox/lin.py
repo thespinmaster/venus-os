@@ -20,7 +20,7 @@
 import inetboxapp
 import serial_asyncio
 from taskmanager import TaskManager
-from tools import calculate_checksum
+from lin_tools import calculate_checksum
 from lin_recorder import LinRecorder
 import logging
 import asyncio
