@@ -1,0 +1,179 @@
+#!/bin/bash
+# shellcheck disable=SC2317,SC2329  # Don't warn about unreachable commands in this file
+
+set -o nounset
+
+declare __this_path;__this_path=$(dirname "${BASH_SOURCE[0]}")
+
+. "/data/dev/addons/opkg-manager/src/data/opkg-manager/opkg-common"
+
+declare OPKG_FEEDS_JSON_CACHE_FILE="/tmp/opkg-common-feeds.json"
+
+__feed_crud() {
+	local mode="${1:-}"
+	local feed_name="${2:-}"
+	local feed_url="${3:-}"
+	local old_feed_name="${4:-}"
+ 
+	# Validate feed_name
+	[[ -z "${feed_name}" ]] && { echo "Invalid name" >&2; return 1; }
+	[[ "${feed_name}" =~ [^a-zA-Z0-9_-] ]] && { echo "Invalid name" >&2; return 1; }
+	if [[ -n "${old_feed_name}" ]] && [[ "${old_feed_name}" =~ [^a-zA-Z0-9_] ]]; then
+		echo "Invalid old name" >&2
+		return 1
+	fi
+
+  [[ ! -f "${OPKG_FEED_CONFIG_FILE}" ]] &&
+    opkg_common_ensure_feed
+ 
+  #for clarity use new var
+  local existing_feed_name=$feed_name;
+  [[ -n $old_feed_name ]] && existing_feed_name=$old_feed_name
+  
+  # echo "$mode,$feed_name,$feed_url,$old_feed_name,$existing_feed_name" >&2
+
+  local -i exists=0
+  local -a feedNames=()
+ 
+  feedNameExists() {
+    local retval=0
+    local -n _exists=$2; _exists=0
+    grep -qE "^src/gz ${1} " "${OPKG_FEED_CONFIG_FILE}"
+    [[ $? == 0 ]] && { _exists=1; return; }
+    grep -qE "^src/gz ${1} " "/etc/opkg/venus.conf"
+    [[ $? == 0 ]] && _exists=1;
+  }
+
+  feedNameExists "${existing_feed_name}" exists
+  
+  local feed_line="src/gz ${feed_name} ${feed_url}"
+
+  if [[ $mode == add ]]; then
+    # if adding and name does not exist; shortcut to just adding feed to the end and exiting
+    ((exists)) && { 
+      echo "Feed already exists: $feed_name" >&2; return 1; }
+    echo "$feed_line" >> "${OPKG_FEED_CONFIG_FILE}"
+    return 0
+  fi
+ 
+  ((!exists)) && { echo "Feed not found: $feed_name" >&2; return 1; }
+  
+  if [[ $mode == edit ]]; then
+    # if an edit make sure new name does not already exist if name given is diff from old
+    [[ -z "${feed_url}" ]] && { echo "edit: feed url required" >&2; return 1; }
+ 
+    [[ -n $old_feed_name && ! "${feed_name}" == "${old_feed_name}" ]] && {
+      # make sure the new feed name does not exist if name is different from existing
+      feedNameExists "${feed_name}" exists
+      ((exists)) && { echo "Invalid name; feed name already exists: $feed_name" >&2; return 1; }
+    }
+
+  fi
+ 
+  tmp_file=$(mktemp)
+  local -i found=0
+  
+  # create new contents
+  # skip line if removing, else if edit find line and replace
+  while IFS= read -r line; do
+    if [[ "$line" == src/gz\ ${existing_feed_name}\ * ]]; then
+      [[ ! "$mode" == remove ]] && echo "$feed_line"
+      found=1
+      continue
+    fi
+    echo "$line"
+  done < "${OPKG_FEED_CONFIG_FILE}" > "$tmp_file"
+
+  ((!found)) && echo "$feed_line" >> "$tmp_file"  # add to end if not found
+
+  # make sure we update the real file and not the symlink
+  local feedfile="${OPKG_FEED_CONFIG_FILE}"
+  [[ -L "${feedfile}" ]] && feedfile="$(readlink "${OPKG_FEED_CONFIG_FILE}")"
+
+  mv "$tmp_file" "${feedfile}" || { echo "Error writing to ${feedfile}" >&2; return 1; }
+ 
+  return 0
+
+}
+
+feed_get_feed_type() {
+
+  local feedfile="${OPKG_FEED_CONFIG_FILE}"
+  local feedType=
+  [[ -L "${feedfile}" ]] && feedfile="$(readlink "${OPKG_FEED_CONFIG_FILE}")"
+  if [[ -f "${feedfile}" ]]; then
+    feedType="${feedfile##*-}"    # remove everything up to last '-'
+    feedType="${feedType%.conf}"  # remove suffix
+  fi
+  # default to release, as opkg_common_ensure_feed will take care of missing conf.
+  echo "${feedType:-release}" 
+}
+
+feed_create_json_feeds_list() {
+  echo "feed_create_json_feeds_list in"
+	local feeds_file="${OPKG_FEED_CONFIG_FILE}"
+	local cache_file="${OPKG_FEEDS_JSON_CACHE_FILE}"
+	local feeds_mtime=0 cache_mtime=0
+ 
+  # note use stat -L so it follows symlinks for getting the time
+
+	[[ -f "$feeds_file" ]] && feeds_mtime=$(stat -L -c %Y "$feeds_file" 2>/dev/null || echo 0)
+	[[ -f "$cache_file" ]] && cache_mtime=$(stat -L -c %Y "$cache_file" 2>/dev/null || echo 0)
+	[[ -f "$cache_file" && $cache_mtime -ge $feeds_mtime ]] && { 
+    echo "feed_create_json_feeds_list 2:$cache_file"
+    echo "$cache_file"; return 0; 
+  } # cache still valid 
+  
+	local first=1
+	printf '[' > "$cache_file"
+	if [[ -f "$feeds_file" ]]; then
+
+		while IFS= read -r line; do
+			[[ -z "$line" || "$line" == \#* ]] && continue
+			[[ "$line" != src/gz* ]] && continue
+			# shellcheck disable=SC2086
+			set -- $line # DONT QUOTE set -- splits on whitespace
+			local type="$1" name="$2" url="$3" builtin=false
+			[[ "$name" == "$OPKG_MANAGER_FEED_NAME" ]] && builtin=true || builtin=false
+ 
+			if [[ $first -eq 0 ]]; then printf ',' >> "$cache_file"; fi
+			printf '{"name":"%s","url":"%s","builtin":%s}' "${name}" "${url}" "$builtin" >> "$cache_file"
+			first=0
+		done < "$feeds_file"
+	fi
+	printf ']\n' >> "$cache_file"
+	echo "$cache_file"
+	return 0
+}
+ 
+feed_crud() {
+
+	[[ "${2}" == "opkg-manager" ]] && { echo "The opkg-manager cannot be removed/edited"; return 1; }
+	__feed_crud "$@"
+}
+
+case "${1:-}" in
+  list)
+		feed_create_json_feeds_list
+		;;
+  add)
+		feed_crud "add" "${2:-}" "${3:-}" "${4:-}"
+		;;
+  edit)
+		feed_crud "edit" "${2:-}" "${3:-}" "${4:-}"
+		;;
+  remove)
+		feed_crud "remove" "${2:-}" "" ""
+		;;
+  set)
+    opkg_common_set_feed "${2:-}"
+		;;
+  type)
+		feed_get_feed_type
+		;;
+	*)
+		if [[ -n ${1:-} ]]; then
+			echo "feed: incorrect command : ${1}" >&2
+		fi
+		;;
+esac

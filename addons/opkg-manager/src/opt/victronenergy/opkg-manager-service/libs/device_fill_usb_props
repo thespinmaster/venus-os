@@ -1,0 +1,31 @@
+#!/bin/bash
+# shellcheck disable=SC2317,SC2329  # Don't warn about unreachable commands in this file
+
+set -o nounset
+
+# get_usb_props <tty> <array_var_name> <property list>
+# Usage: get_usb_props ttyUSB0 usb_props PROPS[@]
+
+declare tty="${1:?tty is required}"
+declare usb_prop_names="${2:?command separated list of usb prop names required}"
+
+declare retval_usb_props
+declare prop val found_name
+declare udevadm_out udevadm_props=""
+ 
+# Get props to retrieve using the service_path else use defaults
+#dbus_common_get_value "OpkgManager/CustomServices/${service_path}/UsbProps" usb_prop_names
+#[[ -z $usb_prop_names ]] && usb_prop_names="$DEFAULT_USB_PROPS"
+
+udevadm_out=$(udevadm info --query=property --name="$tty" 2>/dev/null)
+
+for prop in $usb_prop_names; do
+  val=$(echo "$udevadm_out" | sed -n "s/^$prop=//p")
+  udevadm_props="$udevadm_props,$prop=$val"
+done
+
+[[ -n $udevadm_props ]] &&
+  retval_usb_props=${udevadm_props:1} #strip starting ,
+
+# return filled props
+echo "$retval_usb_props"

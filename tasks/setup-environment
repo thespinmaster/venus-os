@@ -4,12 +4,15 @@
 
 ####################################################
 reload_bash=
-alias_file=/etc/profile.d/my-alias.sh
-if [[ "$(readlink -f "${alias_file}" 2>/dev/null)" != "/data/dev/scripts/my-alias.sh" ]]; then
-  echo "creating ${alias_file} symbolic link"
-  ln -sfn /data/dev/scripts/my-alias.sh "${alias_file}"
-  reload_bash=1
-fi
+#alias_file=/etc/profile.d/my-alias.sh
+#if [[ "$(readlink -f "${alias_file}" 2>/dev/null)" != "/data/dev/scripts/my-alias.sh" ]]; then
+#  echo "creating ${alias_file} symbolic link"
+#  ln -sfn /data/dev/scripts/my-alias.sh "${alias_file}"
+#  reload_bash=1
+#fi
+# rm -f /etc/profile.d/my-alias
+
+this_path="$(dirname "${0}")"
 
 command_link=/usr/local/bin/dev
 if [[ "$(readlink -f "${command_link}" 2>/dev/null)" != "/data/dev/scripts/dev-helper" ]]; then
@@ -17,13 +20,12 @@ if [[ "$(readlink -f "${command_link}" 2>/dev/null)" != "/data/dev/scripts/dev-h
   ln -sfn /data/dev/scripts/dev-helper "${command_link}"
 fi
 
-rm -f /etc/profile.d/my-alias
-
 nanorc_file=/etc/nanorc
+
 if [[ "$(readlink "${NANORV_FILE}")" != "/data/dev/projects/venus-os/scripts/nanorc" ]]; then
   echo "creating ${nanorc_file} symbolic link"
   rm -f "${nanorc_file}"
-  ln -s /data/dev/projects/venus-os/scripts/nanorc "${nanorc_file}"
+  ln -s "$this_path/../scripts/nanorc" "${nanorc_file}"
 fi
 
 # Keep at the end of the script

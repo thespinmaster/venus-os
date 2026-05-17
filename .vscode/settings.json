@@ -1,0 +1,9 @@
+{
+  "code-runner.runInTerminal": true,
+  "code-runner.executorMap": {
+    "qml": "bash -lc 'clear; svc -t /service/gui; tail -F /var/log/gui/current | cut -c27-'"
+  },
+  "code-runner.executorMapByFileExtension": {
+    ".qml": "bash -lc 'clear; svc -t /service/gui; tail -F /var/log/gui/current | cut -c27-'"
+  }
+}

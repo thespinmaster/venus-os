@@ -10,14 +10,20 @@
 		},
 		{
 			"path": ".."
+		},
+		{
+			"path": "addons"
 		}
 	],
 	"settings": {
 		"python.analysis.include": [
-			"./utils",
 			"./scripts",
-			"./services",
+			"./tasks",
+			"./addons",
 			"./python"
-		]
+		],
+		"chat.tools.terminal.autoApprove": {
+			"svstat": true
+		}
 	}
 }

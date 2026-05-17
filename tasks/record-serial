@@ -1,7 +1,7 @@
 #!/bin/bash
 # Record serial initialization with app running simultaneously
 
-OUTPUT_FILE="/data/dev/services/dbus-inetbox/tests/assets/serial-init-recording.json"
+OUTPUT_FILE="/data/dev/addons/dbus-inetbox/tests/assets/serial-init-recording.json"
 REAL_PORT="/dev/ttyUSB0"
 VSERIAL_REAL="/tmp/vserial_real"
 VSERIAL_APP="/tmp/vserial_app"
@@ -110,7 +110,7 @@ echo ""
 
 # Start the app
 echo "[4/4] Starting dbus-inetbox app..."
-cd /data/dev/services/dbus-inetbox/src/opt/victronenergy/dbus-inetbox-orig
+cd /data/dev/addons/dbus-inetbox/src/opt/victronenergy/dbus-inetbox-orig
 python3 __main__.py --serial "$VSERIAL_APP" 2>&1 | sed 's/^/[APP] /' &
 APP_PID=$!
 

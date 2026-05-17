@@ -168,17 +168,68 @@ check_service() {
   fi
 }
 
-print_help() {
-  cat <<'EOF'
-Dev helper commands:
-  dev start 
-      Start the supplied service.
-  dev restart
-      Restart the supplied service.
-  dev monitor gui
-      Follow the GUI log.
-  dev monitor service <serviceName>
-      Follow the GUI log.
+
+run_service() {
+
+  _run_service() {
+    local service_arg=${1:-}
+    shift
+    if [[ -n "${1:-}" ]]; then
+      local service_ame=${1#/service/}
+      svc ${service_arg} "/service/${service_ame}"
+      [[ -n "${2:-}" ]] && {
+        shift
+        main "$@" "/service/${service_ame}"
+      }
+      return
+    fi
+    echo "ERROR: Unknown service: ${1:-<missing>}" >&2
+    print_help >&2
+    return 1
+    [[ -z "${2}" ]]
+
+  }
+  
+  local command="${1:-}"
+  [[ -n "${1:-}" ]] &&
+    shift
+
+  case "$command" in
+    service)
+      _run_service "$@"
+      ;;
+    stop)
+      _run_service -d "$@"
+      ;;
+    restart)
+      _run_service -t "$@"
+      ;;
+    status)
+      svstat "/service/${1}"
+      ;;
+    check)
+      [[ -n "${2:-}" ]] || { print_error "service name is required for 'dev check service'"; return 1; }
+      check_service "$2"
+      ;;
+    monitor)
+      run_monitor "$@"
+      ;;
+    reset)
+      [[ -n "${2:-}" ]] || { print_error "tty is required for 'dev reset service'"; return 1; }
+      [[ -n "${3:-}" ]] || { print_error "service name is required for 'dev reset service'"; return 1; }
+      reset_service "$2" "$3"
+      ;;
+    *)
+      echo "ERROR: Unknown usb command: ${1:-<missing>}" >&2
+      print_help_service >&2
+      return 1
+      ;;
+  esac
+}
+
+
+print_help_usb() {
+cat <<'EOF'
   dev usb reconnect <ttyUSB0>
       Reconnect a USB tty device using `scripts/libs/usb-lib`.
   dev usb remove|disconnect [ttyUSB0]
@@ -187,12 +238,38 @@ Dev helper commands:
       Connects a previously disconnected USB device`scripts/libs/usb-lib`.
   dev usb list [ttyUSB0]
       Show `udevadm` properties for one tty, or all USB tty devices.
-  dev check service <name>
+EOF
+}
+print_help_service() {
+cat <<'EOF'
+  dev service start 
+      Start the supplied service.
+  dev service stop 
+      Start the supplied service.
+  dev service restart
+      Restart the supplied service.
+  dev service status
+      gets the status of a service.
+  dev service check <name>
       Check the udev -> serial-starter -> service-template chain for a service.
-  dev show diskspace
-      Shows the available storage space.
-  dev reset service <ttyUSB0> <service-name>
+  dev service reset <ttyUSB0> <service-name>
       Stop the tty-backed service, remove its `/service` entry, and clear serial-starter tty/lock files.
+EOF
+}
+print_help_dbus() {
+  cat <<'EOF'
+  dev dbus delete-tree|del-tree 
+      deletes the dbus path and all child items 
+EOF
+}
+print_help() {
+echo Dev helper commands:
+print_help_service
+print_help_usb
+
+  cat <<'EOF'
+  dev diskspace 
+      Shows the available storage space.
   dev shell shorten
       Print the prompt change command, or apply it directly when sourced.
   dev help
@@ -200,16 +277,16 @@ Dev helper commands:
 EOF
 }
 
-dbus_run() {
+run_dbus() {
   case "${1:-}" in
-    delete-tree)
+    delete-tree|del-tree)
       [[ -n "${2:-}" ]] || { echo "ERROR: invalid path'" >&2; return 1; }
       "${dbus_common}" dbus-delete-tree "${2}" 
       ;;
     
     *)
       echo "ERROR: Unknown dbus command: ${1:-<missing>}" >&2
-      print_help >&2
+      print_help_dbus >&2
       return 1
       ;;
   esac
@@ -228,28 +305,6 @@ run_monitor() {
   fi
   tail -F /var/log/${serviceName}/current
 }
-
-run_service() {
-  local serviceArg=${1:-}
-  shift
-  if [[ -n "${1:-}" ]]; then
-    local serviceName=${1#/service/}
-    svc ${serviceArg} "/service/${serviceName}"
-    [[ -n "${2:-}" ]] && {
-      shift
-      main "$@" "/service/${serviceName}"
-    }
-    return
-  fi
-  echo "ERROR: Unknown service: ${1:-<missing>}" >&2
-  print_help >&2
-  return 1
-  [[ -z "${2}" ]]
-
-}
-run_restart() { run_service -t "$@"; }
-run_start() { run_service -u "$@"; }
-run_stop() { run_service -d "$@"; }
 
 run_shell() {
   case "${1:-}" in
@@ -289,24 +344,7 @@ run_usb() {
       ;;
     *)
       echo "ERROR: Unknown usb command: ${1:-<missing>}" >&2
-      print_help >&2
-      return 1
-      ;;
-  esac
-}
-
-run_check() {
-  case "${1:-}" in
-    service)
-      [[ -n "${2:-}" ]] || { print_error "service name is required for 'dev check service'"; return 1; }
-      check_service "$2"
-      ;;
-    diskspace)
-      df -h --total
-      ;;
-    *)
-      print_error "Unknown check command: ${1:-<missing>}"
-      print_help >&2
+      print_help_usb >&2
       return 1
       ;;
   esac
@@ -355,26 +393,12 @@ reset_service() {
 
   print_success "Reset complete for ${service_name}.${tty}"
 }
-
-run_reset() {
-  case "${1:-}" in
-    service)
-      [[ -n "${2:-}" ]] || { print_error "tty is required for 'dev reset service'"; return 1; }
-      [[ -n "${3:-}" ]] || { print_error "service name is required for 'dev reset service'"; return 1; }
-      reset_service "$2" "$3"
-      ;;
-    *)
-      print_error "Unknown reset command: ${1:-<missing>}"
-      print_help >&2
-      return 1
-      ;;
-  esac
-}
-
+ 
 main() {
-  
+   
   local command="${1:-help}"
-  shift
+  [[ -n "${1:-}" ]] &&
+    shift
 
   case "${command}" in
     paths)
@@ -391,26 +415,17 @@ main() {
     monitor)
       run_monitor "${1:-$(</dev/stdin)}"
       ;;
-    start)
-      run_start "$@"
-      ;;
-    stop)
-      run_stop "$@"
-      ;;
-    restart)
-      run_restart "$@"
+    service)
+      run_service "$@"
       ;;
     dbus)
-      dbus_run "$@"
+      run_dbus "$@"
       ;;
     usb)
       run_usb "$@"
       ;;
-    check)
-      run_check "$@"
-      ;;
-    reset)
-      run_reset "$@"
+    diskspace)
+      df -h --total
       ;;
     *)
       echo "ERROR: Unknown command: ${command}" >&2

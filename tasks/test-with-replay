@@ -54,7 +54,7 @@ python3 "${folder}/__main__.py" --serial /tmp/vport1-client --debug_lin > "$ORIG
 ORIG_PID=$!
 
 echo "Starting async version..."
-folder="/data/dev/services/dbus-inetbox/src/opt/victronenergy/dbus-inetbox"
+folder="/data/dev/addons/dbus-inetbox/src/opt/victronenergy/dbus-inetbox"
 python3 "${folder}/__main__.py" --serial /tmp/vport2-client --debug_lin > "$ASYNC_LOG" 2>&1 &
 ASYNC_PID=$!
 

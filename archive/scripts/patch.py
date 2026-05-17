@@ -178,9 +178,9 @@ class patch_helper:
 
 if __name__ == "__main__":
 
-	orig_patch_file = "/home/admin/dev/projects/venus-os/services/dbus-ne-shunt/patch/test.orig"
-	working_patch_file = "/home/admin/dev/projects/venus-os/services/dbus-ne-shunt/patch/test.working"
-	patchFile = "/home/admin/dev/projects/venus-os/services/dbus-ne-shunt/patch/test.patch"
+	orig_patch_file = "/home/admin/dev/projects/venus-os/addons/dbus-ne-shunt/patch/test.orig"
+	working_patch_file = "/home/admin/dev/projects/venus-os/addons/dbus-ne-shunt/patch/test.working"
+	patchFile = "/home/admin/dev/projects/venus-os/addons/dbus-ne-shunt/patch/test.patch"
  
 	with open(orig_patch_file, 'r') as file:
 		contents = file.read()
