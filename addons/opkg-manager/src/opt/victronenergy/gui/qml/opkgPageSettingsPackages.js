@@ -16,30 +16,24 @@ function versionGreaterThan(v1, v2) {
   }
   return false;
 }
-
-function getDescription(model, showCompact, longDesc) {
+ 
+function getFooter(model, showCompact) {
   if (!model || showCompact )
     return ""
-  
+ 
   //console.log("getDescription:" + model + "," + model.description_short + "," + model.description_long)
-
-  var desc = ((longDesc && model.description_long?.length > 0)) 
-                ? model.description_long 
-                : model.description_short || ""
-
-  //console.log("get desc:" + desc.trim())
+ 
   var installed = model.installedVersion?.length > 0
   var available = true
   if (installed)
     available = versionGreaterThan(model.version, model.installedVersion)
-  return desc.trim() + "\n" +
-      (installed ? "Installed: " + model.installedVersion + "  ": "")  + 
+  return (installed ? "Installed: " + model.installedVersion + "  ": "")  + 
       (available ? "Available: " + model.version + "  ": "")  + 
       "  Feed: " + model.feed
 }
  
 function doInstllerAction(packageRunner, action, packageName, noAction) {
-  var args = [action + "-package", packageName]
+  var args = ["package", action, packageName]
   if (noAction)
     args.push("--noaction")
   
@@ -57,10 +51,14 @@ function loadPackages(packageRunner, packageModel, operationName, args) {
   }
   packageModel.clear()
   packageRunner.operationName = operationName
-  packageRunner.start(["list-packages", args])
+  var commandArgs = ["package", "list"]
+  if (args && args.length > 0)
+    commandArgs.push(args)
+  console.log("packageRunner: start: " + operationName)
+  packageRunner.start(commandArgs)
 }
  
-function loadPackagesFromFile(file, fileHelper, packageModel) {
+function loadPackagesFromFile(file, packageModel, fileHelper) {
  
   var filePath = file.trim();
   if (filePath.length == 0) {
@@ -77,9 +75,9 @@ function loadPackagesFromFile(file, fileHelper, packageModel) {
   for (var i = 0; i < packages.length; i++) {
     var pkg = packages[i]
     packageModel.append({
-      name: pkg.name || "",
-      description_short: pkg.description_short || "",
-      description_long: pkg.description_long || "",
+      name: pkg.package || "",
+      description: pkg.description || "",
+      //description_long: pkg.description_long || "",
       version: pkg.version || "",
       feed: pkg.feed || "",
       installedVersion: pkg.installedVersion || ""

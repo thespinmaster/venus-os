@@ -27,7 +27,7 @@ MbPage {
 	}
  
 	Component.onCompleted: {
-		Vm.loadPackages(processRunner, packagesModel, "list-packages", "")
+		Vm.loadPackages(processRunner, packagesModel, "package list", "")
  
 	}
 
@@ -44,7 +44,8 @@ MbPage {
 		OpkgHeaderDescriptionItem {
 			id: headerItem
 			header: model.name
-			description: Vm.getDescription(model, showCompact, false)
+			description: model.description
+			footer: Vm.getFooter(model, showCompact)
 			showCompact: root.showCompact
 			subpage: Component { OpkgPageSettingsPackageInstall { packageModel: packagesModel.get(index)}}
 		}
@@ -56,17 +57,16 @@ MbPage {
 			if (!mouse)
 				return
  
-			Vm.loadPackages(processRunner, packagesModel, "list-packages-update", "update")
+			Vm.loadPackages(processRunner, packagesModel, "package list update", "update")
 		}
 
 		leftText: qsTr("Refresh")  
 
 	}
  
-	ProcessRunner {
+	OpkgBridge {
 		id: processRunner
-		helperPath: "/data/dev/addons/opkg-manager/src/data/opkg-manager/process-runner/opkg"
- 		//helperPath: "/data/opkg-manager/process-runner/opkg"
+		property string packagesPath: "/tmp/opkg-manager-fs/packages.json"
  
 		property string lastOutputLine: ""
 		property string packagesErrorLine: ""
@@ -115,12 +115,12 @@ MbPage {
  
 				if (exitCode === 0 && exitStatus === 0) {
 					switch (processRunner.operationName) {
-						case "list-packages":
-						case "list-packages-update":
+						case "package list":
+						case "package list update":
  
-							Vm.loadPackagesFromFile(lastOutputLine, FileHelper, packagesModel);
+							Vm.loadPackagesFromFile(packagesPath, packagesModel, FileHelper);
  
-							if (processRunner.operationName === "list-packages-update") {
+							if (processRunner.operationName === "package list update") {
 								toast.createToast(qsTr("Refresh completed"))
 							}
 

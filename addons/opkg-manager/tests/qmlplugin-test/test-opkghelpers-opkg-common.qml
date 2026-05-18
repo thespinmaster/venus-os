@@ -6,11 +6,10 @@ Item {
     property int step: 0
 
     Component.onCompleted: {
-        processRunner.helperPath = "./opkg-common-runner";
         processRunner.outputLine.connect(function(line) { console.log("out:", line); });
         processRunner.errorLine.connect(function(line) { console.log("err:", line); });
         processRunner.finished.connect(handleFinished);
-        processRunner.start(["add-feed", "custom-feed", "http://example.com"]);
+        processRunner.start(["feed", "type"]);
     }
 
     function handleFinished(code, status) {
@@ -23,5 +22,5 @@ Item {
         Qt.quit();
     }
 
-    ProcessRunner { id: processRunner }
+    OpkgBridge { id: processRunner }
 }

@@ -44,7 +44,7 @@ QtObject {
   function onRemoveDBusService(first, last) {
     console.log(`onRemoveDBusService: first=${first}, last=${last}`)
     
-    var args = ["remove-devices"]
+    var args = ["device", "remove", "all"]
  
     for (var i = first; i <= last; i++) {
       var page = deviceList.page(i)
@@ -95,8 +95,7 @@ QtObject {
     model.move(0, 1, 1)
   }
  
-  property ProcessRunner processRunner: ProcessRunner {
-		helperPath: "/data/dev/addons/opkg-manager/src/data/opkg-manager/process-runner/serial-device-installer"
+  property OpkgBridge processRunner: OpkgBridge {
     
     onOutputLine: function(line) { 
       console.log("REMOVE:" + line)

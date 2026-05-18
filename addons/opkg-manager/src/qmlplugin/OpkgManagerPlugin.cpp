@@ -2,7 +2,7 @@
 
 #include "OpkgManagerPlugin.h"
 //#include <QQmlEngine>
-#include "ProcessRunner.h"
+#include "OpkgBridge.h"
 #include <qqml.h>
 
 //void OpkgManagerPlugin::initializeEngine(QQmlEngine *engine, const char *uri)
@@ -12,8 +12,8 @@
 //}
 
 void OpkgManagerPlugin::registerTypes(const char *uri) {
-	qmlRegisterType<ProcessRunner>(uri, 0, 0, "ProcessRunner");
-	qmlRegisterType<ProcessRunner>(uri, 1, 0, "ProcessRunner");
+	qmlRegisterType<OpkgBridge>(uri, 0, 0, "OpkgBridge");
+	qmlRegisterType<OpkgBridge>(uri, 1, 0, "OpkgBridge");
 	qmlRegisterSingletonType<FileHelper>(uri, 1, 0, "FileHelper",
 		[](QQmlEngine *, QJSEngine *) -> QObject * {
 			return new FileHelper();
