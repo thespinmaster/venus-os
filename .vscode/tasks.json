@@ -216,7 +216,7 @@
     {
       "label": "Build opkg-manager Blind Install",
       "type": "shell",
-      "command": "bash utils/opkg-manager/blind-install/build_tgz",
+      "command": "bash addons/opkg-manager/blind-install/build_tgz",
       "group": {
         "kind": "build",
         "isDefault": false
