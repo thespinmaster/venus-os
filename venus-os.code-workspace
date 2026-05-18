@@ -14,9 +14,9 @@
 	],
 	"settings": {
 		"python.analysis.include": [
-			"./utils",
+			"./addons",
 			"./scripts",
-			"./services",
+			"./addons",
 			"./python"
 		]
 	}

@@ -10,7 +10,7 @@ ASYNC_LOG="/data/dev/test-async-replay.log"
 if [ ! -f "$RECORDED_FILE" ]; then
     echo "Recorded file not found: $RECORDED_FILE"
     echo "First record serial data with:"
-    echo "  python3 /data/dev/utils/serial-recorder.py /dev/ttyUSB0 $RECORDED_FILE 120"
+    echo "  python3 /data/dev/addons/serial-recorder.py /dev/ttyUSB0 $RECORDED_FILE 120"
     exit 1
 fi
 
@@ -39,10 +39,10 @@ trap cleanup EXIT
 
 echo ""
 echo "Starting replayers..."
-python3 /data/dev/utils/serial-replayer.py "$RECORDED_FILE" /tmp/vport1 &
+python3 /data/dev/addons/serial-replayer.py "$RECORDED_FILE" /tmp/vport1 &
 REPLAY1_PID=$!
 
-python3 /data/dev/utils/serial-replayer.py "$RECORDED_FILE" /tmp/vport2 &
+python3 /data/dev/addons/serial-replayer.py "$RECORDED_FILE" /tmp/vport2 &
 REPLAY2_PID=$!
 
 sleep 2
@@ -54,7 +54,7 @@ python3 "${folder}/__main__.py" --serial /tmp/vport1-client --debug_lin > "$ORIG
 ORIG_PID=$!
 
 echo "Starting async version..."
-folder="/data/dev/services/dbus-inetbox/src/opt/victronenergy/dbus-inetbox"
+folder="/data/dev/addons/dbus-inetbox/src/opt/victronenergy/dbus-inetbox"
 python3 "${folder}/__main__.py" --serial /tmp/vport2-client --debug_lin > "$ASYNC_LOG" 2>&1 &
 ASYNC_PID=$!
 

@@ -4,14 +4,14 @@ set -euo pipefail
  
 ####################################################################
 # Creates all (default) the opkg packages in the folders
-#   ../services, ../utils
+#   ../addons
 # Ignored files/folders
 #   .bak, .git, .tmp, /tests, -v[0-9], .old, .venv
 # All files are develop (copied to ) ../.build and built from there.
 # Symlinks are followed and copy the real file/directory
 # Args:
 #   Arg1:"all" (default): Builds all folders under under services & utils.
-#   Arg[n]: Or a list of folders under services or utils to built
+#   Arg[n]: Or a list of folders under services or utils to build
 # Options:
 #   --develop-only             Build and index into develop folders only (stamps version with +dev.YYYYMMDD.HHMMSS)
 #   --promote                  Promote develop feed to release feed
@@ -25,7 +25,7 @@ command -v rsync >/dev/null 2>&1 || { echo "ERROR: rsync not installed"; exit 1;
 this_path="$(dirname "${BASH_SOURCE[0]}")"
 
 declare -a build_items=()
-declare -a folders=("../services" "../utils")
+declare -a folders=("../addons")
 declare -a cli_build_args=()
 declare -a normalized_cli_build_args=()
 declare pwd_old="$PWD"
@@ -191,7 +191,7 @@ register_feed_targets() {
 }
  
 # args: ${1} [in] build path (../.build)
-#       ${2} in source path (../services/project-name)
+#       ${2} in source path (../addons/project-name)
 #       ${3} [out] develop path (../.build/project-name)
 develop_source_byref() {
   local build_path="${1}"

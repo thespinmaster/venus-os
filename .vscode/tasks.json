@@ -86,7 +86,7 @@
       "type": "shell",
       "problemMatcher":[],
       "command": "${workspaceFolder}/tasks/run-current-tests",
-      "args": ["${workspaceFolder}/utils/opkg-manager/tests/serial-device-installer-tests"],
+      "args": ["${workspaceFolder}/addons/opkg-manager/tests/serial-device-installer-tests"],
       "presentation": {
         "panel": "dedicated",
         "reveal": "always",

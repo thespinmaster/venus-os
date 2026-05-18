@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+
+RESTART_GUI_SERVICE=1
+DBUS_AVAILABLE_THEMES="Dark" # space separated list of themes
+
+DBUS_SETTINGS="
+		{'path':'/Settings/Themer/AvailableThemes', 'default':'Dark'}
+	  {'path':'/Settings/Themer/CurrentTheme', 'default':''}
+		{'path':'/Settings/Themer/Themes/Dark/TextColor', 'default':'#ffffff'}
+		{'path':'/Settings/Themer/Themes/Dark/WindowBackgroundColor', 'default':'#202020'}
+		{'path':'/Settings/Themer/Themes/Dark/BackgroundColor', 'default':'#202020'}
+		{'path':'/Settings/Themer/Themes/Dark/BackgroundColorSelected', 'default':'#4790d0'}
+		{'path':'/Settings/Themer/Themes/Dark/BackgroundColor2', 'default':'#313131'}
+		{'path':'/Settings/Themer/Themes/Dark/IconSuffixNormal', 'default':'-active'}
+		{'path':'/Settings/Themer/Themes/Dark/IconSuffixSelected', 'default':'-active'}
+		{'path':'/Settings/Themer/Themes/Dark/BorderColor', 'default':'#3c3c3c'}
+		{'path':'/Settings/Themer/Themes/Dark/ServiceBackgroundColor', 'default':'#b07c04'}
+		{'path':'/Settings/Themer/Themes/Dark/BackgroundColorSelected', 'default':'#2969a1'}
+		{'path':'/Settings/Themer/Themes/Dark/BackgroundTankColor', 'default':'#cccccc'}
+
+		{'path':'/Settings/OpkgManager/CustomMenus/PageSettingsDisplay/ThemerPageSettingsSubMenu', 'default':''}
+"
+
+#DBUS_SETTINGS_DEPRECIATED=""
+ 
+[[ ${DEV_INSTALL:-} == 1 ]] && [[ -f /data/dev/addons/opkg-manager/src ]] && 
+		export VE_ROOT_PATH=/data/dev/addons/opkg-manager/src
+# shellcheck source=/data/dev/addons/opkg-manager/src/data/opkg-manager/source-common
+source "${VE_ROOT_PATH:-}/data/opkg-manager/source-common"
+
+setsource install-helper
+
+themer_installer_install() {
+	install_helper_add_remove_dbus_csv_items "add" "/Settings/Themer/AvailableThemes" "$DBUS_AVAILABLE_THEMES"
+}
+themer_installer_remove() {
+	install_helper_add_remove_dbus_csv_items "remove" "/Settings/Themer/AvailableThemes" "$DBUS_AVAILABLE_THEMES" 
+}
+ 
+if [[ "${1:-}" == "install" || "${1:-}" == "post-install" || "${1:-}" == "dev-install" ]]; then
+	install_helper_post_install
+  themer_installer_install
+
+elif [[ "${1:-}" == "remove" || "${1:-}" == "post-remove" ]]; then
+	install_helper_pre_remove
+  themer_installer_remove
+else
+	echo installer: invalid args: 'install/post-install' or 'remove/pre-remove'
+  exit 1
+fi

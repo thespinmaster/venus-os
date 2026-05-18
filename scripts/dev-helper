@@ -3,7 +3,7 @@ set -euo pipefail
 
 readonly this_path="$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")"
 readonly usb_lib="$this_path/libs/usb-lib"
-readonly dbus_common="/data/dev/utils/opkg-manager/src/data/opkg-manager/dbus-common"
+readonly dbus_common="/data/dev/addons/opkg-manager/src/data/opkg-manager/dbus-common"
 readonly serial_starter_rules="/etc/udev/rules.d/serial-starter.rules"
 readonly serial_starter_conf="/etc/venus/serial-starter.conf"
 readonly service_templates_dir="/opt/victronenergy/service-templates"
