@@ -18,8 +18,8 @@ MbPage {
 	}
 
 	Component.onCompleted: {
-		processRunner.operationName = "get-feeds"
-		processRunner.start(["get-feeds"])
+		processRunner.operationName = "feed list"
+		processRunner.start(["feed", "list"])
 	}
 
 	Component.onDestruction: {
@@ -120,10 +120,10 @@ MbPage {
 			if (processRunner.running) {
 				return
 			}
-			processRunner.operationName = "remove-feed"
+			processRunner.operationName = "feed remove"
  
 			var name = feedsModel[root.currentIndex].name
-			processRunner.start(["remove-feed", name])
+			processRunner.start(["feed", "remove", name])
 		}
 	}
 
@@ -142,16 +142,16 @@ MbPage {
 			processRunner.feedUrl = url || ""
 			if (isNew) {
  
-				processRunner.operationName="add-feed"
+				processRunner.operationName="feed add"
 				//console.log("add_update_feed:add-feed,feedName:" + processRunner.feedName + ",feedUrl:" + processRunner.feedUrl)
 
-				processRunner.start(["add-feed", processRunner.feedName, processRunner.feedUrl])
+				processRunner.start(["feed", "add", processRunner.feedName, processRunner.feedUrl])
 			} else {
-				processRunner.operationName="edit-feed"
+				processRunner.operationName="feed edit"
 				var curFeedName = feedsModel[root.currentIndex].name || ""
 				//console.log("add_update_feed:edit-feed,feedName:" + processRunner.feedName + ",feedUrl:" + processRunner.feedUrl + ",curFeedName:" +curFeedName + ",idx:" +root.currentIndex)
 
-				processRunner.start(["edit-feed", processRunner.feedName, processRunner.feedUrl, curFeedName])
+				processRunner.start(["feed", "edit", processRunner.feedName, processRunner.feedUrl, curFeedName])
 			}
 			
 			function isValid() {
@@ -220,29 +220,21 @@ MbPage {
 		}
 	}
 
-	ProcessRunner {
+	OpkgBridge {
 		id: processRunner
-		helperPath: "/data/dev/addons/opkg-manager/src/data/opkg-manager/process-runner/opkg"
-		//helperPath: "/data/opkg-manager/process-runner/opkg"
 
 		property string feedName: ""
 		property string feedUrl: ""
 		property string opkgErrorLine: ""
-		property string feedsOutput: ""
+		property string feedsPath: "/tmp/opkg-manager-fs/feeds.json"
 
 		function reset() {
 			feedName=""
 			feedUrl=""
 			opkgErrorLine=""
-			feedsOutput=""
 			operationName=""
 		}
 
-		onOutputLine: function(line) {
-			if (operationName === "get-feeds") {
-				feedsOutput = line
-			}
-		}
 		onErrorLine: function(line) {
 			console.log(line)
 			opkgErrorLine = line
@@ -260,18 +252,18 @@ MbPage {
 				}
  
 				switch (operationName) {
-					case "get-feeds":
+					case "feed list":
 						//console.log("onFinished: get-feeds:")
-						loadFeedsFromFile(feedsOutput)
+						loadFeedsFromFile(feedsPath)
 						
 						break;
-					case "remove-feed":
+					case "feed remove":
 						removeFeed()
 						toast.createToast("remove succeeded")
 						break;
-					case "add-feed":
-					case "edit-feed":
-						var isNew = operationName == "add-feed"
+					case "feed add":
+					case "feed edit":
+						var isNew = operationName == "feed add"
 	
 						updateFeed(isNew, feedName, feedUrl)
 						toast.createToast((isNew ? "add" : "edit") +  " succeeded")

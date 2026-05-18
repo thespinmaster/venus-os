@@ -8,6 +8,8 @@ Rectangle {
 	property bool isWorking: false
 	property int dotCount: 1
 	property string baseWorking: ""
+ 
+	property alias fontSize: logText.font.pixelSize
 
 	color: mbStyle && mbStyle.themer ? (mbStyle.themer.backgroundColor2 || "#cecece") : "#cecece"
 	radius: 4
@@ -30,7 +32,7 @@ Rectangle {
 				id: logText
 				text: root.logLines && root.logLines.join("\n")
 				font.pixelSize: 13
-				color: root.mbStyle ? root.mbStyle.textColor : "white"
+				color: root.mbStyle ? root.mbStyle.textColor : "#000000"
 				wrapMode: Text.Wrap
 				width: logFlickable.width - 12
 				horizontalAlignment: Text.AlignLeft
@@ -75,7 +77,7 @@ Rectangle {
 	function startIsWorking(line, clear) {
 		if (clear)
 			root.clear()
-		addLine(line)
+		log(line)
 		baseWorking = line
 		isWorking = true
 		dotCount = 1
@@ -101,10 +103,10 @@ Rectangle {
 	function clear() {
 		stopIsWorking(true)
 	}
-
-	function addLine(line) {
+	function log(line) {
 		stopIsWorking()
 		root.logLines.push(line)
 		root.refreshText()
 	}
+	function addLine(line) { log(line) }
 }

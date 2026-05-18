@@ -1,15 +1,15 @@
 #pragma once
 
 #include <QObject>
+#include <QHash>
 #include <QProcess>
 #include <QString>
 #include <QStringList>
 // #define TRACE
 
-class ProcessRunner : public QObject
+class OpkgBridge : public QObject
 {
 	Q_OBJECT
-	Q_PROPERTY(QString helperPath READ helperPath WRITE setHelperPath NOTIFY helperPathChanged)
 	Q_PROPERTY(bool running READ running NOTIFY runningChanged)
 	Q_PROPERTY(bool stopping READ stopping NOTIFY stoppingChanged)
 	Q_PROPERTY(QString operationName READ operationName WRITE setOperationName NOTIFY operationNameChanged)
@@ -17,10 +17,7 @@ class ProcessRunner : public QObject
 
 public:
 	Q_INVOKABLE bool waitForFinished(int msecs = -1);
-	explicit ProcessRunner(QObject *parent = nullptr);
-
-	QString helperPath() const;
-	void setHelperPath(const QString &path);
+	explicit OpkgBridge(QObject *parent = nullptr);
 
 	bool stopping() const;
 	bool running() const;
@@ -37,7 +34,6 @@ public:
 	Q_INVOKABLE void cleanup(); // Call this from QML on page destruction
 
 signals:
-	void helperPathChanged();
 	void runningChanged();
 	void stoppingChanged();
 	void outputLine(const QString &line);
@@ -54,6 +50,12 @@ private slots:
 	void handleError(QProcess::ProcessError error); // New slot
 
 private:
+	bool resolveCommand(const QStringList &args,
+			   QString &helperPath,
+			   QStringList &helperArgs,
+			   QString &operationName,
+			   QString &error) const;
+
 	void emitLines(QByteArray &buffer, const QByteArray &chunk, bool isError);
 #ifdef TRACE
 	void trace(const QString &message, bool isError = false);
@@ -62,7 +64,6 @@ private:
 #endif
 
 	QProcess m_process;
-	QString m_helperPath;
 	QString m_operationName;
 	QByteArray m_stdoutBuffer;
 	QByteArray m_stderrBuffer;

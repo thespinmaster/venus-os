@@ -57,7 +57,7 @@ qt_add_qml_module(OpkgManagerplugin
 	
 	SOURCES
 		OpkgManagerPlugin.cpp
-		ProcessRunner.cpp
+		OpkgBridge.cpp
 		FileHelper.cpp
 		FileHelper.h
 )

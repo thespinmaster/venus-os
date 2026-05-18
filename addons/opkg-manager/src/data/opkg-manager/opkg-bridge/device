@@ -17,9 +17,9 @@ SERIAL_STARTER_CONFIG_FILE="/etc/venus/serial-starter.conf"
 SERVCE_PATH="/service"
 DEFAULT_USB_PROPS="ID_MODEL,ID_VENDOR,ID_SERIAL"
 
-# __sdi_send_props_as_json <associated array of properties>
+# __device_send_props_as_json <associated array of properties>
 # takes an associated array of properties and returns a JSON string of properties.
-__sdi_send_props_as_json() {
+__device_send_props_as_json() {
   local -n assoc_ref="$1"
   local json="{"
   local first=1
@@ -31,13 +31,8 @@ __sdi_send_props_as_json() {
     escaped_key=${escaped_key//\"/\\\"}
     escaped_value=${value//\\/\\\\}
     escaped_value=${escaped_value//\"/\\\"}
-
-    if (( first )); then
-      first=0
-    else
-      json+=","
-    fi
-
+    (( first )) && first=0 || json+=","
+ 
     json+="\"${escaped_key}\":\"${escaped_value}\""
   done
 
@@ -67,8 +62,8 @@ __autoReconnect() {
   )
 }
  
-# sdi_detect_usb_device <dbus service path> <autoReconnect (optional)>
-# usage sdi_detect_usb_device "Inetbox" "ttyUSB0"
+# device_detect_usb <dbus service path> <autoReconnect (optional)>
+# usage device_detect_usb "Inetbox" "ttyUSB0"
 # <dbus service path> is the name of the Custom Service 
 #  i.e. Inetbox =/OpkgManager/CustomServices/Inetbox/...
 # detects the usb device that gets plugged in to a port
@@ -77,7 +72,7 @@ __autoReconnect() {
 #  process: < the name process of any service currently using the port (if any) >
 #  serialStarterProbing: < true if the port is being probed by the serial starter >
 #  usbProps: < a | separated list of usb properties the supplied service path requires >
-sdi_detect_usb_device() {
+device_detect_usb() {
   # Configurable property list (edit as needed)
  
   local service_path="${1}"
@@ -85,11 +80,11 @@ sdi_detect_usb_device() {
   local tty=
  
   if [[ -n $autoReconnect ]]; then
-    #sdi_remove_device "dbus_inetbox_sid_5f90"
+    #device_remove "dbus_inetbox_sid_5f90"
     __autoReconnect $service_path tty
   fi
  
-  [[ -z $tty ]] && sdi_get_usb_port tty
+  [[ -z $tty ]] && device_get_usb_port tty
   [[ -e "/dev/${tty}" ]] || { echo "Device not found" >&2; return 1; }
  
   echo "✓ Found device: $tty"
@@ -99,7 +94,7 @@ sdi_detect_usb_device() {
   local process_pid= process_name= possible_process_name=
   local service_name= 
 
-  __get_usb_props "$tty" "${service_path}" usb_props
+  __fill_usb_props "$tty" "${service_path}" usb_props
   
   echo "usb_props=$usb_props"
   echo "Getting device status..."
@@ -122,13 +117,13 @@ sdi_detect_usb_device() {
   serial_device_installer_service_name_from_tty 2>/dev/null \
       && service_name_or_tty="/service/${SERVICE_NAME}.${TTY}" || service_name_or_tty="$TTY"
 
-  sdi_get_stable_tty_process_pid "$service_name_or_tty" process_pid possible_process_name
+  device_get_stable_tty_process_pid "$service_name_or_tty" process_pid possible_process_name
   process_state=$?
  
   if (( process_state == 0 )); then
     if [[ -n "${SERVICE_NAME:-}" ]]; then
       service_name="${SERVICE_NAME:-}"
-    elif ! sdi_find_service_from_pid "$process_pid" "$tty" service_name; then
+    elif ! device_find_service_from_pid "$process_pid" "$tty" service_name; then
       process_name=$(ps -p "$process_pid" -o comm= 2>/dev/null | tr -d ' ')
     fi 
   elif (( process_state == 2 )); then
@@ -163,15 +158,15 @@ sdi_detect_usb_device() {
   echo "Done"
 
   # keep last
-  __sdi_send_props_as_json json_props
+  __device_send_props_as_json json_props
   
   return 0
 }
 
 
-# sdi_apply_device <tty> <service path> <usp props>
+# device_apply <tty> <service path> <usp props>
 # usage "ttyUSB0" "Inetbox" $usbProps
-sdi_apply_device() {
+device_apply() {
  
   local service_path="$1"
   local tty="$2"
@@ -181,22 +176,22 @@ sdi_apply_device() {
   echo "Installing USB serial device..."
 
   # check passed args
-  [[ -z "${service_path}" ]] && { echo "sdi_apply_device: Error: Service path not passed" >&2; return 1; }
-  [[ -z "${tty}" ]] && { echo "sdi_apply_device: Error: tty not passed" >&2; return 1; }
-  [[ -z "${usbProps}" ]] && { echo "sdi_apply_device: Error: usbProps not passed" >&2; return 1; }
+  [[ -z "${service_path}" ]] && { echo "device_apply: Error: Service path not passed" >&2; return 1; }
+  [[ -z "${tty}" ]] && { echo "device_apply: Error: tty not passed" >&2; return 1; }
+  [[ -z "${usbProps}" ]] && { echo "device_apply: Error: usbProps not passed" >&2; return 1; }
 
   # check tty is still valid, if so get props
-  [[ -e "/dev/${tty}" ]] && { __get_usb_props "${tty}" "${service_path}" usbProps_current; }
+  [[ -e "/dev/${tty}" ]] && { __fill_usb_props "${tty}" "${service_path}" usbProps_current; }
   
   # compare props with passed props to detect if device is the same as the one detected 
-  # in sdi_detect_usb_device.
+  # in device_detect_usb.
   [[ "${usbProps_current}" != "${usbProps}" ]] && { echo "Usb device has changed. Re-detect" >&2; return; }
  
   local sid=$(__get_usb_prop $tty SERIAL_DEVICE_ID)
 
   #if [[ -n $sid ]]; then
   #  echo "Removing existing serial starter rule"
-  #  sdi_remove_device "$sid" "$tty" || \
+  #  device_remove "$sid" "$tty" || \
   #    echo "⚠ Warning: failed to remove existing serial starter rule"
   #fi
 
@@ -231,7 +226,7 @@ sdi_apply_device() {
   echo "Starting service..."
 
   local r= out_pid=;
-  sdi_get_stable_tty_process_pid "$SERVCE_PATH/$SERVICE_NAME.$TTY" out_pid; r=$?
+  device_get_stable_tty_process_pid "$SERVCE_PATH/$SERVICE_NAME.$TTY" out_pid; r=$?
   ((r==130)) && return 130; # cancelled
   ((r==1)) && { echo "✗ Service not started"; return 1; }
   ((r==2)) && { echo "✗ Service not stable"; return 1; }
@@ -241,11 +236,11 @@ sdi_apply_device() {
   return 0
 }
 
-# sdi_get_usb_port <out tty>
+# device_get_usb_port <out tty>
 # Uses udevadm to monitor when a usb device is added
 # Returns the device port (tty) of the added device
 # Use ^C to cancel monitoring
-sdi_get_usb_port() {
+device_get_usb_port() {
   local fifo
   local line
   local path
@@ -253,8 +248,8 @@ sdi_get_usb_port() {
   local UDEV_PID=""
   local FIFO_PATH=""
  
-_sdi_cleanup_udevadm() {
-  echo "_sdi_cleanup_udevadm"
+_device_cleanup_udevadm() {
+  echo "_device_cleanup_udevadm"
   if [[ -n "$UDEV_PID" ]]; then
     kill -2 "$UDEV_PID" 2>/dev/null
     #wait "$UDEV_PID" 2>/dev/null
@@ -270,7 +265,7 @@ _sdi_cleanup_udevadm() {
   mkfifo "$fifo"
   FIFO_PATH="$fifo"
   
-  trap '_sdi_cleanup_udevadm' SIGTERM SIGINT 
+  trap '_device_cleanup_udevadm' SIGTERM SIGINT 
 
   udevadm monitor --subsystem-match=tty -u > "$fifo" &
  
@@ -318,13 +313,16 @@ __get_usb_prop() {
 
 # get_usb_props <tty> <array_var_name> <property list>
 # Usage: get_usb_props ttyUSB0 usb_props PROPS[@]
-__get_usb_props() {
+__fill_usb_props() {
   local tty="$1"
   local service_path="$2"
   local -n udevadm_props_ref="$3"
   local prop val found_name
   local udevadm_out udevadm_props=""
   local usb_prop_names=
+  
+  usb_prop_names=$udevadm_props_ref
+  udevadm_props_ref=""
 
   # Get props to retrieve using the service_path else use defaults
   dbus_common_get_value "OpkgManager/CustomServices/${service_path}/UsbProps" usb_prop_names
@@ -346,7 +344,7 @@ __get_usb_props() {
 
 }
   
-# sdi_get_stable_tty_process_pid <tty|service_path> <out_pid> [out_possible_names] [stable_checks]
+# device_get_stable_tty_process_pid <tty|service_path> <out_pid> [out_possible_names] [stable_checks]
 # Samples a tty or service path and returns success once the same PID has been
 # observed for the requested number of consecutive checks.
 # Return codes:
@@ -354,7 +352,7 @@ __get_usb_props() {
 #   1 = no process currently using the tty/service
 #   2 = unstable startup detected before becoming stable
 #   3 = invalid arguments
-sdi_get_stable_tty_process_pid() {
+device_get_stable_tty_process_pid() {
  
   local service="" tty=""
   local -n __out_pid="${2}"
@@ -450,7 +448,7 @@ sdi_get_stable_tty_process_pid() {
   return 1
 }
  
-sdi_find_service_from_pid() {
+device_find_service_from_pid() {
   local pid="$1" ppid comm
   local tty="$2"
   local -n out_service_name="$3"
@@ -479,14 +477,14 @@ sdi_find_service_from_pid() {
   return 1
 }
  
-sdi_remove_devices() {
+device_remove_all() {
   
   for arg in "$@"; do
-    sdi_remove_device "$arg"
+    device_remove "$arg"
   done
 }
  
-# TODO create another sdi_remove_device
+# TODO create another device_remove
 # make this method more generic
 # get and set SERVICE_NAME TTY SID
 # move device_instance_name name stop into there
@@ -498,7 +496,7 @@ sdi_remove_devices() {
 # Senario 2
 # Called from remove
 
-sdi_remove_device() {
+device_remove() {
   
   local dbus_service_name="${1}" # dbus_inetbox_sid_5f90
   SERVICE_NAME=
@@ -530,40 +528,28 @@ sdi_remove_device() {
 }
 
 case "${1:-}" in
-	detect-device)
+	detect)
     shift
 
-		sdi_detect_usb_device "${1:-}" "${2:-}"
+		device_detect_usb "${1:-}" "${2:-}"
 		;;
-  apply-device)
+  apply)
     shift
-    sdi_apply_device "${1:-}" "${2:-}" "${3:-}" 
+    device_apply "${1:-}" "${2:-}" "${3:-}" 
     ;;
-  remove-devices)
+  remove)
     shift
-    sdi_remove_devices "${1:-}"
-    ;;
-  remove-device)
-    shift
-    sdi_remove_device "${1:-}"
-    ;;
-  find-service-from-pid)
-    shift
-    service_name=
-    sdi_find_service_from_pid "${1:-}" "${2:-}" service_name 
-    echo "$service_name"
-    ;;
-  get-tty-process)
-    shift
-    gpid=
-    sdi_get_stable_tty_process_pid "${1}" gpid
-    echo "$gpid"
+    if [[ "${1:-}" == "all" ]]; then
+      shift
+      device_remove_all "${1:-}"
+      exit $?
+    fi
+    device_remove "${1:-}"
     ;;
 
   *)
     if [[ -n ${1:-} ]]; then
-      echo "serial-device-installer-qml: invalid command : ${1}" >&2
+      echo "device: invalid command : ${1}" >&2
     fi
     ;;
 esac
-

@@ -283,6 +283,30 @@ FileHelper.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerplugin.dir/build.make CMakeFiles/OpkgManagerplugin.dir/FileHelper.cpp.s
 .PHONY : FileHelper.cpp.s
 
+OpkgBridge.o: OpkgBridge.cpp.o
+.PHONY : OpkgBridge.o
+
+# target to build an object file
+OpkgBridge.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerplugin.dir/build.make CMakeFiles/OpkgManagerplugin.dir/OpkgBridge.cpp.o
+.PHONY : OpkgBridge.cpp.o
+
+OpkgBridge.i: OpkgBridge.cpp.i
+.PHONY : OpkgBridge.i
+
+# target to preprocess a source file
+OpkgBridge.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerplugin.dir/build.make CMakeFiles/OpkgManagerplugin.dir/OpkgBridge.cpp.i
+.PHONY : OpkgBridge.cpp.i
+
+OpkgBridge.s: OpkgBridge.cpp.s
+.PHONY : OpkgBridge.s
+
+# target to generate assembly for a file
+OpkgBridge.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerplugin.dir/build.make CMakeFiles/OpkgManagerplugin.dir/OpkgBridge.cpp.s
+.PHONY : OpkgBridge.cpp.s
+
 OpkgManagerPlugin.o: OpkgManagerPlugin.cpp.o
 .PHONY : OpkgManagerPlugin.o
 
@@ -379,30 +403,6 @@ OpkgManagerpluginplugin_autogen/mocs_compilation.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerpluginplugin.dir/build.make CMakeFiles/OpkgManagerpluginplugin.dir/OpkgManagerpluginplugin_autogen/mocs_compilation.cpp.s
 .PHONY : OpkgManagerpluginplugin_autogen/mocs_compilation.cpp.s
 
-ProcessRunner.o: ProcessRunner.cpp.o
-.PHONY : ProcessRunner.o
-
-# target to build an object file
-ProcessRunner.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerplugin.dir/build.make CMakeFiles/OpkgManagerplugin.dir/ProcessRunner.cpp.o
-.PHONY : ProcessRunner.cpp.o
-
-ProcessRunner.i: ProcessRunner.cpp.i
-.PHONY : ProcessRunner.i
-
-# target to preprocess a source file
-ProcessRunner.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerplugin.dir/build.make CMakeFiles/OpkgManagerplugin.dir/ProcessRunner.cpp.i
-.PHONY : ProcessRunner.cpp.i
-
-ProcessRunner.s: ProcessRunner.cpp.s
-.PHONY : ProcessRunner.s
-
-# target to generate assembly for a file
-ProcessRunner.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/OpkgManagerplugin.dir/build.make CMakeFiles/OpkgManagerplugin.dir/ProcessRunner.cpp.s
-.PHONY : ProcessRunner.cpp.s
-
 build-armhf/.rcc/qrc_qmake_OpkgManager.o: build-armhf/.rcc/qrc_qmake_OpkgManager.cpp.o
 .PHONY : build-armhf/.rcc/qrc_qmake_OpkgManager.o
 
@@ -473,6 +473,9 @@ help:
 	@echo "... FileHelper.o"
 	@echo "... FileHelper.i"
 	@echo "... FileHelper.s"
+	@echo "... OpkgBridge.o"
+	@echo "... OpkgBridge.i"
+	@echo "... OpkgBridge.s"
 	@echo "... OpkgManagerPlugin.o"
 	@echo "... OpkgManagerPlugin.i"
 	@echo "... OpkgManagerPlugin.s"
@@ -485,9 +488,6 @@ help:
 	@echo "... OpkgManagerpluginplugin_autogen/mocs_compilation.o"
 	@echo "... OpkgManagerpluginplugin_autogen/mocs_compilation.i"
 	@echo "... OpkgManagerpluginplugin_autogen/mocs_compilation.s"
-	@echo "... ProcessRunner.o"
-	@echo "... ProcessRunner.i"
-	@echo "... ProcessRunner.s"
 	@echo "... build-armhf/.rcc/qrc_qmake_OpkgManager.o"
 	@echo "... build-armhf/.rcc/qrc_qmake_OpkgManager.i"
 	@echo "... build-armhf/.rcc/qrc_qmake_OpkgManager.s"

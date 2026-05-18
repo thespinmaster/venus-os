@@ -374,7 +374,7 @@ MbPage {
 				reconnect = "true"
  
 			processRunner.operationName = step
-			processRunner.start([step, root.selectedServiceTypePath, reconnect])
+			processRunner.start(["device", "detect", root.selectedServiceTypePath, reconnect])
 			break
 		case "apply-device":
 			if (processRunner.operationName)
@@ -383,7 +383,7 @@ MbPage {
 			if (root.outputLog)
 				root.outputLog.clear()
 			 
-			processRunner.start([step, root.selectedServiceTypePath, root.deviceModel.port, root.deviceModel.usbProps])
+			processRunner.start(["device", "apply", root.selectedServiceTypePath, root.deviceModel.port, root.deviceModel.usbProps])
 			break
 		case "service-running":
 		  root.outputLog.addLine("Service Running")
@@ -394,9 +394,8 @@ MbPage {
 		}
 	}
  
-	ProcessRunner {
+	OpkgBridge {
 		id: processRunner
-		helperPath: "/data/dev/addons/opkg-manager/src/data/opkg-manager/process-runner/serial-device-installer"
  
 		property string jsonString: ""
 		onOutputLine: function(line) {
