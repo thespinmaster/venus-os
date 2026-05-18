@@ -1,0 +1,26 @@
+#!/bin/bash
+ 
+set -o nounset
+
+declare command=${1:?"invalid command"}
+shift
+
+case "${command}" in
+	test1)
+		echo "test1" 
+		;;
+  test2)
+    echo "test2"
+    ;;
+  test3)
+    echo "test3"
+    ;;
+  hello-world)
+    echo "Hello World"
+    ;;
+  *)
+    if [[ -n ${1:-} ]]; then
+      echo "device: invalid command : ${1}" >&2
+    fi
+    ;;
+esac

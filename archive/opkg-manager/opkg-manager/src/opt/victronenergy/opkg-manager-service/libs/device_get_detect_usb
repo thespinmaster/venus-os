@@ -1,0 +1,73 @@
+#!/bin/bash
+# shellcheck disable=SC2317,SC2329  # Don't warn about unreachable commands in this file
+
+set -o nounset
+
+# device_get_usb_port <out tty>
+# Uses udevadm to monitor when a usb device is added
+# Returns the device port (tty) of the added device
+# Use ^C to cancel monitoring
+
+declare fifo
+declare line
+declare path
+declare retval_tty
+declare UDEV_PID=""
+declare FIFO_PATH=""
+
+_device_cleanup_udevadm() {
+if [[ -n "$UDEV_PID" ]]; then
+  kill -2 "$UDEV_PID" 2>/dev/null
+  #wait "$UDEV_PID" 2>/dev/null
+  UDEV_PID=""
+fi
+if [[ -n "$FIFO_PATH" ]]; then
+  rm -f "$FIFO_PATH"
+  FIFO_PATH=""
+fi
+}
+
+fifo=$(mktemp -u)
+mkfifo "$fifo"
+FIFO_PATH="$fifo"
+
+trap '_device_cleanup_udevadm' SIGTERM SIGINT 
+
+udevadm monitor --subsystem-match=tty -u > "$fifo" &
+
+UDEV_PID=$!
+# ---
+# NOTE: Bash signal handling (traps) only occure between commands.
+# If we use a blocking read, Bash cannot process signals (like SIGTERM)
+# and the process will not exit until the read returns.
+# By using a timed read (-t 1) on $fifo, we allow Bash to periodically 
+# check for signals and run the trap handler, so the process can be 
+# stopped/cancelled gracefully.
+# The loop only exits if the FIFO is removed or closed.
+# ---
+
+while true; do
+  if read -r -t 0.5 line < "$fifo"; then
+    if [[ "$line" =~ ^UDEV\ .*[\[][0-9]*\.[0-9]*[]]\ add\  ]]; then
+      # Extract the path
+      path=${line#*add      }
+      path=${path%% *}
+      # Extract tty device name
+      retval_tty=${path##*/}
+      kill -2 "$UDEV_PID"
+      wait "$UDEV_PID" 2>/dev/null
+      UDEV_PID=
+      break
+    fi
+  elif [[ ! -p "$fifo" ]]; then
+      # read timed out or FIFO closed
+      break
+  fi
+done < "$fifo"
+
+# Remove FIFO (cleanup will also do this, but for safety)
+rm -f "$fifo"
+FIFO_PATH=""
+
+echo $retval_tty
+exit 0

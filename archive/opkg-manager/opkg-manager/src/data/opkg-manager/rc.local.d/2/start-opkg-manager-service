@@ -1,0 +1,3 @@
+#!/bin/bash
+
+"${VE_ROOT_DIR:-}/opt/victronenergy/opkg-manager-service/start-opkg-manager-service.sh"

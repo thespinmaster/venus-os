@@ -1,0 +1,45 @@
+#!/bin/bash
+
+set -o nounset
+ 
+declare this_path; this_path="$(dirname "${BASH_SOURCE[0]}")"
+ 
+QML_TARGET_PATH="/opt/victronenergy/gui/qml"
+QML_SOURCE_PATH="$this_path/../src${QML_TARGET_PATH}"
+ 
+[[ -d "${QML_TARGET_PATH}" ]] || { echo "Wrong Server! (path not found ${QML_TARGET_PATH})"; exit 1; }
+ 
+QML_ICONS_TARGET_PATH="/opt/victronenergy/themes/ccgx/icons"
+QML_ICONS_SOURCE_PATH="$this_path/../src${QML_ICONS_TARGET_PATH}"
+
+# qml: files link all files found in $QML_ICONS_SOURCE_PATH
+for source_file in "$QML_SOURCE_PATH"/*; do
+	
+	[ -f "$source_file" ] || continue
+	dest_file="$(basename "$source_file")"
+	echo "$source_file -> $QML_TARGET_PATH/$dest_file"
+	rm -f "$QML_TARGET_PATH/$dest_file"
+	ln -sf "$source_file" "$QML_TARGET_PATH/$dest_file"
+done
+
+# icons: link all files found in $QML_ICONS_SOURCE_PATH
+for source_file in "$QML_ICONS_SOURCE_PATH"/*; do
+	[ -f "$source_file" ] || continue
+	dest_file="$(basename "$source_file")"
+	rm -f "$QML_ICONS_TARGET_PATH/$dest_file"
+	ln -sf "$source_file" "$QML_ICONS_TARGET_PATH/$dest_file"
+done
+
+# link the folder
+# ln -sf "$QML_TARGET_PATH/OpkgManager" "$QML_SOURCE_PATH/OpkgManager"
+ 
+#ln -sf "$QML_TARGET_PATH/PageSettings.qml" "$QML_SOURCE_PATH/PageSettings.qml"
+ 
+#ln -sf "$this_path/../src/data/opkg-manager/opkg-common" "/data/opkg-manager/opkg-common"
+
+#$this_path/../src/data/opkg-manager/installer "dev-install"
+ln -sf /data/dev/addons/opkg-manager/src/opt/victronenergy/service/opkg-manager-service /opt/victronenergy/service/opkg-manager-service
+
+ln -sf /data/dev/addons/opkg-manager/src/opt/victronenergy/opkg-manager-service /opt/victronenergy/opkg-manager-service
+
+echo "done"

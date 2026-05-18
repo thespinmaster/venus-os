@@ -1,0 +1,1 @@
+--foreign-types=/usr/lib/arm-linux-gnueabihf/metatypes/qt6qml_none_metatypes.json,/usr/lib/arm-linux-gnueabihf/metatypes/qt6core_none_metatypes.json,/usr/lib/arm-linux-gnueabihf/metatypes/qt6network_none_metatypes.json

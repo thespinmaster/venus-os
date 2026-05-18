@@ -1,0 +1,298 @@
+[
+    {
+        "classes": [
+            {
+                "className": "FileHelper",
+                "methods": [
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "filePath",
+                                "type": "QString"
+                            }
+                        ],
+                        "name": "readFile",
+                        "returnType": "QString"
+                    }
+                ],
+                "object": true,
+                "qualifiedClassName": "FileHelper",
+                "superClasses": [
+                    {
+                        "access": "public",
+                        "name": "QObject"
+                    }
+                ]
+            }
+        ],
+        "inputFile": "FileHelper.h",
+        "outputRevision": 68
+    },
+    {
+        "classes": [
+            {
+                "className": "OpkgManagerPlugin",
+                "object": true,
+                "qualifiedClassName": "OpkgManagerPlugin",
+                "superClasses": [
+                    {
+                        "access": "public",
+                        "name": "QQmlExtensionPlugin"
+                    }
+                ]
+            }
+        ],
+        "inputFile": "OpkgManagerPlugin.h",
+        "outputRevision": 68
+    },
+    {
+        "classes": [
+            {
+                "className": "ProcessRunner",
+                "methods": [
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "msecs",
+                                "type": "int"
+                            }
+                        ],
+                        "name": "waitForFinished",
+                        "returnType": "bool"
+                    },
+                    {
+                        "access": "public",
+                        "name": "waitForFinished",
+                        "returnType": "bool"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "args",
+                                "type": "QStringList"
+                            }
+                        ],
+                        "name": "start",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "name": "stop",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "name": "stopAndWait",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "name": "cleanup",
+                        "returnType": "void"
+                    }
+                ],
+                "object": true,
+                "properties": [
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "index": 0,
+                        "name": "helperPath",
+                        "notify": "helperPathChanged",
+                        "read": "helperPath",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QString",
+                        "user": false,
+                        "write": "setHelperPath"
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "index": 1,
+                        "name": "running",
+                        "notify": "runningChanged",
+                        "read": "running",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "bool",
+                        "user": false
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "index": 2,
+                        "name": "stopping",
+                        "notify": "stoppingChanged",
+                        "read": "stopping",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "bool",
+                        "user": false
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "index": 3,
+                        "name": "operationName",
+                        "notify": "operationNameChanged",
+                        "read": "operationName",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QString",
+                        "user": false,
+                        "write": "setOperationName"
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "index": 4,
+                        "name": "traceEnabled",
+                        "notify": "traceEnabledChanged",
+                        "read": "traceEnabled",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "bool",
+                        "user": false,
+                        "write": "setTraceEnabled"
+                    }
+                ],
+                "qualifiedClassName": "ProcessRunner",
+                "signals": [
+                    {
+                        "access": "public",
+                        "name": "helperPathChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "name": "runningChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "name": "stoppingChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "line",
+                                "type": "QString"
+                            }
+                        ],
+                        "name": "outputLine",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "line",
+                                "type": "QString"
+                            }
+                        ],
+                        "name": "errorLine",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "exitCode",
+                                "type": "int"
+                            },
+                            {
+                                "name": "exitStatus",
+                                "type": "int"
+                            }
+                        ],
+                        "name": "finished",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "name": "operationNameChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "name": "traceEnabledChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "errorString",
+                                "type": "QString"
+                            }
+                        ],
+                        "name": "processError",
+                        "returnType": "void"
+                    }
+                ],
+                "slots": [
+                    {
+                        "access": "private",
+                        "name": "handleStdout",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "private",
+                        "name": "handleStderr",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "private",
+                        "arguments": [
+                            {
+                                "name": "exitCode",
+                                "type": "int"
+                            },
+                            {
+                                "name": "exitStatus",
+                                "type": "QProcess::ExitStatus"
+                            }
+                        ],
+                        "name": "handleFinished",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "private",
+                        "arguments": [
+                            {
+                                "name": "error",
+                                "type": "QProcess::ProcessError"
+                            }
+                        ],
+                        "name": "handleError",
+                        "returnType": "void"
+                    }
+                ],
+                "superClasses": [
+                    {
+                        "access": "public",
+                        "name": "QObject"
+                    }
+                ]
+            }
+        ],
+        "inputFile": "ProcessRunner.h",
+        "outputRevision": 68
+    }
+]

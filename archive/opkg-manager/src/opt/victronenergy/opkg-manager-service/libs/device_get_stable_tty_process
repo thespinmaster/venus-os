@@ -1,0 +1,107 @@
+#!/bin/bash
+# shellcheck disable=SC2317,SC2329  # Don't warn about unreachable commands in this file
+
+set -o nounset
+
+
+# device_get_stable_tty_process_pid <tty|service_path> <out_pid> [out_possible_names] [stable_checks]
+# Samples a tty or service path and returns success once the same PID has been
+# observed for the requested number of consecutive checks.
+# Return codes:
+#   0 = stable PID found and written to out_pid
+#   1 = no process currently using the tty/service
+#   2 = unstable startup detected before becoming stable
+#   3 = invalid arguments
+
+declare service="" tty=""
+declare -n __out_pid="${2}"
+declare __out_possible_names_name="${3:-}"
+declare -A possible_names=()
+declare -A seen_pids=()
+declare -A seen_signatures=()
+declare -i stable_checks="${4:-5}"
+declare -i max_checks=0
+declare possible_name="" current_name="" joined_possible_names="" current_signature=""
+declare current_pid="" last_pid=""
+declare -i i=0 consecutive_same_pid=0 unstable_seen=0 observed_any=0 cancelled=0
+declare -i success=
+
+[[ -z "${1:-}" || -z "${2:-}" ]] && exit 3
+[[ "${1:0:1}" == "/" ]] && service="${1}" || tty="${1}"
+
+(( stable_checks < 1 )) && stable_checks=1
+(( max_checks = stable_checks * 4 ))
+
+trap 'cancelled=1' SIGINT SIGTERM
+
+__out_pid=
+[[ -n "$__out_possible_names_name" ]] && printf -v "$__out_possible_names_name" '%s' ""
+
+for ((i=1; i<=max_checks; i++)); do
+  (( cancelled )) && break
+
+  current_pid=""
+  if [[ -n "$service" ]]; then
+    current_pid=$(svstat "$service" 2>/dev/null)
+    if [[ "$current_pid" =~ \(pid[[:space:]]+([0-9]+)\) ]]; then
+      current_pid="${BASH_REMATCH[1]}"
+    else
+      current_pid=""
+    fi
+  else
+    current_pid=$(fuser "/dev/$tty" 2>/dev/null | tr -s ' ')
+    [[ -n "$current_pid" ]] && current_pid="${current_pid##* }"
+  fi
+
+  if [[ -n "$current_pid" ]]; then
+    observed_any=1
+    current_name=$(ps -p "$current_pid" -o comm= 2>/dev/null | tr -d ' ')
+    [[ -n "$current_name" ]] && possible_names["$current_name"]=""
+
+    current_signature=$(ps -p "$current_pid" -o args= 2>/dev/null)
+    [[ -z "$current_signature" && -r "/proc/$current_pid/cmdline" ]] && current_signature=$(tr '\000' ' ' < "/proc/$current_pid/cmdline" | sed 's/[[:space:]]*$//')
+    current_signature="${current_signature:-${current_name:-pid:$current_pid}}"
+
+    if [[ "$current_pid" == "$last_pid" ]]; then
+      ((consecutive_same_pid+=1))
+      if (( unstable_seen == 0 && consecutive_same_pid >= stable_checks )); then
+        __out_pid="$current_pid"
+        success=1
+        break;
+      fi
+    else
+      [[ -n "$last_pid" ]] && unstable_seen=1
+      if [[ -n "${seen_pids[$current_pid]+x}" ]] || [[ -n "${seen_signatures[$current_signature]+x}" ]]; then
+        last_pid="$current_pid"
+        break
+      fi
+      last_pid="$current_pid"
+      consecutive_same_pid=1
+    fi
+
+    seen_pids["$current_pid"]="$current_signature"
+    seen_signatures["$current_signature"]="$current_pid"
+  else
+    [[ -n "$last_pid" ]] && unstable_seen=1
+    last_pid=""
+    consecutive_same_pid=0
+  fi
+
+  sleep 0.5 &
+  wait $! 2>/dev/null || true
+  (( cancelled )) && { trap - SIGINT SIGTERM; exit 130; }
+done
+
+trap - SIGINT SIGTERM
+(( cancelled )) && exit 130
+(( success )) && exit 0
+
+while IFS= read -r possible_name; do
+  [[ -z "$possible_name" ]] && continue
+  [[ -n "$joined_possible_names" ]] && joined_possible_names+=" or "
+  joined_possible_names+="$possible_name"
+done < <(printf '%s\n' "${!possible_names[@]}" | sort)
+[[ -n "$__out_possible_names_name" ]] && printf -v "$__out_possible_names_name" '%s' "$joined_possible_names"
+
+(( observed_any == 1 || unstable_seen == 1 )) && exit 2
+exit 1

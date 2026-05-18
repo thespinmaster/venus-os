@@ -1,0 +1,4 @@
+#!/bin/sh
+exec 2>&1
+. /etc/profile.d/profile.sh
+exec /opt/victronenergy/opkg-manager-service/opkg-manager-service.py

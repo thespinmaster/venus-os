@@ -1,0 +1,78 @@
+#!/bin/bash
+
+RC_LOCAL_SCRIPT="
+# opkg-manager (do not edit)
+/data/opkg-manager/rc.local.d/startup
+"
+
+DBUS_SETTINGS="
+    {'path':'/Settings/OpkgManager/CustomMenus/PageSettings/OpkgPageSettingsSubMenu', 'default':''}
+		{'path':'/Settings/OpkgManager/CustomMenus/PageSettingsDisplay/OpkgPageSettingsDisplaySubMenu', 'default':''}
+    {'path':'/Settings/OpkgManager/CustomMenus/PageMain/PageSettings', 'default':''}
+
+    {'path':'/Settings/OpkgManager/ShowCompact', 'default':0, 'min':0, 'max':1}
+    {'path':'/Settings/OpkgManager/NoAction', 'default':0, 'min':0, 'max':1}
+
+"
+
+# shellcheck source="/data/dev/utils/opkg-manager/src/data/opkg-manager/source-common"
+source "/data/opkg-manager/source-common"
+setsource install-helper
+
+if [[ "$1" == "install" || "$1" == "post-install" || "$1" == "dev-install" ]]; then
+	install_helper_post_install
+
+  service_name="opkg-manager-service"
+  service_template_dir="${VE_ROOT_DIR:-}/opt/victronenergy/service/${service_name}"
+  service_dir="${VE_ROOT_DIR:-}/service/${service_name}"
+
+  if [[ -d "${service_template_dir}" && ! -d "${service_dir}" ]]; then
+    cp -R "${service_template_dir}/" "${VE_ROOT_DIR:-}/service/"
+  fi
+
+  if [[ -x "${VE_ROOT_DIR:-}/opt/victronenergy/opkg-manager-service/start-opkg-manager-service.sh" ]]; then
+    "${VE_ROOT_DIR:-}/opt/victronenergy/opkg-manager-service/start-opkg-manager-service.sh"
+  else
+    echo "warning: opkg-manager service start script missing"
+  fi
+
+  #opkg_common_remove_feed_symlink
+  
+  opkg_common_ensure_feed
+  
+  echo "Please wait, updating packages..."
+  opkg_common_update_packages
+  
+  echo "done"
+elif [[ "$1" == "upgrade"  ]]; then
+  # upgrade does not remove existing dbus settings
+  # remove symlink or call opkg update
+  install_helper_pre_remove "$1"
+ 
+  echo "done"
+
+elif [[ "$1" == "remove" || "$1" == "post-remove" ]]; then
+
+  service_name="opkg-manager-service"
+  service_dir="${VE_ROOT_DIR:-}/service/${service_name}"
+
+  if [[ -d "${service_dir}" ]]; then
+    svc -d "${service_dir}" >/dev/null 2>&1 || true
+    rm -rf "${service_dir}"
+  fi
+
+  if [[ -x "${VE_ROOT_DIR:-}/opt/victronenergy/opkg-manager-service/stop-opkg-manager-service.sh" ]]; then
+    "${VE_ROOT_DIR:-}/opt/victronenergy/opkg-manager-service/stop-opkg-manager-service.sh"
+  fi
+
+	install_helper_pre_remove
+  
+  rm -f "${VE_ROOT_DIR:-}/var/log/opkg-manager/startup.log"
+  
+  opkg_common_remove_feed_symlink
+
+  echo "Please wait, updating packages..."
+  opkg_common_update_packages
+
+  echo "done"
+fi

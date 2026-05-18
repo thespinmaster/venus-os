@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+declare DEV_ROOT_DIR=/data/dev/utils/opkg-manager/src
+
+setsource() {
+  if [[ ${DEV_INSTALL:-} == 1 ]]; then
+    if [[ -z ${VE_ROOT_DIR:-} ]]; then
+      export VE_ROOT_DIR=$DEV_ROOT_DIR
+    fi
+    echo "★ ${VE_ROOT_DIR}/${1}" # $'\n'"====================="
+  fi
+
+  local file="${1}"
+  set -- # resets $1, $2 ... so they don't propergate to the source
+ 
+	# shellcheck disable=SC1090
+	source "${VE_ROOT_DIR:-}/data/opkg-manager/${file}"
+
+}

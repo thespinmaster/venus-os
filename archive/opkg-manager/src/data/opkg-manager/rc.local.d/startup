@@ -1,0 +1,17 @@
+#!/bin/bash
+
+declare __this_path; __this_path="$(dirname "${BASH_SOURCE[0]}")"
+. "$__this_path/../libs/log-lib"
+
+declare logfile="/var/log/opkg-manager/startup.log"
+
+init_logging_to_file "$logfile"
+
+# find and execute all script files in alpha-numeric order from 0 to 10
+for f in $(find "$__this_path/"[0-9] "$__this_path/10" -type f 2>/dev/null | sort -V); do
+  log "***************************"
+  log "executing... $f"
+  "$f" 1>"$logfile" 2>"$logfile"
+  log "***************************"
+  log " "
+done
