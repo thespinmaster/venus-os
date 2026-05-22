@@ -6,3 +6,5 @@ if [[ ! -f "/data/opkg-manager/installer" ]]; then
 fi
 
 "/data/opkg-manager/installer" "install"
+result=$?
+echo "RESULT=$result"

@@ -15,6 +15,14 @@ MbPage {
 	property bool isBusy: false
 
 	ListModel { id: packagesModel }
+
+	function updateInstalledVersionInModel(removed) {
+		
+		if (opkgBridge.packageIndex >= 0 && opkgBridge.packageIndex < packagesModel.count) {
+			var newVersion = removed ? "" : packagesModel.get(opkgBridge.packageIndex)
+			packagesModel.setProperty(opkgBridge.packageIndex, "installedVersion", newVersion)
+		}
+	}
   
 	VBusItem {
 		id: compactSetting
@@ -27,13 +35,12 @@ MbPage {
 	}
  
 	Component.onCompleted: {
-		Vm.loadPackages(processRunner, packagesModel, "package list", "")
- 
+		Vm.loadPackages(opkgBridge, packagesModel, "package list", "")
 	}
 
 	Component.onDestruction: {
-		if (processRunner)
-			processRunner.cleanup()
+		if (opkgBridge)
+			opkgBridge.cleanup()
 		
 		//console.log("calling gc()")
 		//gc()
@@ -42,12 +49,20 @@ MbPage {
  
 	delegate: Component {
 		OpkgHeaderDescriptionItem {
+			
 			id: headerItem
+
 			header: model.name
 			description: model.description
 			footer: Vm.getFooter(model, showCompact)
 			showCompact: root.showCompact
-			subpage: Component { OpkgPageSettingsPackageInstall { packageModel: packagesModel.get(index)}}
+			subpage: Component {
+				OpkgPageSettingsPackageInstall {
+					packageModel: packagesModel.get(index)
+					packageListModel: packagesModel
+					packageIndex: index
+				}
+			}
 		}
 	}
  
@@ -57,7 +72,7 @@ MbPage {
 			if (!mouse)
 				return
  
-			Vm.loadPackages(processRunner, packagesModel, "package list update", "update")
+			Vm.loadPackages(opkgBridge, packagesModel, "package list update", "update")
 		}
 
 		leftText: qsTr("Refresh")  
@@ -65,36 +80,42 @@ MbPage {
 	}
  
 	OpkgBridge {
-		id: processRunner
-		property string packagesPath: "/tmp/opkg-manager-fs/packages.json"
+		id: opkgBridge
+		
+		property string packagesPath: "/tmp/opkg-manager/packages.json"
  
 		property string lastOutputLine: ""
 		property string packagesErrorLine: ""
 		property var logCallback
- 
+		property var packageModel
+		property int packageIndex: -1
+
 		onOutputLine: function(line) {
 			if (logCallback) {
 				logCallback(line)
 				return
 			}
-			//console.log(line)
+			console.log(line)
 			lastOutputLine = line
 		}
 
 		onRunningChanged: function() {
  
-			switch (processRunner.operationName) {
+			switch (opkgBridge.operationName) {
 				case "install":
 				case "upgrade":
+
 				case "set-feed":
 				case "remove":
 					isBusy = true
-					curPage.status = PageStatus.Inactive
+					// PageStatus.Inactive   0
+					curPage.status = 0
 					break
 				default:
 					if (isBusy) {
 						isBusy = false
-						curPage.status = PageStatus.Active
+						// PageStatus.Active = 2
+						curPage.status = 2
 					}
 					break
 			}
@@ -110,27 +131,33 @@ MbPage {
 
 		onFinished: function(exitCode, exitStatus) {
  
-			//console.log("processRunner.running:" + processRunner.running)
+			//console.log("opkgBridge.running:" + opkgBridge.running)
 			try {
  
 				if (exitCode === 0 && exitStatus === 0) {
-					switch (processRunner.operationName) {
+					switch (opkgBridge.operationName) {
 						case "package list":
 						case "package list update":
  
 							Vm.loadPackagesFromFile(packagesPath, packagesModel, FileHelper);
  
-							if (processRunner.operationName === "package list update") {
+							if (opkgBridge.operationName === "package list update") {
 								toast.createToast(qsTr("Refresh completed"))
 							}
 
 							break;
 						case "install":
 						case "upgrade":
+							updateInstalledVersionInModel(false)
+							if (logCallback)
+								logCallback("--- Finished " + opkgBridge.operationName + ". Exit code: " + exitCode + ", status: " + exitStatus + " ---")
+							logCallback = undefined
+							break
 						case "set-feed":
 						case "remove":
+							updateInstalledVersionInModel(true)
 							if (logCallback)
-								logCallback("--- Finished " + processRunner.operationName + ". Exit code: " + exitCode + ", status: " + exitStatus + " ---"); 
+								logCallback("--- Finished " + opkgBridge.operationName + ". Exit code: " + exitCode + ", status: " + exitStatus + " ---"); 
 							logCallback = undefined
 							break
 						default:
@@ -140,11 +167,15 @@ MbPage {
 					let msg = packagesErrorLine.length ? packagesErrorLine : qsTr("Operation failed")
 					toast.createToast(msg)
 				}
-				processRunner.operationName = ""
+				opkgBridge.operationName = ""
 			} catch (err) {
 				console.log("ERROR:OpkgPageSettingsPackages:" + err.message + ", " + err.stack)
 				
 				toast.createToast(qsTr(err.message))
+			
+			} finally {
+				packageModel = null
+				packageIndex = -1
 			}
  
 		}

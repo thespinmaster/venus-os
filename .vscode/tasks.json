@@ -158,6 +158,22 @@
       }
     },
     {
+      "label": "build json_helper armhf",
+      "type": "shell",
+      "problemMatcher": [],
+      "command": "${workspaceFolder}/tasks/build-json-helper",
+      "args": ["armhf"],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "shared",
+        "showReuseMessage": false,
+        "clear": true
+      },
+      "detail": "Compile json_helper with armhf toolchain and write output to opkg-bridge/json_helper"
+    },
+    {
       "label": "cleanup opkg develop feed",
       "type": "shell",
       "command": "bash ${workspaceFolder}/tasks/make-packages" ,

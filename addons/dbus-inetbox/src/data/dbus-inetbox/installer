@@ -18,8 +18,9 @@ DBUS_SETTINGS="
 #		{'path':'/Settings/Devices/dbus_inetbox/ServiceName'}
 #'
 
-[[ ${DEV_INSTALL:-} == 1 ]] && [[ -f /data/dev/addons/opkg-manager/src ]] && 
+[[ ${DEV_INSTALL:-} == 1 ]] && [[ -d /data/dev/addons/opkg-manager/src ]] && 
 		export VE_ROOT_PATH=/data/dev/addons/opkg-manager/src
+		
 # shellcheck source=/data/dev/addons/opkg-manager/src/data/opkg-manager/source-common
 source "${VE_ROOT_PATH:-}/data/opkg-manager/source-common"
 

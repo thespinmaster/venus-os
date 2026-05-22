@@ -8,7 +8,21 @@ MbPage {
 	title: qsTr("Package details")
  
 	property var packageModel
-	
+	property var packageListModel
+	property int packageIndex: -1
+	property bool upgradeAvailable: false
+  property var footer
+
+	function refreshPackageModel() {
+		if (!packageListModel)
+			return
+		if (packageIndex < 0 || packageIndex >= packageListModel.count)
+			return
+		footer = Vm.getFooter(packageModel, showCompact)
+		packageModel = packageListModel.get(packageIndex)
+		upgradeAvailable = packageModel && Vm.versionGreaterThan(packageModel.version, packageModel.installedVersion)
+	}
+ 
 	// protect the back button from being pressed while processing commands.
  	MouseArea {
 		x:0; y:-mbTools.height
@@ -17,9 +31,18 @@ MbPage {
 	}
 
 	Component.onCompleted: {
+		refreshPackageModel()
 		console.log("Component.onCompleted:", title)
 		//rootWindow.dumpItemTree()
  	}
+
+	Connections {
+		target: opkgBridge
+		function onRunningChanged() {
+			if (!opkgBridge.running)
+				refreshPackageModel()
+		}
+	}
  
 	Component.onDestruction: {
 		//console.log("Component.onCompleted:", title)
@@ -31,8 +54,9 @@ MbPage {
 		
 		OpkgHeaderDescriptionItem {
 			id: packageDetails
-			header: packageModel?.name || ""
-			description: Vm.getDescription(packageModel, false, true)
+			header: packageModel == undefined ? "" : packageModel.name
+			description: packageModel == undefined ? "" : packageModel.description
+			footer: root.footer
 			showCompact: false
 			hasSubpage: false
 			editable: false
@@ -111,19 +135,20 @@ MbPage {
 	}
  
 	pageToolbarHandler: ToolbarHandler {
-
+		
 		leftText: {
- 
+			
 			if (packageModel) {
 				//console.log("ver1:" + packageModel.version + ", installed ver:" +  packageModel.installedVersion)
-				var hasUpgrade = Vm.versionGreaterThan(packageModel.version, packageModel.installedVersion)
- 
-				if (hasUpgrade) {
+	  			var upgradeAvailable = root.upgradeAvailable
+
+				if (upgradeAvailable) {
 					return qsTr("Upgrade")
 				} else if (!packageModel.installedVersion?.length > 0) {
 					return qsTr("Install")
 				}
 			}
+ 
 			return qsTr("")
 		}
 		function leftAction(mouse) {
@@ -133,8 +158,8 @@ MbPage {
 
 			if (packageModel) {
  
-				var hasUpgrade = Vm.versionGreaterThan(packageModel.version, packageModel.installedVersion)
-				if (hasUpgrade) {
+				var upgradeAvailable = Vm.versionGreaterThan(packageModel.version, packageModel.installedVersion)
+				if (upgradeAvailable) {
 					action = "upgrade"
 				} else if (!packageModel.installedVersion?.length > 0) {
 					action = "install"
@@ -161,15 +186,23 @@ MbPage {
 	}
 
 	function doInstllerAction(action) {
-		if (!processRunner || processRunner.operationName !== "")
+		if (!opkgBridge || opkgBridge.operationName !== "")
 			return
 
 		logArea.logLines = [];
-		processRunner.logCallback = logArea.addLogLine.bind(logArea)
+		opkgBridge.logCallback = logArea.addLogLine.bind(logArea)
 		
+		var args = ["package", action, packageModel.name]
 		var noAction = noActionSetting.valid ? noActionSetting.value : false;
+		if (noAction)
+			args.push("--noaction")
+		
+		console.log("doInstllerAction:" + args)
 
-		Vm.doInstllerAction(processRunner, action, packageModel.name, noAction)
+		opkgBridge.logCallback("--- Starting " + action + " for: " + packageModel.name + " ---")
+		opkgBridge.packageIndex = packageIndex
+		opkgBridge.operationName = action;
+		opkgBridge.start(args);
 
 	}
 

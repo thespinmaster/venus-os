@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+
+DBUS_SETTINGS="
+		{'path':'/Settings/OpkgManager/CustomServices/TestService/ProductName', 'default': 'Test Service'}
+		{'path':'/Settings/OpkgManager/CustomServices/TestService/ServiceName', 'default':'test-service'}
+"
+
+#DBUS_SETTINGS_DEPRECIATED="
+#		{'path':'/Settings/OpkgManager/CustomMenus/PageSettingsDisplay/PageSettingsNeShuntSubMenu'}
+#"
+[[ "$1" == "dev-install" || "$1" == "dev-remove" ]] &&
+	DEV_INSTALL=1;
+
+[[ ${DEV_INSTALL:-} == 1 ]] && [[ -d /data/dev/addons/opkg-manager/src ]] &&
+	export VE_ROOT_PATH=/data/dev/addons/opkg-manager/src
+
+# shellcheck source=/data/dev/addons/opkg-manager/src/data/opkg-manager/source-common
+source "${VE_ROOT_PATH:-}/data/opkg-manager/source-common"
+
+setsource install-helper
+
+if [[ "$1" == "dev-install" ]]; then
+	echo "dev-install" 
+	install_helper_initialize
+	dbus_common_add_settings <<< "${DBUS_SETTINGS}"
+	install_helper_add_remove_custom_service_path "add"
+	
+elif [[ "$1" == "dev-remove" ]]; then
+  echo "dev-install"
+	install_helper_initialize
+	dbus_common_remove_settings <<< "${DBUS_SETTINGS}"
+	install_helper_add_remove_custom_service_path "remove"
+
+elif [[ "$1" == "install"  ]]; then
+	install_helper_post_install
+elif [[ "$1" == "remove" ]]; then
+	install_helper_pre_remove
+fi
+ 

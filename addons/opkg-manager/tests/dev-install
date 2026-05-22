@@ -3,7 +3,7 @@
 set -o nounset
  
 declare this_path; this_path="$(dirname "${BASH_SOURCE[0]}")"
- 
+
 QML_TARGET_PATH="/opt/victronenergy/gui/qml"
 QML_SOURCE_PATH="$this_path/../src${QML_TARGET_PATH}"
  
@@ -11,6 +11,7 @@ QML_SOURCE_PATH="$this_path/../src${QML_TARGET_PATH}"
  
 QML_ICONS_TARGET_PATH="/opt/victronenergy/themes/ccgx/icons"
 QML_ICONS_SOURCE_PATH="$this_path/../src${QML_ICONS_TARGET_PATH}"
+
 
 # qml: files link all files found in $QML_ICONS_SOURCE_PATH
 for source_file in "$QML_SOURCE_PATH"/*; do

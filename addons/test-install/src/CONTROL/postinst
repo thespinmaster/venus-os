@@ -1,8 +1,3 @@
-#!/bin/bash
-
-declare package_name=$(basename "${0%.*}") #get file name without path
-
-source "${VENUS_ROOT_DIR:-}/data/opkg-manager/opkg-common"
-opkg_common_register_package "${package_name}"
-
-echo "${package_name} installed"
+#!/bin/sh
+ 
+"${VE_ROOT_DIR:-}/data/test-install/installer" "install"

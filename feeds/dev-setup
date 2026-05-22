@@ -3,8 +3,8 @@
 set -o nounset
 
 declare base_feed_url="https://thespinmaster.github.io/venus-os/feeds"
-declare feeds_file_develop="/data/conf/opkg-manager-develop.conf"
-declare feeds_file_release="/data/conf/opkg-manager-release.conf"
+declare feeds_file_develop="/data/conf/opkg-manager-feeds-develop.conf"
+declare feeds_file_release="/data/conf/opkg-manager-feeds-release.conf"
 declare dev_mount_point="/data/mnt/dev"
 declare opkg_feed_file="/etc/opkg/opkg-manager.conf"
 declare dev_link="/data/dev"
@@ -30,9 +30,9 @@ dev_setup_prompt_run_yes_no() {
 }
 
 dev_setup_set_feed() {
-  ln -sf "/data/conf/opkg-manager-${1}.conf" "$opkg_feed_file"
-  echo "using feed: /data/conf/opkg-manager-${1}.conf"
-  cat "/data/conf/opkg-manager-${1}.conf"| sed 's/^/    /' # sed does some indenting
+  ln -sf "/data/conf/opkg-manager-feeds-${1}.conf" "$opkg_feed_file"
+  echo "using feed: /data/conf/opkg-manager-feeds-${1}.conf"
+  cat "/data/conf/opkg-manager-feeds-${1}.conf"| sed 's/^/    /' # sed does some indenting
 }
 
 # Basic IPv4 format check
@@ -229,8 +229,8 @@ setup_vs_code_drive() {
 
 dev_setup_package_installed() {
   local installed; installed=$(opkg list-installed "$1" | grep "^$1 ")
-  
-  if [[ -n "$installed" ]]; then
+ 
+  if [[ "${2:-}" != "--quiet" && -n "$installed" ]]; then
     echo ✅ "$installed" already installed
     return 0
   else
@@ -253,6 +253,53 @@ dev_setup_prompt_for_feed() {
 
   dev_setup_set_feed "${current_feed}"
 }
+ 
+dev_setup_default_path() {
+  # make data the default folder when logging in via ssh 
+  grep -qxF "cd /data" ~/.profile || echo "cd /data" >> ~/.profile
+}
+
+dev_setup_profile() {
+  file=~/.profile
+ 
+  prefix="export OPKG_ROOT_DIR="
+
+  existing_export=$(grep -m1 "^$prefix" "$file")
+
+  if [[ -n "$existing_export" ]]; then
+    echo "✅ Found: $existing_export in ~/.profile"
+  fi
+
+  read -r -p "Enter the opkg-manager develop path [/data/dev/addons/... or '-' to clear]: " dev_path
+
+  # empty input → do nothing
+  [[ -z "$dev_path" ]] && return
+
+  # delete case
+  if [[ "$dev_path" == "-" ]]; then
+    sed -i "/^$prefix/d" "$file"
+    echo "🗑️ Removed OPKG_ROOT_DIR from $file"
+    return
+  fi
+
+  # normalize trailing backslash
+  dev_path="${dev_path%\\}"
+  
+  if [[ ! -d "${dev_path}/opkg-manager/src/" ]]; then
+    echo "ERROR: dev path does not exist: ${dev_path}/opkg-manager/src/"
+    return
+  fi
+
+  new_export="${prefix}${dev_path}/opkg-manager/src/"
+
+  if [[ -n "$existing_export" ]]; then
+    sed -i "s|^$prefix.*|$new_export|" "$file"
+    echo "🔁 Updated: $new_export"
+  else
+    echo "$new_export" >> "$file"
+    echo "✅ Added: $new_export"
+  fi
+}
 
 dev_setup() { 
   ###############################################################################
@@ -267,13 +314,13 @@ dev_setup() {
   # find 'Subsystem       sftp    /usr/libexec/sftp-server'
   # and add '-d /data' to the end
   sed 's#Subsystem\s*sftp\s*/usr/libexec/sftp-server#Subsystem       sftp    /usr/libexec/sftp-server -d /data#' /etc/ssh/sshd_config 1>/dev/null
-  
-  # make data the default folder when logging in via ssh 
-  echo "cd /data" >> ~/.profile
-
+ 
   dev_setup_dns_resolver
 
-  declare -i installed=
+  local -i installed=
+  
+  [[ ! -f "/etc/opkg/opkg-manager.conf" ]] &&
+    rm -f "/etc/opkg/opkg-manager.conf" # force removal if link target or file does not exist
   
   if ! opkg list-installed | grep -q "git -"; then
     dev_setup_prompt_run_yes_no "Install git" opkg install git
@@ -300,22 +347,26 @@ dev_setup() {
 
   echo "updating feeds..."
   opkg update &>/dev/null
+
+  dev_setup_package_installed opkg-manager && installed=1 || installed=0
+
+  if ((installed==0)); then
+    dev_setup_prompt_run_yes_no "Install opkg-manager" opkg install opkg-manager \
+     && installed=1 || installed=0
+  fi
  
-  if ! dev_setup_package_installed opkg-manager; then
-    dev_setup_prompt_run_yes_no "Install opkg-manager" opkg install opkg-manager
-  fi
-
-  dev_setup_package_installed "mount-shares"
-  installed=$?
   if ((installed==1)); then
-    dev_setup_prompt_run_yes_no "Install mount-shares" opkg install mount-shares
-    dev_setup_package_installed "mount-shares" &>/dev/null
-    installed=$?
+    dev_setup_package_installed "mount-shares" && installed=1 || installed=0
+    if ((installed==0)); then
+      dev_setup_prompt_run_yes_no "Install mount-shares" opkg install mount-shares \
+        && installed=1 || installed=0
+    fi
   fi
 
-  if ((installed==0)) ; then 
+  if ((installed==1)) ; then 
     mountpoint -q "$dev_mount_point" ||
-      dev_setup_prompt_run_yes_no "Setup dev share" dev_setup_share
+      dev_setup_prompt_run_yes_no "Setup dev share" dev_setup_share \
+        && installed=1 || installed=0
   fi
   ls -L "$dev_link" &>/dev/null && echo "✅ dev share setup" || echo "⚠️ dev share not setup"
  
@@ -325,9 +376,14 @@ dev_setup() {
     echo "✅ vscode-server already sym-linked: $(readlink -f ~/.vscode-server) -> ~/.vscode-server"
   fi
 
-  dev_setup_create_dev_symlink
-  
+  ((installed==0)) &&
+    dev_setup_create_dev_symlink
+
+  dev_setup_default_path
+
+  dev_setup_profile
 }
+
 
 dev_setup_help() {
   echo "dev-setup setup"

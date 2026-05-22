@@ -8,8 +8,9 @@ RESTART_GUI_SERVICE="${RESTART_GUI_SERVICE:=0}"
 DBUS_SETTINGS="${DBUS_SETTINGS-}"
 RC_LOCAL_SCRIPT="${RC_LOCAL_SCRIPT-}"
 
-[[ ${DEV_INSTALL:-} == 1 ]] && [[ -f /data/dev/addons/opkg-manager/src ]] && 
+[[ ${DEV_INSTALL:-} == 1 ]] && [[ -d /data/dev/addons/opkg-manager/src ]] && 
 		export VE_ROOT_PATH=/data/dev/addons/opkg-manager/src
+		
 # shellcheck source=/data/dev/addons/opkg-manager/src/data/opkg-manager/source-common
 source "${VE_ROOT_PATH:-}/data/opkg-manager/source-common"
 
@@ -37,9 +38,9 @@ install_helper_add_remove_custom_service_path() {
 	local -a service_paths=()
 
 	__get_custom_service_paths_from_dbus_settings_byref service_paths
- 
-	install_helper_add_remove_dbus_csv_items "$1" "/Settings/OpkgManager/AvailableCustomServices" "${service_paths[@]}" 
 
+	install_helper_add_remove_dbus_csv_items "$1" "/Settings/OpkgManager/AvailableCustomServices" "${service_paths[@]}" 
+	
 }
 
 __get_custom_service_paths_from_dbus_settings_byref() {
@@ -52,7 +53,7 @@ __get_custom_service_paths_from_dbus_settings_byref() {
 	_out_paths=()
 
 	while IFS= read -r line; do
-		[[ "$line" =~ Settings/OpkgManager/CustomServices/([^/]+)/ProductName(:|$) ]] || continue
+		[[ "$line" =~ /Settings/OpkgManager/CustomServices/([^/]+)/ProductName ]] || continue
 		service_path="${BASH_REMATCH[1]}"
 		[[ -z "$service_path" || -n "${seen_paths[$service_path]:-}" ]] && continue
 		seen_paths["$service_path"]=1
@@ -213,7 +214,7 @@ install_helper_pre_remove() {
 }
 
 install_helper_restart_gui_service() {
-	((RESTART_GUI_SERVICE)) || return
+	((RESTART_GUI_SERVICE==0)) && return
  
 	echo "Restarting gui service..."
   #svc -t /service/gui &

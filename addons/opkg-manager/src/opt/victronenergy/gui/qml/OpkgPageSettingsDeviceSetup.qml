@@ -328,14 +328,14 @@ MbPage {
 		step = (step || "") + (done ? "-done" : "")
 		root.step = step
 		
-		if (processRunner.stopping)
+		if (opkgBridge.stopping)
 			return
  
 		switch (step) {
 		case "error": // don't clear output.
 			root.step = ""
-			processRunner.operationName = ""
-			processRunner.stop() 
+			opkgBridge.operationName = ""
+			opkgBridge.stop() 
 			break;
 		case "canceling-done":
 
@@ -350,12 +350,12 @@ MbPage {
 			usbPropsModel = null
 		case "apply-device-done":
 		case "detect-device-done":
-			if (step == "" && processRunner.running) {
+			if (step == "" && opkgBridge.running) {
 				root.step = "canceling"
 				if (root.outputLog)
 					root.outputLog.startIsWorking("Canceling")
-				processRunner.operationName = root.step
-				processRunner.stop()
+				opkgBridge.operationName = root.step
+				opkgBridge.stop()
 			} else if (step == "" && root.outputLog) {
 				
 				root.outputLog.clear()
@@ -363,7 +363,7 @@ MbPage {
 			}
 			break
 		case "detect-device":
-			if (processRunner.operationName || root.step == "canceling")
+			if (opkgBridge.operationName || root.step == "canceling")
 				return
 			if (step == "detect-device" && root.outputLog)
 				root.outputLog.startIsWorking("Please insert (or re-insert) the usb device", true)
@@ -373,17 +373,17 @@ MbPage {
 			if (root.shiftDown)
 				reconnect = "true"
  
-			processRunner.operationName = step
-			processRunner.start(["device", "detect", root.selectedServiceTypePath, reconnect])
+			opkgBridge.operationName = step
+			opkgBridge.start(["device", "detect", root.selectedServiceTypePath, reconnect])
 			break
 		case "apply-device":
-			if (processRunner.operationName)
+			if (opkgBridge.operationName)
 				return
-			processRunner.operationName = step
+			opkgBridge.operationName = step
 			if (root.outputLog)
 				root.outputLog.clear()
 			 
-			processRunner.start(["device", "apply", root.selectedServiceTypePath, root.deviceModel.port, root.deviceModel.usbProps])
+			opkgBridge.start(["device", "apply", root.selectedServiceTypePath, root.deviceModel.port, root.deviceModel.usbProps])
 			break
 		case "service-running":
 		  root.outputLog.addLine("Service Running")
@@ -395,11 +395,11 @@ MbPage {
 	}
  
 	OpkgBridge {
-		id: processRunner
+		id: opkgBridge
  
 		property string jsonString: ""
 		onOutputLine: function(line) {
-			if (processRunner.stopping) {
+			if (opkgBridge.stopping) {
 				console.log("stopping:" + line)
 				return
 			}
@@ -426,7 +426,7 @@ MbPage {
 
 		onErrorLine: function(line) {
 			// console.error(line) // temp code
-			if (processRunner.stopping)
+			if (opkgBridge.stopping)
 				return
 			console.error("OpkgPageSettingsDeviceSetup:ERROR:" + line)
 			if (root.outputLog)
@@ -434,20 +434,20 @@ MbPage {
 		}
  
 		onFinished: function(exitCode, exitStatus) {
-			console.log("onFinished:" + processRunner.operationName + ", " + exitCode + ", " + exitStatus)
+			console.log("onFinished:" + opkgBridge.operationName + ", " + exitCode + ", " + exitStatus)
  
 			try {   
 
-				if (processRunner.operationName == "canceling") {
-					doStep(processRunner.operationName, true)
+				if (opkgBridge.operationName == "canceling") {
+					doStep(opkgBridge.operationName, true)
 					return
 				}
  
 				if (exitCode === 0 && exitStatus === 0) {
-					if (processRunner.operationName == "detect-device" && jsonString) {
+					if (opkgBridge.operationName == "detect-device" && jsonString) {
 						loadDeviceModelFromJson(jsonString)
 					}  
-					doStep(processRunner.operationName, true)
+					doStep(opkgBridge.operationName, true)
  
 				} else {
  					root.doStep("error")

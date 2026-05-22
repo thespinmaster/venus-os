@@ -1,6 +1,6 @@
 Package: test-install
 Version: 1.0.4
-Description: A simple app for testing install
+Description: A simple app for testing installs
 Section: utilities
 Priority: optional
 Maintainer: thespinmaster@github.com

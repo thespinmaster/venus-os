@@ -6,21 +6,21 @@ Item {
     property int step: 0
 
     Component.onCompleted: {
-        processRunner.outputLine.connect(function(line) { console.log("out:", line); });
-        processRunner.errorLine.connect(function(line) { console.log("err:", line); });
-        processRunner.finished.connect(handleFinished);
-        processRunner.start(["feed", "type"]);
+        opkgBridge.outputLine.connect(function(line) { console.log("out:", line); });
+        opkgBridge.errorLine.connect(function(line) { console.log("err:", line); });
+        opkgBridge.finished.connect(handleFinished);
+        opkgBridge.start(["feed", "type"]);
     }
 
     function handleFinished(code, status) {
         console.log("done:", code, status);
         if (step === 0 && code === 0) {
             step = 1;
-            //processRunner.start(["remove-feed", "custom-feed"]);
+            //opkgBridge.start(["remove-feed", "custom-feed"]);
             return;
         }
         Qt.quit();
     }
 
-    OpkgBridge { id: processRunner }
+    OpkgBridge { id: opkgBridge }
 }

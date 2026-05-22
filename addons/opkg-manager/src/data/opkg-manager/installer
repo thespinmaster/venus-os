@@ -2,7 +2,7 @@
 
 RC_LOCAL_SCRIPT="
 # opkg-manager (do not edit)
-/data/opkg-manager/rc.local.d/startup
+/data/opkg-manager/rc.local-startup
 "
 
 DBUS_SETTINGS="
@@ -19,8 +19,11 @@ DBUS_SETTINGS="
 source "/data/opkg-manager/source-common"
 setsource install-helper
 
+echo "BAD: IN OPKG-MANAGER INSTALLLER"
+
 if [[ "$1" == "install" || "$1" == "post-install" || "$1" == "dev-install" ]]; then
-	install_helper_post_install
+	RESTART_GUI_SERVICE=1
+  install_helper_post_install
 
   #opkg_common_remove_feed_symlink
   
@@ -38,7 +41,7 @@ elif [[ "$1" == "upgrade"  ]]; then
   echo "done"
 
 elif [[ "$1" == "remove" || "$1" == "post-remove" ]]; then
-
+  RESTART_GUI_SERVICE=1
 	install_helper_pre_remove
   
   rm -f "${VE_ROOT_DIR:-}/var/log/opkg-manager/startup.log"

@@ -3,9 +3,9 @@
 
 set -o nounset
 
-declare __this_path;__this_path=$(dirname "${BASH_SOURCE[0]}")
-
-. "/data/dev/addons/opkg-manager/src/data/opkg-manager/opkg-common"
+declare _this_path; _this_path=$(dirname "${BASH_SOURCE[0]}")
+ 
+source "$_this_path/../opkg-common"
 
 feed_editor() {
 	local mode="${1:-}"
@@ -34,10 +34,8 @@ feed_editor() {
   # echo "$mode,$feed_name,$feed_url,$old_feed_name,$existing_feed_name" >&2
 
   local -i exists=0
-  local -a feedNames=()
- 
+
   feedNameExists() {
-    local retval=0
     local -n _exists=$2; _exists=0
     grep -qE "^src/gz ${1} " "${OPKG_FEED_CONFIG_FILE}"
     [[ $? == 0 ]] && { _exists=1; return; }

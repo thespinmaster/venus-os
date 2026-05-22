@@ -7,7 +7,7 @@
 
 set -o nounset
 
-declare _this_path=$(dirname "${BASH_SOURCE[0]}")
+declare _this_path; _this_path=$(dirname "${BASH_SOURCE[0]}")
  
 source "$_this_path/../dbus-common"
 source "$_this_path/../serial-device-installer"

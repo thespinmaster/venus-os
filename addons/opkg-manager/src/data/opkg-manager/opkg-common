@@ -4,15 +4,14 @@ set -o nounset
 
 readonly rc_local_file="${VENUS_ROOT_DIR:-}/data/rc.local"
 readonly opkg_installed_packages_file="/data/conf/opkg-manager-installed-packages.conf"
-# shellcheck disable=SC2034
-readonly opkg_rc_local_d_dir="${VENUS_ROOT_DIR:-}/data/opkg-manager/rc.local.d"
 readonly resize2fs_file="/opt/victronenergy/swupdate-scripts/resize2fs.sh"
+# shellcheck disable=SC2034
 readonly OPKG_MANAGER_FEED_NAME="opkg-manager" # used by sourcing code
 
 OPKG_FEED_CONFIG_FILE="${VENUS_ROOT_DIR:-}/etc/opkg/opkg-manager.conf"
 
 # OPKG_VENUS_VERSION=
- 
+
 ___is_fs_readonly=
 init_opkg_helpers=
 dry_run=
@@ -83,7 +82,7 @@ opkg_common_ensure_feed() {
 
 opkg_common_set_feed() {
   log "set opkg feed ${1}"
-  ln -sf "/data/conf/opkg-manager-${1}.conf" "${OPKG_FEED_CONFIG_FILE}"
+  ln -sf "/data/conf/opkg-manager-feeds-${1}.conf" "${OPKG_FEED_CONFIG_FILE}"
 }
 
 opkg_common_get_venus_verion_byref() {
@@ -217,22 +216,6 @@ __opkg_common_try_install_package() {
   if [ ! $dry_run ]; then
     opkg install "${package_name}"
   fi
-}
-
-# ensures the rc.local.d folder exists
-# {1} [in,out]: in, a number between 0 and 99,
-#               out the full path to the folder
-opkg_common_ensure_rc_local_d() {
-  local -n __path="${1}"
-  if [[ "$__path" -ge 0 ]] && [[ "$__path" -le 99 ]]; then 
-    mkdir -p "${opkg_rc_local_d_dir}/${__path}" && {
-        __path="${opkg_rc_local_d_dir}/${__path}"
-      return 0
-    }
-  else
-    log_error "ERROR: invalid arg. arg1 should be a number between 0 and 99"
-  fi
-  return 1
 }
 
 # loops through all the lines in

@@ -9,8 +9,9 @@
 			"path": "/opt/victronenergy/gui/qml"
 		},
 		{
-			"path": ".."
-		}
+			"name": "data",
+			"path": "/data"
+		},
 	],
 	"settings": {
 		"python.analysis.include": [
@@ -18,6 +19,12 @@
 			"./scripts",
 			"./addons",
 			"./python"
-		]
+		],
+		"editor.rulers": [
+			110
+		],
+		"editor.wordWrap": "wordWrapColumn",
+		"editor.wordWrapColumn": 110
 	}
+ 
 }

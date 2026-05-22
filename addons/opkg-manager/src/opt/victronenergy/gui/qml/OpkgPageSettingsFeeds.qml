@@ -18,15 +18,15 @@ MbPage {
 	}
 
 	Component.onCompleted: {
-		processRunner.operationName = "feed list"
-		processRunner.start(["feed", "list"])
+		opkgBridge.operationName = "feed list"
+		opkgBridge.start(["feed", "list"])
 	}
 
 	Component.onDestruction: {
 
 
-		if (processRunner)
-				processRunner.cleanup()
+		if (opkgBridge)
+				opkgBridge.cleanup()
 	}
 
 
@@ -42,7 +42,7 @@ MbPage {
 
 					MbEditBox {
 						id: feedNameEdit
-						readonly: !userHasWriteAccess || (feedModel?.builtin ?? true)
+						readonly: !userHasWriteAccess || (isNew ? false : feedModel?.builtin ?? true)
 						useVirtualKeyboard: false
 						description: qsTr("Name")
 						maximumLength: 20
@@ -54,7 +54,7 @@ MbPage {
 				
 					OpkgEditBoxLargeText {
 						id: feedUrlEdit
-						readonly: !userHasWriteAccess || (feedModel?.builtin ?? true)
+						readonly: !userHasWriteAccess || (isNew ? false : feedModel?.builtin ?? true)
 						description: qsTr("Url")
 						maximumLength: 256
 						matchString: "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ~!@#$%^&*()-_=+[]{}\\;:|/.,<>?"
@@ -69,7 +69,7 @@ MbPage {
 						width: parent ? parent.width : 0
 						horizontalAlignment: Text.AlignHCenter
 						//anchors.horizontalCenter: parent.horizontalCenter
-						visible: feedModel?.builtin
+						visible: !isNew && feedModel?.builtin
 					}
 				}
 			
@@ -107,7 +107,7 @@ MbPage {
 			return qsTr("")
 		}
 		function leftAction() {
-			if (processRunner.running) {
+			if (opkgBridge.running) {
 				return
 			}
 			
@@ -117,13 +117,13 @@ MbPage {
 			}
 		}
 		function rightAction() {
-			if (processRunner.running) {
+			if (opkgBridge.running) {
 				return
 			}
-			processRunner.operationName = "feed remove"
+			opkgBridge.operationName = "feed remove"
  
 			var name = feedsModel[root.currentIndex].name
-			processRunner.start(["feed", "remove", name])
+			opkgBridge.start(["feed", "remove", name])
 		}
 	}
 
@@ -131,27 +131,27 @@ MbPage {
 	// methods
  
   function add_update_feed(isNew, name, url) {
-		if (!processRunner || processRunner.running) {
+		if (!opkgBridge || opkgBridge.running) {
 				return
 			}
 			if (!isValid()) {
 				return
 			}
 			
-			processRunner.feedName = name || ""
-			processRunner.feedUrl = url || ""
+			opkgBridge.feedName = name || ""
+			opkgBridge.feedUrl = url || ""
 			if (isNew) {
  
-				processRunner.operationName="feed add"
-				//console.log("add_update_feed:add-feed,feedName:" + processRunner.feedName + ",feedUrl:" + processRunner.feedUrl)
+				opkgBridge.operationName="feed add"
+				//console.log("add_update_feed:add-feed,feedName:" + opkgBridge.feedName + ",feedUrl:" + opkgBridge.feedUrl)
 
-				processRunner.start(["feed", "add", processRunner.feedName, processRunner.feedUrl])
+				opkgBridge.start(["feed", "add", opkgBridge.feedName, opkgBridge.feedUrl])
 			} else {
-				processRunner.operationName="feed edit"
+				opkgBridge.operationName="feed edit"
 				var curFeedName = feedsModel[root.currentIndex].name || ""
-				//console.log("add_update_feed:edit-feed,feedName:" + processRunner.feedName + ",feedUrl:" + processRunner.feedUrl + ",curFeedName:" +curFeedName + ",idx:" +root.currentIndex)
+				//console.log("add_update_feed:edit-feed,feedName:" + opkgBridge.feedName + ",feedUrl:" + opkgBridge.feedUrl + ",curFeedName:" +curFeedName + ",idx:" +root.currentIndex)
 
-				processRunner.start(["feed", "edit", processRunner.feedName, processRunner.feedUrl, curFeedName])
+				opkgBridge.start(["feed", "edit", opkgBridge.feedName, opkgBridge.feedUrl, curFeedName])
 			}
 			
 			function isValid() {
@@ -185,7 +185,7 @@ MbPage {
 
 	function updateFeed(isNew, name, url) {
 		if (isNew)
-			feedsModel.push({ name: name, url: url })
+			feedsModel.push({ name: name, url: url, builtin: false })
 		else if (root.currentIndex >= 0 && root.currentIndex < feedsModel.length) {
 			var feed = feedsModel[root.currentIndex]
 			feed.name = name
@@ -221,12 +221,12 @@ MbPage {
 	}
 
 	OpkgBridge {
-		id: processRunner
+		id: opkgBridge
 
 		property string feedName: ""
 		property string feedUrl: ""
 		property string opkgErrorLine: ""
-		property string feedsPath: "/tmp/opkg-manager-fs/feeds.json"
+		property string feedsPath: "/tmp/opkg-manager/feeds.json"
 
 		function reset() {
 			feedName=""

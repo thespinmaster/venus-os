@@ -61,8 +61,8 @@ QtObject {
       return
     }
  
-    processRunner.waitForFinished() //just in case
-    processRunner.start(args)
+    opkgBridge.waitForFinished() //just in case
+    opkgBridge.start(args)
     
     console.log("removeDevice:out:" + args)
   }
@@ -95,7 +95,7 @@ QtObject {
     model.move(0, 1, 1)
   }
  
-  property OpkgBridge processRunner: OpkgBridge {
+  property OpkgBridge opkgBridge: OpkgBridge {
     
     onOutputLine: function(line) { 
       console.log("REMOVE:" + line)

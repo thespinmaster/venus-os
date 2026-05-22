@@ -1,16 +1,27 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Build defaults to armhf for Venus OS target compatibility.
+# Optional args:
+#   native  - build for host architecture instead of armhf
+#   armhf   - explicit armhf build (same as default)
+#   qt5     - force Qt5
+#   qt6     - force Qt6
+
 repo_root="$(cd "$(dirname "$0")/.." && pwd)"
-plugin_src="$repo_root/addons/opkg-manager/src/qmlplugin"
+plugin_src="$repo_root/addons/opkg-manager/src-external/qmlplugin"
 plugin_build="$plugin_src/build"
+plugin_output="$repo_root/addons/opkg-manager/src/opt/victronenergy/gui/qml/OpkgManager"
 qt_major="auto"
-armhf_build=false
+armhf_build=true
 
 for arg in "$@"; do
 	case "$arg" in
 		armhf)
 			armhf_build=true
+			;;
+		native)
+			armhf_build=false
 			;;
 		qt6)
 			qt_major="6"
@@ -20,6 +31,7 @@ for arg in "$@"; do
 			;;
 		*)
 			echo "Unknown argument: $arg" >&2
+			echo "Valid args: native, armhf, qt5, qt6" >&2
 			exit 1
 			;;
 	esac
@@ -40,7 +52,6 @@ if $armhf_build; then
 		-DCMAKE_SYSROOT=/
 		-DCMAKE_FIND_ROOT_PATH=/usr/arm-linux-gnueabihf
 		-DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=ONLY
-		-DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY
 		-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY
 	)
 else
@@ -50,6 +61,8 @@ fi
 if [[ "$qt_major" != "auto" ]]; then
 	cmake_args+=("-DQMLPLUGIN_QT_MAJOR=$qt_major")
 fi
+
+cmake_args+=("-DQMLPLUGIN_OUTPUT_DIR=$plugin_output")
 
 cmake_bin="${CMAKE_BIN:-}"
 if [[ -z "$cmake_bin" ]]; then
@@ -64,6 +77,15 @@ if [[ -z "$cmake_bin" ]]; then
 	fi
 fi
 
+if [[ -f "$plugin_build/CMakeCache.txt" ]]; then
+	cached_src="$(grep '^CMAKE_HOME_DIRECTORY:INTERNAL=' "$plugin_build/CMakeCache.txt" | cut -d= -f2- || true)"
+	if [[ -n "$cached_src" && "$cached_src" != "$plugin_src" ]]; then
+		echo "Resetting qmlplugin build cache due to source path change"
+		rm -rf "$plugin_build"
+	fi
+fi
+
 mkdir -p "$plugin_build"
+mkdir -p "$plugin_output"
 "$cmake_bin" -S "$plugin_src" -B "$plugin_build" "${cmake_args[@]}"
 "$cmake_bin" --build "$plugin_build"

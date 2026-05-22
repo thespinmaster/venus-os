@@ -4,14 +4,14 @@ import OpkgHelpers 1.0
 
 Item {
     Component.onCompleted: {
-        processRunner.outputLine.connect(function(line) { console.log("out:", line); });
-        processRunner.errorLine.connect(function(line) { console.log("err:", line); });
-        processRunner.finished.connect(function(code, status) {
+        opkgBridge.outputLine.connect(function(line) { console.log("out:", line); });
+        opkgBridge.errorLine.connect(function(line) { console.log("err:", line); });
+        opkgBridge.finished.connect(function(code, status) {
             console.log("done:", code, status);
             Qt.quit();
         });
-        processRunner.start(["feed", "type"]);
+        opkgBridge.start(["feed", "type"]);
     }
 
-    OpkgBridge { id: processRunner }
+    OpkgBridge { id: opkgBridge }
 }

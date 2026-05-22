@@ -18,9 +18,11 @@ archive/
 feeds/.build/**/
 tooling/**/
 **/tests/output/
-/data/mnt/dev/repos/GuiMods/**/
 # Python virtual environments (global)
 .venv/
 venv/
 env/
 .env/
+__pycache__/
+feeds/.build/
+tmp/

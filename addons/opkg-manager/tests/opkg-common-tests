@@ -52,8 +52,6 @@ stage_opkg_helpers_installed() {
         [[ "$path" == "$dest_path/data" ]] && continue
         [[ "$path" == "$dest_path/data/opkg-manager" ]] && continue
         [[ "$path" == "$dest_path/data/opkg-manager/libs" ]] && continue
-        [[ "$path" == "$dest_path/data/opkg-manager/rc.local.d" ]] && continue
-        [[ "$path" == "$dest_path/data/opkg-manager/rc.local.d/1" ]] && continue
  
         [[ "$path" == "$dest_path/etc"* ]] && continue
       }

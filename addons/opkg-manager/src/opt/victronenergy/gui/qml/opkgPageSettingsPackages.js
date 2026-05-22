@@ -32,30 +32,20 @@ function getFooter(model, showCompact) {
       "  Feed: " + model.feed
 }
  
-function doInstllerAction(packageRunner, action, packageName, noAction) {
-  var args = ["package", action, packageName]
-  if (noAction)
-    args.push("--noaction")
-  
-  console.log("doInstllerAction:" + args)
 
-  packageRunner.logCallback("--- Starting " + action + " for: " + packageName + " ---")
  
-  packageRunner.operationName = action;
-  packageRunner.start(args);
-}
- 
-function loadPackages(packageRunner, packageModel, operationName, args) {
-  if (packageRunner.running) {
+function loadPackages(opkgBridge, packageModel, operationName, args) {
+  if (opkgBridge.running) {
     return
   }
   packageModel.clear()
-  packageRunner.operationName = operationName
+  
   var commandArgs = ["package", "list"]
   if (args && args.length > 0)
     commandArgs.push(args)
-  console.log("packageRunner: start: " + operationName)
-  packageRunner.start(commandArgs)
+  console.log("opkgBridge: start: " + operationName)
+  opkgBridge.operationName = operationName
+  opkgBridge.start(commandArgs)
 }
  
 function loadPackagesFromFile(file, packageModel, fileHelper) {
@@ -80,7 +70,7 @@ function loadPackagesFromFile(file, packageModel, fileHelper) {
       //description_long: pkg.description_long || "",
       version: pkg.version || "",
       feed: pkg.feed || "",
-      installedVersion: pkg.installedVersion || ""
+      installedVersion: pkg.installed_version || ""
     })
   }
  

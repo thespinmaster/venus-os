@@ -7,7 +7,7 @@ set -o nounset
 declare __this_path;__this_path=$(dirname "${BASH_SOURCE[0]}")
 
 . "$__this_path/../opkg-common"
- 
+
 __validate_package_name() {
   if [[ -z "$1" ]]; then
     log_error "package_commond: package name not supplied"
@@ -15,34 +15,34 @@ __validate_package_name() {
   fi
   return 0
 }
- 
+
 __package_command() {
-   
+
   local command="${1}"
   local package_name="${2}"
 
   shift
- 
+
   __init_root_fs_for_writing
  
   opkg "$command" "${package_name}"
-  local status=$?
+  local -i status=$?
 
   __restore_previous_fs_access
- 
+
   if [[ $status == 0 ]]; then
     log "$package_name $command succeded"
   else
     log "$package_name $command failed (status $status)"
   fi
 
-  return status
+  return $status
 }
 
 # Helper to install a package and log output/errors
 package_install() {
   local package_name="$1"
-  
+
   __validate_package_name "${package_name}" || return
 
   log "Installing $package_name $*"
@@ -52,12 +52,12 @@ package_install() {
 
 package_upgrade() {
   local package_name="$1"
- 
+
   __validate_package_name "${package_name}" || return
-  
+
   log "Upgrading $package_name $*"
   __package_command upgrade "$package_name" "$@"
- 
+
 }
 
 package_remove() {
@@ -69,10 +69,10 @@ package_remove() {
     log "Not Installed ${package_name}, exiting"
     return 0
   fi
-  
+
   log "Removing $package_name $*"
   __package_command remove "${package_name}"
-  
+
 }
  
 case "${1:-}" in

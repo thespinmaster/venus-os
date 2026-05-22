@@ -13,7 +13,7 @@ MbPage {
  
 	}
   Component.onCompleted: {
-		Vm.loadPackages(processRunner, packageModel, "package list", "")
+		Vm.loadPackages(opkgBridge, packageModel, "package list", "")
 	}
 	model: packageModel
 
@@ -95,16 +95,16 @@ MbPage {
 		}
 
 		function leftAction(mouse) {
-			Vm.loadPackages(processRunner, packageModel, "package list", "")
+			Vm.loadPackages(opkgBridge, packageModel, "package list", "")
 		}
  
 	}
 
 	OpkgBridge {
-		id: processRunner
+		id: opkgBridge
  
 		property string opkgErrorLine: ""
-    property string packagesPath: "/tmp/opkg-manager-fs/packages.json"
+    property string packagesPath: "/tmp/opkg-manager/packages.json"
 
 		function reset() {
  

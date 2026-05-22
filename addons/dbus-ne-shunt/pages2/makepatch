@@ -1,3 +1,0 @@
-#! /bin/bash
-
-diff -u PageSettings.qml.orig  PageSettings.qml > PageSettings.patch

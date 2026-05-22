@@ -13,7 +13,7 @@ set -euo pipefail
 #   Arg1:"all" (default): Builds all folders under under services & utils.
 #   Arg[n]: Or a list of folders under services or utils to build
 # Options:
-#   --develop-only             Build and index into develop folders only (stamps version with +dev.YYYYMMDD.HHMMSS)
+#   --develop-only             Build and index into develop folders only (stamps version with +dYYMMDD.HHMM)
 #   --promote                  Promote develop feed to release feed
 #   --clean-develop            Remove all contents from the develop feeds folder
 ####################################################################
@@ -42,7 +42,7 @@ Usage: $(basename "$0") [options] [all|<package> ...]
 
 Options:
   --develop-only           Build and index packages in develop only.
-                           Version is stamped as MAJOR.MINOR.PATCH+dev.YYYYMMDD.HHMMSS
+                           Version is stamped as MAJOR.MINOR.PATCH+dYYMMDD.HHMM
                            Old develop packages for the same name are removed before placing the new one.
   --promote                Promote develop feed to release feed
   --clean-develop          Remove all contents from the develop feeds folder
@@ -113,19 +113,27 @@ this_path="."
 feeds_root="../feeds"
 develop_root="${feeds_root}/develop"
 release_root="${feeds_root}/release"
+test_feed_name="test-feed"
+test_feed_root="${feeds_root}/${test_feed_name}"
 
 feed_name_for_package() {
   local name="$1"
-  if [[ "$name" == "opkg-manager" ]]; then
+  if [[ "$name" == test-* ]]; then
+    echo "$test_feed_name"
+  elif [[ "$name" == "opkg-manager" ]]; then
     echo "opkg-manager"
   else
     echo "addons"
   fi
 }
 
-develop_feed_path() {
+feed_path_for_name() {
   local feed_name="$1"
-  echo "${develop_root}/${feed_name}"
+  if [[ "$feed_name" == "$test_feed_name" ]]; then
+    echo "$test_feed_root"
+  else
+    echo "${develop_root}/${feed_name}"
+  fi
 }
 
 build_feed_index() {
@@ -181,7 +189,7 @@ register_feed_targets() {
   for pkg in "${build_items[@]}"; do
     name="$(basename "$pkg")"
     feed_name="$(feed_name_for_package "$name")"
-    update_feeds["$feed_name"]="$(develop_feed_path "$feed_name")"
+    update_feeds["$feed_name"]="$(feed_path_for_name "$feed_name")"
   done
 
   local feed
@@ -236,7 +244,7 @@ develop_source_byref() {
   return 0
 }
 
-# Appends a develop build stamp (+dev.YYYYMMDD.HHMMSS) to the Version field in
+# Appends a develop build stamp (+dYYMMDD.HHMM) to the Version field in
 # the copied CONTROL/control file. Never touches the source control file.
 stamp_develop_version() {
   local develop_path="${1}"
@@ -245,7 +253,7 @@ stamp_develop_version() {
 
   [[ -f "$control_file" ]] || { echo "ERROR: control file not found: $control_file" >&2; return 1; }
 
-  stamp="+dev.$(date -u +'%Y%m%d.%H%M%S')"
+  stamp="+d$(date -u +'%y%m%d.%H%M')"
 
   sed -i "s/^\(Version:.*\)$/\1${stamp}/" "$control_file"
 }
@@ -263,7 +271,7 @@ build_package() {
   feed_path="${update_feeds[$feed_name]}"
   feed_path_abs="$(cd "$feed_path" && pwd)"
 
-  echo "building ${name}"
+  echo "building ${name} -> ${feed_path_abs}"
  
   [[ -d "${path}" ]] || { echo "invalid path: ${path}" >&2 ; return 1; }
   
@@ -306,6 +314,11 @@ promote_release() {
   local -a feeds_to_promote=()
 
   if [[ -n "$promote_target" ]]; then
+    [[ "$promote_target" == "$test_feed_name" ]] && {
+      echo "ERROR: ${test_feed_name} is a flat custom test feed and is not promotable" >&2
+      return 1
+    }
+
     [[ "$promote_target" == "addons" || "$promote_target" == "opkg-manager" ]] || {
       echo "ERROR: invalid promote feed: ${promote_target}" >&2
       return 1
@@ -313,6 +326,7 @@ promote_release() {
     [[ -d "${develop_root}/${promote_target}" ]] && feeds_to_promote+=("$promote_target")
   elif [[ ${#update_feeds[@]} -gt 0 ]]; then
     for feed_name in "${!update_feeds[@]}"; do
+      [[ "$feed_name" == "$test_feed_name" ]] && continue
       feeds_to_promote+=("$feed_name")
     done
   else
@@ -384,8 +398,6 @@ build_feed_indexes
 
 if (( develop_only == 0 )); then
   promote_release
-else
-  echo "develop feed updated"
 fi
 
 cd "$pwd_old" || true
