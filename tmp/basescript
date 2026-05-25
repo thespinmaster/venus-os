@@ -1,7 +1,0 @@
-#!/usr/bin/env bash
-
-if [[ $1 == "install" ]]; then
-  echo "base:finished"
-fi
-
-echo "base:finished2"
