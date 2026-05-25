@@ -50,7 +50,7 @@ __autoReconnect() {
   local service_path="${1}"
   local -n device="${2}"
  
-  dbus_common_get_value "OpkgManager/CustomServices/${service_path}/TestTTY" device
+  dbus_common_get_value "/Settings/OpkgManager/CustomServices/${service_path}/TestTTY" device
  
   [[ -z $device || ! -e /dev/$device ]] && return 0 # no device or device does not exist
   
@@ -96,7 +96,7 @@ device_detect_usb() {
 
   __fill_usb_props "$tty" "${service_path}" usb_props
   
-  echo "usb_props=$usb_props"
+  #echo "usb_props=$usb_props"
   echo "Getting device status..."
 
   # notes
@@ -196,12 +196,12 @@ device_apply() {
   #fi
 
   # get dbus values
-  local dbus_path_prefix="OpkgManager/CustomServices"
+  local dbus_path_prefix="/Settings/OpkgManager/CustomServices"
   local service_name= usb_mapping_name= product_name=
   dbus_common_get_value "${dbus_path_prefix}/${service_path}/ServiceName" service_name
   dbus_common_get_value "${dbus_path_prefix}/${service_path}/UsbMappingName" usb_mapping_name 
   dbus_common_get_value "${dbus_path_prefix}/${service_path}/ProductName" product_name
-  
+ 
   # fill serial-starter-installer variables
   UDEVADM_PROPS="${usbProps}"
   TTY="${tty}"
@@ -320,17 +320,19 @@ __fill_usb_props() {
   local prop val found_name
   local udevadm_out udevadm_props=""
   local usb_prop_names=
-  
+  local -a __props
+
   usb_prop_names=$udevadm_props_ref
   udevadm_props_ref=""
 
   # Get props to retrieve using the service_path else use defaults
-  dbus_common_get_value "OpkgManager/CustomServices/${service_path}/UsbProps" usb_prop_names
+  dbus_common_get_value "/Settings/OpkgManager/CustomServices/${service_path}/UsbProps" usb_prop_names
   [[ -z $usb_prop_names ]] && usb_prop_names="$DEFAULT_USB_PROPS"
   
   udevadm_out=$(udevadm info --query=property --name="$tty" 2>/dev/null)
- 
-  for prop in $usb_prop_names; do
+  
+  IFS=',' read -r -a __props <<< "$usb_prop_names"
+  for prop in "${__props[@]}"; do
     [[ ${prop:0,1} == "+" ]] && prop=${prop:1}
     val=$(echo "$udevadm_out" | sed -n "s/^$prop=//p")
     udevadm_props="$udevadm_props,$prop=$val"
@@ -458,7 +460,7 @@ device_find_service_from_pid() {
   while [[ -n "$pid" && "$pid" -gt 1 ]]; do
     
     comm="$(ps -p "$pid" -o comm= 2>/dev/null | tr -d ' ')"
- 
+
     if [[ "$comm" == "supervise" ]]; then
      __service_name="$(basename "$(readlink -f "/proc/$pid/cwd")")"
      if [[ -d "/service/${__service_name}.${tty}" ]] ; then
@@ -478,7 +480,6 @@ device_find_service_from_pid() {
 }
  
 device_remove_all() {
-  
   for arg in "$@"; do
     device_remove "$arg"
   done
@@ -497,13 +498,13 @@ device_remove_all() {
 # Called from remove
 
 device_remove() {
-  
+
   local dbus_service_name="${1}" # dbus_inetbox_sid_5f90
   SERVICE_NAME=
   SID=
   TTY="${2:-}"
 
-  dbus_common_get_value "Devices/${dbus_service_name}/Sid" SID
+  dbus_common_get_value "/Settings/Devices/${dbus_service_name}/Sid" SID
   [[ -z $SID ]] && {
     return 0
   }
@@ -523,12 +524,13 @@ device_remove() {
   dbus_common_delete_tree "Devices/${dbus_service_name}"
 
   ((removeRetVal==0)) && serial_device_installer_refresh_udevadm "remove"
+  
 
   return $removeRetVal
 }
-
+ 
 case "${1:-}" in
-	detect)
+  detect)
     shift
 
 		device_detect_usb "${1:-}" "${2:-}"

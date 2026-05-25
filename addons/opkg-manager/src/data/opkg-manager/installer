@@ -15,41 +15,30 @@ DBUS_SETTINGS="
 
 "
 
-# shellcheck source="/data/dev/addons/opkg-manager/src/data/opkg-manager/source-common"
-source "/data/opkg-manager/source-common"
-setsource install-helper
-
-echo "BAD: IN OPKG-MANAGER INSTALLLER"
-
-if [[ "$1" == "install" || "$1" == "post-install" || "$1" == "dev-install" ]]; then
-	RESTART_GUI_SERVICE=1
-  install_helper_post_install
-
-  #opkg_common_remove_feed_symlink
-  
+post_install() {
   opkg_common_ensure_feed
   
   echo "Please wait, updating packages..."
   opkg_common_update_packages
   
-  echo "done"
-elif [[ "$1" == "upgrade"  ]]; then
+  RESTART_GUI_SERVICE=1
+}
+
+post_remove() {
+  [[ "$INSTALL_ACCTION" == "upgrade" ]] && return;
+
   # upgrade does not remove existing dbus settings
   # remove symlink or call opkg update
-  install_helper_pre_remove "$1"
- 
-  echo "done"
 
-elif [[ "$1" == "remove" || "$1" == "post-remove" ]]; then
-  RESTART_GUI_SERVICE=1
-	install_helper_pre_remove
-  
   rm -f "${VE_ROOT_DIR:-}/var/log/opkg-manager/startup.log"
   
   opkg_common_remove_feed_symlink
 
   echo "Please wait, updating packages..."
   opkg_common_update_packages
+}
 
-  echo "done"
-fi
+####################################################
+# shellcheck source="/data/dev/addons/opkg-manager/src/data/opkg-manager/source-common"
+source "/data/opkg-manager/source-common"
+setsource install-helper

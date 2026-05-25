@@ -261,7 +261,6 @@ class InetboxController:
 						f"{dbus_constants.SERVICE_TYPE_TEMPERATURE}:{dbus_constants.DEFAULT_DEVICE_INSTANCE}", 0, 0],
 						
 				'/Sid' : [f'{self._settingsPath}/Sid', self._sid, 0, 0],
-				'/Theme' : [f'{self._settingsPath}/Theme',"light", 0, 0],
 				'/CustomName' : [f'{self._settingsPath}/CustomName', "", 0, 1],
 				'/LastHeatingTemp' : [f'{self._settingsPath}/LastHeatingTemp', 16, 4, 30],
 				#'syncClock' : [f'{settingsPath}/SyncClock', 1, 0, 1],

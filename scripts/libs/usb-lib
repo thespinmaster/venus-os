@@ -68,7 +68,7 @@ usb_disconnect() {
 usb_connect() {
   local usbdev="$1"
 
-  test -d "/sys/bus/usb/devices/$usbdev" || { echo "ERROR: Device not found: $usbdev" >&2; return 1; }
+  test -d "/sys/bus/usb/devices/$usbdev" || { echo "ERROR: Device not found (format is 1-1.4): $usbdev" >&2; return 1; }
 
   echo "$usbdev"
   echo "$usbdev" > /sys/bus/usb/drivers/usb/bind

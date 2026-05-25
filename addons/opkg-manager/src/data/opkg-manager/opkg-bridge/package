@@ -20,20 +20,21 @@ __package_command() {
 
   local command="${1}"
   local package_name="${2}"
+  local action_msg="${3}"
 
-  shift
+  shift 3 # rest are args
 
   __init_root_fs_for_writing
  
-  opkg "$command" "${package_name}"
+  opkg "$command" "${package_name}" "$@"
   local -i status=$?
 
   __restore_previous_fs_access
-
-  if [[ $status == 0 ]]; then
-    log "$package_name $command succeded"
+   
+   if [[ $status == 0 ]]; then
+    log  "$action_msg succeeded" 
   else
-    log "$package_name $command failed (status $status)"
+    log "$action_msg failed (status $status)"
   fi
 
   return $status
@@ -45,18 +46,26 @@ package_install() {
 
   __validate_package_name "${package_name}" || return
 
-  log "Installing $package_name $*"
-  __package_command install "$package_name" "$@"
-
+  log "Installing $*"
+  __package_command install "$package_name" "Install" "$@"
+ 
 }
-
+__status_message() {
+  local status="${1}"
+  local action="${2}"
+  if [[ $status == 0 ]]; then
+    log  "$action succeeded" 
+  else
+    log "$action failed (status $status)"
+  fi
+}
 package_upgrade() {
   local package_name="$1"
 
   __validate_package_name "${package_name}" || return
 
-  log "Upgrading $package_name $*"
-  __package_command upgrade "$package_name" "$@"
+  log "Upgrading $*"
+  __package_command upgrade "$package_name" "Upgrade" "$@"
 
 }
 
@@ -70,8 +79,8 @@ package_remove() {
     return 0
   fi
 
-  log "Removing $package_name $*"
-  __package_command remove "${package_name}"
+  log "Removing $*"
+  __package_command remove "${package_name}" "Remove" "$@"
 
 }
  

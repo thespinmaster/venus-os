@@ -12,6 +12,9 @@
 			"name": "data",
 			"path": "/data"
 		},
+		{
+			"path": "../../opt/victronenergy"
+		}
 	],
 	"settings": {
 		"python.analysis.include": [

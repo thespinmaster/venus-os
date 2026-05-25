@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # sets up any custom environment settings
-# called from /data/rc.local and dev-setup
 
 ####################################################
 reload_bash=

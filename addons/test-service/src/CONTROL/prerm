@@ -1,3 +1,3 @@
 #!/bin/sh
  
-"${VE_ROOT_DIR:-}/data/test-service/installer" "remove"
+"${VE_ROOT_DIR:-}/data/test-service/installer" "$1"

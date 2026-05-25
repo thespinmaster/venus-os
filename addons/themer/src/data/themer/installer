@@ -22,30 +22,16 @@ DBUS_SETTINGS="
 "
 
 #DBUS_SETTINGS_DEPRECIATED=""
- 
-[[ ${DEV_INSTALL:-} == 1 ]] && [[ -d /data/dev/addons/opkg-manager/src ]] && 
-		export VE_ROOT_PATH=/data/dev/addons/opkg-manager/src
-		
-# shellcheck source=/data/dev/addons/opkg-manager/src/data/opkg-manager/source-common
-source "${VE_ROOT_PATH:-}/data/opkg-manager/source-common"
 
-setsource install-helper
+RESTART_GUI_SERVICE=1
 
-themer_installer_install() {
+pre_install() {
 	install_helper_add_remove_dbus_csv_items "add" "/Settings/Themer/AvailableThemes" "$DBUS_AVAILABLE_THEMES"
 }
-themer_installer_remove() {
+pre_remove() {
 	install_helper_add_remove_dbus_csv_items "remove" "/Settings/Themer/AvailableThemes" "$DBUS_AVAILABLE_THEMES" 
 }
- 
-if [[ "${1:-}" == "install" || "${1:-}" == "post-install" || "${1:-}" == "dev-install" ]]; then
-	install_helper_post_install
-  themer_installer_install
 
-elif [[ "${1:-}" == "remove" || "${1:-}" == "post-remove" ]]; then
-	install_helper_pre_remove
-  themer_installer_remove
-else
-	echo installer: invalid args: 'install/post-install' or 'remove/pre-remove'
-  exit 1
-fi
+# shellcheck source=/data/dev/addons/opkg-manager/src/data/opkg-manager/source-common
+source "${VE_ROOT_PATH:-}/data/opkg-manager/source-common"
+setsource install-helper

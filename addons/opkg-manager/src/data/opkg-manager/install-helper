@@ -2,17 +2,35 @@
 
 set -o nounset
 
+INSTALL_ACTION="${1:-}"
+
 # set package name using the path of the calling file's location
 PACKAGE_NAME="${PACKAGE_NAME-"$(basename "$(dirname "$(realpath "${0}")")")"}"
+
 RESTART_GUI_SERVICE="${RESTART_GUI_SERVICE:=0}"
 DBUS_SETTINGS="${DBUS_SETTINGS-}"
 RC_LOCAL_SCRIPT="${RC_LOCAL_SCRIPT-}"
+SERVICE_NAME="${SERVICE_NAME-}"
+SERVICE_MAPPING_NAME="${SERVICE_MAPPING_NAME-}"
+SERIAL_STARTER_CONFIG_FILE="/etc/venus/serial-starter.conf"
 
-[[ ${DEV_INSTALL:-} == 1 ]] && [[ -d /data/dev/addons/opkg-manager/src ]] && 
-		export VE_ROOT_PATH=/data/dev/addons/opkg-manager/src
-		
+[[ "$INSTALL_ACTION" == "dev-install" || "$INSTALL_ACTION" == "dev-remove" ]] &&
+	DEV_INSTALL=1;
+
+[[ ${DEV_INSTALL:-} == 1 ]] && [[ -d /data/dev/addons/opkg-manager/src ]] &&
+	export VE_ROOT_PATH=/data/dev/addons/opkg-manager/src
+
 # shellcheck source=/data/dev/addons/opkg-manager/src/data/opkg-manager/source-common
 source "${VE_ROOT_PATH:-}/data/opkg-manager/source-common"
+
+__try_call() {
+	local calling_method="${1}"
+  
+	if declare -F ${calling_method} >/dev/null; then
+		shift
+		${calling_method} "$@" 
+	fi
+}
 
 install_helper_add_remove_dbus_csv_items() {
 	
@@ -22,9 +40,9 @@ install_helper_add_remove_dbus_csv_items() {
 	shift 2
 
 	dbus_common_get_value "${dbusPath}" csv_string
- 
+
 	__install_helper_add_remove_comma_delimited_string "$command" csv_string "$@" 
-	
+
 	if [[ -z "${csv_string}" ]]; then
 		dbus_common_remove_settings <<< "{'path':'${dbusPath}'}"
 		return 0
@@ -34,13 +52,13 @@ install_helper_add_remove_dbus_csv_items() {
 }
 
 install_helper_add_remove_custom_service_path() {
-	
+
 	local -a service_paths=()
 
 	__get_custom_service_paths_from_dbus_settings_byref service_paths
 
 	install_helper_add_remove_dbus_csv_items "$1" "/Settings/OpkgManager/AvailableCustomServices" "${service_paths[@]}" 
-	
+
 }
 
 __get_custom_service_paths_from_dbus_settings_byref() {
@@ -148,15 +166,25 @@ install_helper_initialize() {
 	setsource "opkg-common"
 	setsource "dbus-common"
 	setsource "file-patcher"
-	
+
 }
 
-install_helper_post_install() {
+install_helper_restart_gui_service() {
+	((RESTART_GUI_SERVICE==0)) && return
 
+	echo "Restarting gui service..."
+  #svc -t /service/gui &
+	nohup svc -t /service/gui >/dev/null 2>&1 &
+}
+
+install_helper_install() {
+ 
   [[ -z "${PACKAGE_NAME:-}" ]] && { echo "ERROR: PACKAGE_NAME not set"; return 1; }
- 
+	
 	install_helper_initialize
- 
+
+	__try_call "pre_install"
+
 	echo "Registering package: ${PACKAGE_NAME}"
 	opkg_common_register_package "${PACKAGE_NAME}"
 
@@ -180,44 +208,63 @@ install_helper_post_install() {
 		install_helper_add_remove_custom_service_path "add"
 	}
 
-	install_helper_restart_gui_service
-	return 0
-}
- 
-install_helper_pre_remove() {
-
-	[[ -z "$PACKAGE_NAME" ]] && { echo "ERROR: PACKAGE_NAME not set"; return 1; }
-	local action="${1-}"
-
-	install_helper_initialize
- 
-	[[ -n "${RC_LOCAL_SCRIPT:-}" ]] &&
-		opkg_common_remove_script_from_rc_local "${RC_LOCAL_SCRIPT}"
- 
-	opkg_common_unregister_package "$PACKAGE_NAME"
- 
-	install_helper_add_remove_patch remove 
-	
-	if [[ "$action" != "upgrade" ]]; then
-		[[ -n "${DBUS_SETTINGS:-}" || -n "${DBUS_SETTINGS_DEPRECIATED:-}" ]] &&
-			echo "Removing dbus settings"
-
-		[[ -n "${DBUS_SETTINGS:-}" ]] && {
-			dbus_common_remove_settings <<< "$DBUS_SETTINGS"
-			install_helper_add_remove_custom_service_path "remove"
-		}
-
-		install_helper_restart_gui_service
+	if [[ -n "${SERVICE_NAME}" ]]; then 
+		setsource "serial-device-installer"
+		serial_device_installer_remove_service_mapping
 	fi
 
+	__try_call "post_install"
+
+	install_helper_restart_gui_service
+
+	echo "done $INSTALL_ACTION"
+
+	return 0
+}
+ 
+install_helper_remove() {
+ 
+	[[ -z "$PACKAGE_NAME" ]] && { echo "ERROR: PACKAGE_NAME not set"; return 1; }
+
+	install_helper_initialize
+
+	__try_call "pre_remove"
+
+	[[ -n "${RC_LOCAL_SCRIPT:-}" ]] &&
+		opkg_common_remove_script_from_rc_local "${RC_LOCAL_SCRIPT}"
+
+	opkg_common_unregister_package "$PACKAGE_NAME"
+
+	install_helper_add_remove_patch remove
+
+	[[ -n "${DBUS_SETTINGS:-}" ]] && {
+		echo "Removing dbus settings"
+		dbus_common_remove_settings <<< "$DBUS_SETTINGS"
+		install_helper_add_remove_custom_service_path "remove"
+	}
+
+	if [[ -n "${SERVICE_NAME}" ]]; then
+		setsource "serial-device-installer"
+		serial_device_installer_remove_service_mapping
+		serial_device_installer_stop_all_services
+	fi
+
+	__try_call "post_remove"
+
+	install_helper_restart_gui_service
+
+	echo "done $INSTALL_ACTION"
 	return 0
 }
 
-install_helper_restart_gui_service() {
-	((RESTART_GUI_SERVICE==0)) && return
+###########################################################################
+
  
-	echo "Restarting gui service..."
-  #svc -t /service/gui &
-	nohup svc -t /service/gui >/dev/null 2>&1 &
-}
- 
+case "${INSTALL_ACTION}" in
+  install|configure|dev-install)
+		install_helper_install;;
+  remove|upgrade|dev-remove)
+    install_helper_remove;;
+esac
+
+

@@ -14,6 +14,7 @@ MbItem {
     property string header
     property string footer
     property bool showCompact: false
+    property bool showFooter: true
     property int descriptionWrapMode: Text.WordWrap
 	property VBusItem item: VBusItem {}
 	property string iconId: "icon-toolbar-enter"
@@ -27,7 +28,7 @@ MbItem {
         property bool isCurrentItem: root.ListView.isCurrentItem
         anchors {
             top: parent.top; 
-            topMargin: 2
+            topMargin: showCompact ? mbStyle.marginDefault : 2
             bottom: parent.bottom;
             
         }
@@ -59,8 +60,8 @@ MbItem {
  
         MbTextDescription {
             id: footer
-            visible: !root.header || !root.showCompact
-            text: root.footer ? root.footer : ""
+            visible: root.showFooter && !root.showCompact
+            text: root.showFooter ? root.footer : ""
             isCurrentItem: root.ListView.isCurrentItem
             font.pixelSize: root.header ? 12 : mbStyle.fontPixelSize
             anchors {

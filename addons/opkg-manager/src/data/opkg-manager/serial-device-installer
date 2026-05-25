@@ -252,7 +252,7 @@ __create_serial_starter_rule_byref() {
 
   if [[ -z "${SID:-}" ]]; then
     # a 4 bit hex value
-    SID=$(od -An -N2 -tx2 /dev/urandom | tr -d ' \n') || {
+    SID=$(hexdump -n 2 -e '/2 "%04x"' /dev/urandom) || {
       log_error "ERROR creating SID"
       return 1
     }
@@ -328,7 +328,7 @@ __add_rule_to_serial_starter_rules_file() {
 }
 
 # required vars: SERIAL_STARTER_CONFIG_FILE, SERVICE_MAPPING_NAME, SERVICE_NAME
-__add_ve_service_config_file_mapping() {
+serial_device_installer_add_service_mapping() {
 
   log_trace
  
@@ -344,7 +344,7 @@ __add_ve_service_config_file_mapping() {
   local -i spaces_len; spaces_len=$((16 - "${#service_mapping_name}"))
   ((spaces_len < 1)) && spaces_len=1
 
-  local spaces; spaces=$(head -c "$spaces_len" </dev/zero | tr '\0' ' ')
+  local spaces; spaces=$(printf "%*s" "$spaces_len" "")
   local entry="service ${service_mapping_name}${spaces}${SERVICE_NAME}"
   local find_pattern="^[[:space:]]*service[[:space:]]+${service_mapping_name}[[:space:]]+${SERVICE_NAME}[[:space:]]*$"
 
@@ -359,23 +359,37 @@ __add_ve_service_config_file_mapping() {
       printf '%s\n' "${entry}"
       cat "${SERIAL_STARTER_CONFIG_FILE}"
     } >"$tmp" || {
-      rm -f "$tmp"
-      log_error "ERROR: could not update ${SERIAL_STARTER_CONFIG_FILE}"
-      return 1
-    }
+          rm -f "$tmp"
+          log_error "ERROR: could not update ${SERIAL_STARTER_CONFIG_FILE}"
+          return 1
+        }
 
     mv "$tmp" "${SERIAL_STARTER_CONFIG_FILE}" || {
       rm -f "$tmp"
       log_error "ERROR: could not replace ${SERIAL_STARTER_CONFIG_FILE}"
       return 1
     }
+    
+    serial_device_installer_reload_serial_starter_service
 
     log "✓ Successfully added ve service mapping config to ${SERIAL_STARTER_CONFIG_FILE}"
   else
     log "✓ ve service mapping already exists"
   fi
 }
- 
+
+serial_device_installer_stop_all_services() {
+  local service_name="$SERVICE_NAME"
+  
+  [[ -z "$SERVICE_NAME" ]] && { log_error "SERVICE_NAME not supplied"; return; }
+
+  for service in find /service/"$service_name".*; do
+    [[ ! -d "$service" ]] && continue
+    rm -rf "$service"
+  done
+
+}
+
 # validates: SERVICE_NAME, UDEVADM_PROPS, SERIAL_STARTER_RULES_FILE, SERIAL_STARTER_CONFIG_FILE
 __validate_all() {
  
@@ -466,7 +480,7 @@ serial_device_installer_install() {
 
   __add_rule_to_serial_starter_rules_file "${serial_starter_rule}" "${serial_starter_rule_comment}" || return 1
 
-  __add_ve_service_config_file_mapping || return $?
+  serial_device_installer_add_service_mapping || return $?
   
   TTY=$tty
   
@@ -475,7 +489,7 @@ serial_device_installer_install() {
 
   # reload udm
   serial_device_installer_refresh_udevadm "add"
-  
+ 
   return 0
 }
 
@@ -495,6 +509,16 @@ serial_device_installer_refresh_udevadm() {
   udevadm trigger --action=$action /sys/class/tty/$TTY
 }
 
+serial_device_installer_reload_serial_starter_service() {
+  
+  local serial_starter_service="/service/serial-starter"
+
+  if [ "$(svstat "$serial_starter_service" | awk '{print $2}')" = "up" ]; then
+    svc -t "$serial_starter_service"
+  else
+    svc -u "$serial_starter_service"
+  fi
+}
 
 ################################################
 # removes a serial starter rule from the serial-starter.rules file (/etc/udev/rules.d/serial-starter.rules)
@@ -573,6 +597,9 @@ serial_device_installer_remove_service_mapping() {
   else
     mv "$tmp" "$SERIAL_STARTER_CONFIG_FILE"
     log "✓ Sucessfully removed ve service mapping:${log_info}"
+    
+    serial_device_installer_reload_serial_starter_service
+
   fi
 }
 ################################################

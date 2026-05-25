@@ -20,7 +20,7 @@ feed_editor() {
   [[ "${feed_name}" == "opkg-manager" ]] && { echo "The opkg-manager cannot be removed/edited"; return 1; }
   
 	if [[ -n "${old_feed_name}" ]] && [[ "${old_feed_name}" =~ [^a-zA-Z0-9_] ]]; then
-		echo "Invalid old name" >&2
+		echo "Invalid old name: '${old_feed_name}'" >&2
 		return 1
 	fi
 

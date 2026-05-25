@@ -281,7 +281,7 @@ run_usb() {
       "${usb_lib}" disconnect "${2}"
       ;;
     add|connect)
-      [[ -n "${2:-}" ]] || { echo "ERROR: device id is required for 'dev usb connect'" >&2; return 1; }
+      [[ -n "${2:-}" ]] || { echo "ERROR: device id (1-4:1) is required for 'dev usb connect'" >&2; return 1; }
       "${usb_lib}" connect "${2}"
       ;;
     list)
@@ -372,9 +372,9 @@ run_reset() {
 }
 
 main() {
-  
+
   local command="${1:-help}"
-  shift
+  [[ -n "${1:-}" ]] && shift
 
   case "${command}" in
     paths)

@@ -22,7 +22,7 @@ declare __this_path; __this_path="$(dirname "${BASH_SOURCE[0]}")"
 # Expand rootfs and make it writable
 opkg_common_expand_root_fs() {
   
-  log "expanding root fs"
+  log_trace "expanding root fs"
   if [ ! $dry_run ]; then
     $resize2fs_file
   fi
@@ -30,7 +30,7 @@ opkg_common_expand_root_fs() {
 
 # mount the rootfs as read/write
 __root_fs_readwrite() {
-  log "mounting fs as read write"
+  log_trace "Mounting fs as read write"
   if [ ! $dry_run ]; then
     mount -o remount,rw /
   fi
@@ -38,7 +38,7 @@ __root_fs_readwrite() {
 
 # mount the rootfs as read/write
 __mount_root_fs_readonly() {
-  log "mounting fs as readonly"
+  log_trace "Mounting fs as readonly"
 
   if [ ! $dry_run ]; then
     mount -o remount,ro /
@@ -51,12 +51,12 @@ __mount_root_fs_readonly() {
 # has a value then we restore back to readonly.
 __restore_previous_fs_access() {
   
-  log "restoring previous fs state"
+  log_trace "Restoring previous fs state"
 
   if [[ "${___is_fs_readonly}" = 1 ]]; then
     __mount_root_fs_readonly
   else
-    log "previous state was readwrite; nothing to restore"
+    log_trace "previous state was readwrite; nothing to restore"
   fi
   ___is_fs_readonly=
   
@@ -143,7 +143,7 @@ __is_fs_readonly() {
 # sets the flag ___is_fs_readonly
 __init_root_fs_for_writing() {
 
-  log "__init_root_fs_for_writing"
+  log_trace "__init_root_fs_for_writing"
 
   if [[ -z "${___is_fs_readonly}" ]]; then
 
@@ -158,10 +158,10 @@ __init_root_fs_for_writing() {
       __root_fs_readwrite
     fi
 
-    log "fs is readonly:${___is_fs_readonly}"
+    log_trace "fs is readonly:${___is_fs_readonly}"
 
   else
-    log "___is_fs_readonly already initialized"
+    log_trace "___is_fs_readonly already initialized"
   fi
 
 }
@@ -173,11 +173,11 @@ __init_root_fs_for_writing() {
 __init_opkg() {
 
   ((init_opkg_helpers)) && {
-    log "__init_opkg: already initialzed"
+    log_trace "__init_opkg: already initialzed"
     return;
   }
 
-  log "__init_opkg: initializing"
+  log_trace "__init_opkg: initializing"
 
   opkg_common_ensure_feed 
   if [ ! $dry_run ]; then
@@ -190,7 +190,7 @@ __init_opkg() {
 
 __opkg_common_try_install_package() {
 
-  log "__opkg_common_try_install_package"
+  log_trace "__opkg_common_try_install_package"
 
   local package_name="${1:-}"
 
@@ -228,7 +228,7 @@ opkg_common_ensure_installed() {
   [[ -f "$opkg_installed_packages_file" ]] || {
      log "opkg_installed_packages_file does not exist"; return 0; }
 
-  log "opkg_common_ensure_installed"
+  log_trace "opkg_common_ensure_installed"
  
   log_push_indent
   local isfirst=1
@@ -254,7 +254,7 @@ opkg_common_ensure_installed() {
 
   log_pop_indent
 
-  log "opkg_common_ensure_installed: done"
+  log_trace "opkg_common_ensure_installed: done"
 
   return 0
 }
@@ -276,12 +276,12 @@ opkg_common_add_script_to_rc_local() {
   local found; found=$(string_lib_multiline_find_replace "${1}" --find-only --break-on-first < "$rc_local_file")
   
   if [[ -z $found ]]; then
-    log "adding custom script to ${rc_local_file}"
+    log "Adding custom script to ${rc_local_file}"
     if [ ! $dry_run ]; then
       echo "${1}" >> "${rc_local_file}"
     fi
   else
-    log "custom script already added"
+    log "Custom script already added"
   fi
   return 0
 }
@@ -294,7 +294,7 @@ opkg_common_remove_script_from_rc_local() {
   [[ -z "${1:-}" ]] && { log_error "ERROR: no script supplied" ; return 1; }
   [[ -f "${rc_local_file}" ]] || return 0
 
-  log "removing custom script from ${rc_local_file}"
+  log "Removing custom script from ${rc_local_file}"
 
   # reads from ${rc_local_file} removes ${1} and saves back to ${rc_local_file}
   # string_lib_multiline_find_replace "${1}" --trim-lines < "${rc_local_file}" > "${rc_local_file}"
@@ -325,12 +325,12 @@ opkg_common_register_package() {
   local package_name="${1:-}"
   
   if [[ ! -f "${opkg_installed_packages_file}" ]] || ! grep -q "^${package_name}$" "${opkg_installed_packages_file}" ; then
-    log "adding ${package_name} to ${opkg_installed_packages_file}"
+    log "Adding ${package_name} to ${opkg_installed_packages_file}"
     if [ ! $dry_run ]; then
       echo "${package_name}" >> "${opkg_installed_packages_file}"
     fi
   else
-    log "package ${package_name} already added"
+    log "Package ${package_name} already added"
   fi
 
 }

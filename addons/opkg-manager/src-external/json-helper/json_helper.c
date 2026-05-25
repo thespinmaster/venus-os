@@ -17,6 +17,11 @@
 #define OPKG_STATUS "/usr/lib/opkg/status"
 #define OPKG_LISTS_DIR "/usr/lib/opkg/lists"
 
+static const char *const builtin_feeds[] = {
+    "opkg-manager",
+    NULL
+};
+
 typedef struct {
     char key[MAX_FIELD];
     char value[MAX_LINE];
@@ -250,6 +255,23 @@ static int load_feed_names(char feed_names[][MAX_FIELD], int max_feeds)
     return feed_count;
 }
 
+
+
+static int feed_is_builtin(const char *name)
+{
+    if (!name) {
+        return 0;
+    }
+
+    for (int i = 0; builtin_feeds[i]; ++i) {
+        if (strcmp(name, builtin_feeds[i]) == 0) {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
 /* Parse an opkg stanza file and extract fields */
 static void flush_package_json(const Package *pkg,
                                const char *feed_name,
@@ -463,7 +485,7 @@ static int write_feeds_json(const char *output_file) {
         json_escape_print(out, name);
         fprintf(out, ",\"url\":");
         json_escape_print(out, url);
-        fprintf(out, ",\"builtin\":false}");
+        fprintf(out, ",\"builtin\":%s}", feed_is_builtin(name) ? "true" : "false");
     }
 
     fprintf(out, "]\n");

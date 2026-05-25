@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
- 
+
+SERVICE_NAME="dbus-ne-shunt"
+
 DBUS_SETTINGS="
     {'path':'/Settings/OpkgManager/CustomOverviewPages/NeShuntOverview', 'default':''}
 	
@@ -11,17 +13,6 @@ DBUS_SETTINGS="
 #		{'path':'/Settings/OpkgManager/CustomMenus/PageSettingsDisplay/PageSettingsNeShuntSubMenu'}
 #"
 
-[[ ${DEV_INSTALL:-} == 1 ]] && [[ -d /data/dev/addons/opkg-manager/src ]] && 
-		export VE_ROOT_PATH=/data/dev/addons/opkg-manager/src
-		
 # shellcheck source=/data/dev/addons/opkg-manager/src/data/opkg-manager/source-common
 source "${VE_ROOT_PATH:-}/data/opkg-manager/source-common"
-
 setsource install-helper
- 
-if [[ "$1" == "install" || "$1" == "dev-install" ]]; then
-	install_helper_post_install
-elif [[ "$1" == "remove" ]]; then
-	install_helper_pre_remove
-fi
- 

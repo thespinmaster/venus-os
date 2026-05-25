@@ -81,6 +81,7 @@ MbItem {
 	}
 
 	function save() {
+
 		var newValue = editTextToValue()
 		if (newValue === null) {
 			blink.running = true
