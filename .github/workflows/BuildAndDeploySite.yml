@@ -1,4 +1,4 @@
-name: Build and Deploy GitHub Pages (Jekyll + Feeds)
+name: Build and Deploy (Jekyll + Feeds)
 
 on:
   push:
