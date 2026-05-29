@@ -27,8 +27,8 @@ jobs:
       # -------------------------
       - name: Build opkg feeds
         run: |
-          chmod +x ./your-feed-script.sh || true
-          ./your-feed-script.sh
+          chmod +x ./scripts/build-feeds.sh || true
+          ./scripts/build-feeds.sh
 
           mkdir -p _site/feeds
           cp -r feeds/* _site/feeds/ || true
