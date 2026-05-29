@@ -1,67 +1,36 @@
-# Set up the Venus Os for Debugging Python/C++ using Visual Studio Code
+# Venus OS Addons (User documentation)
 
-## Setup
+This repository contains addons for the Venus OS :
 
-Use a RaspberryPi 4B
-Install Venus OS on sd card 
+* Opkg Manager
+  * [Overview](docs/user/Opkg-Manager-Overview.md)
+  * [Installing](docs/user/Opkg-Manager-Installing.md)
+  * [Using](docs/Opkg-Manager-Usage.md)
 
-Set wifi in Venus OS
-Use Victron Connect App. Select Rasperry pi, enter bluetooth pin, then connect to wifi
-Note if Wifi fails, connect ethernet cable instead and connect wifi using Venus OS GUI
+* Themer
+  * [Overview](docs/user/Themer-Overview.md)
 
-In Venus GUI to enable ssh, select settings/general/accesslevel then press and hold right arrow key for 5 seconds (or drag down with mouse in browser) to enable root access
-add ssh password
+* Inetbox
+  * [Overview](docs/user/Inetbox-Overview.md)
+  * [Hardware](docs/user/Inetbox-Hardware.md)
+  * [Installing](docs/user/Inetbox-Installing.md)
+  * [Using](docs/user/Inetbox-Usage.md)
 
-SSH into Venus OS
-Set up ssh key (using Terminus)
-Vaults>>Key chain> select id with rp4 and export
-or in windows
-copy text in file user/.ssh/keys/id_xxx.pub into the file ~/root/.ssh/authorized_keys file changing name to root@raspberypi (although name does not appear matter)
+* Ne Shunt (Nordelettronica shunt)
+  * [Overview](docs/user/Ne-shunt-Overview.md)
+  * [Hardware](docs/user/Ne-shunt-Hardware.md)
+  * [Installing](docs/user/Ne-shunt-Installing.md)
+  * [Using](docs/user/Ne-shunt-Usage.md)
 
-https://www.victronenergy.com/live/ccgx:root_access
+* Network GPS
+  * [Overview](docs/user/Network-GPS-Overview.md)
+  * [Hardware](docs/user/Network-GPS-Hardware.md)
 
-### set up dev environment
+* Mount Shares
+  * [Overview](docs/user/Mount-Shares-Overview.md)
+  * [Using](docs/user/Mount-Shares-Usage.md)
 
-Download and run dev_setup from github
-
-Adds a opkg feed for installing custom packages from this repository
-
-```
-wget https://raw.githubusercontent.com/thespinmaster/venus-os/refs/heads/main/tasks/dev-setup -O /data/dev-setup
-chmod +x /data/dev-setup
-/data/dev-setup
-```
-
-#### Installs
-     Packages to replace BusyBox (so we can remote debug using VS Code)  
-     Python 3 (full version)  
-     libatomic1 (required by Python 3)  
-
-#### Install custom packages
-     opkg-manager: A package for installing custom opkg packages on the Venus OS which will automatically get re-installed after firmware updates  
-     mount-shares: A package for mounting nfs and cfs shares  
-
-
-## Install opkg-manager only
-```
-wget https://raw.githubusercontent.com/thespinmaster/venus-os/refs/heads/main/tasks/install-opkg-manager -O /tmp/install-opkg-manager
-chmod +x /tmp/install-opkg-manager
-/tmp/install-opkg-manager
-
-```
-
-In Visual Studio use remote debugging 
-root@192.xxx.xxx.xxx  
-open remote folder in /data/dev/projects  
-may need to remove .env folder from project  
-debug code...  
-
-
-
-
-
-
-
-
-
-
+* Node Red
+  * [Overview](docs/user/Node-Red-Overview.md)
+  * [Installing](docs/user/Node-Red-Installing.md)
+  * [Using](docs/user/Node-Red-Usage.md)

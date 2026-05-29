@@ -43,7 +43,9 @@ install-common
 <library_prefix>__<function_name>        # Private/internal function
 ```
 
-**Example:**
+**Examples:**
+
+#### Public functions
 
 ```bash
 # File: conf_lib.sh
@@ -59,6 +61,14 @@ conf_lib_save_vars() {
 
 # Private/internal function
 conf_lib__parse_internal() {
+    # implementation
+}
+ 
+```
+#### Private functions
+
+# Private/internal function
+__parse_internal() {
     # implementation
 }
 ```
@@ -91,8 +101,8 @@ test-lib -> test_file_exists... etc
 CONF_LIB_DEFAULT_PATH="/etc/myapp"
 CONF_LIB_MAX_RETRIES=5
 
-# Internal variable
-local __count=0
+# Internal module level variable
+declare __count=0
 ```
 
 ---
@@ -101,7 +111,7 @@ local __count=0
 
 * Always use `source` or `.` to load libraries.
 * Avoid executing library files directly.
-* Wrap your library code in a check to prevent double sourcing:
+* Wrap library code in a check to prevent double sourcing:
 
 ```bash
 # conf_lib.sh
