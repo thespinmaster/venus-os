@@ -2,7 +2,7 @@
 
 set -o nounset
 
-declare base_feed_url="https://thespinmaster.github.io/venus-os/feeds"
+declare base_feed_url="https://thespinmaster.github.io/venus-os-addons/feeds"
 declare feeds_file_develop="/data/conf/opkg-manager-feeds-develop.conf"
 declare feeds_file_release="/data/conf/opkg-manager-feeds-release.conf"
 declare dev_mount_point="/data/mnt/dev"
