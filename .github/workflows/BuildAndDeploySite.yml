@@ -47,7 +47,6 @@ jobs:
         run: |
           mkdir -p _site/feeds
           cp -r feeds/* _site/feeds/
-    
       # 5. UPLOAD
       - uses: actions/upload-pages-artifact@v3
         with:
