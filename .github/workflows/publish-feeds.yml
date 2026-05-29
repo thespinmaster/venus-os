@@ -5,6 +5,9 @@ on:
       - main
     paths:
       - 'feeds/**'
+      - 'README.md'
+      - 'docs/**'
+      - '.github/workflows/publish-feeds.yml'
   workflow_dispatch:
 
 permissions:
@@ -27,7 +30,7 @@ jobs:
 
           # Copy feeds exactly as-is
           cp -r feeds/* public/feeds/
-
+          
           # -----------------------------
           # DIRECTORY INDEX GENERATION
           # -----------------------------
@@ -55,7 +58,7 @@ jobs:
               echo "<body>"
               echo "  <h1>${dir#public/*}</h1>"
               echo "  <ul>"
-              
+
               # -----------------------------
               # BACK LINK (if parent has index.html)
               # -----------------------------
@@ -63,7 +66,7 @@ jobs:
               if [ -f "$parent/index.html" ]; then
                 echo "    <li><a href=\"../\">.. Parent Directory</a></li>"
               fi
-              
+
               # -----------------------------
               # DIRECTORY CONTENTS
               # -----------------------------
@@ -71,7 +74,7 @@ jobs:
                 [ -e "$f" ] || continue
                 name=$(basename "$f")
                 [ "$name" = "index.html" ] && continue
-                
+
                 if [ -f "$f" ]; then
                   folder=""
                   size=$(stat -c %s "$f")
@@ -80,10 +83,10 @@ jobs:
                   folder="/"
                   human_size="-"
                 fi
- 
+
                 # Modified time (YYYY-MM-DD HH:MM)
                 mtime=$(stat -c %y "$f" | cut -d'.' -f1)
-              
+
                 echo "    <li><span class=\"name\"><a href=\"$name\">$name$folder</a></span> \
                       <span class=\"mtime\">$mtime</span> \
                       <span class=\"size\">$human_size</span></li>"
@@ -105,3 +108,4 @@ jobs:
           publish_branch: gh-pages
           publish_dir: ./public
           force_orphan: true
+          
