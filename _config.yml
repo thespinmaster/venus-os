@@ -1,0 +1,4 @@
+baseurl: "/venus-os-addons"
+
+include:
+  - docs
