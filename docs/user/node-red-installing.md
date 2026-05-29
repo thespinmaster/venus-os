@@ -3,5 +3,5 @@
 This page is a placeholder for Node Red installing documentation.
 
 # 
-#### Previous - [Overview](Node-Red-Overview.md)
-#### Next - [Usage](Node-Red-Usage.md)
+#### Previous - [Overview](node-red-overview.md)
+#### Next - [Usage](node-red-usage.md)

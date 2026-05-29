@@ -23,4 +23,4 @@ Provides add-ons with the ability to add, remove, or replace overview pages with
 When a new Venus OS firmware version is installed, the Opkg Manager automatically downloads and reinstalls previously installed packages.
 
 # 
-#### Next - [Installing](Opkg-Manager-Installing.md)
+#### Next - [Installing](opkg-manager-installing.md)

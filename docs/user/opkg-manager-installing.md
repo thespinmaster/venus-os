@@ -3,5 +3,5 @@
 This page is a placeholder for Opkg Manager installation documentation.
 
 # 
-#### Previous - [Overview](Opkg-Manager-Overview.md)
-#### Next - [Usage](Opkg-Manager-Usage.md)
+#### Previous - [Overview](opkg-manager-overview.md)
+#### Next - [Usage](opkg-manager-usage.md)

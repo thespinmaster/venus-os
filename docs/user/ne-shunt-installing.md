@@ -3,5 +3,5 @@
 This page is a placeholder for Ne-shunt installation documentation.
 
 # 
-#### Previous - [Hardware](Ne-shunt-Hardware.md)
-#### Next - [Usage](Ne-shunt-Usage.md)
+#### Previous - [Hardware](ne-shunt-hardware.md)
+#### Next - [Usage](ne-shunt-usage.md)

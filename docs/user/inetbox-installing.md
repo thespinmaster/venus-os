@@ -3,5 +3,5 @@
 This page is a placeholder for Inetbox installation documentation.
 
 # 
-#### Previous - [Hardware](Inetbox-Hardware.md)
-#### Next - [Usage](Inetbox-Usage.md)
+#### Previous - [Hardware](inetbox-hardware.md)
+#### Next - [Usage](inetbox-usage.md)

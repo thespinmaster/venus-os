@@ -3,34 +3,34 @@
 This repository contains addons for the Venus OS :
 
 * Opkg Manager
-  * [Overview](docs/user/Opkg-Manager-Overview.md)
-  * [Installing](docs/user/Opkg-Manager-Installing.md)
-  * [Using](docs/Opkg-Manager-Usage.md)
+  * [Overview](docs/user/opkg-manager-overview.md)
+  * [Installing](docs/user/opkg-manager-installing.md)
+  * [Using](docs/opkg-manager-usage.md)
 
 * Themer
-  * [Overview](docs/user/Themer-Overview.md)
+  * [Overview](docs/user/themer-overview.md)
 
 * Inetbox
-  * [Overview](docs/user/Inetbox-Overview.md)
-  * [Hardware](docs/user/Inetbox-Hardware.md)
-  * [Installing](docs/user/Inetbox-Installing.md)
-  * [Using](docs/user/Inetbox-Usage.md)
+  * [Overview](docs/user/inetbox-overview.md)
+  * [Hardware](docs/user/inetbox-hardware.md)
+  * [Installing](docs/user/inetbox-installing.md)
+  * [Using](docs/user/inetbox-usage.md)
 
 * Ne Shunt (Nordelettronica shunt)
-  * [Overview](docs/user/Ne-shunt-Overview.md)
-  * [Hardware](docs/user/Ne-shunt-Hardware.md)
-  * [Installing](docs/user/Ne-shunt-Installing.md)
-  * [Using](docs/user/Ne-shunt-Usage.md)
+  * [Overview](docs/user/ne-shunt-overview.md)
+  * [Hardware](docs/user/ne-shunt-hardware.md)
+  * [Installing](docs/user/ne-shunt-installing.md)
+  * [Using](docs/user/ne-shunt-usage.md)
 
 * Network GPS
-  * [Overview](docs/user/Network-GPS-Overview.md)
-  * [Hardware](docs/user/Network-GPS-Hardware.md)
+  * [Overview](docs/user/network-gps-overview.md)
+  * [Hardware](docs/user/network-gps-hardware.md)
 
 * Mount Shares
-  * [Overview](docs/user/Mount-Shares-Overview.md)
-  * [Using](docs/user/Mount-Shares-Usage.md)
+  * [Overview](docs/user/mount-shares-overview.md)
+  * [Using](docs/user/mount-shares-usage.md)
 
 * Node Red
-  * [Overview](docs/user/Node-Red-Overview.md)
-  * [Installing](docs/user/Node-Red-Installing.md)
-  * [Using](docs/user/Node-Red-Usage.md)
+  * [Overview](docs/user/node-red-overview.md)
+  * [Installing](docs/user/node-red-installing.md)
+  * [Using](docs/user/node-red-usage.md)
