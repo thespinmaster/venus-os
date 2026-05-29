@@ -30,16 +30,7 @@ jobs:
 
           # Copy feeds exactly as-is
           cp -r feeds/* public/feeds/
-
-          # Publish docs site content at the root so GitHub Pages serves /
-          if [ -f README.md ]; then
-            cp README.md public/index.md
-          fi
-
-          if [ -d docs ]; then
-            cp -r docs public/docs
-          fi
-
+          
           # -----------------------------
           # DIRECTORY INDEX GENERATION
           # -----------------------------
