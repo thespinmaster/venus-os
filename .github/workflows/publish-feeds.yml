@@ -1,5 +1,4 @@
 name: Publish opkg feeds to GitHub Pages
-
 on:
   push:
     branches:
@@ -22,16 +21,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.x'
-
-      - name: Install Markdown renderer
-        run: |
-          python -m pip install --upgrade pip
-          pip install markdown
-
       - name: Build static opkg site
         run: |
           set -e
@@ -42,93 +31,11 @@ jobs:
           # Copy feeds exactly as-is
           cp -r feeds/* public/feeds/
 
-          # Render README.md to the GitHub Pages site root as index.html
+          # Publish docs site content at the root so GitHub Pages serves /
           if [ -f README.md ]; then
-            python <<'PY'
-from pathlib import Path
-import markdown
-
-readme = Path("README.md").read_text(encoding="utf-8")
-body = markdown.markdown(
-    readme,
-    extensions=[
-        "extra",
-        "tables",
-        "fenced_code",
-        "toc",
-        "sane_lists",
-        "nl2br",
-    ],
-)
-
-html = f"""<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>venus-os-addons</title>
-  <style>
-    :root {{
-      color-scheme: light dark;
-    }}
-    body {{
-      max-width: 960px;
-      margin: 0 auto;
-      padding: 2rem;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-      line-height: 1.6;
-    }}
-    pre, code {{
-      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    }}
-    pre {{
-      padding: 1rem;
-      overflow-x: auto;
-      border-radius: 6px;
-      background: rgba(127, 127, 127, 0.12);
-    }}
-    code {{
-      background: rgba(127, 127, 127, 0.12);
-      padding: 0.15rem 0.35rem;
-      border-radius: 4px;
-    }}
-    pre code {{
-      background: transparent;
-      padding: 0;
-    }}
-    table {{
-      border-collapse: collapse;
-      width: 100%;
-    }}
-    th, td {{
-      border: 1px solid rgba(127, 127, 127, 0.35);
-      padding: 0.5rem;
-      text-align: left;
-    }}
-    a {{
-      word-break: break-word;
-    }}
-    img {{
-      max-width: 100%;
-      height: auto;
-    }}
-    .topnav {{
-      margin-bottom: 2rem;
-    }}
-  </style>
-</head>
-<body>
-  <div class="topnav"><a href="./feeds/">Browse feeds/</a></div>
-  {body}
-</body>
-</html>
-"""
-
-Path("public/index.html").write_text(html, encoding="utf-8")
-PY
+            cp README.md public/index.md
           fi
 
-          # Copy docs content if present
           if [ -d docs ]; then
             cp -r docs public/docs
           fi
@@ -140,10 +47,9 @@ PY
           <html>
           <head>
             <meta charset='utf-8'>
-            <meta name='viewport' content='width=device-width, initial-scale=1'>
             <title>Index</title>
             <style>
-              body { font-family: monospace; max-width: 1100px; margin: 0 auto; padding: 2rem; }
+              body { font-family: monospace; }
               ul { padding: 0; list-style: none; }
               li { padding: 4px 0; }
               .name  { display:inline-block; width:40ch; }
@@ -155,10 +61,11 @@ PY
           )"
 
           find public/feeds -type d | while read dir; do
+
             {
               echo "$html"
               echo "<body>"
-              echo "  <h1>${dir#public/}</h1>"
+              echo "  <h1>${dir#public/*}</h1>"
               echo "  <ul>"
 
               # -----------------------------
@@ -186,7 +93,7 @@ PY
                   human_size="-"
                 fi
 
-                # Modified time (YYYY-MM-DD HH:MM:SS)
+                # Modified time (YYYY-MM-DD HH:MM)
                 mtime=$(stat -c %y "$f" | cut -d'.' -f1)
 
                 echo "    <li><span class=\"name\"><a href=\"$name\">$name$folder</a></span> \
@@ -198,6 +105,7 @@ PY
               echo "</body>"
               echo "</html>"
             } > "$dir/index.html"
+
           done
 
       - name: Deploy to gh-pages
@@ -209,3 +117,4 @@ PY
           publish_branch: gh-pages
           publish_dir: ./public
           force_orphan: true
+          
