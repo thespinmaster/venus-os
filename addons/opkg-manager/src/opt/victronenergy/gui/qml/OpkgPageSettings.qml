@@ -18,7 +18,7 @@ MbPage {
 
     MbSubMenu {
       id:cdi
-      description: qsTr("Custom Device Installer")
+      description: qsTr("Usb Serial Device Installer")
       subpage: Component {OpkgPageSettingsDeviceSetup {title:cdi.description} }
     }
     
