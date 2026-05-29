@@ -5,4 +5,4 @@ if [[ ! -f "/data/opkg-manager/installer" ]]; then
   exit 0
 fi
 
-"/data/opkg-manager/installer" "$1"
+"/data/opkg-manager/installer" "$1" "$0"

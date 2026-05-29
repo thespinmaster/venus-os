@@ -1,32 +1,30 @@
 #!/usr/bin/env bash
 
-SERVICE_NAME="test-service"
+PACKAGE_CUSTOM_SERVICE_KEY="TestService"
+PACKAGE_CUSTOM_SERVICE_NAME="test-service"
+PACKAGE_CUSTOM_SERVICE_DISPLAY_NAME="Test Service"
 
-DBUS_SETTINGS="
-		{'path':'/Settings/OpkgManager/CustomServices/TestService/ProductName', 'default': 'Test Service'}
-		{'path':'/Settings/OpkgManager/CustomServices/TestService/ServiceName', 'default':'test-service'}
-"
+PACKAGE_CUSTOM_OVERVIEW_PAGES=()
+PACKAGE_DBUS_SETTINGS=
 
-#DBUS_SETTINGS_DEPRECIATED="
+#PACKAGE_DBUS_SETTINGS_DEPRECATED="
 #		{'path':'/Settings/OpkgManager/CustomMenus/PageSettingsDisplay/PageSettingsNeShuntSubMenu'}
 #"
 
 pre_install() {
-	if [[ $INSTALL_ACTION == "dev-install" ]]; then
-		dbus_common_add_settings <<< "${DBUS_SETTINGS}"
-		install_helper_add_remove_custom_service_path "add"
+	if [[ $PACKAGE_ACTION == "dev-install" ]]; then
+		install_helper_add_custom_service
 		exit 0
 	fi
 }
 pre_remove() {
-	if [[ "$1" == "dev-remove" ]]; then
+	if [[ "$PACKAGE_ACTION" == "dev-remove" ]]; then
   	echo "dev-install"
-		dbus_common_remove_settings <<< "${DBUS_SETTINGS}"
-		install_helper_add_remove_custom_service_path "remove"
+		install_helper_remove_custom_service
 		exit 0
 	fi
 }
 
 # shellcheck source=/data/dev/addons/opkg-manager/src/data/opkg-manager/source-common
 source "${VE_ROOT_PATH:-}/data/opkg-manager/source-common"
-setsource install-helper
+addsource install-helper "$@"

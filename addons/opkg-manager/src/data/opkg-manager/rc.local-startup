@@ -25,33 +25,13 @@ execute_startup_script() {
   log " "
 }
 
-declare -a ordered_scripts=()
-declare -a unordered_scripts=()
-declare file_path=
-declare file_name=
+declare file=
 
-while IFS= read -r -d '' file_path; do
-  file_name="$(basename "$file_path")"
-
-  if [[ "$file_name" == "rc-startup" ]]; then
-    unordered_scripts+=("$file_path")
-    continue
-  fi
-
-  if [[ "$file_name" =~ ^([1-9][0-9]?|100)-rc-startup$ ]]; then
-    ordered_scripts+=("$(printf '%03d %s' "${BASH_REMATCH[1]}" "$file_path")")
-    continue
-  fi
-
-  log "skipping invalid startup hook: $file_path"
-done < <(find /data -mindepth 2 -maxdepth 2 -type f \( -name 'rc-startup' -o -name '*-rc-startup' \) -print0 2>/dev/null)
-
-if (( ${#ordered_scripts[@]} > 0 )); then
-  while IFS= read -r file_path; do
-    execute_startup_script "${file_path#* }"
-  done < <(printf '%s\n' "${ordered_scripts[@]}" | sort -n -k1,1)
-fi
-
-for file_path in "${unordered_scripts[@]}"; do
-  execute_startup_script "$file_path"
-done
+while read -r file; do
+  execute_startup_script "$file"
+done < <(
+    find /data -mindepth 2 -maxdepth 2 -type f -name '*rc-startup' \
+    | awk -F/ '{print $NF "\t" $0}' \
+    | sort \
+    | cut -f2-
+  )

@@ -6,6 +6,11 @@ this_path="$(dirname "${BASH_SOURCE[0]}")"
 . "$this_path/../scripts/libs/test-lib"
 
 test_file="$1"
-test_file="/home/admin/dev/projects/venus-os/addons/opkg-manager/tests/serial-device-installer-tests"
-test_function_filter="^cur_test_.*"
+test_function_filter="${2:-^test_.*}"
+
+if [[ -z "$test_file" ]]; then
+	echo "Usage: $0 <test-file> [regex-filter]" >&2
+	exit 1
+fi
+
 test_runner_on_source_file "$test_file" "$test_function_filter"

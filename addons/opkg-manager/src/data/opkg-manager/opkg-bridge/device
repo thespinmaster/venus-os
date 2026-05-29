@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# SERVICE_NAME=dbus_neshunt,ID_VENDOR=FTDI,ID_MODEL=Intetbox,ID_SERIAL=FTDI_Intetbox_BG02CS2X
+# DEVICE_SERVICE_NAME=dbus_neshunt,ID_VENDOR=FTDI,ID_MODEL=Intetbox,ID_SERIAL=FTDI_Intetbox_BG02CS2X
 
 ## dbus_dummy_service
 #ACTION=="add", ENV{ID_BUS}=="usb", ENV{ID_SERIAL}=="FTDI_Intetbox_BG02CS2X", ENV{VE_SERVICE}="ve_dbus_dummy_service"
@@ -12,9 +12,6 @@ declare _this_path; _this_path=$(dirname "${BASH_SOURCE[0]}")
 source "$_this_path/../dbus-common"
 source "$_this_path/../serial-device-installer"
 
-SERIAL_STARTER_RULES_FILE="/etc/udev/rules.d/serial-starter.rules"
-SERIAL_STARTER_CONFIG_FILE="/etc/venus/serial-starter.conf"
-SERVCE_PATH="/service"
 DEFAULT_USB_PROPS="ID_MODEL,ID_VENDOR,ID_SERIAL"
 
 # __device_send_props_as_json <associated array of properties>
@@ -42,7 +39,7 @@ __device_send_props_as_json() {
 
 # __autoReconnect <service path> <out tty>
 # for testing... re-connects the usb device without physically re-plugging in the device
-# <service path> The name of the path at OpkgManager/CustomServices/${service_path}/TTY
+# <service path> The name of the path at OpkgManager/CustomServices/${service_path}/DEVICE_TTY
 # <out tty> The name of the usb port
 __autoReconnect() {
   [[ -z "${1:-}" ]] && return
@@ -80,7 +77,6 @@ device_detect_usb() {
   local tty=
  
   if [[ -n $autoReconnect ]]; then
-    #device_remove "dbus_inetbox_sid_5f90"
     __autoReconnect $service_path tty
   fi
  
@@ -112,23 +108,27 @@ device_detect_usb() {
   # if no service name is found use the process name
 
   local -i process_state=0
-  TTY="$tty"
+  DEVICE_TTY="$tty"
   local service_name=
-  serial_device_installer_service_name_from_tty 2>/dev/null \
-      && service_name_or_tty="/service/${SERVICE_NAME}.${TTY}" || service_name_or_tty="$TTY"
+
+  serial_device_installer_service_name_from_tty "${DEVICE_TTY}" service_name || true
+  [[ -n $service_name ]] &&
+    service_name_or_tty="/service/${service_name}.${DEVICE_TTY}" || service_name_or_tty="$DEVICE_TTY"
+
+  DEVICE_SERVICE_NAME="$service_name"
 
   device_get_stable_tty_process_pid "$service_name_or_tty" process_pid possible_process_name
   process_state=$?
  
   if (( process_state == 0 )); then
-    if [[ -n "${SERVICE_NAME:-}" ]]; then
-      service_name="${SERVICE_NAME:-}"
+    if [[ -n "${DEVICE_SERVICE_NAME:-}" ]]; then
+      service_name="${DEVICE_SERVICE_NAME:-}"
     elif ! device_find_service_from_pid "$process_pid" "$tty" service_name; then
       process_name=$(ps -p "$process_pid" -o comm= 2>/dev/null | tr -d ' ')
     fi 
   elif (( process_state == 2 )); then
-    if [[ -n "${SERVICE_NAME:-}" ]]; then
-      service_name="${SERVICE_NAME} [Unstable]"
+    if [[ -n "${DEVICE_SERVICE_NAME:-}" ]]; then
+      service_name="${DEVICE_SERVICE_NAME} [Unstable]"
     else
       process_name="[Unstable]"
     fi
@@ -197,21 +197,18 @@ device_apply() {
 
   # get dbus values
   local dbus_path_prefix="/Settings/OpkgManager/CustomServices"
-  local service_name= usb_mapping_name= product_name=
+  local service_name= usb_mapping_name=
   dbus_common_get_value "${dbus_path_prefix}/${service_path}/ServiceName" service_name
-  dbus_common_get_value "${dbus_path_prefix}/${service_path}/UsbMappingName" usb_mapping_name 
-  dbus_common_get_value "${dbus_path_prefix}/${service_path}/ProductName" product_name
  
   # fill serial-starter-installer variables
-  UDEVADM_PROPS="${usbProps}"
-  TTY="${tty}"
-  SERVICE_NAME="${service_name}"
-  SERVICE_MAPPING_NAME="${usb_mapping_name}"
-  SERIAL_STARTER_START_SERVICE_PATH="/dev/serial-starter"
-  SERIAL_STARTER_RULES_TEXT_MATCH='RUN+="/opt/victronenergy/serial-starter/cleanup.sh %k"'
+  DEVICE_UDEV_PROPS="${usbProps}"
+  DEVICE_TTY="${tty}"
+  DEVICE_SID="${sid:-}"
+  DEVICE_SERVICE_NAME="${service_name}"
+  DEVICE_SERVICE_MAPPING_NAME="${usb_mapping_name}"
 
   # do install and start service
-  serial_device_installer_install && serial_device_installer_start_service 1>/dev/null || {
+  serial_device_installer_install_from_sid && serial_device_installer_start_service 1>/dev/null || {
     echo "✗ Failed"
     return 1
   }
@@ -226,7 +223,7 @@ device_apply() {
   echo "Starting service..."
 
   local r= out_pid=;
-  device_get_stable_tty_process_pid "$SERVCE_PATH/$SERVICE_NAME.$TTY" out_pid; r=$?
+  device_get_stable_tty_process_pid "$SERVICE_PATH/$DEVICE_SERVICE_NAME.$DEVICE_TTY" out_pid; r=$?
   ((r==130)) && return 130; # cancelled
   ((r==1)) && { echo "✗ Service not started"; return 1; }
   ((r==2)) && { echo "✗ Service not stable"; return 1; }
@@ -339,7 +336,7 @@ __fill_usb_props() {
   done
 
   if [[ -n $udevadm_props ]]; then
-    udevadm_props_ref=${udevadm_props:1} #strip starting |
+    udevadm_props_ref=${udevadm_props:1} #strip starting ,
   else
     udevadm_props_ref=""
   fi
@@ -484,51 +481,26 @@ device_remove_all() {
     device_remove "$arg"
   done
 }
- 
-# TODO create another device_remove
-# make this method more generic
-# get and set SERVICE_NAME TTY SID
-# move device_instance_name name stop into there
-
-# Senario 1
-# Called from gui "Remove disconnected devices"
-# uses dbus_dummy_service_tty0
-# stored in dbus @ OpkgHelper/CustomSer
-# Senario 2
-# Called from remove
 
 device_remove() {
 
   local dbus_service_name="${1}" # dbus_inetbox_sid_5f90
-  SERVICE_NAME=
-  SID=
-  TTY="${2:-}"
+  [[ -z "$dbus_service_name" ]] && return 1
 
-  dbus_common_get_value "/Settings/Devices/${dbus_service_name}/Sid" SID
-  [[ -z $SID ]] && {
-    return 0
-  }
+  DEVICE_SERVICE_NAME=
+  DEVICE_SID=
+  DEVICE_TTY="${2:-}"
 
-  local -i removeRetVal=0
-
-  # required SERIAL_STARTER_RULES_FILE & TTY | SID
-  serial_device_installer_remove_rule || {
-    removeRetVal=1
-    echo "⚠ Warning: failed to remove existing serial starter rule"
-  }
- 
-  # required TTY | SID 
-  # serial_device_installer_stop_and_remove_service || \
-  #  echo "⚠ Warning: failed to stop and remove service"
-  
+  dbus_common_get_value "/Settings/Devices/${dbus_service_name}/Sid" DEVICE_SID
   dbus_common_delete_tree "Devices/${dbus_service_name}"
 
-  ((removeRetVal==0)) && serial_device_installer_refresh_udevadm "remove"
-  
+  [[ -z "$DEVICE_SID" ]] && return 1
 
-  return $removeRetVal
+  serial_device_installer_remove_service
+
+  return 0
 }
- 
+
 case "${1:-}" in
   detect)
     shift
@@ -541,7 +513,7 @@ case "${1:-}" in
     ;;
   remove)
     shift
-    if [[ "${1:-}" == "all" ]]; then
+    if [[ "${2:-}" == "all" ]]; then
       shift
       device_remove_all "${1:-}"
       exit $?

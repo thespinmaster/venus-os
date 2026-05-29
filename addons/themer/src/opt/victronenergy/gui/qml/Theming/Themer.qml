@@ -1,7 +1,7 @@
 pragma Singleton
 import QtQuick 2
 import ".."
-import "../addons.js" as Utils
+import "../utils.js" as Utils
 
 QtObject {
   

@@ -8,7 +8,7 @@ readonly resize2fs_file="/opt/victronenergy/swupdate-scripts/resize2fs.sh"
 # shellcheck disable=SC2034
 readonly OPKG_MANAGER_FEED_NAME="opkg-manager" # used by sourcing code
 
-OPKG_FEED_CONFIG_FILE="${VENUS_ROOT_DIR:-}/etc/opkg/opkg-manager.conf"
+OPKG_FEED_CONFIG_FILE_SYMLNK="${VENUS_ROOT_DIR:-}/etc/opkg/opkg-manager.conf"
 
 # OPKG_VENUS_VERSION=
 
@@ -23,7 +23,7 @@ declare __this_path; __this_path="$(dirname "${BASH_SOURCE[0]}")"
 opkg_common_expand_root_fs() {
   
   log_trace "expanding root fs"
-  if [ ! $dry_run ]; then
+  if [[ ! $dry_run ]]; then
     $resize2fs_file
   fi
 }
@@ -31,7 +31,7 @@ opkg_common_expand_root_fs() {
 # mount the rootfs as read/write
 __root_fs_readwrite() {
   log_trace "Mounting fs as read write"
-  if [ ! $dry_run ]; then
+  if [[ ! $dry_run ]]; then
     mount -o remount,rw /
   fi
 }
@@ -40,7 +40,7 @@ __root_fs_readwrite() {
 __mount_root_fs_readonly() {
   log_trace "Mounting fs as readonly"
 
-  if [ ! $dry_run ]; then
+  if [[ ! $dry_run ]]; then
     mount -o remount,ro /
   fi
 
@@ -62,27 +62,37 @@ __restore_previous_fs_access() {
   
 }
 
-opkg_common_ensure_feed() {
-  
-  local source="/data/conf/opkg-manager-${1:-release}.conf"
+opkg_common_ensure_feed_symlink() {
 
-  # If an existing, valid feed exists keep it; else create new one
+  local new_target="/data/conf/opkg-manager-${1:-release}.conf"
 
-  # If link is missing → create it (only if source exists)
-  # If source is missing → do nothing (prevents broken symlink)
-  # If both exist → leaves it unchanged
+  [[ ! -f "/data/conf/opkg-manager-feeds-${new_target}.conf" ]] && { 
+    log_error "feed target file does not exist: ${new_target}"; }
 
-  # -L checks if the path is a symlink.
-  if [ ! -L "${OPKG_FEED_CONFIG_FILE}" ] || [ ! -e "${source}" ]; then
-    if [ -e "${source}" ]; then
-      ln -sfn "${source}" "${OPKG_FEED_CONFIG_FILE}"
-    fi
+  local current_source=""
+  [[ -L "${OPKG_FEED_CONFIG_FILE_SYMLNK}" ]] && 
+    current_source="$(readlink "${OPKG_FEED_CONFIG_FILE_SYMLNK}")"
+
+  if [[ "${current_source}" == "${new_target}" ]]; then
+    return 0
   fi
+
+  ln -sfn "${new_target}" "${OPKG_FEED_CONFIG_FILE_SYMLNK}" || {
+    log_error "ERROR: failed to update OPKG_FEED_CONFIG_FILE_SYMLNK:${OPKG_FEED_CONFIG_FILE_SYMLNK} -> ${new_target}"
+    return 1
+  }
+
+  return 0
 }
 
 opkg_common_set_feed() {
-  log "set opkg feed ${1}"
-  ln -sf "/data/conf/opkg-manager-feeds-${1}.conf" "${OPKG_FEED_CONFIG_FILE}"
+  opkg_common_ensure_feed_symlink "${1}"
+}
+
+opkg_common_remove_feed_symlink() {
+  if [[ -L "${OPKG_FEED_CONFIG_FILE_SYMLNK}" ]]; then
+    rm -f "${OPKG_FEED_CONFIG_FILE_SYMLNK}"
+  fi
 }
 
 opkg_common_get_venus_verion_byref() {
@@ -97,7 +107,7 @@ opkg_common_get_venus_verion_byref() {
 
 __wait_for_opkg() {
   local -i counter=0
-  while [ -e /run/opkg.lock ]; do
+  while [[ -e /run/opkg.lock ]]; do
     sleep 0.5
     ((++counter))
     ((counter>30)) && return 1
@@ -113,12 +123,6 @@ opkg_common_update_packages() {
   local opkg_pid=$!
   wait "$opkg_pid"
   return 0
-}
- 
-opkg_common_remove_feed_symlink() {
-  if [ -L "${OPKG_FEED_CONFIG_FILE}" ]; then
-    rm "${OPKG_FEED_CONFIG_FILE}"
-  fi
 }
 
 __ensure_rc_local() {
@@ -179,8 +183,8 @@ __init_opkg() {
 
   log_trace "__init_opkg: initializing"
 
-  opkg_common_ensure_feed 
-  if [ ! $dry_run ]; then
+  opkg_common_ensure_feed_symlink 
+  if [[ ! $dry_run ]]; then
     opkg update
   fi
 
@@ -213,7 +217,7 @@ __opkg_common_try_install_package() {
   __init_opkg
 
   log "Installing... ${package_name}"
-  if [ ! $dry_run ]; then
+  if [[ ! $dry_run ]]; then
     opkg install "${package_name}"
   fi
 }
@@ -238,7 +242,7 @@ opkg_common_ensure_installed() {
     # ignore comments and empty lines
     [[ -z "${line//[[:space:]]/}" || $line == \#* ]] && continue
     
-    if (( isfirst == 1 )); then
+    if ((isfirst)); then
       isfirst=0
     else
       sleep 1
@@ -267,17 +271,16 @@ opkg_common_add_script_to_rc_local() {
   [[ -z "${1:-}" ]] && { log_error "ERROR: no script supplied" ; return 1; }
 
   __ensure_rc_local
-  
+
   local thispath; thispath="$(dirname "${BASH_SOURCE[0]}")"
   . "$thispath/libs/string-lib"
 
-  #local found=
-  #string_lib_multiline_find_replace "${1}" --find-only --break-on-first < "$rc_local_file"
-  local found; found=$(string_lib_multiline_find_replace "${1}" --find-only --break-on-first < "$rc_local_file")
-  
+  local found
+  found=$(string_lib_multiline_find_replace "${1}" --find-only --break-on-first < "$rc_local_file")
+
   if [[ -z $found ]]; then
     log "Adding custom script to ${rc_local_file}"
-    if [ ! $dry_run ]; then
+    if [[ ! $dry_run ]]; then
       echo "${1}" >> "${rc_local_file}"
     fi
   else
@@ -299,7 +302,7 @@ opkg_common_remove_script_from_rc_local() {
   # reads from ${rc_local_file} removes ${1} and saves back to ${rc_local_file}
   # string_lib_multiline_find_replace "${1}" --trim-lines < "${rc_local_file}" > "${rc_local_file}"
 
-  if [ ! $dry_run ]; then
+  if [[ ! $dry_run ]]; then
   
   thispath="$(dirname "${BASH_SOURCE[0]}")"
   . "$thispath/libs/string-lib"
@@ -326,7 +329,7 @@ opkg_common_register_package() {
   
   if [[ ! -f "${opkg_installed_packages_file}" ]] || ! grep -q "^${package_name}$" "${opkg_installed_packages_file}" ; then
     log "Adding ${package_name} to ${opkg_installed_packages_file}"
-    if [ ! $dry_run ]; then
+    if [[ ! $dry_run ]]; then
       echo "${package_name}" >> "${opkg_installed_packages_file}"
     fi
   else
@@ -346,7 +349,7 @@ opkg_common_unregister_package() {
 
   if grep -q "^${package_name}$" "${opkg_installed_packages_file}" ; then
     log "Removing ${package_name} from ${opkg_installed_packages_file}"
-    if [ ! $dry_run ]; then
+    if [[ ! $dry_run ]]; then
       sed -i "/^$package_name/d" "${opkg_installed_packages_file}"
     fi
   else
@@ -366,7 +369,7 @@ case "${1:-}" in
  
   ensure-feeds)
     shift
-    opkg_common_ensure_feed "${1:-}"
+    opkg_common_ensure_feed_symlink "${1:-}"
     ;;
   remove-feed-symlink)
     opkg_common_remove_feed_symlink

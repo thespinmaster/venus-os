@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 
 RESTART_GUI_SERVICE=1
-DBUS_AVAILABLE_THEMES="Dark" # space separated list of themes
 
-DBUS_SETTINGS="
+PACKAGE_CUSTOM_MENUS=(PageSettingsDisplay/ThemerPageSettingsSubMenu)
+
+DBUS_AVAILABLE_THEMES="Dark" # space separated list of themes
+PACKAGE_DBUS_SETTINGS="
 		{'path':'/Settings/Themer/AvailableThemes', 'default':'Dark'}
 	  {'path':'/Settings/Themer/CurrentTheme', 'default':''}
 		{'path':'/Settings/Themer/Themes/Dark/TextColor', 'default':'#ffffff'}
@@ -17,11 +19,9 @@ DBUS_SETTINGS="
 		{'path':'/Settings/Themer/Themes/Dark/ServiceBackgroundColor', 'default':'#b07c04'}
 		{'path':'/Settings/Themer/Themes/Dark/BackgroundColorSelected', 'default':'#2969a1'}
 		{'path':'/Settings/Themer/Themes/Dark/BackgroundTankColor', 'default':'#cccccc'}
-
-		{'path':'/Settings/OpkgManager/CustomMenus/PageSettingsDisplay/ThemerPageSettingsSubMenu', 'default':''}
 "
 
-#DBUS_SETTINGS_DEPRECIATED=""
+#PACKAGE_DBUS_SETTINGS_DEPRECATED=""
 
 RESTART_GUI_SERVICE=1
 
@@ -34,4 +34,4 @@ pre_remove() {
 
 # shellcheck source=/data/dev/addons/opkg-manager/src/data/opkg-manager/source-common
 source "${VE_ROOT_PATH:-}/data/opkg-manager/source-common"
-setsource install-helper
+addsource install-helper "$@"

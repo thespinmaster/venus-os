@@ -27,7 +27,6 @@ class dbusInetboxService(dbus_base_service):
 			dbus_constants.HARDWARE_VERSION,
 			paths =  {	
 				'/CustomName': {'initial': "",'writable': True},
-				'/Theme': {'initial': None,'writable': True},
 				'/Temperature': {'initial': None,'writable': False},
 				'/CustomDevicePage': {'initial': dbus_constants.CUSTOM_DEVICE_PAGE,'writable': False},
 				'/Port': {'initial': portName,'writable': False},

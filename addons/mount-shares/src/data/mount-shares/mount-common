@@ -219,18 +219,25 @@ mount_common_mount() {
   __update_mount_settings "${mount_target}" "${mount_settings}"
 }
 
+# exposed so can override for mocking
+# overriding read callin bashdb fails
+__mount_common___read() {
+  # shellcheck disable=SC2162
+  read "$@"
+}
+
 mount_common_mountprompt() {
   local source target username password options type
 
-  read -r -p "Enter the mount type cifs|nfs [default cifs]: " type
-  read -r -p "Enter server ip/host address and path: " source
+  __mount_common___read -r -p "Enter the mount type cifs|nfs [default cifs]: " type
+  __mount_common___read -r -p "Enter server ip/host address and path: " source
   [[ -z "${source}" ]] && { echo "cancelled"; return 1; }
-  read -r -p "Enter local mount point folder: [default folder /data/mnt/]: " target
+  __mount_common___read -r -p "Enter local mount point folder: [default folder /data/mnt/]: " target
   [[ -z "${target}" ]] && { echo "cancelled"; return 1; }
-  read -r -p "Enter username for share: " username
-  read -r -s -p "Enter password for share: " password
+  __mount_common___read -r -p "Enter username for share: " username
+  __mount_common___read -r -s -p "Enter password for share: " password
   echo
-  read -r -p "Enter extra options [defaults exec,mfsymlinks ('none'; no options)]: " options
+  __mount_common___read -r -p "Enter extra options [defaults exec,mfsymlinks ('none'; no options)]: " options
 
   type="${type:-cifs}"
   options="${options:-exec,mfsymlinks}"

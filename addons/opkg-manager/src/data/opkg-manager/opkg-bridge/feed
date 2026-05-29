@@ -24,8 +24,8 @@ feed_editor() {
 		return 1
 	fi
 
-  [[ ! -f "${OPKG_FEED_CONFIG_FILE}" ]] &&
-    opkg_common_ensure_feed
+  [[ ! -f "${OPKG_FEED_CONFIG_FILE_SYMLNK}" ]] &&
+    opkg_common_ensure_feed_symlink
  
   #for clarity use new var
   local existing_feed_name=$feed_name;
@@ -37,7 +37,7 @@ feed_editor() {
 
   feedNameExists() {
     local -n _exists=$2; _exists=0
-    grep -qE "^src/gz ${1} " "${OPKG_FEED_CONFIG_FILE}"
+    grep -qE "^src/gz ${1} " "${OPKG_FEED_CONFIG_FILE_SYMLNK}"
     [[ $? == 0 ]] && { _exists=1; return; }
     grep -qE "^src/gz ${1} " "/etc/opkg/venus.conf"
     [[ $? == 0 ]] && _exists=1;
@@ -51,7 +51,7 @@ feed_editor() {
     # if adding and name does not exist; shortcut to just adding feed to the end and exiting
     ((exists)) && { 
       echo "Feed already exists: $feed_name" >&2; return 1; }
-    echo "$feed_line" >> "${OPKG_FEED_CONFIG_FILE}"
+    echo "$feed_line" >> "${OPKG_FEED_CONFIG_FILE_SYMLNK}"
     return 0
   fi
  
@@ -81,13 +81,13 @@ feed_editor() {
       continue
     fi
     echo "$line"
-  done < "${OPKG_FEED_CONFIG_FILE}" > "$tmp_file"
+  done < "${OPKG_FEED_CONFIG_FILE_SYMLNK}" > "$tmp_file"
 
   ((!found)) && echo "$feed_line" >> "$tmp_file"  # add to end if not found
 
   # make sure we update the real file and not the symlink
-  local feedfile="${OPKG_FEED_CONFIG_FILE}"
-  [[ -L "${feedfile}" ]] && feedfile="$(readlink "${OPKG_FEED_CONFIG_FILE}")"
+  local feedfile="${OPKG_FEED_CONFIG_FILE_SYMLNK}"
+  [[ -L "${feedfile}" ]] && feedfile="$(readlink "${OPKG_FEED_CONFIG_FILE_SYMLNK}")"
 
   mv "$tmp_file" "${feedfile}" || { echo "Error writing to ${feedfile}" >&2; return 1; }
  
@@ -96,14 +96,14 @@ feed_editor() {
 
 feed_get_feed_type() {
 
-  local feedfile="${OPKG_FEED_CONFIG_FILE}"
+  local feedfile="${OPKG_FEED_CONFIG_FILE_SYMLNK}"
   local feedType=
-  [[ -L "${feedfile}" ]] && feedfile="$(readlink "${OPKG_FEED_CONFIG_FILE}")"
+  [[ -L "${feedfile}" ]] && feedfile="$(readlink "${OPKG_FEED_CONFIG_FILE_SYMLNK}")"
   if [[ -f "${feedfile}" ]]; then
     feedType="${feedfile##*-}"    # remove everything up to last '-'
     feedType="${feedType%.conf}"  # remove suffix
   fi
-  # default to release, as opkg_common_ensure_feed will take care of missing conf.
+  # default to release, as opkg_common_ensure_feed_symlink will take care of missing conf.
   echo "${feedType:-release}" 
 }
  

@@ -5,32 +5,42 @@ RC_LOCAL_SCRIPT="
 /data/opkg-manager/rc.local-startup
 "
 
-DBUS_SETTINGS="
-    {'path':'/Settings/OpkgManager/CustomMenus/PageSettings/OpkgPageSettingsSubMenu', 'default':''}
-		{'path':'/Settings/OpkgManager/CustomMenus/PageSettingsDisplay/OpkgPageSettingsDisplaySubMenu', 'default':''}
-    {'path':'/Settings/OpkgManager/CustomMenus/PageMain/PageSettings', 'default':''}
+PACKAGE_CUSTOM_MENUS=(
+	PageSettings/OpkgPageSettingsSubMenu
+	PageSettingsDisplay/OpkgPageSettingsDisplaySubMenu
+	PageMain/PageSettings
+)
 
+PACKAGE_DBUS_SETTINGS="
     {'path':'/Settings/OpkgManager/ShowCompact', 'default':0, 'min':0, 'max':1}
     {'path':'/Settings/OpkgManager/NoAction', 'default':0, 'min':0, 'max':1}
 
 "
 
 post_install() {
-  opkg_common_ensure_feed
+ 
+  opkg_common_add_script_to_rc_local "${RC_LOCAL_SCRIPT}"
+ 
+  addsource serial-device-installer
+  serial_device_installer_ensure_rules_file_symlink
+ 
+  opkg_common_ensure_feed_symlink
   
   echo "Please wait, updating packages..."
   opkg_common_update_packages
-  
+
   RESTART_GUI_SERVICE=1
 }
 
 post_remove() {
-  [[ "$INSTALL_ACCTION" == "upgrade" ]] && return;
+  [[ "$PACKAGE_ACTION" == "upgrade-remove" ]] && return;
 
-  # upgrade does not remove existing dbus settings
+  # upgrade does not remove existing dbus settingsP
   # remove symlink or call opkg update
 
   rm -f "${VE_ROOT_DIR:-}/var/log/opkg-manager/startup.log"
+
+  serial_device_installer_remove_rules_file_symlink
   
   opkg_common_remove_feed_symlink
 
@@ -40,5 +50,5 @@ post_remove() {
 
 ####################################################
 # shellcheck source="/data/dev/addons/opkg-manager/src/data/opkg-manager/source-common"
-source "/data/opkg-manager/source-common"
-setsource install-helper
+[[ -n "${__SOURCE_COMMON_SOURCED:-}" ]] || { source "${VE_ROOT_PATH:-}/data/opkg-manager/source-common" && __SOURCE_COMMON_SOURCED=1; }
+addsource install-helper "$@"

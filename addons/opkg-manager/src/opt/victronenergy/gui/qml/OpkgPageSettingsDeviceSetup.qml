@@ -96,9 +96,14 @@ MbPage {
 			root.toolbarLeftText = ""
 			return
 		}
-
+ 
 		if (root.selectedServiceTypePath && root.step == "") {
 			root.toolbarLeftText = "Detect Usb Device"
+			return
+		}
+
+		if (root.step == "apply-device-done") {
+			root.toolbarLeftText = "Done"
 			return
 		}
 		if (root.step != "") {
@@ -361,7 +366,7 @@ MbPage {
 			} else if (step == "" && root.outputLog) {
 				
 				root.outputLog.clear()
-			
+
 			}
 			break
 		case "detect-device":

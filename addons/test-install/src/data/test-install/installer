@@ -1,24 +1,26 @@
 #!/usr/bin/env bash
- 
-DBUS_SETTINGS="
-		{'path':'/Settings/Device/TestInstall/ProductName', 'default': 'Test Install'}
-"
+
+PACKAGE_CUSTOM_SERVICE_KEY="TestInstall"
+PACKAGE_CUSTOM_SERVICE_NAME="test-install"
+PACKAGE_CUSTOM_SERVICE_DISPLAY_NAME="Test Install"
+
+PACKAGE_DBUS_SETTINGS=
+
 pre_install() {
-	if [[ $INSTALL_ACTION == "dev-install" ]]; then
-		dbus_common_add_settings <<< "${DBUS_SETTINGS}"
-		install_helper_add_remove_custom_service_path "add"
+	if [[ $PACKAGE_ACTION == "dev-install" ]]; then
+		install_helper_add_custom_service
 		exit 0
 	fi
 }
 pre_remove() {
-	if [[ "$1" == "dev-remove" ]]; then
+	if [[ "$PACKAGE_ACTION" == "dev-remove" ]]; then
   	echo "dev-install"
-		dbus_common_remove_settings <<< "${DBUS_SETTINGS}"
-		install_helper_add_remove_custom_service_path "remove"
+		install_helper_remove_custom_service
 		exit 0
 	fi
 }
 
 # shellcheck source=/data/dev/addons/opkg-manager/src/data/opkg-manager/source-common
 source "${VE_ROOT_PATH:-}/data/opkg-manager/source-common"
-setsource install-helper
+addsource install-helper "$@"
+
