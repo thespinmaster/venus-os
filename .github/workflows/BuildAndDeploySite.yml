@@ -22,51 +22,34 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # -------------------------
-      # 1. BUILD OPKG FEEDS
-      # -------------------------
-      - name: Build opkg feeds
+      # 1. BUILD FEEDS FIRST
+      - name: Build feeds
         run: |
-          chmod +x ./scripts/build-feeds.sh || true
-          ./scripts/build-feeds.sh
-
-          mkdir -p _site/feeds
-          cp -r feeds/* _site/feeds/ || true
-
-      # -------------------------
+          chmod +x scripts/build-feeds.sh || true
+          scripts/build-feeds.sh
+    
       # 2. SETUP JEKYLL
-      # -------------------------
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: "3.3"
           bundler-cache: true
-
+    
       - name: Install dependencies
         run: bundle install
-
-      # -------------------------
-      # 3. BUILD JEKYLL SITE
-      # -------------------------
+    
+      # 3. BUILD SITE
       - name: Build Jekyll site
         run: bundle exec jekyll build -d _site
-
-      # -------------------------
-      # 4. ENSURE FEEDS ARE INCLUDED
-      # -------------------------
+    
+      # 4. COPY FEEDS INTO FINAL SITE (CRITICAL FIX)
       - name: Inject feeds into site
         run: |
           mkdir -p _site/feeds
-          cp -r feeds/* _site/feeds/ || true
-
-      # -------------------------
-      # 5. UPLOAD ARTIFACT
-      # -------------------------
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+          cp -r feeds/* _site/feeds/
+    
+      # 5. UPLOAD
+      - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
 
