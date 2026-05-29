@@ -15,15 +15,7 @@ MbPage {
 	property bool isBusy: false
 
 	ListModel { id: packagesModel }
-
-	function updateInstalledVersionInModel(removed) {
-		
-		if (opkgBridge.packageIndex >= 0 && opkgBridge.packageIndex < packagesModel.count) {
-			var newVersion = removed ? "" : packagesModel.get(opkgBridge.packageIndex)
-			packagesModel.setProperty(opkgBridge.packageIndex, "installedVersion", newVersion)
-		}
-	}
-  
+ 
 	VBusItem {
 		id: compactSetting
 		bind: Utils.path("com.victronenergy.settings", "/Settings/OpkgManager/ShowCompact")
@@ -33,10 +25,12 @@ MbPage {
 		id: noActionSetting
 		bind: Utils.path("com.victronenergy.settings", "/Settings/OpkgManager/NoAction")
 	}
- 
-	Component.onCompleted: {
-		Vm.loadPackages(opkgBridge, packagesModel, "package list", "")
+  
+	function refreshPackages(option) {
+		var action = option ? " " + option : ""
+		Vm.loadPackages(opkgBridge, packagesModel, "package list" + action, option)
 	}
+	Component.onCompleted: refreshPackages()
 
 	Component.onDestruction: {
 		if (opkgBridge)
@@ -71,11 +65,10 @@ MbPage {
 		function leftAction(mouse) {
 			if (!mouse)
 				return
- 
-			Vm.loadPackages(opkgBridge, packagesModel, "package list update", "update")
+			refreshPackages("update")
 		}
 
-		leftText: qsTr("Refresh")  
+		leftText: qsTr("Refresh")
 
 	}
  
@@ -140,26 +133,24 @@ MbPage {
 						case "package list update":
  
 							Vm.loadPackagesFromFile(packagesPath, packagesModel, FileHelper);
- 
-							if (opkgBridge.operationName === "package list update") {
+							if (opkgBridge.operationName === "package list update")
 								toast.createToast(qsTr("Refresh completed"))
-							}
 
 							break;
+						case "remove":
 						case "install":
 						case "upgrade":
-							updateInstalledVersionInModel(false)
+						
+							if (logCallback)
+								logCallback("Refreshing package list")
+							
+							refreshPackages()
+
 							if (logCallback)
 								logCallback("--- Finished " + opkgBridge.operationName + ". Exit code: " + exitCode + ", status: " + exitStatus + " ---")
 							logCallback = undefined
 							break
-						case "set-feed":
-						case "remove":
-							updateInstalledVersionInModel(true)
-							if (logCallback)
-								logCallback("--- Finished " + opkgBridge.operationName + ". Exit code: " + exitCode + ", status: " + exitStatus + " ---"); 
-							logCallback = undefined
-							break
+ 
 						default:
 							break
 					}

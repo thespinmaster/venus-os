@@ -1,19 +1,43 @@
 
 .pragma library
 
+function parseVersionParts(version) {
+  var normalized = (version || "").trim();
+  var match = normalized.match(/^(\d+(?:\.\d+)*)/);
+  var baseVersion = match ? match[1] : "";
+  var suffixVersion = normalized.slice(baseVersion.length);
+  var suffixNumbers = suffixVersion.match(/\d+/g) || [];
+
+  return {
+    base: baseVersion ? baseVersion.split('.').map(Number) : [],
+    suffix: suffixNumbers.map(Number)
+  };
+}
+
 // Version comparison helper
 function versionGreaterThan(v1, v2) {
- 
   if (!v2 && v1) return false;
   if (!v1 || !v2) return false;
-  var a = v1.split('.').map(Number);
-  var b = v2.split('.').map(Number);
+  var parsedV1 = parseVersionParts(v1);
+  var parsedV2 = parseVersionParts(v2);
+  var a = parsedV1.base;
+  var b = parsedV2.base;
   for (var i = 0; i < Math.max(a.length, b.length); i++) {
     var n1 = a[i] || 0;
     var n2 = b[i] || 0;
     if (n1 > n2) return true;
     if (n1 < n2) return false;
   }
+
+  var suffixA = parsedV1.suffix;
+  var suffixB = parsedV2.suffix;
+  for (var j = 0; j < Math.max(suffixA.length, suffixB.length); j++) {
+    var s1 = suffixA[j] || 0;
+    var s2 = suffixB[j] || 0;
+    if (s1 > s2) return true;
+    if (s1 < s2) return false;
+  }
+
   return false;
 }
  

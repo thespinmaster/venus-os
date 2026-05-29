@@ -1,3 +1,4 @@
+#!/usr/bin/python3 -u
 
 # === All code below is to simply run it from the commandline for debugging purposes ===
 
@@ -22,7 +23,6 @@ sys.path.append(os.path.join(os.path.dirname(__file__), 'ext'))
 from dbus_test_service import DbusTestService
 from argparse import ArgumentParser
 from gi.repository import GLib # type: ignore
-
 
 log = logging.getLogger()
 

@@ -1,33 +1,23 @@
 #!/usr/bin/env bash
 
-RESTART_GUI_SERVICE=1
+PACKAGE_CUSTOM_SERVICE_KEY="Inetbox"
+PACKAGE_CUSTOM_SERVICE_NAME="dbus-inetbox"
+PACKAGE_CUSTOM_SERVICE_DISPLAY_NAME="Inetbox"
 
-DBUS_SETTINGS="
-		{'path':'/Settings/OpkgManager/CustomOverviewPages/InetboxOverview', 'default':''}
-		{'path':'/Settings/OpkgManager/CustomMenus/PageSettings/InetboxPageSettingsSubMenu', 'default':''}
-		{'path':'/Settings/OpkgManager/CustomServices/Inetbox/ProductName', 'default':'Inetbox'}
-		{'path':'/Settings/OpkgManager/CustomServices/Inetbox/ServiceName', 'default':'dbus-Inetbox'}
-"
+PACKAGE_CUSTOM_OVERVIEW_PAGES=(InetboxOverview)
+PACKAGE_CUSTOM_MENUS=(PageSettings/InetboxPageSettingsSubMenu)
 
+PACKAGE_DBUS_SETTINGS=
 #use defaults
 # {'path':'/Settings/OpkgManager/CustomServices/Inetbox/UsbProps', 'default':'ID_VENDOR,ID_MODEL,ID_SERIAL'}
 # {'path':'/Settings/OpkgManager/CustomServices/Inetbox/UsbMappingName', 'default':'inetbox'}
 
-#DBUS_SETTINGS_DEPRECIATED='
+#PACKAGE_DBUS_SETTINGS_DEPRECATED='
 #		{'path':'/Settings/Devices/dbus_inetbox/Port'}
 #		{'path':'/Settings/Devices/dbus_inetbox/ServiceName'}
 #'
 
-[[ ${DEV_INSTALL:-} == 1 ]] && [[ -d /data/dev/addons/opkg-manager/src ]] && 
-		export VE_ROOT_PATH=/data/dev/addons/opkg-manager/src
-		
 # shellcheck source=/data/dev/addons/opkg-manager/src/data/opkg-manager/source-common
 source "${VE_ROOT_PATH:-}/data/opkg-manager/source-common"
+addsource install-helper "$@"
 
-setsource install-helper
- 
-if [[ "${1:-}" == "install" || "${1:-}" == "dev-install" ]]; then
-	install_helper_post_install 
-elif [[ "${1:-}" == "remove" ]]; then
-	install_helper_pre_remove
-fi

@@ -73,13 +73,12 @@ dbus_common_set_string_value() {
   local value="${2}"
 	
 	if ! __call_dbus_settings "${path}" SetValue "${value}"; then
-		echo "adding new setting"
+
 		if __call_dbus_settings / AddSettings "%[ {'path':'${path}', 'default':''} ]"; then
-			echo "setting value"
 			__call_dbus_settings "${path}" SetValue "${value}" && return 0
-			echo "error setting value: \"${path}\" SetValue \"${value}\""  
+			echo "Error: Setting value: \"${path}\" SetValue \"${value}\""  
 		else
-			echo "error adding setting: AddSettings \"%[ {'path':'${path}', 'default':''} ]\"" 
+			echo "Error: Adding setting: AddSettings \"%[ {'path':'${path}', 'default':''} ]\"" 
 		fi
 		return 1
 	fi

@@ -15,16 +15,16 @@ assets_dir="${this_dir_full}/assets"
 
 # shellcheck disable=SC2120
 stage_default_vars() {
-  SERVICE_NAME="${1:-dummy_service}"
-  SERVICE_MAPPING_NAME="ve_${SERVICE_NAME}"
-  TTY=
+  DEVICE_SERVICE_NAME="${1:-dummy_service}"
+  DEVICE_SERVICE_MAPPING_NAME="ve_${DEVICE_SERVICE_NAME}"
+  DEVICE_TTY=
   SERVICE_PATH="$output_dir/service"
   SERIAL_STARTER_START_SERVICE_PATH="$output_dir/serial-starter"
 
   SERIAL_STARTER_RULES_FILE="$output_dir/serial-starter.rules"
   SERIAL_STARTER_CONFIG_FILE="$output_dir/serial-starter.conf"
   SERIAL_STARTER_RULES_TEXT_MATCH='RUN+="/opt/victronenergy/serial-starter/cleanup.sh %k"'
-  UDEVADM_PROPS="ID_BUS,ID_VENDOR,ID_MODEL,ID_SERIAL"
+  DEVICE_UDEV_PROPS="ID_BUS,ID_VENDOR,ID_MODEL,ID_SERIAL"
   USE_UDEVADM_MONITOR="1"
   USB_TIMEOUT=3
 }
@@ -44,12 +44,12 @@ install() {
   cp "$assets_dir/serial-starter.conf" "$output_dir/serial-starter.conf"
   chmod +w+r "${output_dir}/"*
 
-  TTY=
-  UDEVADM_PROPS="ID_BUS=usb,ID_VENDOR=FTDI,ID_MODEL=FT232R_USB_UAR,ID_SERIAL=FTDI_FT232R_USB_UART_A5069RR4"
+  DEVICE_TTY=
+  DEVICE_UDEV_PROPS="ID_BUS=usb,ID_VENDOR=FTDI,ID_MODEL=FT232R_USB_UAR,ID_SERIAL=FTDI_FT232R_USB_UART_A5069RR4"
 
   # Act
   serial_device_installer_install
-  echo "TTY=$TTY"
+  echo "DEVICE_TTY=$DEVICE_TTY"
 
 }
 install

@@ -12,6 +12,12 @@
 			"name": "data",
 			"path": "/data"
 		},
+		{
+			"path": "../../opt/victronenergy"
+		},
+		{
+			"path": "../../etc/udev/rules.d"
+		}
 	],
 	"settings": {
 		"python.analysis.include": [

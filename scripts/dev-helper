@@ -9,6 +9,10 @@ readonly serial_starter_conf="/etc/venus/serial-starter.conf"
 readonly service_templates_dir="/opt/victronenergy/service-templates"
 
 
+print_clear_all() {
+  printf '\033c'
+}
+
 print_success() {
   echo "✓ $*"
 }
@@ -187,6 +191,16 @@ Dev helper commands:
       Connects a previously disconnected USB device`scripts/libs/usb-lib`.
   dev usb list [ttyUSB0]
       Show `udevadm` properties for one tty, or all USB tty devices.
+  dev udev reload
+      reloads all the usb rules files (serial-starter-rules and others)
+  dev udev add [tty port]
+      uses udeadm to send an "add" trigger, simulating a device being added
+  dev udev remove [tty port]
+      uses udeadm to send an "remove" trigger, simulating a device being removed
+  dev udev change [tty port]
+      uses udeadm to send an "change" trigger, simulating a device change
+  dev udev test [tty port]
+      uses udeadm to output the test results from scanning the device rules files
   dev check service <name>
       Check the udev -> serial-starter -> service-template chain for a service.
   dev show diskspace
@@ -281,7 +295,7 @@ run_usb() {
       "${usb_lib}" disconnect "${2}"
       ;;
     add|connect)
-      [[ -n "${2:-}" ]] || { echo "ERROR: device id is required for 'dev usb connect'" >&2; return 1; }
+      [[ -n "${2:-}" ]] || { echo "ERROR: device id (1-4:1) is required for 'dev usb connect'" >&2; return 1; }
       "${usb_lib}" connect "${2}"
       ;;
     list)
@@ -355,6 +369,28 @@ reset_service() {
 
   print_success "Reset complete for ${service_name}.${tty}"
 }
+run_udev() {
+  case "${1:-}" in
+    reload)
+      udevadm control --reload
+      [[ -n "${2:-}" ]] &&
+        run_udev ${2:-} "${3:-}" 
+      ;;
+    add|remove|change)
+      [[ -z "${2:-}" ]] && echo "missing argument: tty port"
+      udevadm trigger --action=${1} /sys/class/tty/${2}
+      ;;
+    test)
+      [[ -z "${2:-}" ]] && echo "missing argument: tty port"
+      udevadm test /sys/class/tty/${2}
+      ;;
+    *)
+      print_error "Unknown udev command: ${1:-<missing>}"
+      print_help >&2
+      return 1
+      ;;
+  esac
+}
 
 run_reset() {
   case "${1:-}" in
@@ -371,16 +407,23 @@ run_reset() {
   esac
 }
 
+
 main() {
-  
+
   local command="${1:-help}"
-  shift
+  [[ -n "${1:-}" ]] && shift
 
   case "${command}" in
     paths)
       echo "$this_path" 
       echo "$usb_lib"
       echo "$dbus_common"
+      ;;
+    udev)
+      run_udev "$@"
+      ;;
+    cls|clear|clr)
+      print_clear_all
       ;;
     help|--help|"")
       print_help

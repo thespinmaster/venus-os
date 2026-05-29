@@ -84,8 +84,7 @@ class InetboxController:
 																	classAndVrmInstance, 
 																	serviceIdentifier , 
 																	self.dbus_value_to_inetbox)
-  
-		self._dbusInetboxService.set_value("/Theme", self._settings["/Theme"])
+
 	
 	# serial port -> dbus
 	def inetbox_value_to_dbus(self, name: str, value):
@@ -121,7 +120,7 @@ class InetboxController:
 
 		try:
 			if not path.startswith(self.DBUS_PATH):
-				if (path == "/CustomName" or path == "/Theme"):
+				if (path == "/CustomName"):
 					self._settings[path] = value
 					return True
 				return False
@@ -167,7 +166,7 @@ class InetboxController:
 	def _handle_dbus_setting_changed(self, path, oldvalue, newvalue):
 		try:
 			self.log.info('setting changed, setting: %s, old: %s, new: %s' % (path, oldvalue, newvalue))
-			if (path == "/CustomName" or path == "/Theme"):
+			if (path == "/CustomName"):
 				self._dbusInetboxService.set_value(path, newvalue)
 				return True
 			
@@ -261,8 +260,7 @@ class InetboxController:
 						f"{dbus_constants.SERVICE_TYPE_TEMPERATURE}:{dbus_constants.DEFAULT_DEVICE_INSTANCE}", 0, 0],
 						
 				'/Sid' : [f'{self._settingsPath}/Sid', self._sid, 0, 0],
-				'/Theme' : [f'{self._settingsPath}/Theme',"light", 0, 0],
-				'/CustomName' : [f'{self._settingsPath}/CustomName', "", 0, 1],
+				'/CustomName' : [f'{self._settingsPath}/CustomName', "", "", ""],
 				'/LastHeatingTemp' : [f'{self._settingsPath}/LastHeatingTemp', 16, 4, 30],
 				#'syncClock' : [f'{settingsPath}/SyncClock', 1, 0, 1],
 				},

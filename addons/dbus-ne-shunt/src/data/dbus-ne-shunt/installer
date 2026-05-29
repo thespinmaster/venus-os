@@ -1,27 +1,14 @@
 #!/usr/bin/env bash
- 
-DBUS_SETTINGS="
-    {'path':'/Settings/OpkgManager/CustomOverviewPages/NeShuntOverview', 'default':''}
-	
-		{'path':'/Settings/OpkgManager/CustomServices/NeShunt/ProductName', 'default': 'Ne Shunt'}
-		{'path':'/Settings/OpkgManager/CustomServices/NeShunt/ServiceName', 'default':'dbus-neshunt'}
-"
 
-#DBUS_SETTINGS_DEPRECIATED="
-#		{'path':'/Settings/OpkgManager/CustomMenus/PageSettingsDisplay/PageSettingsNeShuntSubMenu'}
-#"
+PACKAGE_CUSTOM_SERVICE_KEY="NeShunt"
+PACKAGE_CUSTOM_SERVICE_NAME="dbus-ne-shunt"
+PACKAGE_CUSTOM_SERVICE_DISPLAY_NAME="Ne Shunt"
 
-[[ ${DEV_INSTALL:-} == 1 ]] && [[ -d /data/dev/addons/opkg-manager/src ]] && 
-		export VE_ROOT_PATH=/data/dev/addons/opkg-manager/src
-		
+PACKAGE_CUSTOM_OVERVIEW_PAGES=(NeShuntOverview)
+
+PACKAGE_DBUS_SETTINGS=
+PACKAGE_DBUS_SETTINGS_DEPRECATED=
+
 # shellcheck source=/data/dev/addons/opkg-manager/src/data/opkg-manager/source-common
 source "${VE_ROOT_PATH:-}/data/opkg-manager/source-common"
-
-setsource install-helper
- 
-if [[ "$1" == "install" || "$1" == "dev-install" ]]; then
-	install_helper_post_install
-elif [[ "$1" == "remove" ]]; then
-	install_helper_pre_remove
-fi
- 
+addsource install-helper "$@"

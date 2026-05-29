@@ -52,8 +52,8 @@ MbPage {
 								property VBusItem productName: VBusItem { bind: (modelData.bindPrefix || "") + "/ProductName" }
                 description: productName.value
  
-								onSelected: onSerialDeviceSelected(pathName)
-								onClicked: onSerialDeviceSelected(pathName)
+								onSelected: onSerialDeviceSelected(deviceOption.pathName, productName.value)
+								onClicked: onSerialDeviceSelected(deviceOption.pathName, productName.value)
 							}
 						}
 
@@ -70,14 +70,16 @@ MbPage {
  
 	}
 
-	function onSerialDeviceSelected() {
-		if (!pathName || pathName.length === 0)
+	function onSerialDeviceSelected(serviceTypePath, productName) {
+		console.log("onSerialDeviceSelected")
+
+		if (!serviceTypePath || serviceTypePath.length === 0)
 			return
 
 		var changed = root.selectedServiceTypePath != "" && root.selectedServiceTypePath != pathName
-
-		root.selectedServiceTypePath = pathName
-		selectServiceType.item.text = description
+ 
+		root.selectedServiceTypePath = serviceTypePath
+		selectServiceType.item.text = productName
 		if (changed && deviceModel) {
 			root.doStep("detect-device-done")
 		}
@@ -94,9 +96,14 @@ MbPage {
 			root.toolbarLeftText = ""
 			return
 		}
-
+ 
 		if (root.selectedServiceTypePath && root.step == "") {
 			root.toolbarLeftText = "Detect Usb Device"
+			return
+		}
+
+		if (root.step == "apply-device-done") {
+			root.toolbarLeftText = "Done"
 			return
 		}
 		if (root.step != "") {
@@ -359,7 +366,7 @@ MbPage {
 			} else if (step == "" && root.outputLog) {
 				
 				root.outputLog.clear()
-			
+
 			}
 			break
 		case "detect-device":

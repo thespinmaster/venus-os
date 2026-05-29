@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 
-setsource() {
+# mark ourselfs as alreaded sourced
+__SOURCE_COMMON_SOURCED=1
+
+addsource() {
 
   if [[ ${DEV_INSTALL:-} == 1 ]]; then
     if [[ -z ${VE_ROOT_DIR:-} ]]; then
@@ -10,9 +13,16 @@ setsource() {
   fi
  
   local file="${1}"
-  set -- # resets $1, $2 ... so they don't propergate to the source
- 
+  local guard_var="__${file//[^a-zA-Z0-9_]/_}_SOURCED"
+  shift 1
+
+  [[ -n "${!guard_var:-}" ]] && return 0;
+
 	# shellcheck disable=SC1090
-	source "${VE_ROOT_DIR:-}/data/opkg-manager/${file}"
+  # Mark this file as loaded only if source succeeds; failed loads can retry later.
+	# printf sets the guard_var to 1 ;-)
+
+  source "${VE_ROOT_DIR:-}/data/opkg-manager/${file}" \
+    && printf -v "$guard_var" '%s' 1
 
 }

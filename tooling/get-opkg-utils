@@ -11,25 +11,10 @@ require_cmd() {
 }
  
 if [[ ! -d ./opkg-utils ]]; then
+  local opkg_source="https://github.com/thespinmaster/opkg-utils"
+  echo "cloning opkg-utils from (${opkg_source})"
   require_cmd git
-  git clone https://github.com/shr-project/opkg-utils
-else
-  echo "opkg-utils exists"
+  git clone "${opkg_source}"
 fi
 
-uninstall_coreutils=
-
-if ! opkg list-installed 2>/dev/null | grep -q "^coreutils "; then
-  opkg update
-  opkg install coreutils
-  uninstall_coreutils=1
-fi
-
-cur_dir="$PWD"
-trap 'cd "$cur_dir"' EXIT
-
-cd ./opkg-utils/
-make install
-
-((uninstall_coreutils==1)) &&
-  opkg remove coreutils
+./opkg-utils/install

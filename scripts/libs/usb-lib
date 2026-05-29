@@ -68,7 +68,7 @@ usb_disconnect() {
 usb_connect() {
   local usbdev="$1"
 
-  test -d "/sys/bus/usb/devices/$usbdev" || { echo "ERROR: Device not found: $usbdev" >&2; return 1; }
+  test -d "/sys/bus/usb/devices/$usbdev" || { echo "ERROR: Device not found (format is 1-1.4): $usbdev" >&2; return 1; }
 
   echo "$usbdev"
   echo "$usbdev" > /sys/bus/usb/drivers/usb/bind
@@ -168,10 +168,6 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
       shift
       usb_get_tty "${1}" "${2}"
       ;;
-    list)
-      shift
-      usb_list "${1:-}"
-      ;;
     disconnect|remove)
       __validatePort "${2:-}"
       shift
@@ -187,7 +183,7 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
       shift
       usb_reconnect "${1}"
       ;;
-    usb_get_props)
+    list|usb_get_props)
       __validatePort "${2:-}"
       shift
       usb_get_props "$@"

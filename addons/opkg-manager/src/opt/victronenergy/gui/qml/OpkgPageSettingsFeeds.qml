@@ -78,7 +78,7 @@ MbPage {
 					rightIcon: (feedModel?.builtin) ? "" :"icon-toolbar-ok"
 					function leftAction() { pageStack.pop() }
 					function rightAction() {
-						root.add_update_feed(isNew, feedNameEdit.item.value, feedUrlEdit.item.value)		 
+						root.add_update_feed(isNew, feedNameEdit, feedUrlEdit)		 
 					}
 				}
 			
@@ -88,6 +88,7 @@ MbPage {
 	delegate: OpkgHeaderDescriptionItem {
 		editable: true
 		header: modelData.name
+		showFooter: false
 		description: "Url: " + modelData.url
 		descriptionWrapMode: Text.WrapAtWordBoundaryOrAnywhere
 		showCompact: root.showCompact
@@ -98,9 +99,10 @@ MbPage {
 	pageToolbarHandler: ToolbarHandler {
 		leftText: qsTr("Add")
 		rightText: {
+ 
 			if (root.currentIndex >= 0 && root.currentIndex < feedsModel.length) {
-				var builtIn = feedsModel[root.currentIndex].builtin
-				if (!builtIn) {
+				var builtin = feedsModel[root.currentIndex].builtin
+				if (!builtin) {
 					return qsTr("Remove")
 				}
 			}
@@ -110,8 +112,8 @@ MbPage {
 			if (opkgBridge.running) {
 				return
 			}
-			
-			var page = editFeedPageComponent.createObject(pageStack, { isNew: true });
+			var model = {name:"", description:"", builtin:false}
+			var page = editFeedPageComponent.createObject(pageStack, { isNew: true});
 			if (page) {
 				pageStack.push(page);
 			}
@@ -120,6 +122,10 @@ MbPage {
 			if (opkgBridge.running) {
 				return
 			}
+			
+			if (feedsModel[root.currentIndex].builtIn) 
+				return
+
 			opkgBridge.operationName = "feed remove"
  
 			var name = feedsModel[root.currentIndex].name
@@ -130,10 +136,19 @@ MbPage {
 	//////////////////
 	// methods
  
-  function add_update_feed(isNew, name, url) {
+  function add_update_feed(isNew, feedNameEdit, feedUrlEdit) {
+
 		if (!opkgBridge || opkgBridge.running) {
 				return
 			}
+
+			if (feedNameEdit.editMode)
+				feedNameEdit.save()
+			if (feedUrlEdit.editMode)
+				feedUrlEdit.save()
+
+			var name = feedNameEdit.item.value
+			var url = feedUrlEdit.item.value
 			if (!isValid()) {
 				return
 			}
@@ -143,14 +158,12 @@ MbPage {
 			if (isNew) {
  
 				opkgBridge.operationName="feed add"
-				//console.log("add_update_feed:add-feed,feedName:" + opkgBridge.feedName + ",feedUrl:" + opkgBridge.feedUrl)
-
+ 
 				opkgBridge.start(["feed", "add", opkgBridge.feedName, opkgBridge.feedUrl])
 			} else {
 				opkgBridge.operationName="feed edit"
 				var curFeedName = feedsModel[root.currentIndex].name || ""
-				//console.log("add_update_feed:edit-feed,feedName:" + opkgBridge.feedName + ",feedUrl:" + opkgBridge.feedUrl + ",curFeedName:" +curFeedName + ",idx:" +root.currentIndex)
-
+ 
 				opkgBridge.start(["feed", "edit", opkgBridge.feedName, opkgBridge.feedUrl, curFeedName])
 			}
 			
@@ -178,30 +191,39 @@ MbPage {
 
 	function removeFeed() {
 		if (root.currentIndex >= 0 && root.currentIndex < feedsModel.length) {
+ 
+			var curIndex = root.currentIndex
 			feedsModel.splice(root.currentIndex, 1)
 			feedsModel = feedsModel.slice();
+			if (curIndex > 0)
+				root.currentIndex = curIndex -= 1
 		}
 	}
 
-	function updateFeed(isNew, name, url) {
-		if (isNew)
+	function updateFeed(name, url) {
+		var curPage = pageStack.currentItem || pageStack.currentPage
+
+		if (curPage.isNew) {
 			feedsModel.push({ name: name, url: url, builtin: false })
-		else if (root.currentIndex >= 0 && root.currentIndex < feedsModel.length) {
+			curPage.isNew = false
+			root.currentIndex = feedsModel.length - 1
+		} else if (root.currentIndex >= 0 && root.currentIndex < feedsModel.length) {
 			var feed = feedsModel[root.currentIndex]
 			feed.name = name
 			feed.url = url
 		}
+
+		var curIdx = root.currentIndex
 		feedsModel = feedsModel.slice();
+		root.currentIndex = curIdx
 	}
  
 	function loadFeedsFromFile(file) {
 		try {
 			var filePath = (typeof file === "string") ? file.trim() : "";
 			if (!filePath || filePath.length === 0) {
-				console.log("loadFeedsFromFile: No feeds file path returned:");
 				throw new Error("No feeds file path returned");
 			}
-			//console.log("FileHelper:" + filePath);
 
 			var jsonText = FileHelper.readFile(filePath);
 			if (typeof jsonText !== "string" || jsonText.length === 0) {
@@ -214,7 +236,6 @@ MbPage {
 			}).filter(function(f) { return f !== null; });
 
 		} catch (err) {
-			console.log("ERROR:loadFeedsFromFile:" + err.message);
 			toast.createToast("Error loading feeds: " + err.message);
 			feedsModel = [];
 		}
@@ -236,12 +257,10 @@ MbPage {
 		}
 
 		onErrorLine: function(line) {
-			console.log(line)
 			opkgErrorLine = line
 		}
 		onFinished: function(exitCode, exitStatus) {
-			console.log("onFinished:" + operationName + ", " + exitCode)
-			
+
 			try {
 
 				if (exitCode !== 0) {
@@ -259,15 +278,13 @@ MbPage {
 						break;
 					case "feed remove":
 						removeFeed()
-						toast.createToast("remove succeeded")
+						toast.createToast("Remove succeeded")
 						break;
 					case "feed add":
 					case "feed edit":
-						var isNew = operationName == "feed add"
-	
-						updateFeed(isNew, feedName, feedUrl)
-						toast.createToast((isNew ? "add" : "edit") +  " succeeded")
-						//pageStack.pop()
+						updateFeed(feedName, feedUrl)
+						toast.createToast((operationName == "feed add" ? "Add" : "Edit") +  " succeeded")
+	 
 						break;
 				}
  

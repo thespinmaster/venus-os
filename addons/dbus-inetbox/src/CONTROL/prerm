@@ -1,4 +1,3 @@
 #!/bin/bash
- 
-"${VE_ROOT_DIR:-}/data/dbus-inetbox/installer" "remove"
- 
+
+"${VE_ROOT_DIR:-}/data/dbus-inetbox/installer" "$1" "$0"

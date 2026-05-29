@@ -290,7 +290,7 @@ build_package() {
   # echo "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" > "${develop_path}/data/${name}/buildtime"
   echo "$(date)" > "${develop_path}/data/${name}/buildtime"
  
-  opkg-build -o root -g root "${develop_path}" "${feed_path_abs}"
+  opkg-build -o root -g root "${develop_path}/" "${feed_path_abs}"
  
   rm -rf "${build_path:?}"
  

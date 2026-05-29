@@ -1,18 +1,40 @@
 #!/usr/bin/env bash
 
 set -o nounset
-
-# set package name using the path of the calling file's location
-PACKAGE_NAME="${PACKAGE_NAME-"$(basename "$(dirname "$(realpath "${0}")")")"}"
-RESTART_GUI_SERVICE="${RESTART_GUI_SERVICE:=0}"
-DBUS_SETTINGS="${DBUS_SETTINGS-}"
 RC_LOCAL_SCRIPT="${RC_LOCAL_SCRIPT-}"
 
-[[ ${DEV_INSTALL:-} == 1 ]] && [[ -d /data/dev/addons/opkg-manager/src ]] && 
-		export VE_ROOT_PATH=/data/dev/addons/opkg-manager/src
-		
+
+RESTART_GUI_SERVICE="${RESTART_GUI_SERVICE:=0}"
+
+PACKAGE_ACTION="${1:-}"
+# set package name using the path of the calling file's location
+PACKAGE_NAME="${PACKAGE_NAME-"$(basename "$(dirname "$(realpath "${0}")")")"}"
+PACKAGE_DBUS_SETTINGS="${PACKAGE_DBUS_SETTINGS-}"
+PACKAGE_CUSTOM_SERVICE_KEY="${PACKAGE_CUSTOM_SERVICE_KEY-}"
+PACKAGE_CUSTOM_SERVICE_NAME="${PACKAGE_CUSTOM_SERVICE_NAME-}"
+PACKAGE_CUSTOM_SERVICE_DISPLAY_NAME="${PACKAGE_CUSTOM_SERVICE_DISPLAY_NAME-}"
+
+PACKAGE_VERSION_NEW=
+PACKAGE_VERSION_CURRENT=
+
+[[ "$PACKAGE_ACTION" == "dev-install" || "$PACKAGE_ACTION" == "dev-remove" ]] &&
+	DEV_INSTALL=1;
+
+[[ ${DEV_INSTALL:-} == 1 ]] && [[ -d /data/dev/addons/opkg-manager/src ]] &&
+	export VE_ROOT_PATH=/data/dev/addons/opkg-manager/src
+
 # shellcheck source=/data/dev/addons/opkg-manager/src/data/opkg-manager/source-common
-source "${VE_ROOT_PATH:-}/data/opkg-manager/source-common"
+[[ -n "${__SOURCE_COMMON_SOURCED:-}" ]] || { 
+	source "${VE_ROOT_PATH:-}/data/opkg-manager/source-common" && __SOURCE_COMMON_SOURCED=1; }
+
+__try_call() {
+	local calling_method="${1}"
+  
+	if declare -F ${calling_method} >/dev/null; then
+		shift
+		${calling_method} "$@" 
+	fi
+}
 
 install_helper_add_remove_dbus_csv_items() {
 	
@@ -22,9 +44,9 @@ install_helper_add_remove_dbus_csv_items() {
 	shift 2
 
 	dbus_common_get_value "${dbusPath}" csv_string
- 
+
 	__install_helper_add_remove_comma_delimited_string "$command" csv_string "$@" 
-	
+
 	if [[ -z "${csv_string}" ]]; then
 		dbus_common_remove_settings <<< "{'path':'${dbusPath}'}"
 		return 0
@@ -33,32 +55,187 @@ install_helper_add_remove_dbus_csv_items() {
 	dbus_common_set_string_value "${dbusPath}" "${csv_string}"
 }
 
-install_helper_add_remove_custom_service_path() {
-	
-	local -a service_paths=()
-
-	__get_custom_service_paths_from_dbus_settings_byref service_paths
-
-	install_helper_add_remove_dbus_csv_items "$1" "/Settings/OpkgManager/AvailableCustomServices" "${service_paths[@]}" 
-	
+__install_helper_has_custom_service_vars() {
+	[[ -n "${PACKAGE_CUSTOM_SERVICE_KEY:-}" ]] ||
+	[[ -n "${PACKAGE_CUSTOM_SERVICE_NAME:-}" ]] ||
+	[[ -n "${PACKAGE_CUSTOM_SERVICE_DISPLAY_NAME:-}" ]]
 }
 
-__get_custom_service_paths_from_dbus_settings_byref() {
-  # shellcheck disable=SC2178 # false positve
-	local -n _out_paths="$1" 
-	local -A seen_paths=()
-	local line=
-	local service_path=
+__install_helper_has_custom_overview_pages() {
+	declare -p PACKAGE_CUSTOM_OVERVIEW_PAGES >/dev/null 2>&1 || return 1
+	((${#PACKAGE_CUSTOM_OVERVIEW_PAGES[@]} > 0))
+}
 
-	_out_paths=()
+__install_helper_has_custom_menus() {
+	declare -p PACKAGE_CUSTOM_MENUS >/dev/null 2>&1 || return 1
+	((${#PACKAGE_CUSTOM_MENUS[@]} > 0))
+}
 
-	while IFS= read -r line; do
-		[[ "$line" =~ /Settings/OpkgManager/CustomServices/([^/]+)/ProductName ]] || continue
-		service_path="${BASH_REMATCH[1]}"
-		[[ -z "$service_path" || -n "${seen_paths[$service_path]:-}" ]] && continue
-		seen_paths["$service_path"]=1
-		_out_paths+=("$service_path")
-	done <<< "${DBUS_SETTINGS:-}"
+__install_helper_validate_custom_overview_pages_definition() {
+	declare -p PACKAGE_CUSTOM_OVERVIEW_PAGES >/dev/null 2>&1 || return 0
+
+	local declaration=
+	declaration="$(declare -p PACKAGE_CUSTOM_OVERVIEW_PAGES 2>/dev/null)"
+	[[ "${declaration}" == declare\ -a* ]] || {
+		echo "ERROR: PACKAGE_CUSTOM_OVERVIEW_PAGES must be a bash array with entries: Key or Key=Value" >&2
+		return 1
+	}
+
+	return 0
+}
+
+__install_helper_validate_custom_menus_definition() {
+	declare -p PACKAGE_CUSTOM_MENUS >/dev/null 2>&1 || return 0
+
+	local declaration=
+	declaration="$(declare -p PACKAGE_CUSTOM_MENUS 2>/dev/null)"
+	[[ "${declaration}" == declare\ -a* ]] || {
+		echo "ERROR: PACKAGE_CUSTOM_MENUS must be a bash array with entries: Path or Path=Value" >&2
+		return 1
+	}
+
+	return 0
+}
+
+__install_helper_parse_custom_overview_page_entry() {
+	local entry="${1:-}"
+	local -n _out_key="$2"
+	local -n _out_value="$3"
+
+	[[ -n "${entry}" ]] || {
+		echo "ERROR: PACKAGE_CUSTOM_OVERVIEW_PAGES contains an empty entry" >&2
+		return 1
+	}
+
+	if [[ "${entry}" == *=* ]]; then
+		_out_key="${entry%%=*}"
+		_out_value="${entry#*=}"
+	else
+		_out_key="${entry}"
+		_out_value=
+	fi
+
+	[[ -n "${_out_key}" ]] || {
+		echo "ERROR: PACKAGE_CUSTOM_OVERVIEW_PAGES entry '${entry}' has an empty key" >&2
+		return 1
+	}
+
+	return 0
+}
+
+__install_helper_parse_custom_menu_entry() {
+	local entry="${1:-}"
+	local -n _out_path="$2"
+	local -n _out_value="$3"
+
+	[[ -n "${entry}" ]] || {
+		echo "ERROR: PACKAGE_CUSTOM_MENUS contains an empty entry" >&2
+		return 1
+	}
+
+	if [[ "${entry}" == *=* ]]; then
+		_out_path="${entry%%=*}"
+		_out_value="${entry#*=}"
+	else
+		_out_path="${entry}"
+		_out_value=
+	fi
+
+	[[ -n "${_out_path}" ]] || {
+		echo "ERROR: PACKAGE_CUSTOM_MENUS entry '${entry}' has an empty path" >&2
+		return 1
+	}
+
+	return 0
+}
+
+install_helper_add_custom_overview_pages() {
+	local entry= key= value=
+
+	for entry in "${PACKAGE_CUSTOM_OVERVIEW_PAGES[@]}"; do
+		__install_helper_parse_custom_overview_page_entry "${entry}" key value || return 1
+
+		dbus_common_add_settings <<EOF
+{'path':'/Settings/OpkgManager/CustomOverviewPages/${key}', 'default':'${value}'}
+EOF
+	done
+}
+
+install_helper_remove_custom_overview_pages() {
+	local entry= key= value=
+
+	for entry in "${PACKAGE_CUSTOM_OVERVIEW_PAGES[@]}"; do
+		__install_helper_parse_custom_overview_page_entry "${entry}" key value || return 1
+
+		dbus_common_remove_settings <<EOF
+{'path':'/Settings/OpkgManager/CustomOverviewPages/${key}'}
+EOF
+	done
+}
+
+install_helper_add_custom_menus() {
+	local entry= menu_path= value=
+
+	for entry in "${PACKAGE_CUSTOM_MENUS[@]}"; do
+		__install_helper_parse_custom_menu_entry "${entry}" menu_path value || return 1
+
+		dbus_common_add_settings <<EOF
+{'path':'/Settings/OpkgManager/CustomMenus/${menu_path}', 'default':'${value}'}
+EOF
+	done
+}
+
+install_helper_remove_custom_menus() {
+	local entry= menu_path= value=
+
+	for entry in "${PACKAGE_CUSTOM_MENUS[@]}"; do
+		__install_helper_parse_custom_menu_entry "${entry}" menu_path value || return 1
+
+		dbus_common_remove_settings <<EOF
+{'path':'/Settings/OpkgManager/CustomMenus/${menu_path}'}
+EOF
+	done
+}
+
+__install_helper_require_custom_service_vars() {
+	__install_helper_has_custom_service_vars || return 1
+
+	[[ -n "${PACKAGE_CUSTOM_SERVICE_KEY:-}" ]] || {
+		echo "ERROR: PACKAGE_CUSTOM_SERVICE_KEY not set" >&2
+		return 1
+	}
+	[[ -n "${PACKAGE_CUSTOM_SERVICE_NAME:-}" ]] || {
+		echo "ERROR: PACKAGE_CUSTOM_SERVICE_NAME not set" >&2
+		return 1
+	}
+	[[ -n "${PACKAGE_CUSTOM_SERVICE_DISPLAY_NAME:-}" ]] || {
+		echo "ERROR: PACKAGE_CUSTOM_SERVICE_DISPLAY_NAME not set" >&2
+		return 1
+	}
+
+	return 0
+}
+
+install_helper_add_custom_service() {
+	__install_helper_require_custom_service_vars || return 1
+
+	dbus_common_add_settings <<EOF
+{'path':'/Settings/OpkgManager/CustomServices/${PACKAGE_CUSTOM_SERVICE_KEY}/ProductName', 'default':'${PACKAGE_CUSTOM_SERVICE_DISPLAY_NAME}'}
+{'path':'/Settings/OpkgManager/CustomServices/${PACKAGE_CUSTOM_SERVICE_KEY}/ServiceName', 'default':'${PACKAGE_CUSTOM_SERVICE_NAME}'}
+EOF
+
+	install_helper_add_remove_dbus_csv_items "add" "/Settings/OpkgManager/AvailableCustomServices" "${PACKAGE_CUSTOM_SERVICE_KEY}"
+}
+
+install_helper_remove_custom_service() {
+	__install_helper_require_custom_service_vars || return 1
+
+	dbus_common_remove_settings <<EOF
+{'path':'/Settings/OpkgManager/CustomServices/${PACKAGE_CUSTOM_SERVICE_KEY}/ProductName'}
+{'path':'/Settings/OpkgManager/CustomServices/${PACKAGE_CUSTOM_SERVICE_KEY}/ServiceName'}
+EOF
+
+	install_helper_add_remove_dbus_csv_items "remove" "/Settings/OpkgManager/AvailableCustomServices" "${PACKAGE_CUSTOM_SERVICE_KEY}"
 }
 
 # function: __install_helper_add_remove_comma_delimited_string
@@ -145,18 +322,30 @@ __initialize=0
 install_helper_initialize() {
 	(( ${__initialize:-0} )) && return
 	__initialize=1
-	setsource "opkg-common"
-	setsource "dbus-common"
-	setsource "file-patcher"
-	
+	addsource "opkg-common"
+	addsource "dbus-common"
+	addsource "file-patcher"
+
 }
 
-install_helper_post_install() {
+install_helper_restart_gui_service() {
+	((RESTART_GUI_SERVICE==0)) && return
 
+	echo "Restarting gui service..."
+  #svc -t /service/gui &
+	nohup svc -t /service/gui >/dev/null 2>&1 &
+}
+
+install_helper_install() {
+ 
   [[ -z "${PACKAGE_NAME:-}" ]] && { echo "ERROR: PACKAGE_NAME not set"; return 1; }
- 
+	__install_helper_validate_custom_overview_pages_definition || return 1
+	__install_helper_validate_custom_menus_definition || return 1
+	
 	install_helper_initialize
- 
+
+	__try_call "pre_install"
+
 	echo "Registering package: ${PACKAGE_NAME}"
 	opkg_common_register_package "${PACKAGE_NAME}"
 
@@ -164,60 +353,145 @@ install_helper_post_install() {
 		echo "Package build time: $(cat /data/"${PACKAGE_NAME}"/buildtime)"
 	fi
 
-	[[ -n "${RC_LOCAL_SCRIPT:-}" ]] &&
-		opkg_common_add_script_to_rc_local "${RC_LOCAL_SCRIPT}"
-
 	install_helper_add_remove_patch add
  
-  [[ -n "${DBUS_SETTINGS:-}" || -n "${DBUS_SETTINGS_DEPRECIATED:-}" ]] &&
+  [[ -n "${PACKAGE_DBUS_SETTINGS:-}" || -n "${PACKAGE_DBUS_SETTINGS_DEPRECATED:-}" ]] &&
 		echo "Adding dbus settings"
 		
-	[[ -n "${DBUS_SETTINGS_DEPRECIATED:-}" ]] &&
-		dbus_common_remove_settings <<< "${DBUS_SETTINGS_DEPRECIATED}"
+	[[ -n "${PACKAGE_DBUS_SETTINGS_DEPRECATED:-}" ]] &&
+		dbus_common_remove_settings <<< "${PACKAGE_DBUS_SETTINGS_DEPRECATED}"
  
-	[[ -n "${DBUS_SETTINGS:-}" ]] && {
-		dbus_common_add_settings <<< "${DBUS_SETTINGS}"
-		install_helper_add_remove_custom_service_path "add"
+	[[ -n "${PACKAGE_DBUS_SETTINGS:-}" ]] && {
+		dbus_common_add_settings <<< "${PACKAGE_DBUS_SETTINGS}"
 	}
 
+	if __install_helper_has_custom_overview_pages; then
+		install_helper_add_custom_overview_pages || return 1
+	fi
+
+	if __install_helper_has_custom_menus; then
+		install_helper_add_custom_menus || return 1
+	fi
+
+	if __install_helper_has_custom_service_vars; then
+		install_helper_add_custom_service || return 1
+	fi
+
+	if [[ -n "${PACKAGE_CUSTOM_SERVICE_NAME}" ]]; then 
+		addsource "serial-device-installer"
+		DEVICE_SERVICE_NAME="${PACKAGE_CUSTOM_SERVICE_NAME}"
+		serial_device_installer_add_service_mapping
+		install_helper_update_services
+	fi
+
+	__try_call "post_install"
+
 	install_helper_restart_gui_service
+ 
+	echo "Finished $PACKAGE_ACTION"
+
 	return 0
 }
- 
-install_helper_pre_remove() {
 
+install_helper_uninstall_services() {
+	addsource "serial-device-installer"
+	DEVICE_SERVICE_NAME="${PACKAGE_CUSTOM_SERVICE_NAME}"
+ 
+  local args=
+	[[ "$PACKAGE_ACTION" == "upgrade-remove" ]] &&
+		args="--no-remove-usb-rule --no-remove-service-mapping"
+	
+	serial_device_installer_uninstall_package $args # do not use "
+}
+
+install_helper_update_services() {
+	[[ "$PACKAGE_ACTION" != "upgrade-install" ]] && return
+
+	echo "Restarting services..."
+
+	addsource "serial-device-installer"
+	DEVICE_SERVICE_NAME="${PACKAGE_CUSTOM_SERVICE_NAME}"
+	serial_device_installer_restart_services
+}
+
+
+install_helper_remove() {
+ 
 	[[ -z "$PACKAGE_NAME" ]] && { echo "ERROR: PACKAGE_NAME not set"; return 1; }
-	local action="${1-}"
+	__install_helper_validate_custom_overview_pages_definition || return 1
+	__install_helper_validate_custom_menus_definition || return 1
 
 	install_helper_initialize
- 
+
+	__try_call "pre_remove"
+
 	[[ -n "${RC_LOCAL_SCRIPT:-}" ]] &&
 		opkg_common_remove_script_from_rc_local "${RC_LOCAL_SCRIPT}"
- 
+
 	opkg_common_unregister_package "$PACKAGE_NAME"
+
+	install_helper_add_remove_patch remove
+
+	if __install_helper_has_custom_service_vars; then
+		echo "Removing custom service settings"
+		install_helper_remove_custom_service || return 1
+	fi
+
+	[[ -n "${PACKAGE_DBUS_SETTINGS:-}" ]] && {
+		echo "Removing dbus settings"
+		dbus_common_remove_settings <<< "$PACKAGE_DBUS_SETTINGS"
+	}
+
+	if __install_helper_has_custom_overview_pages; then
+		echo "Removing custom overview page settings"
+		install_helper_remove_custom_overview_pages || return 1
+	fi
+
+	if __install_helper_has_custom_menus; then
+		echo "Removing custom menu settings"
+		install_helper_remove_custom_menus || return 1
+	fi
+
+	if [[ -n "${PACKAGE_CUSTOM_SERVICE_NAME}" ]]; then
+		echo "Removing services for ${PACKAGE_CUSTOM_SERVICE_NAME}"
+		install_helper_uninstall_services
+	fi
  
-	install_helper_add_remove_patch remove 
+	__try_call "post_remove"
+
+	install_helper_restart_gui_service
 	
-	if [[ "$action" != "upgrade" ]]; then
-		[[ -n "${DBUS_SETTINGS:-}" || -n "${DBUS_SETTINGS_DEPRECIATED:-}" ]] &&
-			echo "Removing dbus settings"
-
-		[[ -n "${DBUS_SETTINGS:-}" ]] && {
-			dbus_common_remove_settings <<< "$DBUS_SETTINGS"
-			install_helper_add_remove_custom_service_path "remove"
-		}
-
-		install_helper_restart_gui_service
+	if [[ $PACKAGE_ACTION == "upgrade-remove" ]]; then
+		echo "Removed previous install, upgrading now..."
+	else
+		echo "Finished $PACKAGE_ACTION"
 	fi
 
 	return 0
 }
 
-install_helper_restart_gui_service() {
-	((RESTART_GUI_SERVICE==0)) && return
+###########################################################################
+
+if [[ $PACKAGE_ACTION == "configure" ]]; then
+  declare package_no_extension="${2%.*}"
  
-	echo "Restarting gui service..."
-  #svc -t /service/gui &
-	nohup svc -t /service/gui >/dev/null 2>&1 &
-}
+	#PACKAGE_NAME="$(awk '/Package:/ {print $2}' ${package_no_extension}.control)"
+	PACKAGE_VERSION_NEW="$(awk '/Version:/ {print $2}' ${package_no_extension}.control 2>/dev/null)"
+	PACKAGE_VERSION_CURRENT="$(opkg status "$PACKAGE_NAME" 2>/dev/null | awk '/Version:/ {print $2}' 2>/dev/null)"
+	[[ -z "$PACKAGE_VERSION_CURRENT" ]] \
+		&& PACKAGE_ACTION="install" \
+		|| PACKAGE_ACTION="upgrade-install"
+	#TODO downgrade?
+elif [[ "$PACKAGE_ACTION" == "upgrade" ]]; then
+	PACKAGE_ACTION="upgrade-remove"
+fi
+echo "Install Action: $PACKAGE_ACTION"
  
+case "${PACKAGE_ACTION}" in
+  install|upgrade-install|configure|dev-install)
+		install_helper_install;;
+  remove|upgrade|upgrade-remove|dev-remove)
+    install_helper_remove;;
+esac
+
+

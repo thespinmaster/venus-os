@@ -17,7 +17,7 @@ import random
 
 from ext.vedbus import VeDbusService
 from ext.settingsdevice import SettingsDevice
-from dbus_connection import dbusconnection
+from dbus_connection import dbusconnection 
 from serial_port_reader import SerialPortReader
 
 PRODUCT_NAME = "test service"
@@ -60,13 +60,13 @@ class DbusTestService(object):
         self._dbusservice.add_path('/Mgmt/ProcessName', __file__)
         self._dbusservice.add_path('/Mgmt/ProcessVersion', 'Unkown version, and running on Python ' + platform.python_version())
         self._dbusservice.add_path('/Mgmt/Connection', "usb")
-
+        
         # Create the mandatory objects
         self._dbusservice.add_path('/DeviceInstance', sid)
         self._dbusservice.add_path('/ProductId', PRODUCT_ID)
         self._dbusservice.add_path('/ProductName', PRODUCT_NAME)
-        self._dbusservice.add_path('/FirmwareVersion', 0)
-        self._dbusservice.add_path('/HardwareVersion', 0)
+        self._dbusservice.add_path('/FirmwareVersion', 1)
+        self._dbusservice.add_path('/HardwareVersion', 1.1)
         self._dbusservice.add_path('/Connected', 1)
 
         self.initialize_service_paths()

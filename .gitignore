@@ -15,7 +15,7 @@ addons/opkg-manager/src/qmlplugin/cmake_install.cmake
 addons/opkg-manager/src/qmlplugin/*.autosave
 addons/opkg-manager/src/qmlplugin/*_autogen/
 archive/
-feeds/.build/**/
+.build/**/
 tooling/**/
 **/tests/output/
 # Python virtual environments (global)
