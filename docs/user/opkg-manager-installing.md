@@ -29,12 +29,12 @@ package <action> [args ...] <package-name>
 Example:
 
 ```
-feed opkg-manager-release https://thespinmaster.github.io/venus-os-addons/feeds/release/opkg-manager
-package install opkg-manager
-package install --force-reinstall dbus-inetbox
+feed some-awesome-feed https://feedurl.com/feeds/release
+package install [name of package to install]
+package install --force-reinstall [name of package to install]
 ```
 
-An example config file is can be downloaded from here: [venus-data-opkg-manager-blind-install.conf](https://thespinmaster.github.io/venus-os-addons/feeds/release/venus-data-opkg-manager-blind-install.conf)
+An example config file can be downloaded from here: [venus-data-opkg-manager-blind-install.conf](https://thespinmaster.github.io/venus-os-addons/feeds/release/venus-data-opkg-manager-blind-install.conf)
 
 
 ## Installed
