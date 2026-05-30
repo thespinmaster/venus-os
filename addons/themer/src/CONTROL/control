@@ -1,6 +1,6 @@
 Package: themer
-Version: 1.0.0
-Description: Adds basic theming support on the Venus OS
+Version: 1.1.0
+Description: Adds basic theming support to the Venus OS
 Section: utilities
 Priority: optional
 Maintainer: thespinmaster@github.com

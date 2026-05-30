@@ -23,6 +23,21 @@ fi
 
 echo "Feeds OK"
 echo "======================================="
+echo "Creating latest feed package"
+echo "======================================="
+
+declare newest_opkg_manager_ipk=$(find feeds -type f -name 'opkg-manager*.ipk' -printf '%T@ %p\n' | sort -nr | head -n1 | cut -d' ' -f2-)
+
+if [ -n "$newest_opkg_manager_ipk" ]; then
+    latest_copy_path="$(dirname "$newest_opkg_manager_ipk")/opkg-manager-latest.ipk"
+    cp -f "$newest_opkg_manager_ipk" "$latest_copy_path"
+    echo "Created latest package copy: $latest_copy_path"
+else
+    echo "No opkg-manager*.ipk package found under feeds/"
+fi
+
+
+echo "======================================="
 echo " Generating feed HTML indexes"
 echo "======================================="
 
@@ -48,7 +63,6 @@ li { padding: 4px 0; }
 
 # Generate index pages inside feeds
 find feeds -type d | while read -r dir; do
-
 {
     echo "$html_head"
     echo "<h1>${dir#feeds/}</h1>"
@@ -85,18 +99,6 @@ find feeds -type d | while read -r dir; do
 
 done
 
-declare newest_opkg_manager_ipk=$(find feeds -type f -name 'opkg-manager*.ipk' -printf '%T@ %p\n' | sort -nr | head -n1 | cut -d' ' -f2-)
-
-if [ -n "$newest_opkg_manager_ipk" ]; then
-    latest_copy_path="$(dirname "$newest_opkg_manager_ipk")/opkg-manager-latest.ipk"
-    cp -f "$newest_opkg_manager_ipk" "$latest_copy_path"
-    echo "Created latest package copy: $latest_copy_path"
-else
-    echo "No opkg-manager*.ipk package found under feeds/"
-fi
-
-
-
 echo "======================================="
-echo " Feed validation complete"
+echo " Feed validation and feed index page generation complete "
 echo "======================================="

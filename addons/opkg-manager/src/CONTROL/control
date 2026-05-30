@@ -1,5 +1,5 @@
 Package: opkg-manager
-Version: 1.0.1
+Version: 1.1.0
 Description: A manager for installing opkg packages on the Venus OS
 Section: utilities
 Priority: optional

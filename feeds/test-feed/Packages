@@ -1,12 +1,12 @@
 Package: test-install
-Version: 1.0.4+d260529.1039
+Version: 1.1.0+d260530.0904
 Depends: opkg-manager
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: a78872d16b7dfa789b79c66e8f0ee4c3
-Size: 1286
-Filename: test-install_1.0.4+d260529.1039_all.ipk
+MD5Sum: d1946e99b700181325197621792d9334
+Size: 1288
+Filename: test-install_1.1.0+d260530.0904_all.ipk
 Source: https://thespinmaster.github.io/venus-os-addons
 Description:  A simple app for testing installs
 OE: einstine
@@ -14,14 +14,14 @@ License: MIT
 Priority: optional
 
 Package: test-service
-Version: 1.0.0+d260529.1039
+Version: 1.1.0+d260530.0904
 Depends: opkg-manager
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: 8e64329ab3546c5af2cce33b5014b87f
-Size: 40842
-Filename: test-service_1.0.0+d260529.1039_all.ipk
+MD5Sum: 2cf99f3868ce282c85d86af7054d0649
+Size: 40152
+Filename: test-service_1.1.0+d260530.0904_all.ipk
 Source: https://thespinmaster.github.io/venus-os-addons
 Description:  A simple service for testing adding and removing a serial device
 OE: einstine
