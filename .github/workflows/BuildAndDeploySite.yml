@@ -23,7 +23,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # 1. BUILD FEEDS FIRST
       - name: Build feeds
@@ -51,7 +51,7 @@ jobs:
           mkdir -p _site/feeds
           cp -r feeds/* _site/feeds/
       # 5. UPLOAD
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v4
         with:
           path: _site
 
