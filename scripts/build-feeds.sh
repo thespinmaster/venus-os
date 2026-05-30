@@ -26,7 +26,7 @@ echo "======================================="
 echo "Creating latest feed package"
 echo "======================================="
 
-declare newest_opkg_manager_ipk=$(find feeds -type f -name 'opkg-manager*.ipk' -printf '%T@ %p\n' | sort -nr | head -n1 | cut -d' ' -f2-)
+declare newest_opkg_manager_ipk=$(find feeds/release/opkg-manager -type f -name 'opkg-manager*.ipk' -printf '%T@ %p\n' | sort -nr | head -n1 | cut -d' ' -f2-)
 
 if [ -n "$newest_opkg_manager_ipk" ]; then
     latest_copy_path="$(dirname "$newest_opkg_manager_ipk")/opkg-manager-latest.ipk"

@@ -64,9 +64,9 @@ __restore_previous_fs_access() {
 
 opkg_common_ensure_feed_symlink() {
 
-  local new_target="/data/conf/opkg-manager-${1:-release}.conf"
+  local new_target="/data/conf/opkg-manager-feeds-${1:-release}.conf"
 
-  [[ ! -f "/data/conf/opkg-manager-feeds-${new_target}.conf" ]] && { 
+  [[ ! -f "${new_target}" ]] && { 
     log_error "feed target file does not exist: ${new_target}"; }
 
   local current_source=""
