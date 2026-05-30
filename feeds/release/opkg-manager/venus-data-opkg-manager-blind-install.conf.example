@@ -1,0 +1,12 @@
+# Example config for blind-install
+# One directive per line.
+# Blank lines and comment lines are ignored.
+
+# Feed format:
+# feed <feed-name> <feed-url>
+feed opkg-manager-release https://thespinmaster.github.io/venus-os-addons/feeds/release/opkg-manager
+
+# Package format:
+# package <action> [args ...] <package-name>
+package install opkg-manager
+package install --force-reinstall dbus-inetbox

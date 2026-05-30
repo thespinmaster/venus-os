@@ -89,6 +89,130 @@ opkg_common_set_feed() {
   opkg_common_ensure_feed_symlink "${1}"
 }
 
+opkg_common_feed_add() {
+
+  local feed_name="${1:-}"
+  local feed_url="${2:-}"
+
+  [[ -z "${feed_name}" ]] && { log_error "Invalid name"; return 1; }
+  [[ "${feed_name}" =~ [^a-zA-Z0-9_-] ]] && { log_error "Invalid name"; return 1; }
+  [[ "${feed_name}" == "opkg-manager" ]] && { log_error "The opkg-manager cannot be removed/edited"; return 1; }
+  [[ -z "${feed_url}" ]] && { log_error "Feed url required"; return 1; }
+
+  [[ ! -f "${OPKG_FEED_CONFIG_FILE_SYMLNK}" ]] && opkg_common_ensure_feed_symlink
+
+  if grep -qE "^src/gz ${feed_name} " "${OPKG_FEED_CONFIG_FILE_SYMLNK}" ||
+    grep -qE "^src/gz ${feed_name} " "/etc/opkg/venus.conf"; then
+    log_trace "Feed already exists: ${feed_name}"
+    return 0
+  fi
+
+  echo "src/gz ${feed_name} ${feed_url}" >> "${OPKG_FEED_CONFIG_FILE_SYMLNK}" || {
+    log_error "Error writing feed: ${feed_name}"
+    return 1
+  }
+
+  return 0
+}
+
+feed_editor() {
+
+  local mode="${1:-}"
+  local feed_name="${2:-}"
+  local feed_url="${3:-}"
+  local old_feed_name="${4:-}"
+
+  # Validate feed_name
+
+  [[ -z "${feed_name}" ]] && { echo "Invalid name" >&2; return 1; }
+  [[ "${feed_name}" =~ [^a-zA-Z0-9_-] ]] && { echo "Invalid name" >&2; return 1; }
+  [[ "${feed_name}" == "opkg-manager" ]] && { echo "The opkg-manager cannot be removed/edited"; return 1; }
+
+  if [[ -n "${old_feed_name}" ]] && [[ "${old_feed_name}" =~ [^a-zA-Z0-9_] ]]; then
+    echo "Invalid old name: '${old_feed_name}'" >&2
+    return 1
+  fi
+
+  [[ ! -f "${OPKG_FEED_CONFIG_FILE_SYMLNK}" ]] &&
+    opkg_common_ensure_feed_symlink
+
+  #for clarity use new var
+  local existing_feed_name=$feed_name;
+  [[ -n $old_feed_name ]] && existing_feed_name=$old_feed_name
+
+  # echo "$mode,$feed_name,$feed_url,$old_feed_name,$existing_feed_name" >&2
+
+  local -i exists=0
+
+  feedNameExists() {
+    local -n _exists=$2; _exists=0
+    grep -qE "^src/gz ${1} " "${OPKG_FEED_CONFIG_FILE_SYMLNK}"
+    [[ $? == 0 ]] && { _exists=1; return; }
+    grep -qE "^src/gz ${1} " "/etc/opkg/venus.conf"
+    [[ $? == 0 ]] && _exists=1;
+  }
+
+  feedNameExists "${existing_feed_name}" exists
+
+  local feed_line="src/gz ${feed_name} ${feed_url}"
+
+  if [[ $mode == add ]]; then
+    opkg_common_feed_add "${feed_name}" "${feed_url}"
+    return $?
+  fi
+
+  ((!exists)) && { echo "Feed not found: $feed_name" >&2; return 1; }
+
+  if [[ $mode == edit ]]; then
+    # if an edit make sure new name does not already exist if name given is diff from old
+    [[ -z "${feed_url}" ]] && { echo "edit: feed url required" >&2; return 1; }
+
+    [[ -n $old_feed_name && ! "${feed_name}" == "${old_feed_name}" ]] && {
+      # make sure the new feed name does not exist if name is different from existing
+      feedNameExists "${feed_name}" exists
+      ((exists)) && { echo "Invalid name; feed name already exists: $feed_name" >&2; return 1; }
+    }
+
+  fi
+
+  tmp_file=$(mktemp)
+  local -i found=0
+
+  # create new contents
+  # skip line if removing, else if edit find line and replace
+  while IFS= read -r line; do
+    if [[ "$line" == src/gz\ ${existing_feed_name}\ * ]]; then
+      [[ ! "$mode" == remove ]] && echo "$feed_line"
+      found=1
+      continue
+    fi
+    echo "$line"
+  done < "${OPKG_FEED_CONFIG_FILE_SYMLNK}" > "$tmp_file"
+
+  ((!found)) && echo "$feed_line" >> "$tmp_file"  # add to end if not found
+
+  # make sure we update the real file and not the symlink
+  local feedfile="${OPKG_FEED_CONFIG_FILE_SYMLNK}"
+  [[ -L "${feedfile}" ]] && feedfile="$(readlink "${OPKG_FEED_CONFIG_FILE_SYMLNK}")"
+
+  mv "$tmp_file" "${feedfile}" || { echo "Error writing to ${feedfile}" >&2; return 1; }
+
+  return 0
+}
+
+feed_get_feed_type() {
+
+  local feedfile="${OPKG_FEED_CONFIG_FILE_SYMLNK}"
+  local feedType=
+  [[ -L "${feedfile}" ]] && feedfile="$(readlink "${OPKG_FEED_CONFIG_FILE_SYMLNK}")"
+  if [[ -f "${feedfile}" ]]; then
+    feedType="${feedfile##*-}"    # remove everything up to last '-'
+    feedType="${feedType%.conf}"  # remove suffix
+  fi
+  # default to release, as opkg_common_ensure_feed_symlink will take care of missing conf.
+  echo "${feedType:-release}" 
+}
+
 opkg_common_remove_feed_symlink() {
   if [[ -L "${OPKG_FEED_CONFIG_FILE_SYMLNK}" ]]; then
     rm -f "${OPKG_FEED_CONFIG_FILE_SYMLNK}"
