@@ -38,7 +38,7 @@ html_head='
 body { font-family: monospace; }
 ul { list-style: none; padding: 0; }
 li { padding: 4px 0; }
-.name { display:inline-block; width:40ch; }
+.name { display:inline-block; width:60ch; }
 .mtime { display:inline-block; width:20ch; }
 .size { display:inline-block; width:10ch; text-align:right; }
 </style>
@@ -63,7 +63,7 @@ find feeds -type d | while read -r dir; do
         [ -e "$f" ] || continue
         name=$(basename "$f")
         [ "$name" = "index.html" ] && continue
-
+        
         if [ -f "$f" ]; then
             size=$(stat -c %s "$f")
             size=$(numfmt --to=iec --suffix=B "$size")
@@ -84,6 +84,18 @@ find feeds -type d | while read -r dir; do
 } > "$dir/index.html"
 
 done
+
+local newest_opkg_manager_ipk=$(find feeds -type f -name 'opkg-manager*.ipk' -printf '%T@ %p\n' | sort -nr | head -n1 | cut -d' ' -f2-)
+
+if [ -n "$newest_opkg_manager_ipk" ]; then
+    latest_copy_path="$(dirname "$newest_opkg_manager_ipk")/opkg-manager-latest.ipk"
+    cp -f "$newest_opkg_manager_ipk" "$latest_copy_path"
+    echo "Created latest package copy: $latest_copy_path"
+else
+    echo "No opkg-manager*.ipk package found under feeds/"
+fi
+
+
 
 echo "======================================="
 echo " Feed validation complete"
