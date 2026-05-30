@@ -2,6 +2,8 @@
 
 This document captures code-level flows for the opkg-manager addon.
 
+Related: [Installer Integration Patterns (Developer Note)](installer-integration-patterns.md)
+
 ## 1) High-level architecture
 
 ```mermaid
