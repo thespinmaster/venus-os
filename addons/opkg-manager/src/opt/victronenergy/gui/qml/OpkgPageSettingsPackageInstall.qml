@@ -170,9 +170,9 @@ MbPage {
 		}
 
 		rightText: {
- 
-        if (packageModel && packageModel.installedVersion) {
-						return qsTr("Remove");
+        if (packageModel && packageModel.installedVersion &&
+						packageModel.name != "opkg-manager") {
+							return qsTr("Remove");
 				}
         return qsTr("");
 		}

@@ -32,5 +32,5 @@ While `patch` is useful during development, it is a poor fit for production inst
 Instead, Opkg Manager uses a custom `file-patcher` method for very small, controlled integration hooks at the end of UI files. These hook blocks are intentionally minimal and are designed to be applied and removed cleanly during install and uninstall. This keeps updates safer and rollback behavior predictable.
 
 
-# 
+---
 #### Next - [Installing](opkg-manager-installing.md)

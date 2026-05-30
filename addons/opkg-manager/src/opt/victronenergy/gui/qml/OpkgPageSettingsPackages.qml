@@ -7,7 +7,7 @@ import "opkgPageSettingsPackages.js" as Vm
 
 MbPage {
 	id: root
-	title: qsTr("Open Package Manager")
+	title: qsTr("Packages")
 	model: packagesModel
 
 	property var curPage: pageStack ? (pageStack.currentPage || pageStack.currentItem) : undefined

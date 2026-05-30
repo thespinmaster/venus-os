@@ -25,7 +25,7 @@ Installers run on many firmware versions and combinations of add-ons. Shared-fil
 - Apply/remove those hook blocks with `file-patcher apply` and `file-patcher revert` so the operation is symmetric.
 - Model integration through settings/metadata and helper scripts that can be re-applied safely.
 - Keep ownership clear: install creates package-owned artifacts, uninstall removes only those artifacts.
-- Design for idempotency: running install/remove multiple times should converge to the same result.
+- Design for idempotency: running install/remove multiple times, in different orders, should converge to the same result.
 
 ## Practical rule of thumb
 

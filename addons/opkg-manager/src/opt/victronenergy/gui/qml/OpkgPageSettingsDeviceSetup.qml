@@ -14,6 +14,7 @@ MbPage {
 	property var outputLog
  	property var serviceTypesModel: []
 	property var usbPropsModel: []
+	property var serviceTypeOptions: []
 	property string toolbarRightText: ""
 	property string toolbarLeftText: ""
  	property string selectedServiceTypePath: ""
@@ -29,63 +30,68 @@ MbPage {
  	onStepChanged: refreshToolbarState()
 	onDeviceModelChanged: refreshToolbarState()
 	onSelectedServiceTypePathChanged: refreshToolbarState()
+	onServiceTypesModelChanged: refreshServiceTypeOptions()
 	
 	model: VisibleItemModel {
  
-		MbSubMenu {
+		MbItemOptions {
 			id: selectServiceType
 			description: qsTr("Serial Device")
-			item.text: qsTr("Select")
+			unknownOptionText: qsTr("Select")
+			message: root.serviceTypesModel.length === 0 ? qsTr("No custom devices currently installed") : ""
+			possibleValues: root.serviceTypeOptions
+			onOptionSelected: {
+				if (!newValue || newValue.length === 0)
+					return
 
-			subpage: Component {
-				MbPage {
-					title: qsTr("Select Serial Device")
+				var changed = root.selectedServiceTypePath != "" && root.selectedServiceTypePath != newValue
 
-					model: VisualModels {
-						DelegateModel {
-							model: root.serviceTypesModel
-
-							delegate: MbSubMenu {
-								id: deviceOption
-								property string pathName: modelData.pathName
-								
-								property VBusItem productName: VBusItem { bind: (modelData.bindPrefix || "") + "/ProductName" }
-                description: productName.value
- 
-								onSelected: onSerialDeviceSelected(deviceOption.pathName, productName.value)
-								onClicked: onSerialDeviceSelected(deviceOption.pathName, productName.value)
-							}
-						}
-
-						VisibleItemModel {
-							MbItemRow {
-								show: root.serviceTypesModel.length === 0
-								description: qsTr("No custom devices currently installed")
-							}
-						}
-					}
-				}
+				root.selectedServiceTypePath = newValue
+				if (changed && deviceModel)
+					root.doStep("detect-device-done")
 			}
 		}
  
 	}
 
-	function onSerialDeviceSelected(serviceTypePath, productName) {
-		console.log("onSerialDeviceSelected")
-
-		if (!serviceTypePath || serviceTypePath.length === 0)
-			return
-
-		var changed = root.selectedServiceTypePath != "" && root.selectedServiceTypePath != pathName
- 
-		root.selectedServiceTypePath = serviceTypePath
-		selectServiceType.item.text = productName
-		if (changed && deviceModel) {
-			root.doStep("detect-device-done")
+	Component {
+		id: serviceTypeOptionFactory
+		MbOption {
+			property string bindPrefix: ""
+			property VBusItem productNameItem: VBusItem { bind: (bindPrefix || "") + "/ProductName" }
+			description: productNameItem.value
 		}
-		if (pageStack.currentPage !== root)
-			pageStack.pop()
+	}
 
+	function refreshServiceTypeOptions() {
+		for (var i = 0; i < root.serviceTypeOptions.length; i++) {
+			if (root.serviceTypeOptions[i])
+				root.serviceTypeOptions[i].destroy()
+		}
+
+		var options = []
+		for (var j = 0; j < root.serviceTypesModel.length; j++) {
+			var serviceType = root.serviceTypesModel[j]
+			options.push(serviceTypeOptionFactory.createObject(root, {
+				bindPrefix: serviceType.bindPrefix,
+				value: serviceType.pathName
+			}))
+		}
+
+		root.serviceTypeOptions = options
+
+		var stillAvailable = false
+		for (var k = 0; k < root.serviceTypesModel.length; k++) {
+			if (root.serviceTypesModel[k].pathName === root.selectedServiceTypePath) {
+				stillAvailable = true
+				break
+			}
+		}
+
+		if (!stillAvailable) {
+			root.selectedServiceTypePath = ""
+			selectServiceType.localValue = ""
+		}
 	}
 
 	function refreshToolbarState() {
@@ -296,14 +302,20 @@ MbPage {
 		return usbPropItems
 	}
  
-	function reset_page() { root.selectedServiceTypePath = "" }
+	function reset_page() {
+		root.selectedServiceTypePath = ""
+		selectServiceType.localValue = ""
+	}
  
 	onStatusChanged: {
 		if (root.status == 0 && pageStack.find(function(page) { return page === root }) === null)
 			reset_page()
 	}
  
-	Component.onCompleted: refreshToolbarState()
+	Component.onCompleted: {
+		createCustomServicesModel()
+		refreshToolbarState()
+	}
  
 	function showApply() {
  

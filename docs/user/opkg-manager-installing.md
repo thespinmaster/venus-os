@@ -43,6 +43,6 @@ After installing there should be a menu item Open Package Manager under Menu/Set
 ![Opkg Manager settings menu screenshot](images/opkg-manager-settings-menu.png "Opkg Manager Settings Menu")
 
 
-# 
+---
 #### Previous - [Overview](opkg-manager-overview.md)
 #### Next - [Usage](opkg-manager-usage.md)
