@@ -34,7 +34,7 @@ package install [name of package to install]
 package install --force-reinstall [name of package to install]
 ```
 
-An example config file can be downloaded from here: [venus-data-opkg-manager-blind-install.conf](https://thespinmaster.github.io/venus-os-addons/feeds/release/opkg-manager/venus-data-opkg-manager-blind-install.conf)
+An example config file can be downloaded from here: [venus-data-opkg-manager-blind-install.conf.example](https://thespinmaster.github.io/venus-os-addons/feeds/release/opkg-manager/venus-data-opkg-manager-blind-install.conf.example)
 
 
 ## Installed
