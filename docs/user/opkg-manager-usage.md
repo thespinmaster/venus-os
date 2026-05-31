@@ -2,12 +2,12 @@
 
 This guide walks you through the basic use of Opkg Manager, including how to manage packages and feeds, install USB serial devices, and safely preview changes before applying them.
 
-![Opkg Manager Settings](images/opkg-manager-settings.png "Opkg Manager Settings")
+![Opkg Manager Settings](images/opkg-manager-settings.webp "Opkg Manager Settings")
 
 ### Packages
 Use the Packages page to install, upgrade, reinstall, or remove add-ons.
 
-![Opkg Manager Packages](images/opkg-manager-settings-packages.png "Opkg Manager Packages")
+![Opkg Manager Packages](images/opkg-manager-settings-packages.webp "Opkg Manager Packages")
 
 Typical workflow:
 
@@ -28,7 +28,7 @@ Tip: Enable **No Action** first to preview dependency resolution before making c
 ### Feeds
 Feeds are package sources. The **Feeds** page lets you manage which repositories Opkg Manager uses.
 
-![Opkg Manager Feeds](images/opkg-manager-settings-feeds.png "Opkg Manager Feeds")
+![Opkg Manager Feeds](images/opkg-manager-settings-feeds.webp "Opkg Manager Feeds")
 
 Common feed tasks:
 
@@ -60,11 +60,11 @@ Detection notes (what the installer checks):
 * The USB properties needed by the selected service profile. 
 * Whether the device is already in use, or if it is already in use by another service/process.
 
-![USB Serial Device Installer Detection Output](images/opkg-manager-settings.png "USB Serial Device Installer Detection Output")
+![USB Serial Device Installer Detection Output](images/opkg-manager-settings.webp "USB Serial Device Installer Detection Output")
 
 After detection, The Apply button will appear. Click Apply and the required configuration will be applied and the service should start.
 
-![USB Serial Device Installer Apply Output](images/opkg-manager-settings.png "USB Serial Device Installer Apply Output")
+![USB Serial Device Installer Apply Output](images/opkg-manager-settings.webp "USB Serial Device Installer Apply Output")
 
 If a device is not detected:
 

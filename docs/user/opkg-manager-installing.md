@@ -40,7 +40,7 @@ An example config file can be downloaded from here: [venus-data-opkg-manager-bli
 ## Installed
 After installing there should be a menu item Open Package Manager under Menu/Settings
 
-![Opkg Manager settings menu screenshot](images/opkg-manager-settings-menu.png "Opkg Manager Settings Menu")
+![Opkg Manager settings menu screenshot](images/opkg-manager-settings-menu.webp "Opkg Manager Settings Menu")
 
 
 ---

@@ -9,10 +9,10 @@ Many thanks guys!
 The Inetbox addon requires some hardwere inbetween the CerboBX/Raspbery PI.
 See [Here](inetbox-hardware.md) for details
 
-![Inetbox Overview Page](images/inetbox-overview-page.png "Inetbox Overview Page Image")
+![Inetbox Overview Page](images/inetbox-overview-page.webp "Inetbox Overview Page Image")
 
 #### Dark Mode
-![Inetbox Overview Page Dark](images/inetbox-overview-page-dark.png "Inetbox Overview Page Dark Image")
+![Inetbox Overview Page Dark](images/inetbox-overview-page-dark.webp "Inetbox Overview Page Dark Image")
 
 ---
 #### Inetbox - [Hardware](inetbox-hardware.md)
