@@ -15,4 +15,4 @@ See [Here](inetbox-hardware.md) for details
 ![Inetbox Overview Page Dark](images/inetbox-overview-page-dark.png "Inetbox Overview Page Dark Image")
 
 ---
-#### Inetbox - [Using](inetbox-hardware.md)
+#### Inetbox - [Hardware](inetbox-hardware.md)
