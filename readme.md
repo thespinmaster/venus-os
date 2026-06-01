@@ -19,15 +19,15 @@ If you are new to this repository:
 
 ## Addon Documentation
 
-| Add-on | Summary | Overview | Hardware | Setup | Using |
+| Add-on | Summary | Overview | Hardware | Setup | Usage |
 |---|---|---|---|---|---|
 | Opkg Manager | Package/feed manager and USB serial device installer for Venus OS add-ons. | [Overview](docs/user/opkg-manager-overview.md) | - | [Setup](docs/user/opkg-manager-setup.md) | [Using](docs/user/opkg-manager-usage.md) |
-| Themer | UI theme customization add-on for Venus OS. | [Overview](docs/user/themer-overview.md) | - | - | [Using](docs/user/themer-usage.md) |
+| Themer | UI theme customization add-on for Venus OS. | [Overview](docs/user/themer-overview.md) | - | - | - |
 | Inetbox | RV control integration for supported Inetbox hardware. | [Overview](docs/user/inetbox-overview.md) | [Hardware](docs/user/inetbox-hardware.md) | [Setup](docs/user/inetbox-setup.md) | [Using](docs/user/inetbox-usage.md) |
 | Ne Shunt (Nordelettronica shunt) | Integration for supported Nordelettronica shunt devices. | [Overview](docs/user/ne-shunt-overview.md) | [Hardware](docs/user/ne-shunt-hardware.md) | [Setup](docs/user/ne-shunt-setup.md) | [Using](docs/user/ne-shunt-usage.md) |
 | Network GPS | Network-based GPS data integration. | [Overview](docs/user/network-gps-overview.md) | - | [Setup](docs/user/network-gps-setup.md) | - |
 | Mount Shares | Mount and use remote network shares from Venus OS. | [Overview](docs/user/mount-shares-overview.md) | - | - | [Using](docs/user/mount-shares-usage.md) |
-| Node Red | Node-RED integration and workflow support. | [Overview](docs/user/node-red-overview.md) | - | [Setup](docs/user/node-red-setup.md) | [Using](docs/user/node-red-usage.md) |
+| Solar Divert Relay (to come) | Tiggers a relay on|off when there is excess solar | [Overview](docs/user/solar-divert-overview.md) | - | - | - |
 
 ## Notes
 
