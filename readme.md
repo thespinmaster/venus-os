@@ -27,7 +27,7 @@ If you are new to this repository:
 | Ne Shunt (Nordelettronica shunt) | Integration for supported Nordelettronica shunt devices. | [Overview](docs/user/ne-shunt-overview.md) | [Hardware](docs/user/ne-shunt-hardware.md) | [Setup](docs/user/ne-shunt-setup.md) | [Using](docs/user/ne-shunt-usage.md) |
 | Network GPS | Network-based GPS data integration. | [Overview](docs/user/network-gps-overview.md) | - | [Setup](docs/user/network-gps-setup.md) | - |
 | Mount Shares | Mount and use remote network shares from Venus OS. | [Overview](docs/user/mount-shares-overview.md) | - | - | [Using](docs/user/mount-shares-usage.md) |
-| Solar Divert Relay (to come) | Tiggers a relay on||off when there is excess solar available | [Overview](docs/user/solar-divert-overview.md) | - | - | - |
+| Solar Divert Relay (to come) | Tiggers a relay on&#124;off, when excess solar available; or not. | [Overview](docs/user/solar-divert-overview.md) | - | - | - |
 
 ## Notes
 
