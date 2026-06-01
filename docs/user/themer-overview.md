@@ -1,6 +1,23 @@
 # Themer Overview
 
-This page is a placeholder for Themer overview documentation.
+The Themer add-on, adds colour theme support to the Venus OS UI.
+
+## Prerequisite
+
+Install [Opkg Manager](../../readme.md) first before using this add-on.
+
+Once Installed. A theme can be changed in the UI by going to Menu>Settings>Display & Language>Current Theme
+
+The Themer currently only supports a Dark theme
+Other themes will be available soon.
+Other themes can easily be added by third parties by adding dbus settings.
+
+Below is a list of currently available themes, click on the link for a preview of the theme
+
+| Theme | Notes |
+|---|---|
+| [Dark](themer-theme-dark-preview.md) |
+| [System] | The default Venus OS theme |
 
 ---
 #### Previous - [Usage](themer-usage.md)

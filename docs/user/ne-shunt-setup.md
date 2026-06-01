@@ -1,4 +1,4 @@
-# Ne-shunt Installing
+# Ne-shunt Setup
 
 This page is a placeholder for Ne-shunt installation documentation.
 

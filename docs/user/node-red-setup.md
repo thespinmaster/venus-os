@@ -1,6 +1,6 @@
-# Node Red Installing
+# Node Red Setup
 
-This page is a placeholder for Node Red installing documentation.
+This page is a placeholder for Node Red setup documentation.
 
 ---
 #### Previous - [Overview](node-red-overview.md)

@@ -1,4 +1,4 @@
-# Opkg Manager Installing
+# Opkg Manager Setup
 
 ## SSH
 To install via SSH execute the following command

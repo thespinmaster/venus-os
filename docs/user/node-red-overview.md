@@ -2,5 +2,9 @@
 
 This page is a placeholder for Node Red overview documentation.
 
+## Prerequisite
+
+Install [Opkg Manager](../../readme.md) first before using this add-on.
+
 ---
-#### Next - [Usage](node-red-installing.md)
+#### Next - [Setup](node-red-setup.md)

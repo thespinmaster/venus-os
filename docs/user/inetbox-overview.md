@@ -2,6 +2,10 @@
 
 The Inetbox addon brings Truma Heating and Aircon control to the Venus OS.
 
+## Prerequisite
+
+Install [Opkg Manager](../../readme.md) first before using this add-on.
+
 The serial bus micropython code was adapted from the inetbox2mqqt project:
 [inetbox2mqtt](https://github.com/mc0110/inetbox2mqtt)
 Many thanks guys!

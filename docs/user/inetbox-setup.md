@@ -1,12 +1,12 @@
-# Inetbox Installing
+# Inetbox Setup
 
 Before you begin, ensure the [hardware](inetbox-hardware.md) requirements are met.
 
 It is recommended to install the add-on before plugging the Inetbox device into a USB port.
 
-A prerequisite for installing this add-on is the [Opkg Manager](opkg-manager-installing.md).
+A prerequisite for setting up this add-on is the [Opkg Manager](opkg-manager-setup.md).
 
-## Summary of Install Steps
+## Summary of Setup Steps
 
 1. Confirm hardware requirements are met.
 2. Install Opkg Manager.

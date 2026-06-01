@@ -94,4 +94,4 @@ But it will not:
 This is useful when you want to verify that an install or removal will succeed before committing changes, especially on embedded systems where storage space and package dependencies can be sensitive.
 
 ---
-#### Previous - [Installing](opkg-manager-installing.md)
+#### Previous - [Setup](opkg-manager-setup.md)

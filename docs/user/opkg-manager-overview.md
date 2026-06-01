@@ -33,4 +33,4 @@ Instead, Opkg Manager uses a custom `file-patcher` method for very small, contro
 
 
 ---
-#### Next - [Installing](opkg-manager-installing.md)
+#### Next - [Setup](opkg-manager-setup.md)

@@ -2,13 +2,9 @@
 
 __this_path="$(dirname "${BASH_SOURCE[0]}")"
 
-if [[ -f "$__this_path/../opkg-manager/libs/log-lib" ]]; then
-  # shellcheck disable=SC1091
-  . "$__this_path/../opkg-manager/libs/log-lib"
-else
-  . "$__this_path/../../../../opkg-manager/src/data/opkg-manager/libs/log-lib"
-fi
-
+source "$__this_path/../opkg-manager/source-common"
+addsource "log-lib"
+ 
 # readonly mount_common_path="${VENUS_ROOT_DIR:-}/data/mount-shares"
 readonly mountshares_conf_file="/data/conf/mount-shares.conf"
 

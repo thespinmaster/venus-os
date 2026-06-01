@@ -6,16 +6,16 @@ On the Truma side the Heating control panel must be a Truma CP Plus (INet Ready)
 
 If you already have a TRUMA INet X box connected. This must be disconnected first. 
 
-The hardware setup s very simple. You need a LIN>UART board and a USB>UART converter board, and an RJ12 cable (similar to an RJ11 cable but uses 6 wires not 2). Finally a case.
+The hardware setup is very simple. You need a LIN>UART board and a USB>UART converter board, and an RJ12 cable (similar to an RJ11 cable but uses 6 wires not 2). Finally a case.
 
 The recomended LIN board used is a RST T151.
 The recomended UART board is a waveshare UART FT232 board.
   This board is based on a `Genuine' FTDI programable chip.
   You can *optionaly* change the model name in the firmware.
   This is not requirement though. What is important, is the
-  UART board is of good quality and provides a unique serial number
+  UART board is of good quality and provides a unique serial number.
   Cheaper boards (<$10) tend not to have unique serial numbers.
-  This is not a problem, if you only have one UART device, but if you use more than one it makes it hard for the system to identify the correct device.
+  This is not a problem, if you only have one USB UART device, but if you use more than one it makes it hard for the system to identify the correct device.
 
 ### Wiring Diagram
 Below is the wiring diagram, if your lucky you can get away with no soldering.
@@ -31,5 +31,5 @@ For the above hardware, the RJ12 Female socket was salvaged from an old ASDL Tel
 
 --- 
 #### Previous - [Overview](inetbox-overview.md)
-#### Next - [Installing](inetbox-installing.md)
+#### Next - [Setup](inetbox-setup.md)
 
