@@ -1,0 +1,489 @@
+import QtQuick 2
+import com.victron.velib 1.0
+import "utils.js" as Utils
+import OpkgManager 1.0
+ 
+// portPath: required  i.e. "Devices/dbus_inetbox/Port"
+// title: optional
+
+MbPage {
+	id: root
+ 
+  property string step: ""
+	property var deviceModel
+	property var outputLog
+ 	property var serviceTypesModel: []
+	property var usbPropsModel: []
+	property var serviceTypeOptions: []
+	property string toolbarRightText: ""
+	property string toolbarLeftText: ""
+ 	property string selectedServiceTypePath: ""
+  property bool shiftDown: false
+  property MbStyle mbStyle: MbStyle {}
+ 
+	VBusItem {
+		id: customServicePath
+		bind: "com.victronenergy.settings/Settings/OpkgManager/AvailableCustomServices"
+		onValueChanged: root.createCustomServicesModel()
+	}
+ 
+ 	onStepChanged: refreshToolbarState()
+	onDeviceModelChanged: refreshToolbarState()
+	onSelectedServiceTypePathChanged: refreshToolbarState()
+	onServiceTypesModelChanged: refreshServiceTypeOptions()
+	
+	model: VisibleItemModel {
+ 
+		MbItemOptions {
+			id: selectServiceType
+			description: qsTr("Serial Device")
+			unknownOptionText: qsTr("Select")
+			message: root.serviceTypesModel.length === 0 ? qsTr("No custom devices currently installed") : ""
+			possibleValues: root.serviceTypeOptions
+			onOptionSelected: {
+				if (!newValue || newValue.length === 0)
+					return
+
+				var changed = root.selectedServiceTypePath != "" && root.selectedServiceTypePath != newValue
+
+				root.selectedServiceTypePath = newValue
+				if (changed && deviceModel)
+					root.doStep("detect-device-done")
+			}
+		}
+ 
+	}
+
+	Component {
+		id: serviceTypeOptionFactory
+		MbOption {
+			property string bindPrefix: ""
+			property VBusItem productNameItem: VBusItem { bind: (bindPrefix || "") + "/ProductName" }
+			description: productNameItem.value
+		}
+	}
+
+	function refreshServiceTypeOptions() {
+		for (var i = 0; i < root.serviceTypeOptions.length; i++) {
+			if (root.serviceTypeOptions[i])
+				root.serviceTypeOptions[i].destroy()
+		}
+
+		var options = []
+		for (var j = 0; j < root.serviceTypesModel.length; j++) {
+			var serviceType = root.serviceTypesModel[j]
+			options.push(serviceTypeOptionFactory.createObject(root, {
+				bindPrefix: serviceType.bindPrefix,
+				value: serviceType.pathName
+			}))
+		}
+
+		root.serviceTypeOptions = options
+
+		var stillAvailable = false
+		for (var k = 0; k < root.serviceTypesModel.length; k++) {
+			if (root.serviceTypesModel[k].pathName === root.selectedServiceTypePath) {
+				stillAvailable = true
+				break
+			}
+		}
+
+		if (!stillAvailable) {
+			root.selectedServiceTypePath = ""
+			selectServiceType.localValue = ""
+		}
+	}
+
+	function refreshToolbarState() {
+    
+		root.toolbarRightText = root.showApply() ? "Apply" : ""
+ 
+		if (root.step == "canceling") {
+			root.toolbarLeftText = ""
+			return
+		}
+ 
+		if (root.selectedServiceTypePath && root.step == "") {
+			root.toolbarLeftText = "Detect Usb Device"
+			return
+		}
+
+		if (root.step == "apply-device-done") {
+			root.toolbarLeftText = "Done"
+			return
+		}
+		if (root.step != "") {
+			root.toolbarLeftText = "Cancel"
+			return
+		}
+		root.toolbarLeftText = ""
+ 
+	}
+ 
+	function createCustomServicesModel() {
+		var values = []
+		var seen = {}
+ 
+		var entries = Utils.stringToArray(customServicePath.value)
+		for (var i = 0; i < entries.length; i++) {
+			var pathName = (entries[i] || "").trim()
+			if (!pathName || seen[pathName])
+				continue
+
+			seen[pathName] = true
+			values.push({
+				pathName: pathName,
+				bindPrefix: "com.victronenergy.settings/Settings/OpkgManager/CustomServices/" + pathName
+			})
+
+		}
+ 
+		root.serviceTypesModel = values
+	}
+ 
+	listview.footer: Item {
+		id: footerItem
+		height: Math.max(0, root.listview.height - (root.listview.count * root.mbStyle.itemHeight))
+		Component.onCompleted: root.outputLog = outputLogArea
+		anchors {
+			left: parent.left
+			right: parent.right
+		}
+ 
+		Rectangle {
+			id: usbDeviceRect
+			color: "transparent"
+			border.color:  "#cecece"
+			onHeightChanged: root.outputLog ? root.outputLog.scrollToBottom() : 0
+			radius: 4
+			anchors {
+				top: parent.top; topMargin: root.mbStyle.marginDefault
+				left: parent.left; leftMargin: root.mbStyle.marginDefault
+				right: parent.right; rightMargin: root.mbStyle.marginDefault
+			}
+			width: parent.width
+			height: usbPropsFlow.implicitHeight + root.mbStyle.marginDefault
+			Flow {
+				id: usbPropsFlow
+				height: (root.mbStyle.itemHeight + root.mbStyle.marginDefault) * 2 
+				anchors {
+					top: parent.top; topMargin: root.mbStyle.marginItemVertical
+					left: parent.left; leftMargin: root.mbStyle.marginDefault
+					right: parent.right; rightMargin: root.mbStyle.marginDefault
+				}
+				spacing: root.mbStyle.marginItemVertical
+				flow: Flow.LeftToRight
+				Repeater {
+					model: root.usbPropsModel
+					delegate: OpkgLabelValueItem {
+						label: modelData.label
+						value: modelData.value
+						fontSize: root.mbStyle.fontPixelSize - 4
+					}
+				}
+			}
+
+		}
+		
+		OpkgOutputLogArea {
+			id: outputLogArea
+			mbStyle: root.mbStyle
+
+			anchors {
+				top: usbDeviceRect.bottom; topMargin: root.mbStyle.marginDefault
+				left: parent.left; leftMargin: root.mbStyle.marginDefault
+				right: parent.right; rightMargin: root.mbStyle.marginDefault
+				bottom: parent.bottom
+				bottomMargin: root.mbStyle.marginDefault
+			}
+			width: parent.width
+		}
+	}
+
+	Keys.onPressed: function(event) {
+		if (event.key === Qt.Key_Shift)
+				root.shiftDown = true
+	}
+
+	Keys.onReleased: function(event) {
+		if (event.key === Qt.Key_Shift)
+				root.shiftDown = false
+	}
+
+	pageToolbarHandler: ToolbarHandler {
+ 		
+		leftText: root.toolbarLeftText
+		rightText: root.toolbarRightText
+		function rightAction() { root.doStep("apply-device") }
+
+		function leftAction(mouse) {
+			if (step == "") {
+				root.doStep("detect-device")
+			} else  {
+				root.doStep()
+			}
+		}
+
+		function centerAction() {
+			root.centerAction()
+		}
+ 
+	}
+ 
+	function loadDeviceModelFromJson(jsonText) {
+ 
+		root.deviceModel = JSON.parse(jsonText)
+
+		var items = [{label: "Port:", value: root.deviceModel.port }]
+ 
+		if (root.deviceModel.service) {
+			var serviceItem = { label: "Service:", value: root.deviceModel.service }
+			items.push(serviceItem)
+		} else if (root.deviceModel.process) {
+			var processItem = { label: "Process:", value: root.deviceModel.process }
+			items.push(processItem)
+		}
+		
+		var usbPropsItems = parseUsbProps(root.deviceModel.usbProps)
+		root.usbPropsModel = items.concat(usbPropsItems)
+	}
+
+	function formatUsbPropLabel(key) {
+
+		var words = key.replace(/^ID_/i, "").replace(/_ID$/i, "").split("_")
+		var labelParts = []
+
+		for (var i = 0; i < words.length; i++) {
+			if (!words[i])
+				continue
+			var word = words[i].toLowerCase()
+			if (words[i] == "id")
+				word="ID"
+			else
+				word = word.charAt(0).toUpperCase() + word.slice(1)
+
+			labelParts.push(word)
+		}
+
+		if (labelParts.length === 0)
+			return key + ":"
+
+		return labelParts.join(" ") + ":"
+	}
+ 
+	function parseUsbProps(usbProps) {
+		//KISS, alternative is a json parser in bash.
+		var usbPropItems = []
+
+		if (!usbProps || typeof usbProps !== "string")
+			return usbPropItems
+
+		var pairs = Utils.stringToArray(usbProps)
+		for (var i = 0; i < pairs.length; i++) {
+			var entry = pairs[i]
+			if (!entry)
+				continue
+
+			var idx = entry.indexOf("=")
+			if (idx <= 0)
+				continue
+
+			var key = entry.slice(0, idx)
+			var value = entry.slice(idx + 1)
+			if (!value || value.length == 0)
+				continue
+			var label = formatUsbPropLabel(key)
+			usbPropItems.push({
+				label: formatUsbPropLabel(key),
+				value: value
+			})
+		}
+
+		return usbPropItems
+	}
+ 
+	function reset_page() {
+		root.selectedServiceTypePath = ""
+		selectServiceType.localValue = ""
+	}
+ 
+	onStatusChanged: {
+		if (root.status == 0 && pageStack.find(function(page) { return page === root }) === null)
+			reset_page()
+	}
+ 
+	Component.onCompleted: {
+		createCustomServicesModel()
+		refreshToolbarState()
+	}
+ 
+	function showApply() {
+ 
+	 	if (root.step != "detect-device-done")
+			return false
+
+		if (root.step == "cancelling")
+			return false
+ 		
+		if (!root.selectedServiceTypePath)
+			return false
+ 
+		if (!root.deviceModel || !root.deviceModel.port)
+			return false
+
+		if (!root.deviceModel.usbProps || root.deviceModel.usbProps.length == 0)
+			return false
+
+		if (!root.deviceModel.sid) {
+			if (!root.deviceModel.process=="[Unstable]")
+				return false
+		}
+
+		return true
+	}
+
+	function doStep(step, done) {
+
+		step = (step || "") + (done ? "-done" : "")
+		root.step = step
+		
+		if (opkgBridge.stopping)
+			return
+ 
+		switch (step) {
+		case "error": // don't clear output.
+			root.step = ""
+			opkgBridge.operationName = ""
+			opkgBridge.stop() 
+			break;
+		case "canceling-done":
+
+			if (root.outputLog) {
+				root.outputLog.baseWorking = "Cancelled"
+				root.outputLog.stopIsWorking()
+			}
+			root.step=""
+			break
+		case "":
+			deviceModel = null
+			usbPropsModel = null
+		case "apply-device-done":
+		case "detect-device-done":
+			if (step == "" && opkgBridge.running) {
+				root.step = "canceling"
+				if (root.outputLog)
+					root.outputLog.startIsWorking("Canceling")
+				opkgBridge.operationName = root.step
+				opkgBridge.stop()
+			} else if (step == "" && root.outputLog) {
+				
+				root.outputLog.clear()
+
+			}
+			break
+		case "detect-device":
+			if (opkgBridge.operationName || root.step == "canceling")
+				return
+			if (step == "detect-device" && root.outputLog)
+				root.outputLog.startIsWorking("Please insert (or re-insert) the usb device", true)
+			
+			var reconnect=""
+			
+			if (root.shiftDown)
+				reconnect = "true"
+ 
+			opkgBridge.operationName = step
+			opkgBridge.start(["device", "detect", root.selectedServiceTypePath, reconnect])
+			break
+		case "apply-device":
+			if (opkgBridge.operationName)
+				return
+			opkgBridge.operationName = step
+			if (root.outputLog)
+				root.outputLog.clear()
+			 
+			opkgBridge.start(["device", "apply", root.selectedServiceTypePath, root.deviceModel.port, root.deviceModel.usbProps])
+			break
+		case "service-running":
+		  root.outputLog.addLine("Service Running")
+			break
+		default:
+			console.log("ERROR:doStep:invalid-step")
+			break
+		}
+	}
+ 
+	OpkgBridge {
+		id: opkgBridge
+ 
+		property string jsonString: ""
+		onOutputLine: function(line) {
+			if (opkgBridge.stopping) {
+				console.log("stopping:" + line)
+				return
+			}
+			
+			if (line.endsWith("...")) {
+				root.outputLog.startIsWorking(line.slice(0,-3))
+				return
+			}
+ 
+			if (root.outputLog.isWorking && line.startsWith("~~")) {
+				root.outputLog.baseWorking = line.slice(2)
+				return
+			}
+
+			if (jsonString) {
+				jsonString += line
+			} else if (line && line.length > 0 && line.charAt(0) === "{") {
+				jsonString = line
+			} else {
+				if (root.outputLog)
+					root.outputLog.addLine(line)
+			}
+		}
+
+		onErrorLine: function(line) {
+			// console.error(line) // temp code
+			if (opkgBridge.stopping)
+				return
+			console.error("OpkgPageSettingsDeviceSetup:ERROR:" + line)
+			if (root.outputLog)
+				root.outputLog.addLine(line)
+		}
+ 
+		onFinished: function(exitCode, exitStatus) {
+			console.log("onFinished:" + opkgBridge.operationName + ", " + exitCode + ", " + exitStatus)
+ 
+			try {   
+
+				if (opkgBridge.operationName == "canceling") {
+					doStep(opkgBridge.operationName, true)
+					return
+				}
+ 
+				if (exitCode === 0 && exitStatus === 0) {
+					if (opkgBridge.operationName == "detect-device" && jsonString) {
+						loadDeviceModelFromJson(jsonString)
+					}  
+					doStep(opkgBridge.operationName, true)
+ 
+				} else {
+ 					root.doStep("error")
+				}
+ 
+			} catch (err) {
+				var msg = `ERROR:${err.lineNumber}: ${err.message}`
+				console.log(msg);
+				if (root.outputLog)
+					root.outputLog.addLine(msg)
+				
+				root.doStep("error")
+			} finally {
+				jsonString = ""
+			}
+			
+		}
+	}
+
+}

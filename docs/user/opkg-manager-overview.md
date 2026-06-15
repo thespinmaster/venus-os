@@ -27,9 +27,9 @@ The Opkg Manager intentionally does not use the Linux `patch` command to modify 
 
 While `patch` is useful during development, it is a poor fit for production installers that must be reliable across many systems and firmware versions. Even minor changes in upstream files can cause a patch to fail or be applied to the wrong part of a file, and multiple add-ons patching the same file can conflict with each other. This makes installs and updates less predictable.
 
-`patch` also does not provide package-level ownership of individual changes. That means uninstall and rollback behavior is harder to guarantee, especially when several packages have touched the same shared file over time.
+The `patch` command also does not provide package-level ownership of individual changes. That means uninstall and rollback behavior is harder to guarantee, especially when several packages have touched the same shared file over time.
 
-Instead, Opkg Manager uses a custom `file-patcher` method for very small, controlled integration hooks at the end of UI files. These hook blocks are intentionally minimal and are designed to be applied and removed cleanly during install and uninstall. This keeps updates safer and rollback behavior predictable.
+Instead, Opkg Manager uses a custom `file-patcher` method for very small, controlled integration hooks usually added to the end of UI files. These hook blocks are intentionally minimal and are designed to be applied and removed cleanly during install and uninstall. This keeps updates safer and rollback behavior predictable.
 
 
 ---

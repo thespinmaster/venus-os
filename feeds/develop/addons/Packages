@@ -1,27 +1,42 @@
 Package: dbus-inetbox
-Version: 1.1.0+d260530.1656
+Version: 1.1.0+d260612.0925
 Depends: opkg-manager
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: 9c008293e49967f73e99f84bc5759a3a
-Size: 120442
-Filename: dbus-inetbox_1.1.0+d260530.1656_all.ipk
+MD5Sum: 403b7549c672e307b07938ccde386f98
+Size: 125148
+Filename: dbus-inetbox_1.1.0+d260612.0925_all.ipk
 Source: https://thespinmaster.github.io/venus-os-addons-addons
 Description:  Adds support for Truma inetbox to Venus-OS
 OE: dbus-inetbox
 License: MIT
 Priority: optional
 
-Package: dbus-ne-shunt
-Version: 1.1.0+d260530.1656
+Package: dbus-logger
+Version: 1.0.0+d260612.0850
 Depends: opkg-manager
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: 936079ddfb3f5bd8b57ec1601552174c
-Size: 68676
-Filename: dbus-ne-shunt_1.1.0+d260530.1656_all.ipk
+MD5Sum: 1e9e1f06aff1fe3352eeba6aff899ed3
+Size: 2410
+Filename: dbus-logger_1.0.0+d260612.0850_all.ipk
+Source: https://thespinmaster.github.io/venus-os-addons
+Description:  Adds logging from a dbus location to a log file
+OE: dbus-logger
+License: MIT
+Priority: optional
+
+Package: dbus-ne-shunt
+Version: 1.1.0+d260612.0925
+Depends: opkg-manager
+Section: utilities
+Architecture: all
+Maintainer: thespinmaster@github.com
+MD5Sum: e7fc7f2591e717fcd07f40c4f24f1454
+Size: 68994
+Filename: dbus-ne-shunt_1.1.0+d260612.0925_all.ipk
 Source: https://thespinmaster.github.io/venus-os-addons
 Description:  Adds support for NordElectronica shunt NE196/NE319 board to Venus-OS
 OE: dbus-ne-shunt
@@ -44,15 +59,30 @@ OE: dbus-relay-board
 License: MIT
 Priority: optional
 
-Package: mount-shares
-Version: 1.1.0+d260530.1656
+Package: event-logger
+Version: 1.0.0+d260612.0925
 Depends: opkg-manager
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: 22c1ea7d2e94b0671f018d8d2d523f18
+MD5Sum: 70dd69c0d688209cb5bffaf7671ab61e
+Size: 3324
+Filename: event-logger_1.0.0+d260612.0925_all.ipk
+Source: https://thespinmaster.github.io/venus-os-addons
+Description:  Event Logger for D-Bus and MQTT event streams
+OE: event-logger
+License: MIT
+Priority: optional
+
+Package: mount-shares
+Version: 1.1.0+d260612.0925
+Depends: opkg-manager
+Section: utilities
+Architecture: all
+Maintainer: thespinmaster@github.com
+MD5Sum: 036ab5686490232f91770734e0969773
 Size: 67164
-Filename: mount-shares_1.1.0+d260530.1656_all.ipk
+Filename: mount-shares_1.1.0+d260612.0925_all.ipk
 Source: https://thespinmaster.github.io/venus-os-addons
 Description:  Adds support for nfs and cifs shares to Venus OS
 OE: mount-shares
@@ -60,14 +90,14 @@ License: MIT
 Priority: optional
 
 Package: network-gps
-Version: 1.1.0+d260530.1656
+Version: 1.1.0+d260612.0925
 Depends: opkg-manager
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: b2507a27cee897034ed362354c24344a
-Size: 2106
-Filename: network-gps_1.1.0+d260530.1656_all.ipk
+MD5Sum: e52cb9363939a19f26c4ed3b40777cf2
+Size: 2114
+Filename: network-gps_1.1.0+d260612.0925_all.ipk
 Source: https://thespinmaster.github.io/venus-os-addons
 Description:  Network GPS using NMEA
 OE: network-gps
@@ -75,14 +105,14 @@ License: MIT
 Priority: optional
 
 Package: themer
-Version: 1.1.0+d260530.1656
+Version: 1.1.0+d260612.0925
 Depends: opkg-manager
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: 85b454f089d66d97dacfbf8825c3ba50
-Size: 4176
-Filename: themer_1.1.0+d260530.1656_all.ipk
+MD5Sum: e97cc67af1e628bb3bcfd975a89a8761
+Size: 4192
+Filename: themer_1.1.0+d260612.0925_all.ipk
 Source: https://thespinmaster.github.io/venus-os-addons/tree/main/feeds/main/themer
 Description:  Adds basic theming support to the Venus OS
 OE: einstine

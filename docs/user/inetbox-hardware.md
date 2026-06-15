@@ -10,12 +10,7 @@ The hardware setup is very simple. You need a LIN>UART board and a USB>UART conv
 
 The recomended LIN board used is a RST T151.
 The recomended UART board is a waveshare UART FT232 board.
-  This board is based on a `Genuine' FTDI programable chip.
-  You can *optionaly* change the model name in the firmware.
-  This is not requirement though. What is important, is the
-  UART board is of good quality and provides a unique serial number.
-  Cheaper boards (<$10) tend not to have unique serial numbers.
-  This is not a problem, if you only have one USB UART device, but if you use more than one it makes it hard for the system to identify the correct device.
+  This board is based on a `Genuine' FTDI programable chip. While not a requirement, you can *optionaly* change the model name and other identification strings in the firmware. What is important, is the UART board is of good quality and provides a unique serial number. Cheaper boards (<$10) tend not to have unique serial numbers. This is not a problem, if you only have one USB UART device, but if you use more than one it makes it hard for the system to identify the correct device.
 
 ### Wiring Diagram
 Below is the wiring diagram, if your lucky you can get away with no soldering.

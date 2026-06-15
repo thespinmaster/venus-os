@@ -3,8 +3,8 @@ class dbus_constants:
 	PRODUCT_NAME = "Inetbox"
 	DBUS_PRODUCT_NAME="dbus_inetbox"
 	CUSTOM_DEVICE_PAGE = "InetboxDevicePage"
-	
-	SERVICE_TYPE_TEMPERATURE="temperature"
+ 
+	SERVICE_CLASS_NAME="unsupported"
 
 	PRODUCT_ID = 0xD01A
 	PRODUCT_VERSION = "0.02"

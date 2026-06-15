@@ -37,7 +37,7 @@
             "console": "integratedTerminal"
         },
         {
-            "name": "dbus-inetbox-async (ttyUSB0)",
+            "name": "dbus-inetbox (ttyUSB0)",
             "presentation": { "group": "inetbox" },
             "type": "debugpy",
             "request": "launch",
@@ -45,7 +45,7 @@
             "program": "__main__.py",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "args": ["--serial", "/dev/ttyUSB0"] 
+            "args": ["--serial", "/dev/ttyUSB0", "--sid", "1c8e"] 
         },
         {
             "name": "dbus-inetbox-orig (ttyUSB0)",

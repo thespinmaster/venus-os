@@ -5,7 +5,7 @@ It allows you to mount SMB/CIFS and NFS network shares using a helper script.
 
 ## Prerequisite
 
-Install [Opkg Manager](../../readme.md) first before using this add-on.
+Install [Opkg Manager](opkg-manager-setup.md) first before using this add-on.
 
 ## Main Script
 

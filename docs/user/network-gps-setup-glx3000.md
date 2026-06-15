@@ -2,9 +2,6 @@
 
 This guide is specific to the GL.iNet GL-X3000 (Spitz AX).
 
-Upstream project instructions:
-[GLX3000-GPS README](https://github.com/thespinmaster/GLX3000-GPS/blob/main/README.md)
-
 Manufacturer page:
 [GL.iNet GL-X3000 Product Page](https://www.gl-inet.com/products/gl-x3000/)
 
@@ -38,7 +35,17 @@ opkg install socat
 cat /dev/mhi_LOOPBACK
 ```
 
-You should see NMEA messages streaming (for example `$GPGGA`, `$GPRMC`, `$GPGSV`).
+The command should stream NMEA messages (for example `$GPGGA`, `$GPRMC`, `$GPGSV`).
+```
+$GPGSV,3,2,10,25,24,103,38,26,54,316,43,27,12,249,26,28,59,203,25,1*67
+$GPGSV,3,3,10,29,40,045,28,31,65,260,31,1*66
+$GPGSV,1,1,0,8*5D
+$GPGGA,143653.00,3649.353448,N,00442.549153,W,1,08,0.4,194.6,M,47.8,M,,*7D
+$PQXFI,143653.0,3649.353448,N,00442.549153,W,194.6,3.54,2.50,0.09*75
+$GPVTG,,T,359.8,M,0.0,N,0.0,K,A*0A
+$GPRMC,143653.00,A,3649.353448,N,00442.549153,W,0.0,,020225,0.2,E,A,V*78
+$GPGSA,A,3,16,18,25,26,27,28,29,31,,,,,0.7,0.4,0.5,1*22
+```
 
 ## 2) Install Forwarding Service on Router
 

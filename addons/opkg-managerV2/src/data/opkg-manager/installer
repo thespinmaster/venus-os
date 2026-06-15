@@ -1,0 +1,54 @@
+#!/bin/bash
+
+RC_LOCAL_SCRIPT="
+# opkg-manager (do not edit)
+/data/opkg-manager/rc.local-startup
+"
+
+PACKAGE_CUSTOM_MENUS=(
+	PageSettings/OpkgPageSettingsSubMenu
+	PageSettingsDisplay/OpkgPageSettingsDisplaySubMenu
+	PageMain/PageSettings
+)
+
+PACKAGE_DBUS_SETTINGS="
+    {'path':'/Settings/OpkgManager/ShowCompact', 'default':0, 'min':0, 'max':1}
+    {'path':'/Settings/OpkgManager/NoAction', 'default':0, 'min':0, 'max':1}
+
+"
+
+post_install() {
+ 
+  opkg_common_add_script_to_rc_local "${RC_LOCAL_SCRIPT}"
+ 
+  addsource serial-device-installer
+  serial_device_installer_ensure_rules_file_symlink
+ 
+  opkg_common_ensure_feed_symlink
+  
+  echo "Please wait, updating packages..."
+  opkg_common_update_packages
+
+  RESTART_GUI_SERVICE=1
+}
+
+post_remove() {
+  [[ "$PACKAGE_ACTION" == "upgrade-remove" ]] && return;
+
+  # upgrade does not remove existing dbus settingsP
+  # remove symlink or call opkg update
+
+  rm -f "${VE_ROOT_DIR:-}/var/log/opkg-manager/startup.log"
+
+  serial_device_installer_remove_rules_file_symlink
+  
+  opkg_common_remove_feed_symlink
+
+  echo "Please wait, updating packages..."
+  opkg_common_update_packages
+}
+
+####################################################
+# shellcheck source="/data/dev/addons/opkg-manager/src/data/opkg-manager/source-common"
+[[ -n "${__SOURCE_COMMON_SOURCED:-}" ]] || { source "${VE_ROOT_PATH:-}/data/opkg-manager/source-common" && __SOURCE_COMMON_SOURCED=1; }
+addsource install-helper "$@"

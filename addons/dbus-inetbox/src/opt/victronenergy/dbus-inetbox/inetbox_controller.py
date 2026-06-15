@@ -15,18 +15,22 @@ from ext.settingsdevice import SettingsDevice  # available in the velib_python r
 from lin import Lin
 from inetboxapp import InetboxApp
 from taskmanager import TaskManager
-
+from error_parser import get_error_description
 from dbus_services.dbus_inetbox_service import dbusInetboxService
 
 class InetboxController:
 	DBUS_PATH="/Values/"
+	HEATING_DIMMING_PATH = "/SwitchableOutput/heating/Dimming"
+	AIRCON_DIMMING_PATH = "/SwitchableOutput/aircon/Dimming"
+	HEATING_MEASUREMENT_PATH = "/SwitchableOutput/heating/Measurement"
+	AIRCON_MEASUREMENT_PATH = "/SwitchableOutput/aircon/Measurement"
  
 	DBUS_TO_LIN_MAPPING = {
 		"WaterCurrentTemp": "current_temp_water",
 		"WaterTargetTemp": "target_temp_water",
 		"HeatingMode": "heating_mode",
 		"HeatingTargetTemp": "target_temp_room",
-		"HeatingCurrentTemp": "current_temp_room",
+		"CurrentRoomTemp": "current_temp_room",
 		"ElectricityPowerLevel": "el_power_level",
 		"EnergyMix": "energy_mix",
 		"AirconMode": "aircon_operating_mode",
@@ -43,7 +47,7 @@ class InetboxController:
 		"target_temp_water": "WaterTargetTemp",
 		"heating_mode": "HeatingMode",
 		"target_temp_room": "HeatingTargetTemp",
-		"current_temp_room": "HeatingCurrentTemp",
+		"current_temp_room": "CurrentRoomTemp",
 		"el_power_level": "ElectricityPowerLevel",
 		"energy_mix": "EnergyMix",
 		"aircon_operating_mode": "AirconMode",
@@ -96,17 +100,29 @@ class InetboxController:
 			dbusName = self.map_or_debug(self.LIN_TO_DBUS_MAPPING, name)
 			if dbusName == "": 
 				return
-
+			
+			if (name == "error_code"):
+				error_description=get_error_description(value)
+				self._dbusInetboxService.set_value(self.DBUS_PATH + "ErrorDescription", error_description)
+				self._dbusInetboxService.inject_notification(dbus_constants.PRODUCT_NAME, error_description)
+			
 			if (name == "target_temp_room"): # coerse using LastHeatingTemp
 				if (value == "0"):
 					value = self._settings["/LastHeatingTemp"]
 
 			self._dbusInetboxService.set_value(self.DBUS_PATH + dbusName, value)
 
+			if (name == "target_temp_room"):
+				self._dbusInetboxService.set_value(self.HEATING_DIMMING_PATH, value)
+			elif (name == "target_temp_aircon"):
+				self._dbusInetboxService.set_value(self.AIRCON_DIMMING_PATH, value)
+
 			if (name == "current_temp_room"):
 				temperature_value = self._to_float(value) # MUST be a float
 				if temperature_value is not None:
 					self._dbusInetboxService.set_value("/Temperature", temperature_value)
+					self._dbusInetboxService.set_value(self.HEATING_MEASUREMENT_PATH, temperature_value)
+					self._dbusInetboxService.set_value(self.AIRCON_MEASUREMENT_PATH, temperature_value)
 			elif (name == "el_power_level" or name == "energy_mix"):
 				self._toEnergyMixCombined(dbusName, value)
 
@@ -119,11 +135,15 @@ class InetboxController:
 		self.log.debug(f'dbus_value_to_inetbox:, {path}={value}')
 
 		try:
+			if (path == self.HEATING_DIMMING_PATH):
+				return self.dbus_value_to_inetbox("/Values/HeatingTargetTemp", value)
+			if (path == self.AIRCON_DIMMING_PATH):
+				return self.dbus_value_to_inetbox("/Values/AirconTargetTemp", value)
+
 			if not path.startswith(self.DBUS_PATH):
 				if (path == "/CustomName"):
 					self._settings[path] = value
-					return True
-				return False
+				return True
 	
 			name = path.removeprefix(self.DBUS_PATH)
 		
@@ -138,6 +158,11 @@ class InetboxController:
 			self._app.set_status(linName, value)
 
 			self._dbusInetboxService.set_value(path, value)
+
+			if (name == "HeatingTargetTemp"):
+				self._dbusInetboxService.set_value(self.HEATING_DIMMING_PATH, value)
+			elif (name == "AirconTargetTemp"):
+				self._dbusInetboxService.set_value(self.AIRCON_DIMMING_PATH, value)
 	
 			if (name == "HeatingTargetTemp"):
 				if (self._dbusInetboxService.get_value("/Values/HeatingMode") == "off"):
@@ -257,7 +282,7 @@ class InetboxController:
 			#name, path, value, min (0), max (0)
 			supportedSettings = {
 				'class_and_vrm_instance' : [f'{self._settingsPath}/ClassAndVrmInstance', 
-						f"{dbus_constants.SERVICE_TYPE_TEMPERATURE}:{dbus_constants.DEFAULT_DEVICE_INSTANCE}", 0, 0],
+						f"{dbus_constants.SERVICE_CLASS_NAME}:{dbus_constants.DEFAULT_DEVICE_INSTANCE}", 0, 0],
 						
 				'/Sid' : [f'{self._settingsPath}/Sid', self._sid, 0, 0],
 				'/CustomName' : [f'{self._settingsPath}/CustomName', "", "", ""],

@@ -240,7 +240,7 @@ run_monitor() {
     echo "ERROR: Unknown monitor target: ${1:-}" >&2
     return 1
   fi
-  tail -F /var/log/${serviceName}/current
+  tail -F /var/log/${serviceName}/current | tai64nlocal
 }
 
 run_service() {

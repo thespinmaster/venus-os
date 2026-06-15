@@ -38,7 +38,7 @@ Once the device is reset, verify by checking for a device with index "T23.700".
 If all is well, you should be able to return to Venus OS and scroll through the Overview pages to Inetbox.
 
 It can take a little time for the initial data to be received.
-Each group on the Inetbox Overview page appears when the data arrives.
+Each group on the Inetbox Overview page appears as the data arrives.
 
 ![Inetbox Overview Page Dark](images/inetbox-overview-page-dark.webp "Inetbox Overview Page Dark Image")
 

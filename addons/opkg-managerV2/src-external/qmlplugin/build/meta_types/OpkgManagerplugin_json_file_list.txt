@@ -1,0 +1,3 @@
+/data/dev/addons/opkg-manager/src-external/qmlplugin/build/OpkgManagerplugin_autogen/include/../EWIEGA46WW/moc_FileHelper.cpp.json
+/data/dev/addons/opkg-manager/src-external/qmlplugin/build/OpkgManagerplugin_autogen/include/../EWIEGA46WW/moc_OpkgBridge.cpp.json
+/data/dev/addons/opkg-manager/src-external/qmlplugin/build/OpkgManagerplugin_autogen/include/../EWIEGA46WW/moc_OpkgManagerPlugin.cpp.json

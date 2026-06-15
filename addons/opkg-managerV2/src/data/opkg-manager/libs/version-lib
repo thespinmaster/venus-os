@@ -1,0 +1,104 @@
+#!/usr/bin/env bash
+
+set -o nounset
+ 
+# Reads the Venus OS version into a caller-provided variable reference.
+#
+# Args:
+#   $1: Name of the variable (by reference) that receives the version.
+#
+# Behavior:
+#   - Reads the first line of /opt/victronenergy/version when present.
+#   - Strips the first character from the version string (existing format).
+#   - Writes an empty string when the file does not exist.
+version_lib_get_venus_verion_byref() {
+  local -n __version="${1}"
+
+  if [ -f "/opt/victronenergy/version" ]; then
+    __version="$(cat /opt/victronenergy/version | head -n 1)"
+    __version=${__version:1}
+  else
+    __version=""
+  fi
+}
+ 
+# Evaluates one or more version conditions against a version string.
+#
+# Args:
+#   $1: Space-separated condition list (AND logic), for example:
+#       "<3.66", ">3.66", "=3.66", ">=3.70", or ">3.66 <3.70".
+#   $2: Current version to evaluate, for example "3.62".
+#
+# Returns:
+#   0 when all conditions pass, 1 when any condition fails.
+version_lib_check() {
+    local conditions=$1  # e.g., "<3.66", ">3.66", "=3.66", ">=3.70", ">3.66 <3.70"
+    local version=$2    # e.g., "3.62"
+    
+    # Handle multiple conditions (AND logic)
+    local condition
+    for condition in $conditions; do
+        __version_lib_check_single "$condition" "$version" || return 1
+    done
+    return 0
+}
+
+# Evaluates a single comparison condition against a version.
+#
+# Args:
+#   $1: Single condition token such as ">=3.70" or "<3.66".
+#   $2: Version to evaluate.
+#
+# Returns:
+#   0 when the condition matches, 1 otherwise.
+__version_lib_check_single() {
+    local condition=$1
+    local version=$2
+    
+    # Extract operator and required version
+    # Handle >=, <=, =, >, <
+    local op op_len required_version
+    
+    if [[ $condition == ">="* ]]; then
+        op=">="
+        op_len=2
+    elif [[ $condition == "<="* ]]; then
+        op="<="
+        op_len=2
+    else
+        op=${condition:0:1}
+        op_len=1
+    fi
+    
+    required_version=${condition:$op_len}
+    
+    # Handle equality
+    if [[ $op == "=" ]]; then
+        [[ $required_version == "$version" ]]
+        return
+    fi
+    
+    # Handle version comparison
+    if [[ $required_version == "$version" ]]; then
+        # Equal versions
+        case $op in
+            ">="|"<="|"=") return 0 ;;
+            ">"|"<") return 1 ;;
+        esac
+    fi
+    
+    # Use sort -V to determine ordering
+    if [[ $(printf '%s\n' "$required_version" "$version" | sort -V | head -n1) == "$required_version" ]]; then
+        # required_version < version, so version > required_version
+        case $op in
+            ">" | ">=") return 0 ;;
+            "<" | "<=") return 1 ;;
+        esac
+    else
+        # required_version > version, so version < required_version
+        case $op in
+            "<" | "<=") return 0 ;;
+            ">" | ">=") return 1 ;;
+        esac
+    fi
+}

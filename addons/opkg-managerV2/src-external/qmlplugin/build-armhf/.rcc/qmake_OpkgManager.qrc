@@ -1,0 +1,6 @@
+<RCC>
+  <qresource prefix="/OpkgManager">
+    <file alias="qmldir">/data/dev/addons/opkg-manager/src-external/qmlplugin/build-armhf/qmldir</file>
+  </qresource>
+</RCC>
+

@@ -1,0 +1,42 @@
+#!/bin/bash
+
+dbus -y com.victronenergy.settings /Settings AddSetting /DbusLogger Log1 '' s 0 0 1>/dev/null
+dbus -y com.victronenergy.settings /Settings AddSetting /DbusLogger Log2 '' s 0 0 1>/dev/null
+dbus -y com.victronenergy.settings /Settings AddSetting /DbusLogger Log2 '' s 0 0 1>/dev/null
+
+use_mqtt=0
+device_id=
+log_index=1
+args=()
+
+i=0
+for arg in "$@"; do
+	i=$((i+1))
+	if [[ "$arg" == "--mqtt" ]]; then
+		use_mqtt=1
+		continue
+	fi
+	if [[ "$arg" == "--device-id" ]]; then
+		next_idx=$((i+1))
+		device_id="${@:$next_idx:1}"
+		continue
+	fi
+	if [[ "$arg" == "--log-index" ]]; then
+		next_idx=$((i+1))
+		log_index="${@:$next_idx:1}"
+		continue
+	fi
+	if [[ "$arg" != --* ]]; then
+		args+=("$arg")
+	fi
+done
+ 
+if [[ $use_mqtt -eq 1 ]]; then
+	[[ -z "${device_id}" ]] && {
+		device_id=$(dbus -y com.victronenergy.platform /Device/UniqueId GetValue | awk -F"'" '{print $2}')
+	}
+	python3 event_logger_mqtt_service.py --device-id="${device_id}" --log-index="${log_index}"
+else
+
+	python3 event_logger_dbus_service.py --log-index="${log_index}"
+fi

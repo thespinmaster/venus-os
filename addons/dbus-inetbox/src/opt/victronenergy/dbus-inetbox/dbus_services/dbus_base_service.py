@@ -15,6 +15,7 @@ from gi.repository import GLib
 import platform
 import logging
 import os
+import dbus
 
 from dbus_connection import dbusconnection
 from ext.vedbus import VeDbusService
@@ -22,6 +23,7 @@ from ext.vedbus import VeDbusService
 class dbus_base_service(object):
 	
 	_dbusservice = None
+	_bus = None
 
 	# Create the mandatory objects
 	def unregister(self):
@@ -31,6 +33,7 @@ class dbus_base_service(object):
 		if self._dbusservice:
 			self._dbusservice.__del__()
 			self._dbusservice = None
+			self._bus = None
 			logging.debug("Unregistered %s" % (self._dbusservice))
 		else:
 			logging.debug("No dbus service to unregister")
@@ -47,8 +50,9 @@ class dbus_base_service(object):
 		
 		logging.debug("_registerCore in")
 
-		self._dbusservice = VeDbusService(serviceName, bus=dbusconnection(), register=False)
-  
+		self._bus = dbusconnection()
+		self._dbusservice = VeDbusService(serviceName, bus=self._bus, register=False)
+		
 		self._paths = paths
 
 		# Create the management objects, as specified in the ccgx dbus-api document
@@ -93,5 +97,33 @@ class dbus_base_service(object):
 			s[path] = value
 			logging.debug("Set %s to %s" % (path, value))
 		return True
- 
+	
+	def set_dbus_value(self, service,path,value):
+		bus = self._bus
+		if bus is None:
+			logging.error("Cannot inject notification: no dbus connection found")
+			return False
+		
+		obj = bus.get_object(service, path)
+		iface = dbus.Interface(obj, "com.victronenergy.BusItem")
+		iface.SetValue(value, timeout=2)
 
+	def inject_notification(self, title: str, message: str, level: str = "alarm"):
+
+		title = (title or "")[:100]
+		message = (message or "")[:500]
+		payload = f"{level}\t{title}\t{message}"
+
+		try:
+			if not (self.set_dbus_value("com.victronenergy.platform","/Notifications/Inject",dbus.String(payload))):
+				return False
+			if not (self.set_dbus_value("com.victronenergy.platform","/Notifications/Alarm",dbus.Boolean(True))):
+				return False
+			
+			logging.debug("Injected notification level=%s title=%s", level, title)
+			return True
+		except Exception:
+			logging.exception("Failed to inject notification")
+			return False
+	
+	

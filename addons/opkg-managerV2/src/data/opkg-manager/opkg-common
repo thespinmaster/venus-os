@@ -1,0 +1,501 @@
+#!/usr/bin/env bash
+
+set -o nounset
+
+readonly rc_local_file="${VENUS_ROOT_DIR:-}/data/rc.local"
+readonly opkg_installed_packages_file="/data/conf/opkg-manager-installed-packages.conf"
+readonly resize2fs_file="/opt/victronenergy/swupdate-scripts/resize2fs.sh"
+# shellcheck disable=SC2034
+readonly OPKG_MANAGER_FEED_NAME="opkg-manager" # used by sourcing code
+
+OPKG_FEED_CONFIG_FILE_SYMLNK="${VENUS_ROOT_DIR:-}/etc/opkg/opkg-manager.conf"
+
+# OPKG_VENUS_VERSION=
+
+___is_fs_readonly=
+init_opkg_helpers=
+dry_run=
+
+declare __this_path; __this_path="$(dirname "${BASH_SOURCE[0]}")"
+. "${__this_path}/libs/log-lib"
+
+# Expand rootfs and make it writable
+opkg_common_expand_root_fs() {
+  
+  log_trace "expanding root fs"
+  if [[ ! $dry_run ]]; then
+    $resize2fs_file
+  fi
+}
+
+# mount the rootfs as read/write
+__root_fs_readwrite() {
+  log_trace "Mounting fs as read write"
+  if [[ ! $dry_run ]]; then
+    mount -o remount,rw /
+  fi
+}
+
+# mount the rootfs as read/write
+__mount_root_fs_readonly() {
+  log_trace "Mounting fs as readonly"
+
+  if [[ ! $dry_run ]]; then
+    mount -o remount,ro /
+  fi
+
+}
+
+# pass initial state of ___is_fs_readonly
+# if initial state is empty but ___is_fs_readonly now
+# has a value then we restore back to readonly.
+__restore_previous_fs_access() {
+  
+  log_trace "Restoring previous fs state"
+
+  if [[ "${___is_fs_readonly}" = 1 ]]; then
+    __mount_root_fs_readonly
+  else
+    log_trace "previous state was readwrite; nothing to restore"
+  fi
+  ___is_fs_readonly=
+  
+}
+
+opkg_common_ensure_feed_symlink() {
+
+  local new_target="/data/conf/opkg-manager-feeds-${1:-release}.conf"
+
+  [[ ! -f "${new_target}" ]] && { 
+    log_error "feed target file does not exist: ${new_target}"; }
+
+  local current_source=""
+  [[ -L "${OPKG_FEED_CONFIG_FILE_SYMLNK}" ]] && 
+    current_source="$(readlink "${OPKG_FEED_CONFIG_FILE_SYMLNK}")"
+
+  if [[ "${current_source}" == "${new_target}" ]]; then
+    return 0
+  fi
+
+  ln -sfn "${new_target}" "${OPKG_FEED_CONFIG_FILE_SYMLNK}" || {
+    log_error "ERROR: failed to update OPKG_FEED_CONFIG_FILE_SYMLNK:${OPKG_FEED_CONFIG_FILE_SYMLNK} -> ${new_target}"
+    return 1
+  }
+
+  return 0
+}
+
+opkg_common_set_feed() {
+  opkg_common_ensure_feed_symlink "${1}"
+}
+
+opkg_common_feed_add() {
+
+  local feed_name="${1:-}"
+  local feed_url="${2:-}"
+
+  [[ -z "${feed_name}" ]] && { log_error "Invalid name"; return 1; }
+  [[ "${feed_name}" =~ [^a-zA-Z0-9_-] ]] && { log_error "Invalid name"; return 1; }
+  [[ "${feed_name}" == "opkg-manager" ]] && { log_error "The opkg-manager cannot be removed/edited"; return 1; }
+  [[ -z "${feed_url}" ]] && { log_error "Feed url required"; return 1; }
+
+  [[ ! -f "${OPKG_FEED_CONFIG_FILE_SYMLNK}" ]] && opkg_common_ensure_feed_symlink
+
+  if grep -qE "^src/gz ${feed_name} " "${OPKG_FEED_CONFIG_FILE_SYMLNK}" ||
+    grep -qE "^src/gz ${feed_name} " "/etc/opkg/venus.conf"; then
+    log_trace "Feed already exists: ${feed_name}"
+    return 0
+  fi
+
+  echo "src/gz ${feed_name} ${feed_url}" >> "${OPKG_FEED_CONFIG_FILE_SYMLNK}" || {
+    log_error "Error writing feed: ${feed_name}"
+    return 1
+  }
+
+  return 0
+}
+
+feed_editor() {
+
+  local mode="${1:-}"
+  local feed_name="${2:-}"
+  local feed_url="${3:-}"
+  local old_feed_name="${4:-}"
+
+  # Validate feed_name
+
+  [[ -z "${feed_name}" ]] && { echo "Invalid name" >&2; return 1; }
+  [[ "${feed_name}" =~ [^a-zA-Z0-9_-] ]] && { echo "Invalid name" >&2; return 1; }
+  [[ "${feed_name}" == "opkg-manager" ]] && { echo "The opkg-manager cannot be removed/edited"; return 1; }
+
+  if [[ -n "${old_feed_name}" ]] && [[ "${old_feed_name}" =~ [^a-zA-Z0-9_] ]]; then
+    echo "Invalid old name: '${old_feed_name}'" >&2
+    return 1
+  fi
+
+  [[ ! -f "${OPKG_FEED_CONFIG_FILE_SYMLNK}" ]] &&
+    opkg_common_ensure_feed_symlink
+
+  #for clarity use new var
+  local existing_feed_name=$feed_name;
+  [[ -n $old_feed_name ]] && existing_feed_name=$old_feed_name
+
+  # echo "$mode,$feed_name,$feed_url,$old_feed_name,$existing_feed_name" >&2
+
+  local -i exists=0
+
+  feedNameExists() {
+    local -n _exists=$2; _exists=0
+    grep -qE "^src/gz ${1} " "${OPKG_FEED_CONFIG_FILE_SYMLNK}"
+    [[ $? == 0 ]] && { _exists=1; return; }
+    grep -qE "^src/gz ${1} " "/etc/opkg/venus.conf"
+    [[ $? == 0 ]] && _exists=1;
+  }
+
+  feedNameExists "${existing_feed_name}" exists
+
+  local feed_line="src/gz ${feed_name} ${feed_url}"
+
+  if [[ $mode == add ]]; then
+    opkg_common_feed_add "${feed_name}" "${feed_url}"
+    return $?
+  fi
+
+  ((!exists)) && { echo "Feed not found: $feed_name" >&2; return 1; }
+
+  if [[ $mode == edit ]]; then
+    # if an edit make sure new name does not already exist if name given is diff from old
+    [[ -z "${feed_url}" ]] && { echo "edit: feed url required" >&2; return 1; }
+
+    [[ -n $old_feed_name && ! "${feed_name}" == "${old_feed_name}" ]] && {
+      # make sure the new feed name does not exist if name is different from existing
+      feedNameExists "${feed_name}" exists
+      ((exists)) && { echo "Invalid name; feed name already exists: $feed_name" >&2; return 1; }
+    }
+
+  fi
+
+  tmp_file=$(mktemp)
+  local -i found=0
+
+  # create new contents
+  # skip line if removing, else if edit find line and replace
+  while IFS= read -r line; do
+    if [[ "$line" == src/gz\ ${existing_feed_name}\ * ]]; then
+      [[ ! "$mode" == remove ]] && echo "$feed_line"
+      found=1
+      continue
+    fi
+    echo "$line"
+  done < "${OPKG_FEED_CONFIG_FILE_SYMLNK}" > "$tmp_file"
+
+  ((!found)) && echo "$feed_line" >> "$tmp_file"  # add to end if not found
+
+  # make sure we update the real file and not the symlink
+  local feedfile="${OPKG_FEED_CONFIG_FILE_SYMLNK}"
+  [[ -L "${feedfile}" ]] && feedfile="$(readlink "${OPKG_FEED_CONFIG_FILE_SYMLNK}")"
+
+  mv "$tmp_file" "${feedfile}" || { echo "Error writing to ${feedfile}" >&2; return 1; }
+
+  return 0
+}
+
+feed_get_feed_type() {
+
+  local feedfile="${OPKG_FEED_CONFIG_FILE_SYMLNK}"
+  local feedType=
+  [[ -L "${feedfile}" ]] && feedfile="$(readlink "${OPKG_FEED_CONFIG_FILE_SYMLNK}")"
+  if [[ -f "${feedfile}" ]]; then
+    feedType="${feedfile##*-}"    # remove everything up to last '-'
+    feedType="${feedType%.conf}"  # remove suffix
+  fi
+  # default to release, as opkg_common_ensure_feed_symlink will take care of missing conf.
+  echo "${feedType:-release}" 
+}
+
+opkg_common_remove_feed_symlink() {
+  if [[ -L "${OPKG_FEED_CONFIG_FILE_SYMLNK}" ]]; then
+    rm -f "${OPKG_FEED_CONFIG_FILE_SYMLNK}"
+  fi
+}
+
+opkg_common_get_venus_verion_byref() {
+  local -n __version="${1}"
+
+  if [ -f "/opt/victronenergy/version" ]; then
+    __version="$(cat /opt/victronenergy/version | head -n 1)"
+  else
+    __version=""
+  fi
+}
+
+__wait_for_opkg() {
+  local -i counter=0
+  while [[ -e /run/opkg.lock ]]; do
+    sleep 0.5
+    ((++counter))
+    ((counter>30)) && return 1
+  done
+  return 0
+}
+
+opkg_common_update_packages() {
+  (
+    __wait_for_opkg && opkg update 
+  ) &
+  
+  local opkg_pid=$!
+  wait "$opkg_pid"
+  return 0
+}
+
+__ensure_rc_local() {
+  log_trace "__ensure_rc_local"
+  if [[ ! -f "${rc_local_file}" ]]; then
+    log "rc.local does not exist; creating..."
+    if [[ ! $dry_run ]]; then
+      touch "${rc_local_file}"  
+    fi
+  fi
+  if [[ ! $dry_run ]]; then
+    chmod +x "${rc_local_file}"
+  fi
+}
+
+# placed in separate function: easier to override for testing
+__is_fs_readonly() {
+  grep -q "[[:space:]]ro[[:space:],]" /proc/mounts
+}
+
+# sets the rootfs for writing
+# sets the flag ___is_fs_readonly
+__init_root_fs_for_writing() {
+
+  log_trace "__init_root_fs_for_writing"
+
+  if [[ -z "${___is_fs_readonly}" ]]; then
+
+    # make sure the file system is writeable
+    if __is_fs_readonly; then
+      ___is_fs_readonly=1
+    else
+      ___is_fs_readonly=0
+    fi
+ 
+    if [[ "${___is_fs_readonly}" = 1 ]]; then
+      __root_fs_readwrite
+    fi
+
+    log_trace "fs is readonly:${___is_fs_readonly}"
+
+  else
+    log_trace "___is_fs_readonly already initialized"
+  fi
+
+}
+
+# ensures the opkg feed is setup
+# calls opkg update
+# sets init_opkg_helpers flag so
+# only done once
+__init_opkg() {
+
+  ((init_opkg_helpers)) && {
+    log_trace "__init_opkg: already initialzed"
+    return;
+  }
+
+  log_trace "__init_opkg: initializing"
+
+  opkg_common_ensure_feed_symlink 
+  if [[ ! $dry_run ]]; then
+    opkg update
+  fi
+
+  init_opkg_helpers=1
+ 
+}
+
+__opkg_common_try_install_package() {
+
+  log_trace "__opkg_common_try_install_package"
+
+  local package_name="${1:-}"
+
+  if [[ -z "${package_name}" ]]; then
+    log "package name not supplied"
+    return 1
+  fi
+
+  # see if the ipk is installed
+  # list-installed only returns an exact match
+  local installed; installed=$(opkg list-installed "${package_name}")
+
+  # if already installed then exit
+  if [[ -n "${installed}" ]]; then
+    log "Already Installed ${package_name}, exiting"
+    return 0
+  fi
+
+  __init_root_fs_for_writing
+  __init_opkg
+
+  log "Installing... ${package_name}"
+  if [[ ! $dry_run ]]; then
+    opkg install "${package_name}"
+  fi
+}
+
+# loops through all the lines in
+# the opkg_installed_packages_file 
+# and proceeds to install each
+# package.
+# takes care of read write access
+opkg_common_ensure_installed() {
+
+  [[ -f "$opkg_installed_packages_file" ]] || {
+     log "opkg_installed_packages_file does not exist"; return 0; }
+
+  log_trace "opkg_common_ensure_installed"
+ 
+  log_push_indent
+  local isfirst=1
+
+  while IFS= read -r line
+  do
+    # ignore comments and empty lines
+    [[ -z "${line//[[:space:]]/}" || $line == \#* ]] && continue
+    
+    if ((isfirst)); then
+      isfirst=0
+    else
+      sleep 1
+    fi
+ 
+    __wait_for_opkg
+    
+    __opkg_common_try_install_package "${line}"
+
+  done < "${opkg_installed_packages_file}"
+
+  __restore_previous_fs_access
+
+  log_pop_indent
+
+  log_trace "opkg_common_ensure_installed: done"
+
+  return 0
+}
+ 
+# adds script to the rc_local file
+# args: ${1} the script to add
+# this script can be multiple lines
+opkg_common_add_script_to_rc_local() {
+
+  [[ -z "${1:-}" ]] && { log_error "ERROR: no script supplied" ; return 1; }
+
+  __ensure_rc_local
+
+  local thispath; thispath="$(dirname "${BASH_SOURCE[0]}")"
+  . "$thispath/libs/string-lib"
+
+  local found
+  found=$(string_lib_multiline_find_replace "${1}" --find-only --break-on-first < "$rc_local_file")
+
+  if [[ -z $found ]]; then
+    log "Adding custom script to ${rc_local_file}"
+    if [[ ! $dry_run ]]; then
+      echo "${1}" >> "${rc_local_file}"
+    fi
+  else
+    log "Custom script already added"
+  fi
+  return 0
+}
+
+# removes the script from the rc_local file
+# args: ${1} the script to add
+# this script can be multiple lines
+opkg_common_remove_script_from_rc_local() {
+
+  [[ -z "${1:-}" ]] && { log_error "ERROR: no script supplied" ; return 1; }
+  [[ -f "${rc_local_file}" ]] || return 0
+
+  log "Removing custom script from ${rc_local_file}"
+
+  # reads from ${rc_local_file} removes ${1} and saves back to ${rc_local_file}
+  # string_lib_multiline_find_replace "${1}" --trim-lines < "${rc_local_file}" > "${rc_local_file}"
+
+  if [[ ! $dry_run ]]; then
+  
+  thispath="$(dirname "${BASH_SOURCE[0]}")"
+  . "$thispath/libs/string-lib"
+    
+    # TODO add inplace option to string_lib_multiline_find_replace
+    local tmp; tmp=$(mktemp)
+    string_lib_multiline_find_replace "${1}" --trim-lines < "${rc_local_file}" > "$tmp" && {
+      mv "$tmp" "${rc_local_file}"
+    }
+     
+  fi
+
+}
+
+# adds an opkg package name to the custom packages file
+# the custom packages file is read when a new firmware
+# has been installed
+# args: ${1} the name of the package
+opkg_common_register_package() {
+
+  [[ -z "${1:-}" ]] && { log_error "ERROR: no package name supplied" ; return 1; }
+
+  local package_name="${1:-}"
+  
+  if [[ ! -f "${opkg_installed_packages_file}" ]] || ! grep -q "^${package_name}$" "${opkg_installed_packages_file}" ; then
+    log "Adding ${package_name} to ${opkg_installed_packages_file}"
+    if [[ ! $dry_run ]]; then
+      echo "${package_name}" >> "${opkg_installed_packages_file}"
+    fi
+  else
+    log "Package ${package_name} already added"
+  fi
+
+}
+
+# removes an opkg package name to the custom packages file
+# args: ${1} the name of the opkg package to remove
+opkg_common_unregister_package() {
+
+  [[ -z "${1:-}" ]] && { log_error "ERROR: no package name supplied" ; return 1; }
+  [[ -f "${opkg_installed_packages_file}" ]] || return 0
+
+  local package_name="${1:-}"
+
+  if grep -q "^${package_name}$" "${opkg_installed_packages_file}" ; then
+    log "Removing ${package_name} from ${opkg_installed_packages_file}"
+    if [[ ! $dry_run ]]; then
+      sed -i "/^$package_name/d" "${opkg_installed_packages_file}"
+    fi
+  else
+    log_trace "opkg_common_unregister_package:package '${package_name}' not found"
+  fi
+
+}
+
+case "${1:-}" in
+  opkg_common_ensure_installed)
+    if [[ "${2:-}" == "--dry-run" ]]; then
+      dry_run=1
+      log "*** DRY RUN ***"
+    fi
+    opkg_common_ensure_installed
+    ;;
+ 
+  ensure-feeds)
+    shift
+    opkg_common_ensure_feed_symlink "${1:-}"
+    ;;
+  remove-feed-symlink)
+    opkg_common_remove_feed_symlink
+    ;;
+esac

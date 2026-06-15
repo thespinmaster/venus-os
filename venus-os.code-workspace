@@ -17,9 +17,14 @@
 		},
 		{
 			"path": "../../etc/udev/rules.d"
+		},
+		{
+			"path": "../../var/www/venus/gui-v2"
 		}
 	],
 	"settings": {
+		"workbench.editor.enablePreview": true,
+		"workbench.editor.enablePreviewFromQuickOpen": true,
 		"python.analysis.include": [
 			"./addons",
 			"./scripts",

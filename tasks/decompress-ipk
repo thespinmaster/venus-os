@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ipk_path="${1:-}"
+echo "AAA:$ipk_path"
+
+if [[ -z "$ipk_path" ]]; then
+  echo "Usage: $0 /path/to/file.ipk" >&2
+  echo "Tip: Open the .ipk file in VS Code and run the 'Decompress IPK' task." >&2
+  exit 1
+fi
+
+if [[ ! -f "$ipk_path" ]]; then
+  echo "Error: File not found: $ipk_path" >&2
+  exit 1
+fi
+
+if [[ ! -s "$ipk_path" ]]; then
+  echo "Error: File is empty (0 bytes): $ipk_path" >&2
+  exit 1
+fi
+
+if [[ "$ipk_path" != *.ipk ]]; then
+  echo "Error: Expected an .ipk file, got: $ipk_path" >&2
+  exit 1
+fi
+
+if ! command -v ar >/dev/null 2>&1; then
+  echo "Error: 'ar' command not found in PATH" >&2
+  exit 1
+fi
+
+if ! ar t "$ipk_path" >/dev/null 2>&1; then
+  echo "Error: Not a valid ar/IPK archive: $ipk_path" >&2
+  exit 1
+fi
+
+ipk_dir="$(dirname "$ipk_path")"
+ipk_file="$(basename "$ipk_path")"
+out_dir="$ipk_dir/${ipk_file%.ipk}"
+
+if [[ -e "$out_dir" && ! -d "$out_dir" ]]; then
+  echo "Error: Output path exists and is not a directory: $out_dir" >&2
+  exit 1
+fi
+
+mkdir -p "$out_dir"
+
+# Clean previous extraction artifacts to avoid stale content on reruns.
+rm -f "$out_dir/debian-binary" "$out_dir/control.tar.gz" "$out_dir/data.tar.gz"
+rm -rf "$out_dir/control" "$out_dir/data"
+
+(
+  cd "$out_dir"
+  ar x "$ipk_path"
+)
+
+if [[ ! -f "$out_dir/control.tar.gz" || ! -f "$out_dir/data.tar.gz" ]]; then
+  echo "Error: Missing control.tar.gz or data.tar.gz after ar extraction" >&2
+  exit 1
+fi
+
+mkdir -p "$out_dir/control" "$out_dir/data"
+tar -xzf "$out_dir/control.tar.gz" -C "$out_dir/control"
+tar -xzf "$out_dir/data.tar.gz" -C "$out_dir/data"
+
+echo "Extracted: $ipk_path"
+echo "Output:    $out_dir"
+echo "Control:   $out_dir/control"
+echo "Data:      $out_dir/data"

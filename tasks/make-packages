@@ -8,7 +8,7 @@ set -euo pipefail
 # Ignored files/folders
 #   .bak, .git, .tmp, /tests, -v[0-9], .old, .venv
 # All files are develop (copied to ) ../.build and built from there.
-# Symlinks are followed and copy the real file/directory
+# Symlinks are preserved as symlinks (do not dereference targets during copy)
 # Args:
 #   Arg1:"all" (default): Builds all folders under under services & utils.
 #   Arg[n]: Or a list of folders under services or utils to build
@@ -235,10 +235,11 @@ develop_source_byref() {
     xargs -r -n1 dirname
   )
 
-  # `-a` enables archive mode (recursive copy and preserve file attributes/symlinks).
-  # -L / --copy-links → follow symlinks and copy the real file/directory
+  # `-a` enables archive mode (recursive copy and preserve symlinks).
+  # Keep links intact so runtime absolute links can be packaged even if referent
+  # paths do not exist on the build host.
   # `--mkpath` creates the destination path if it does not already exist.
-  rsync -a -L --mkpath "$src_path/" "$dest_path" "${options[@]}" || return 1
+  rsync -a --mkpath "$src_path/" "$dest_path" "${options[@]}" || return 1
   _develop_path="$dest_path"
  
   return 0

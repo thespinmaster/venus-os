@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# Hard links
+
+set -o nounset
+
+declare this_path; this_path="$(dirname "${BASH_SOURCE[0]}")"
+
+LIBS_SOURCE_PATH="$this_path/../../../scripts/libs"
+LIBS_TARGET_PATH="$this_path/../src/data/opkg-manager/libs"
+ 
+LIB_FILES=(
+  conf-lib
+  core-lib
+  log-lib
+  string-lib
+  usb-lib
+)
+
+for file in "${LIB_FILES[@]}"; do
+	ln -sf "$LIBS_SOURCE_PATH/$file" "$LIBS_TARGET_PATH/$file"
+  echo "$LIBS_SOURCE_PATH/$file → $LIBS_TARGET_PATH/$file"
+done

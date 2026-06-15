@@ -1,0 +1,156 @@
+#!/bin/bash
+
+# dbus-common: Functions for managing dbus settings for Venus OS themes
+
+set -o nounset
+
+# Function: dbus_common_add_settings
+# Reads JSON settings lines from stdin and registers them all in one dbus call.
+# Each line must be a JSON object: {"path":"/Settings/group/name", "default":"value"}
+# Accepts any stdin source: <<< string, < file, or pipe.
+dbus_common_add_settings () {
+	local settings
+	local line
+
+	while IFS= read -r line; do
+		line="${line#"${line%%[![:space:]]*}"}"
+		[[ -z "$line" || "$line" == \#* ]] && continue
+		settings+="${line}, "
+	done
+
+	[[ -n "$settings" ]] && {
+		__call_dbus_settings / AddSettings "%[ $settings ]"
+	}
+
+}
+
+__call_dbus_settings() {
+	if (( ${LOGLEVEL:-0} == ${LOGLEVEL_TRACE:-1} )); then
+		dbus -y com.victronenergy.settings "$@"
+	else
+		dbus -y com.victronenergy.settings "$@" &> /dev/null
+	fi
+}
+
+# Function: dbus_common_remove_settings
+# Removes all settings listed in the file or string.
+# Supports two formats:
+#   JSON: {"path": "/Settings/group/name"} or {'path': '/Settings/group/name'}
+#   Python dict: {'FolderA/PropA': 'value a'} — extracts the key as the path
+# Arguments:
+#   stdin - JSON or Python dict formatted lines
+dbus_common_remove_settings() {
+	local settings=""
+ 
+	while IFS= read -r line; do
+		# Skip blank lines and comments, including lines with leading whitespace.
+		line="${line#"${line%%[![:space:]]*}"}"
+		[[ -z "$line" || "$line" == \#* ]] && continue
+
+		local fullpath=""
+		
+		# Try to match JSON format with "path" key (single or double quotes)
+		if [[ "$line" =~ [\"\']path[\"\'][[:space:]]*:[[:space:]]*[\"\']([^\"\']+)[\"\'] ]]; then
+			fullpath="${BASH_REMATCH[1]}"
+		# Otherwise try to extract the first quoted string as the path (single or double quotes)
+		elif [[ "$line" =~ ^[[:space:]]*\{?[[:space:]]*[\"\']([^\"\']+)[\"\'][[:space:]]*: ]]; then
+			fullpath="${BASH_REMATCH[1]}"
+		else
+			continue
+		fi
+		
+		settings+="\"${fullpath}\", "
+	done
+
+	[[ -n $settings ]] && {
+		__call_dbus_settings / RemoveSettings "%[ $settings  ]"
+	}
+		
+}
+
+dbus_common_set_string_value() {
+	local path="${1}"
+  local value="${2}"
+	
+	if ! __call_dbus_settings "${path}" SetValue "${value}"; then
+
+		if __call_dbus_settings / AddSettings "%[ {'path':'${path}', 'default':''} ]"; then
+			__call_dbus_settings "${path}" SetValue "${value}" && return 0
+			echo "Error: Setting value: \"${path}\" SetValue \"${value}\""  
+		else
+			echo "Error: Adding setting: AddSettings \"%[ {'path':'${path}', 'default':''} ]\"" 
+		fi
+		return 1
+	fi
+}
+
+# Function: dbus_common_get_value
+# Get a value from the dbus settings service
+# com.victronenergy.settings /Settings/Arg1/
+# AddSetting is called first to create the path if it doesn't exist (idempotent).
+# Arguments:
+#   $1 - path (string) Path and name of the value to retrieve "OpkgManager/SerialInstaller"
+#   $2 - setting (string) The name of the setting to get
+#   $3 - default (optional string) The default value if the value returned is empty.
+dbus_common_get_value() {
+	local path="$1"
+	local -n __value="$2"
+	local default_value="${3:-}"
+	local value
+ 
+	value="$(dbus -y com.victronenergy.settings "$path" GetValue 2>/dev/null)"
+
+	#strip single quotes from the start and end
+	value="${value#\'}"
+	value="${value%\'}"
+	
+	if [[ -z $value ]]; then
+		__value="$default_value"
+		if [[ -z $__value ]]; then
+			return 1 # return 1 if no value or default is provided
+		fi
+	else
+		__value="$value"
+	fi
+	return 0
+}
+
+# Function: dbus_common_delete_tree
+# Deletes all child settings under a dbus path by reading their current
+# keys and removing them.
+# Arguments:
+#   $1 - basePath: the dbus path to delete, e.g. "OpkgManager/SerialInstaller"
+#        Must not be empty or "/".
+dbus_common_delete_tree() {
+	local basePath="$1"
+	local values=
+ 
+	[[ -z "$basePath" || "$basePath" == "/" || "$basePath" == "/Settings" ]] && { echo "ERROR:dbus_common_delete_tree:Invalid path:" >&2; return 1; }
+
+	echo "$basePath"
+	dbus_common_get_value "$basePath" values
+	
+	# values can be either on a single line or on multiple lines
+	# values="{'FolderA/PropA': 'value a', 'FolderB/PropB': 'value b'}"
+	# values="{'FolderA/PropA': 'value a', 
+	# 'FolderB/PropB': 'value b'}"
+
+	# So we collapse any newlines, then re-introduce them only at entry boundaries (, ')
+	# This makes values with commas safe, and handles multi-line input
+	values="${values//$'\n'/}"
+	values="${values//", '"/$',\n\''}"
+
+	dbus_common_remove_settings <<< "$values"
+  
+}
+ 
+if [[ "${1:-}" == "dbus-remove-settings" ]]; then
+  shift
+	dbus_common_remove_settings
+elif [[ "${1:-}" == "dbus-add-settings" ]]; then
+  shift
+	dbus_common_add_settings
+elif [[ "${1:-}" == "dbus-delete-tree" ]]; then
+  shift
+	dbus_common_delete_tree "$1"
+fi

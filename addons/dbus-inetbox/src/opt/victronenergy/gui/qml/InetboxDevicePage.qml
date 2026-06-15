@@ -1,68 +1,20 @@
 import QtQuick 2
-import com.victron.velib 1.0
 import "utils.js" as Utils
+import com.victron.velib 1.0
 
-MbPage {
-	id: root
+MbSubMenu {
+	description: qsTr("Serial Device")
+	visible: false
 
-	property variant service
-	property string bindPrefix
- 
-	title: service ? service.description : ""
-	summary: temperature.item.valid ? temperature.item.text : "--"
- 
-	model: VisibleItemModel {
-		MbItemOptions {
-			id: status
-			description: qsTr("Status")
-			bind: service.path("/Status")
-			readonly: true
-			show: item.valid
-			possibleValues: [
-				MbOption { description: qsTr("Ok"); value: 0 },
-				MbOption { description: qsTr("Open circuit"); value: 1 },
-				MbOption { description: qsTr("Short circuited"); value: 2 },
-				MbOption { description: qsTr("Reverse polarity"); value: 3 },
-				MbOption { description: qsTr("Unknown"); value: 4 }
- 
-			]
-		}
+	property var root
 
-		MbItemValue {
-			id: temperature
-
-			description: qsTr("Temperature")
-			item {
-				bind: service.path("/Temperature")
-				displayUnit: user.temperatureUnit
-			}
-		}
-
-		MbSubMenu {
-			id: deviceMenu
-			description: qsTr("Device")
-			subpage: Component {
-				PageDeviceInfo {
-					title: deviceMenu.description
-					bindPrefix: root.bindPrefix
-				}
-			}
-		}
-
-		/*
-		MbSubMenu {
-			id: usbPropsMenu
-			description: qsTr("Serial Device")
-			subpage: Component {
-				OpkgPageSerialDeviceInfo {
-					title: usbPropsMenu.description
-					bindPrefix: root.bindPrefix
-				}
-				
-			}
-		}
-		*/
+	VBusItem {
+		id: temp
+		bind: Utils.path(root.bindPrefix, "/Temperature")
+		displayUnit: user.temperatureUnit
 	}
 
-
+	Component.onCompleted: {
+		root.summary = Qt.binding(function() { return temp.format()})
+	}
 }

@@ -1,0 +1,52 @@
+Product,Error code,Cause,Remedy
+Truma Combi,17,Hot water mode with empty water container.,Switch off Combi and allow to cool. Fill water container with water.
+Truma Combi,18,Warm-air outlet blocked.,Check the individual outlet openings.
+Truma Combi,18,Circulated air intake blocked.,Remove blockage from circulated air intake.
+Truma Combi,21,Room temperature sensor/cable defective.,Contact Truma Service.
+Truma Combi,24,"Imminent undervoltage, battery voltage too low < 10.4 V.",Charge battery.
+Truma Combi,41,Electronics blocked.,Contact Truma Service.
+Truma Combi,43,Excess voltage > 16.4 V.,"Check battery voltage and power sources, such as battery charger."
+Truma Combi,44,"Undervoltage, battery voltage too  low < 10.0 V.","Charge battery. If necessary, replace old battery."
+Truma Combi,45,No 120 V AC supply voltage.,Restore 120 V AC supply voltage.
+Truma Combi,45,Overheating protection has responded.,Contact Truma Service.
+Truma Combi,112|202|202|121|211,Gas cylinder closed.,Check gas supply.
+Truma Combi,112|202|202|121|211,Gas shut-off valve is closed – switch position = off.,Open gas shut-off valve – switch position = on.
+Truma Combi,112|202|202|121|211,Overheating protection has responded.,"Switch off Combi and allow to cool; if necessary, fill the water container with cold water. Check warm air outlets and circulated air intake and remove blockages.
+Switch Combi on again."
+Truma Combi,122|212,Combustion air infeed or exhaust gas outlet closed.,"Check for obstructions such as slush, ice or leaves and remove from the openings."
+Truma Combi,122|212,Gas shut-off valve is closed – switch position = off.,Open gas shut-off valve – switch position = on.
+Truma Combi,122|212,Gas pressure regulation system defective.,Contact Truma Service.
+Truma Combi,122|212,Overheating protection has responded.,"Switch off Combi and allow to cool; if necessary, fill the water container with cold water. Check warm air outlets and circulated air intake and remove blockages.
+Switch Combi on again."
+Truma Combi,122|212,Electronics defective.,Contact Truma Service.
+Truma Combi,255,Combi has no 12 V DC power supply.,Ensure 12 V DC power supply.
+Truma Combi,255,No connection between the Combi and the control panel.,Ensure connection between Combi and control panel.
+Truma Combi,255,Control panel cable defective.,Contact Truma Service.
+Truma Combi D Comfort Plus,121,Interruption in metering pump - Temperature switch triggered,Remove blockage on the circulated air intake and ensure adequate ventilation in the installation space (see operating instructions / circulated air intake)
+Truma Combi D Comfort Plus,122,"Lack of fuel due to low tank level, and / or vehicle is on a slope",Fill tank with fuel. Then fill the fuel line as tank is empty described in “Initial start-up” (see Combi Diesel operating instructions).
+Truma Combi D Comfort Plus,123,Flame is recognised even though service no flame is burning,Contact Truma
+Truma Combi D Comfort Plus,131,No connection between furnace and control panel.,Check control panel cable and make sure there is connection between the furnace and the control panel
+Truma Combi D Comfort Plus,150,Warm air temperature exceeded,Not all warm air ducts are connected. Check whether the 4 warm air ducts are connected.
+Truma Combi D Comfort Plus,150,Warm air outlets blocked,Check the individual outlet openings
+Truma Combi D Comfort Plus,150,Circulated air intake blocked,Remove the circulated air intake blockage
+Truma Combi D Comfort Plus,151,Water temperature exceeded in heating and hot water mode.,
+Truma Combi D Comfort Plus,151,Water temperature sensor excessive temperature,Switch off appliance and allow it to cool down. Fill water container with water
+Truma Combi D Comfort Plus,151,Warm air outlets blocked,Check the individual outlet openings
+Truma Combi D Comfort Plus,151,Circulated air intake blocked,Remove the circulated air intake blockage
+Truma Combi D Comfort Plus,152,Water temperature exceeded in summer mode,
+Truma Combi D Comfort Plus,152,Water temperature sensor excessive temperature,Switch off appliance and allow it to cool down. Fill water container with water
+Truma Combi D Comfort Plus,152,Warm air outlets blocked,Check the individual outlet openings
+Truma Combi D Comfort Plus,152,Circulated air intake blocked,Remove the circulated air intake blockage
+Truma Combi D Comfort Plus,160,Undervoltage < 10.2 V,"• Check battery voltage, charge if necessary.
+• Short-term immediate measure. Switch off major consumers or start up the vehicle engine until the furnace starts to operate (approx. 4 minutes).
+• Battery capacity inadequate, if necessary exchange old battery."
+Truma Combi D Comfort Plus,161,Overvoltage 16.4 V,Check battery voltage /voltage sources such as the charger.
+Truma Combi D Comfort Plus,163,One of the temperature switches has opened,"Allow furnace to cool. If this occurs frequently, contact Truma Service"
+Truma Combi D Comfort Plus,164,No 120 V AC operating voltage,Restore 120 V AC operating voltage
+Truma Combi D Comfort Plus,164,120 V AC fuse defective,Replace 120 V AC fuse (see Combi operating instructions)
+Truma Combi D Comfort Plus,164,Overheating protection has been triggered,Reset overheating protection (see Combi operating instructions)
+Truma Combi D Comfort Plus,170,Risk of low voltage < 11.5 V,"Use the electrical power from the battery sparingly, e.g. restrict lighting"
+Truma Combi D Comfort Plus,170,,Charge battery
+Truma Combi D Comfort Plus,255,Furnace has no 12 V power supply,Ensure that the 12 V power supply is available
+Truma Combi D Comfort Plus,255,No connection between furnace and control panel,Make connection between furnace and control panel
+Truma Aventa Eco / Comfort,34|47,AC has unstable 120 V power supply in connection with generator or inverter operation,Ensure shore power supply 120 V AC at the unit input
