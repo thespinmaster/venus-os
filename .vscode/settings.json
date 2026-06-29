@@ -1,0 +1,4 @@
+{
+  "qt-qml.qmlls.useNoCMakeCalls": true,
+  "qt-qml.doNotAskForQmllsDownload": true
+}

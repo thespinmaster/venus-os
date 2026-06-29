@@ -1,6 +1,5 @@
 import QtQuick 2
 import "opkg-utils.js" as OpkgUtils
-import OpkgManager 1.0
 
 QtObject {
 	 

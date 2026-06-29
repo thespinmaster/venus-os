@@ -25,18 +25,21 @@ __package_command() {
   shift 3 # rest are args
 
   __init_root_fs_for_writing
- 
+
   opkg "$command" "${package_name}" "$@"
   local -i status=$?
 
   __restore_previous_fs_access
-   
-   if [[ $status == 0 ]]; then
-    log  "$action_msg succeeded" 
+
+	if [[ $status == 0 ]]; then
+		local this_path; this_path=$(dirname "${BASH_SOURCE[0]}")
+  	"$this_path/packages_helper" update force # update cached json
+
+    log  "$action_msg succeeded"
   else
     log "$action_msg failed (status $status)"
   fi
-
+ 
   return $status
 }
 
@@ -48,13 +51,13 @@ package_install() {
 
   log "Installing $*"
   __package_command install "$package_name" "Install" "$@"
- 
+
 }
 __status_message() {
   local status="${1}"
   local action="${2}"
   if [[ $status == 0 ]]; then
-    log  "$action succeeded" 
+    log  "$action succeeded"
   else
     log "$action failed (status $status)"
   fi
@@ -83,7 +86,7 @@ package_remove() {
   __package_command remove "${package_name}" "Remove" "$@"
 
 }
- 
+
 case "${1:-}" in
   install)
     shift

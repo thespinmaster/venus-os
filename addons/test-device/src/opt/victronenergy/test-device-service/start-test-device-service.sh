@@ -1,0 +1,20 @@
+#!/bin/bash
+#
+# Start script for dbus-nu-shunt
+#   First parameter: tty device to use
+#
+# Keep this script running with daemon tools. If it exits because the
+# connection crashes, or whatever, daemon tools will start a new one.
+#
+# Arguments
+# -d -debug  : debug logging
+# -s -serial : serial port such as ttyACM0
+
+. /opt/victronenergy/serial-starter/run-service.sh
+
+sid=$(udevadm info --query=property --name="/dev/$tty" | sed -n "s/^SERIAL_DEVICE_ID=//p")
+
+app=/opt/victronenergy/test-device-service/__main__.py
+#app=/data/dev/addons/test-device-service/src/opt/victronenergy/test-device-service/__main__.py
+
+start -s "/dev/$tty" -i "$sid"

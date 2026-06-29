@@ -1,0 +1,1 @@
+../../../src/opt/victronenergy/gui/qml/OpkgManager.qml

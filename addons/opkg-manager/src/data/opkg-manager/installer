@@ -18,16 +18,20 @@ PACKAGE_DBUS_SETTINGS="
 "
 
 post_install() {
- 
+
   opkg_common_add_script_to_rc_local "${RC_LOCAL_SCRIPT}"
- 
+
   addsource serial-device-installer
   serial_device_installer_ensure_rules_file_symlink
- 
+
   opkg_common_ensure_feed_symlink
-  
+
   echo "Please wait, updating packages..."
   opkg_common_update_packages
+
+  if [[ -x "${VE_ROOT_DIR:-}/opt/victronenergy/opkg-manager-service/start-opkg-manager-service.sh" ]]; then
+    "${VE_ROOT_DIR:-}/opt/victronenergy/opkg-manager-service/start-opkg-manager-service.sh" || true
+  fi
 
   RESTART_GUI_SERVICE=1
 }
@@ -35,14 +39,18 @@ post_install() {
 post_remove() {
   [[ "$PACKAGE_ACTION" == "upgrade-remove" ]] && return;
 
-  # upgrade does not remove existing dbus settingsP
+  # upgrade does not remove existing dbus settings
   # remove symlink or call opkg update
 
   rm -f "${VE_ROOT_DIR:-}/var/log/opkg-manager/startup.log"
 
   serial_device_installer_remove_rules_file_symlink
-  
+
   opkg_common_remove_feed_symlink
+
+  if [[ -x "${VE_ROOT_DIR:-}/opt/victronenergy/opkg-manager-service/stop-opkg-manager-service.sh" ]]; then
+    "${VE_ROOT_DIR:-}/opt/victronenergy/opkg-manager-service/stop-opkg-manager-service.sh" || true
+  fi
 
   echo "Please wait, updating packages..."
   opkg_common_update_packages

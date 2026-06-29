@@ -1,0 +1,34 @@
+#!/bin/bash
+
+set -o nounset
+
+declare this_path; this_path="$(dirname "${BASH_SOURCE[0]}")"
+
+QML_TARGET_PATH="/home/admin_user/dev-local/gui/qml" # "/opt/victronenergy/gui/qml"
+QML_SOURCE_PATH="$this_path/../src/opt/victronenergy/gui/qml"
+
+[[ -d "${QML_TARGET_PATH}" ]] || { echo "Wrong Server! (path not found ${QML_TARGET_PATH})"; exit 1; }
+
+QML_ICONS_TARGET_PATH="/home/admin_user/dev-local/gui/qml/themes/ccgx/icons"
+QML_ICONS_SOURCE_PATH="$this_path/../src/opt/victronenergy/themes/ccgx/icons"
+
+# qml: files link all files found in $QML_ICONS_SOURCE_PATH
+echo "SOURCE:$QML_SOURCE_PATH"
+for source_file in "$QML_SOURCE_PATH"/*; do
+
+	[ -f "$source_file" ] || continue
+	dest_file="$(basename "$source_file")"
+	echo "AAAA$source_file -> $QML_TARGET_PATH/$dest_file"
+	#rm -f "$QML_TARGET_PATH/$dest_file"
+	cp "$source_file" "$QML_TARGET_PATH/$dest_file"
+done
+
+# icons: link all files found in $QML_ICONS_SOURCE_PATH
+for source_file in "$QML_ICONS_SOURCE_PATH"/*; do
+	[ -f "$source_file" ] || continue
+	dest_file="$(basename "$source_file")"
+	# rm -f "$QML_ICONS_TARGET_PATH/$dest_file"
+	# cp  "$source_file" "$QML_ICONS_TARGET_PATH/$dest_file"
+done
+
+echo "done"

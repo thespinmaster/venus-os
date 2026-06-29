@@ -1,30 +1,48 @@
 {
 	"folders": [
 		{
+			"name": "opkg-manager",
+			"path": "addons/opkg-manager"
+		},
+		{
 			"name": "dev",
 			"path": "."
 		},
 		{
 			"name": "qml",
-			"path": "/opt/victronenergy/gui/qml"
+			"path": "../../opt/victronenergy/gui/qml"
 		},
 		{
 			"name": "data",
-			"path": "/data"
+			"path": ".."
 		},
 		{
+			"name": "victronenergy",
 			"path": "../../opt/victronenergy"
 		},
 		{
+			"name": "rules.d",
 			"path": "../../etc/udev/rules.d"
 		},
 		{
+			"name": "gui-v2",
 			"path": "../../var/www/venus/gui-v2"
 		}
 	],
 	"settings": {
 		"workbench.editor.enablePreview": true,
 		"workbench.editor.enablePreviewFromQuickOpen": true,
+		"editor.colorDecorators": true,
+		"editor.colorDecoratorsLimit": 5000,
+		"qt-qml.qmlls.customExePath": "/home/admin_user/Qt/6.8.3/gcc_64/bin/qmlls",
+		"qt-qml.qmlls.additionalImportPaths": [
+			"/usr/lib/x86_64-linux-gnu/qt6/qml",
+			"/home/admin_user/dev-local/gui-v2/build-wasm",
+			"/home/admin_user/dev/repos/venus-os/addons/opkg-manager/src/opt/victronenergy/gui/qml",
+			"/home/admin_user/dev/repos/venus-os/addons/themer/src/opt/victronenergy/gui/qml"
+		],
+		"qt-qml.qmlls.useNoCMakeCalls": true,
+		"qt-qml.doNotAskForQmllsDownload": true,
 		"python.analysis.include": [
 			"./addons",
 			"./scripts",
@@ -37,5 +55,4 @@
 		"editor.wordWrap": "wordWrapColumn",
 		"editor.wordWrapColumn": 110
 	}
- 
 }

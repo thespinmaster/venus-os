@@ -8,7 +8,7 @@ Related: [Installer Integration Patterns (Developer Note)](installer-integration
 
 ```mermaid
 flowchart LR
-    UI[QML Pages\nOpkgPageSettings*.qml] --> VMJS[QML JS Helpers\nopkgPageSettingsPackages.js\nopkg-utils.js\nopkg-custom-service.js]
+    UI[QML Pages\nOpkgPageSettings*.qml] --> VMJS[QML JS Helpers\nopkgPageSettingsPackages.js\nopkg-utils.js\nopkg-custom-device.js]
     UI --> BRIDGE[OpkgBridge\nQt C++ plugin]
     VMJS --> BRIDGE
 

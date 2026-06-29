@@ -21,7 +21,7 @@ declare __this_path; __this_path="$(dirname "${BASH_SOURCE[0]}")"
 
 # Expand rootfs and make it writable
 opkg_common_expand_root_fs() {
-  
+
   log_trace "expanding root fs"
   if [[ ! $dry_run ]]; then
     $resize2fs_file
@@ -50,7 +50,7 @@ __mount_root_fs_readonly() {
 # if initial state is empty but ___is_fs_readonly now
 # has a value then we restore back to readonly.
 __restore_previous_fs_access() {
-  
+
   log_trace "Restoring previous fs state"
 
   if [[ "${___is_fs_readonly}" = 1 ]]; then
@@ -59,18 +59,18 @@ __restore_previous_fs_access() {
     log_trace "previous state was readwrite; nothing to restore"
   fi
   ___is_fs_readonly=
-  
+
 }
 
 opkg_common_ensure_feed_symlink() {
 
   local new_target="/data/conf/opkg-manager-feeds-${1:-release}.conf"
 
-  [[ ! -f "${new_target}" ]] && { 
+  [[ ! -f "${new_target}" ]] && {
     log_error "feed target file does not exist: ${new_target}"; }
 
   local current_source=""
-  [[ -L "${OPKG_FEED_CONFIG_FILE_SYMLNK}" ]] && 
+  [[ -L "${OPKG_FEED_CONFIG_FILE_SYMLNK}" ]] &&
     current_source="$(readlink "${OPKG_FEED_CONFIG_FILE_SYMLNK}")"
 
   if [[ "${current_source}" == "${new_target}" ]]; then
@@ -103,14 +103,15 @@ opkg_common_feed_add() {
 
   if grep -qE "^src/gz ${feed_name} " "${OPKG_FEED_CONFIG_FILE_SYMLNK}" ||
     grep -qE "^src/gz ${feed_name} " "/etc/opkg/venus.conf"; then
-    log_trace "Feed already exists: ${feed_name}"
-    return 0
+    log_error "Feed already exists: ${feed_name}" >&2; return 1;
   fi
 
-  echo "src/gz ${feed_name} ${feed_url}" >> "${OPKG_FEED_CONFIG_FILE_SYMLNK}" || {
-    log_error "Error writing feed: ${feed_name}"
-    return 1
-  }
+	# make sure we update the real file and not the symlink
+	local feedfile="${OPKG_FEED_CONFIG_FILE_SYMLNK}"
+  [[ -L "${feedfile}" ]] && feedfile="$(readlink "${OPKG_FEED_CONFIG_FILE_SYMLNK}")"
+
+	echo "src/gz ${feed_name} ${feed_url}" >> "${feedfile}" \
+			|| { echo "Error writing to ${feedfile}" >&2; return 1; }
 
   return 0
 }
@@ -210,7 +211,7 @@ feed_get_feed_type() {
     feedType="${feedType%.conf}"  # remove suffix
   fi
   # default to release, as opkg_common_ensure_feed_symlink will take care of missing conf.
-  echo "${feedType:-release}" 
+  echo "${feedType:-release}"
 }
 
 opkg_common_remove_feed_symlink() {
@@ -241,9 +242,9 @@ __wait_for_opkg() {
 
 opkg_common_update_packages() {
   (
-    __wait_for_opkg && opkg update 
+    __wait_for_opkg && opkg update
   ) &
-  
+
   local opkg_pid=$!
   wait "$opkg_pid"
   return 0
@@ -254,7 +255,7 @@ __ensure_rc_local() {
   if [[ ! -f "${rc_local_file}" ]]; then
     log "rc.local does not exist; creating..."
     if [[ ! $dry_run ]]; then
-      touch "${rc_local_file}"  
+      touch "${rc_local_file}"
     fi
   fi
   if [[ ! $dry_run ]]; then
@@ -281,7 +282,7 @@ __init_root_fs_for_writing() {
     else
       ___is_fs_readonly=0
     fi
- 
+
     if [[ "${___is_fs_readonly}" = 1 ]]; then
       __root_fs_readwrite
     fi
@@ -307,13 +308,13 @@ __init_opkg() {
 
   log_trace "__init_opkg: initializing"
 
-  opkg_common_ensure_feed_symlink 
+  opkg_common_ensure_feed_symlink
   if [[ ! $dry_run ]]; then
     opkg update
   fi
 
   init_opkg_helpers=1
- 
+
 }
 
 __opkg_common_try_install_package() {
@@ -347,7 +348,7 @@ __opkg_common_try_install_package() {
 }
 
 # loops through all the lines in
-# the opkg_installed_packages_file 
+# the opkg_installed_packages_file
 # and proceeds to install each
 # package.
 # takes care of read write access
@@ -357,7 +358,7 @@ opkg_common_ensure_installed() {
      log "opkg_installed_packages_file does not exist"; return 0; }
 
   log_trace "opkg_common_ensure_installed"
- 
+
   log_push_indent
   local isfirst=1
 
@@ -365,15 +366,15 @@ opkg_common_ensure_installed() {
   do
     # ignore comments and empty lines
     [[ -z "${line//[[:space:]]/}" || $line == \#* ]] && continue
-    
+
     if ((isfirst)); then
       isfirst=0
     else
       sleep 1
     fi
- 
+
     __wait_for_opkg
-    
+
     __opkg_common_try_install_package "${line}"
 
   done < "${opkg_installed_packages_file}"
@@ -386,7 +387,7 @@ opkg_common_ensure_installed() {
 
   return 0
 }
- 
+
 # adds script to the rc_local file
 # args: ${1} the script to add
 # this script can be multiple lines
@@ -427,16 +428,16 @@ opkg_common_remove_script_from_rc_local() {
   # string_lib_multiline_find_replace "${1}" --trim-lines < "${rc_local_file}" > "${rc_local_file}"
 
   if [[ ! $dry_run ]]; then
-  
+
   thispath="$(dirname "${BASH_SOURCE[0]}")"
   . "$thispath/libs/string-lib"
-    
+
     # TODO add inplace option to string_lib_multiline_find_replace
     local tmp; tmp=$(mktemp)
     string_lib_multiline_find_replace "${1}" --trim-lines < "${rc_local_file}" > "$tmp" && {
       mv "$tmp" "${rc_local_file}"
     }
-     
+
   fi
 
 }
@@ -450,7 +451,7 @@ opkg_common_register_package() {
   [[ -z "${1:-}" ]] && { log_error "ERROR: no package name supplied" ; return 1; }
 
   local package_name="${1:-}"
-  
+
   if [[ ! -f "${opkg_installed_packages_file}" ]] || ! grep -q "^${package_name}$" "${opkg_installed_packages_file}" ; then
     log "Adding ${package_name} to ${opkg_installed_packages_file}"
     if [[ ! $dry_run ]]; then
@@ -490,7 +491,7 @@ case "${1:-}" in
     fi
     opkg_common_ensure_installed
     ;;
- 
+
   ensure-feeds)
     shift
     opkg_common_ensure_feed_symlink "${1:-}"

@@ -1,0 +1,37 @@
+{
+	"folders": [
+		{
+			"path": "/home/admin_user/dev/repos/venus-os/addons/opkg-manager"
+		},
+		{
+			"name": "dev",
+			"path": "."
+		},
+		{
+			"path": "../../../dev-local"
+		}
+	],
+	"settings": {
+		"workbench.editor.enablePreview": true,
+		"workbench.editor.enablePreviewFromQuickOpen": true,
+		"editor.colorDecorators": true,
+		"editor.colorDecoratorsLimit": 5000,
+		"python.analysis.include": [
+			"./addons",
+			"./scripts",
+			"./addons",
+			"./python"
+		],
+		"editor.rulers": [
+			110
+		],
+		"editor.wordWrap": "wordWrapColumn",
+		"editor.wordWrapColumn": 110,
+		"qt-qml.qmlls.customExePath": "/home/admin_user/Qt/6.8.3/gcc_64/bin/qmlls",
+		"qt-qml.qmlls.additionalImportPaths": [
+			"/home/admin_user/dev-local/gui-v2/build-wasm"
+		],b
+	}
+
+
+}

@@ -5,18 +5,18 @@ import os
 from dbus_constants import dbus_constants
 
 class dbusInetboxService(dbus_base_service):
- 
+
 	def __init__(self, portName:str, classAndVrmInstance:str, serviceIdentifier:str = "", onValueChangedCallback = None):
-		 
+
 		connection = os.path.basename(portName) # convert from /dev/ttyxxx to ttyxxx
 
 		classAndVrmInstanceParts = classAndVrmInstance.split(':')
 		className = classAndVrmInstanceParts[0]
 		deviceInstance = int(classAndVrmInstanceParts[1])
- 
+
 		serviceName = "com.victronenergy.{}.{}".format(
 			className, dbus_constants.DBUS_PRODUCT_NAME + "_" + serviceIdentifier)
-		
+
 		self._registerCore(
 			connection,
 			deviceInstance,
@@ -25,11 +25,10 @@ class dbusInetboxService(dbus_base_service):
 			dbus_constants.PRODUCT_NAME,
 			dbus_constants.FIRMWARE_VERSION,
 			dbus_constants.HARDWARE_VERSION,
-			paths =  {	
+			paths =  {
 				'/CustomName': {'initial': "",'writable': True},
 				'/Temperature': {'initial': None,'writable': False},
 				'/CustomDevicePage': {'initial': dbus_constants.CUSTOM_DEVICE_PAGE,'writable': False},
-				'/Port': {'initial': portName,'writable': False},
 				'/CustomAlarm': {'initial': 0,'writable': True},
 				'/CustomAlarmText': {'initial': "",'writable': True},
 				'/Values/WaterCurrentTemp': {'initial': None,'writable': False},
@@ -66,11 +65,7 @@ class dbusInetboxService(dbus_base_service):
 				'/SwitchableOutput/aircon/Settings/StepSize': {'initial': 1,'writable': False},
 				'/SwitchableOutput/aircon/Settings/Decimals': {'initial': 1,'writable': False},
 				'/SwitchableOutput/aircon/Measurement': {'initial': None,'writable': False},
-			
+
 			},
 			onValueChanged = onValueChangedCallback
 			)
-	
- 
- 
-		

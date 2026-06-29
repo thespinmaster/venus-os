@@ -23,7 +23,6 @@ QML interacts with writable/readable paths instead of calling DBus methods.
 
 - /State/Running
 - /State/Stopping
-- /State/OperationName
 - /State/RequestId
 - /Event/StdoutLine
 - /Event/StdoutSeq
@@ -54,11 +53,4 @@ Currently this is used for:
 - Start script: /opt/victronenergy/opkg-manager-service/start-opkg-manager-service.sh
 - Stop script: /opt/victronenergy/opkg-manager-service/stop-opkg-manager-service.sh
 
-The process now runs as a runit service, so it is restarted automatically if it exits.
-
-## QML Client
-
-The UI uses the pure-QML helper:
-- /opt/victronenergy/gui/qml/OpkgServiceProcess.qml
-
-This provides a `ProcessRunner`-like surface for the pages without requiring the C++ plugin.
+The process runs as a runit service, so it is restarted automatically if it exits.

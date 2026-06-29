@@ -1,5 +1,5 @@
 
-# controls the interaction between the 
+# controls the interaction between the
 # inetboxapp, the dbus_inetbox_service and the settings
 
 import logging
@@ -24,7 +24,7 @@ class InetboxController:
 	AIRCON_DIMMING_PATH = "/SwitchableOutput/aircon/Dimming"
 	HEATING_MEASUREMENT_PATH = "/SwitchableOutput/heating/Measurement"
 	AIRCON_MEASUREMENT_PATH = "/SwitchableOutput/aircon/Measurement"
- 
+
 	DBUS_TO_LIN_MAPPING = {
 		"WaterCurrentTemp": "current_temp_water",
 		"WaterTargetTemp": "target_temp_water",
@@ -41,7 +41,7 @@ class InetboxController:
 		"Clock": "clock",
 		"Alive": "alive"
 	}
-	
+
 	LIN_TO_DBUS_MAPPING = {
 		"current_temp_water": "WaterCurrentTemp",
 		"target_temp_water": "WaterTargetTemp",
@@ -57,8 +57,8 @@ class InetboxController:
 		"error_code": "Error",
 		"clock": "Clock",
 		"alive": "Alive"
-		}  
-	
+		}
+
 	log = logging.getLogger(__name__)
 	_serialPort : str
 	_sid : str
@@ -68,44 +68,44 @@ class InetboxController:
 	_dbusInetboxService : dbusInetboxService
 
 	def __init__(self, tasks: TaskManager, serialPort, sid, debug_lin, debug_inet, record_file=None):
-		
+
 		self.log.setLevel(logging.DEBUG)
 		self._serialPort = serialPort
 		self._sid = sid
 
 		self._initializeSettings() # sets/gets class_and_vrm_instance
-		
-		self._app = InetboxApp(tasks, debug_inet)  
+
+		self._app = InetboxApp(tasks, debug_inet)
 		self._lin = Lin(self._app, serialPort, tasks, debug_lin, record_file)
 
 		self._app.add_publish_callback(self.inetbox_value_to_dbus)
-		
+
 		classAndVrmInstance = self._settings['class_and_vrm_instance']
 		serviceIdentifier = "sid_" + sid
-  
+
 		self._dbusInetboxService = dbusInetboxService(
 																	serialPort,
-																	classAndVrmInstance, 
-																	serviceIdentifier , 
+																	classAndVrmInstance,
+																	serviceIdentifier ,
 																	self.dbus_value_to_inetbox)
 
-	
+
 	# serial port -> dbus
 	def inetbox_value_to_dbus(self, name: str, value):
 
 		try:
 
 			self.log.debug(f'inetbox_value_to_dbus:, {name}={value}: type={type(value)}')
-			
+
 			dbusName = self.map_or_debug(self.LIN_TO_DBUS_MAPPING, name)
-			if dbusName == "": 
+			if dbusName == "":
 				return
-			
+
 			if (name == "error_code"):
 				error_description=get_error_description(value)
 				self._dbusInetboxService.set_value(self.DBUS_PATH + "ErrorDescription", error_description)
 				self._dbusInetboxService.inject_notification(dbus_constants.PRODUCT_NAME, error_description)
-			
+
 			if (name == "target_temp_room"): # coerse using LastHeatingTemp
 				if (value == "0"):
 					value = self._settings["/LastHeatingTemp"]
@@ -131,7 +131,7 @@ class InetboxController:
 
 	# dbus -> serial port
 	def dbus_value_to_inetbox(self, path : str, value ):
-		
+
 		self.log.debug(f'dbus_value_to_inetbox:, {path}={value}')
 
 		try:
@@ -144,9 +144,9 @@ class InetboxController:
 				if (path == "/CustomName"):
 					self._settings[path] = value
 				return True
-	
+
 			name = path.removeprefix(self.DBUS_PATH)
-		
+
 			if (name == "EnergyMixCombined"):
 				self._fromEnergyMixCombined(value)
 				return True
@@ -163,7 +163,7 @@ class InetboxController:
 				self._dbusInetboxService.set_value(self.HEATING_DIMMING_PATH, value)
 			elif (name == "AirconTargetTemp"):
 				self._dbusInetboxService.set_value(self.AIRCON_DIMMING_PATH, value)
-	
+
 			if (name == "HeatingTargetTemp"):
 				if (self._dbusInetboxService.get_value("/Values/HeatingMode") == "off"):
 					self._settings["/LastHeatingTemp"] = value
@@ -184,7 +184,7 @@ class InetboxController:
 		except Exception as e:
 			self.log.error(f"Exception in: dbus_value_to_inetbox: path={path}, value={value}: {e}")
 			return False
-		
+
 	############################################
 	# Occurs when the a dbus setting value changes
 	############################################
@@ -194,7 +194,7 @@ class InetboxController:
 			if (path == "/CustomName"):
 				self._dbusInetboxService.set_value(path, newvalue)
 				return True
-			
+
 			return False
 		except Exception as e:
 			self.log.error(f"Exception in: _handle_dbus_setting_changed: path={path}, value={newvalue}: {e}")
@@ -204,7 +204,7 @@ class InetboxController:
 		energyMixCombined = value
 		mix = ""
 		elpower = ""
-		
+
 		if (energyMixCombined == "Gas"):
 			mix = "gas"
 		elif (energyMixCombined == "EL1"):
@@ -221,7 +221,7 @@ class InetboxController:
 			mix = "mix"
 		else:
 			return
- 
+
 		self._app.set_status("energy_mix", mix)
 		self._dbusInetboxService.set_value(self.DBUS_PATH + "EnergyMix", mix)
 
@@ -237,11 +237,11 @@ class InetboxController:
 			if (value != "gas"):
 				elpower = self._dbusInetboxService.get_value(self.DBUS_PATH + "ElectricityPowerLevel")
 			energyMix = value
-   
+
 		elif (dbusname == "ElectricityPowerLevel"):
 			energyMix = self._dbusInetboxService.get_value(self.DBUS_PATH + "EnergyMix")
 			elpower = value
- 
+
 		if (energyMix == "gas"):
 			energyMixCombined = "Gas"
 		elif (energyMix == "mix"):
@@ -254,7 +254,7 @@ class InetboxController:
 				energyMixCombined = "EL1"
 			elif elpower == "1800":
 				energyMixCombined = "EL2"
- 
+
 		if (energyMixCombined):
 			self._dbusInetboxService.set_value(self.DBUS_PATH + "EnergyMixCombined", energyMixCombined)
 
@@ -264,29 +264,29 @@ class InetboxController:
 		except (TypeError, ValueError):
 			self.log.warning("Skipping non-numeric temperature value: %r", value)
 			return 0
-    
+
 	############################################
 	# Initializes the dbus device settings
 	# Needs custom UI
-	############################################ 
+	############################################
 	def _initializeSettings(self):
 
 		logging.debug("Initializing settings")
-		
-		# unique path used to generate unique ClassAndVrmInstance value 
+
+		# unique path used to generate unique ClassAndVrmInstance value
 		# see https://github.com/victronenergy/localsettings#using-addsetting-to-allocate-a-vrm-device-instance
-		self._settingsPath = f'/Settings/Devices/{dbus_constants.DBUS_PRODUCT_NAME}_sid_{self._sid}'
-  
+		self._settingsPath = f'/Settings/CustomDevices/{dbus_constants.DBUS_PRODUCT_NAME}_sid_{self._sid}'
+
 		self._settings = SettingsDevice(
 			bus = dbusconnection(),
 			#name, path, value, min (0), max (0)
 			supportedSettings = {
-				'class_and_vrm_instance' : [f'{self._settingsPath}/ClassAndVrmInstance', 
+				'class_and_vrm_instance' : [f'{self._settingsPath}/ClassAndVrmInstance',
 						f"{dbus_constants.SERVICE_CLASS_NAME}:{dbus_constants.DEFAULT_DEVICE_INSTANCE}", 0, 0],
-						
+
 				'/Sid' : [f'{self._settingsPath}/Sid', self._sid, 0, 0],
 				'/CustomName' : [f'{self._settingsPath}/CustomName', "", "", ""],
-				'/LastHeatingTemp' : [f'{self._settingsPath}/LastHeatingTemp', 16, 4, 30],
+				'/LastHeatingTemp' : [f'{self._settingsPath}/LastHeatingTemp', 16, 4, 30]
 				#'syncClock' : [f'{settingsPath}/SyncClock', 1, 0, 1],
 				},
 			eventCallback = self._handle_dbus_setting_changed)
