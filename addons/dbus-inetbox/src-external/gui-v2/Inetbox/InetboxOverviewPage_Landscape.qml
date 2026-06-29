@@ -17,7 +17,11 @@ Page {
 			widgetColor_base.b,
 			0.5
 	)
- 
+	
+	Component.onCompleted: {
+		console.log("Component.onCompleted:")
+	}
+
 	function deviceUid(suffix) {
 		return deviceServiceUid ? (deviceServiceUid + suffix) : ""
 	}

@@ -1,5 +1,5 @@
 import QtQuick 2
-import "opkg-custom-service.js" as CustomService
+import "opkg-custom-device.js" as CustomDevice
 
 QtObject {
 
@@ -9,10 +9,10 @@ QtObject {
     var model = root.model
     if (model.count > 0)
       model.remove(0)
-    
+
     if (setup_menu) {
       model.insert(0,setup_menu)
-    } 
+    }
   }
 
   property VeQuickItem vItem: VeQuickItem {}
@@ -20,10 +20,10 @@ QtObject {
   function create_custom_setup_menu() {
 
     var serviceName = root.service.name
- 
-    //console.log("create_custom_setup_menu:" + serviceName) 
-    
-    if (!CustomService.isCustomService(root.service))
+
+    //console.log("create_custom_setup_menu:" + serviceName)
+
+    if (!CustomDevice.isCustomService(root.service))
       return null
 
     vItem.uid = "dbus/" + serviceName + "/CustomDevicePage"
@@ -48,5 +48,5 @@ QtObject {
     return instance
 
   }
-  
+
 }

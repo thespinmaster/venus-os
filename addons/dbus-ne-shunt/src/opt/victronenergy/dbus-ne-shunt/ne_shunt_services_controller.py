@@ -5,7 +5,7 @@ import globals
 from typing import Optional
 
 sys.path.append(os.path.join(os.path.dirname(__file__), 'ext'))
-sys.path.append(os.path.join(os.path.dirname(__file__), 'serial_service')) 
+sys.path.append(os.path.join(os.path.dirname(__file__), 'serial_service'))
 sys.path.append(os.path.join(os.path.dirname(__file__), 'dbus_services'))
 
 from dbus_services.switch_service import switch_service
@@ -37,36 +37,36 @@ class ne_shunt_services_controller:
 	_sid : str
 
 	############################################
-	# constructor 
-	# serial port is passed from the SerialStarter 
+	# constructor
+	# serial port is passed from the SerialStarter
 	# service. i.e. /dev/ttyACM0
 	############################################
 	def __init__(self, serialPort, sid, readonly):
 		self._serialPort = serialPort
 		self._sid = sid
 		self._readonly = readonly
-		
-  
+
+
 	def close(self):
 		self._cancelled = True
-  
+
 	############################################
-	# Starts and stops the serial service as 
+	# Starts and stops the serial service as
 	# required
 	############################################
 	def _start_stop_serial_service(self):
 		logging.debug('_start_stop_serial_service')
 
 		#state 0 (nothing running ... so close)
-		if (self._serialService and len(self._services) == 0): 
+		if (self._serialService and len(self._services) == 0):
 			self._serialService.close()
 			self._serialService = None
 
 		if (self._serialService == None and len(self._services) > 0):
 			self._serialService = ne_shunt_serial_service(self._serialPort, self._readonly)
- 
+
 	############################################
-	# Occurs when the a device setting value is 
+	# Occurs when the a device setting value is
 	# changed such as ShowControls
 	############################################
 	def _handle_changed_setting(self, setting, oldvalue, newvalue):
@@ -74,39 +74,40 @@ class ne_shunt_services_controller:
 
 		self._start_stop_services(setting, newvalue)
 		return True
-	
+
 	############################################
 	# Initializes the dbus device settings
 	# Needs custom UI
-	############################################ 
+	############################################
 	def _initializeSettings(self):
 
 		logging.debug("Initializing settings")
-		
-  
-		# unique path used to generate unique ClassAndVrmInstance value 
+
+
+		# unique path used to generate unique ClassAndVrmInstance value
 		# see https://github.com/victronenergy/localsettings#using-addsetting-to-allocate-a-vrm-device-instance
 		#portName = os.path.basename(self._serialPort)
-		settingsPath = f'/Settings/Devices/{dbus_constants.SAFE_PRODUCT_NAME}_sid_{self._sid}'
-    
+		settingsPath = f'/Settings/CustomDevices/{dbus_constants.SAFE_PRODUCT_NAME}_sid_{self._sid}'
+
 		self._settings = SettingsDevice(
 			bus = dbusconnection(),
 			supportedSettings = {
 				'sid': [f'{settingsPath}/Sid', self._sid, 0, 1],
+				'device_name': [f'{settingsPath}/DeviceName', DBUS_DEVICE_KEY, 0, 0],
 				'show_fresh_water_tank': [f'{settingsPath}/ShowFreshWaterTank', 1, 0, 1],
 				'show_grey_waste_tank': [f'{settingsPath}/ShowGreyWasteTank', 1, 0, 1],  # When empty, default path will be used.
 				'show_grey_waste_tank2': [f'{settingsPath}/ShowGreyWasteTank2', 1, 0, 1],
-				'fresh_water_tank_class_and_vrm_instance' : [f'{settingsPath}FreshWaterTank/ClassAndVrmInstance', 
+				'fresh_water_tank_class_and_vrm_instance' : [f'{settingsPath}FreshWaterTank/ClassAndVrmInstance',
 													f"{dbus_constants.SERVICE_TYPE_TANK}:{dbus_constants.DEFAULT_DEVICE_INSTANCE}", 0, 0],
-				'grey_waste_tank_class_and_vrm_instance' : [f'{settingsPath}/GreyWasteTank/ClassAndVrmInstance', 
+				'grey_waste_tank_class_and_vrm_instance' : [f'{settingsPath}/GreyWasteTank/ClassAndVrmInstance',
 													f"{dbus_constants.SERVICE_TYPE_TANK}:{dbus_constants.DEFAULT_DEVICE_INSTANCE}", 0, 0],
-				'grey_waste_tank2_class_and_vrm_instance' : [f'{settingsPath}/GreyWasteTank2/ClassAndVrmInstance', 
+				'grey_waste_tank2_class_and_vrm_instance' : [f'{settingsPath}/GreyWasteTank2/ClassAndVrmInstance',
 													f"{dbus_constants.SERVICE_TYPE_TANK}:{dbus_constants.DEFAULT_DEVICE_INSTANCE}", 0, 0],
-				'cab_battery_class_and_vrm_instance' : [f'{settingsPath}/CabBattery/ClassAndVrmInstance', 
+				'cab_battery_class_and_vrm_instance' : [f'{settingsPath}/CabBattery/ClassAndVrmInstance',
 													f"{dbus_constants.SERVICE_TYPE_BATTERY}:{dbus_constants.DEFAULT_DEVICE_INSTANCE}", 0, 0],
-				'leisure_battery_class_and_vrm_instance' : [f'{settingsPath}/LeisureBattery/ClassAndVrmInstance', 
+				'leisure_battery_class_and_vrm_instance' : [f'{settingsPath}/LeisureBattery/ClassAndVrmInstance',
 													f"{dbus_constants.SERVICE_TYPE_BATTERY}:{dbus_constants.DEFAULT_DEVICE_INSTANCE}", 0, 0],
-				'switches_class_and_vrm_instance' : [f'{settingsPath}/Switches/ClassAndVrmInstance', 
+				'switches_class_and_vrm_instance' : [f'{settingsPath}/Switches/ClassAndVrmInstance',
 													f"{dbus_constants.SERVICE_TYPE_TEMPERATURE}:{dbus_constants.DEFAULT_DEVICE_INSTANCE}", 0, 0]
 				},
 			eventCallback = self._handle_changed_setting)
@@ -115,14 +116,14 @@ class ne_shunt_services_controller:
 	# Occurs when a switch is toggled in the UI
 	############################################
 	def _dbus_switch_value_changed(self, path, newvalue):
- 
+
 		logging.info('dbus value changed, path: %s, newvalue: %s' % (path, newvalue))
- 
+
 		if (self._serialService == None or self._curData == None):
 			return False
 
 
-		if (path == '/SwitchableOutput/ExternalLights/State'):    
+		if (path == '/SwitchableOutput/ExternalLights/State'):
 			self._try_toggle_serial_switch_value("external_lights", newvalue)
 		elif (path == "/SwitchableOutput/InternalLights/State"):
 			self._try_toggle_serial_switch_value("internal_lights", newvalue)
@@ -132,7 +133,7 @@ class ne_shunt_services_controller:
 			self._try_toggle_serial_switch_value("aux", newvalue)
 
 		return True
-	
+
 	############################################
 	# Occurs when a battery value has chnaged the UI
 	############################################
@@ -144,14 +145,14 @@ class ne_shunt_services_controller:
 
 	def _dbus_battery_value_changed(self,serviceName, path, newvalue):
 		logging.debug('dbus value changed, path: %s, newvalue: %s' % (path, newvalue))
-		
-		service = self._services.get(serviceName, None)  
+
+		service = self._services.get(serviceName, None)
 		if (service == None):
 			return
 
-		if (path == '/MinVoltage'): 
+		if (path == '/MinVoltage'):
 			service.MinVoltage = newvalue
-		elif (path == '/MaxVoltage'): 
+		elif (path == '/MaxVoltage'):
 			service.MaxVoltage = newvalue
 
 	############################################
@@ -160,35 +161,35 @@ class ne_shunt_services_controller:
 	# the pysical device
 	############################################
 	def _try_toggle_serial_switch_value(self, name, newvalue):
- 
+
 		try:
 			if (self._serialService == None or self._curData == None):
 				logging.debug('_try_toggle_serial_switch_value: serial service or curData is None')
 				return False
-			
+
 			if not (newvalue == 1 or newvalue == 0):
 				logging.debug('_try_toggle_serial_switch_value: invalid value. value must be 0 or 1 for ' + name)
 				return False
- 
+
 			curValue = self._curData.get_value(name)
- 
+
 			if (curValue != newvalue):
 				return self._serialService.toggle_switch(name)
-		
+
 		except Exception as ex:
 			logging.error("Error in _try_change_value %s" % (ex))
 
 		return False
-	
-	############################################ 
+
+	############################################
 	# starts and stops the dbus tank service
-	# There can be upto 3 three tanks. 
+	# There can be upto 3 three tanks.
 	# FreshWater, GreyWaste1 and GreyWaste2
-	############################################ 
+	############################################
 	def _start_stop_tank_service(self, name, createcallback):
 		logging.debug(f"_start_stop_tank_service: {name}")
 		service = self._services.get(name, None)
-   
+
 		if (self._settings['show_' + name] == 1):
 			if (service is None):
 				logging.debug(f"_start_stop_tank_service: {name} creating")
@@ -201,12 +202,12 @@ class ne_shunt_services_controller:
 			self._services.pop(name)
 			service.unregister()
 
-	############################################ 
+	############################################
 	# starts and stops the dbus switch service
-	# The nord electornics 194 has 4 service 
-	# switches. Aux, Water Pump, Internal Lights & 
+	# The nord electornics 194 has 4 service
+	# switches. Aux, Water Pump, Internal Lights &
 	# External Lights
-	############################################ 
+	############################################
 	def _start_stop_switch_service(self):
 		logging.debug("_start_stop_switch_service in")
 
@@ -221,9 +222,9 @@ class ne_shunt_services_controller:
 
 
 		switches = []
-		
+
 		#if statements are not needed as Venus OS hides switches using ShowUIControl
-		
+
 		#if (switches.ShowUIControl("InternalLights") == 1):
 		switches.append("Internal Lights")
 
@@ -232,27 +233,27 @@ class ne_shunt_services_controller:
 
 		#if (switches.ShowUIControl("WaterPump") == 1):
 		switches.append("Water Pump")
-			
+
 		#if (switches.ShowUIControl("Aux") == 1):
 		switches.append("Aux")
 
 		if len(switches) != 0:
 			logging.debug("_start_stop_switch_service: starting")
-   
+
 			serviceIdentifier = "sid_" + self._sid
 			classAndVrmInstance = self._settings['switches_class_and_vrm_instance']
- 
+
 			self._services["switches"] = switch_service(
 											"Electrics",
 											self._serialPort,
-											serviceIdentifier, 
+											serviceIdentifier,
 											switches,
 											classAndVrmInstance,
 											onValueChanged = self._dbus_switch_value_changed)
-	
+
 	############################################
 	# Starts the dbus vehicle battery service
-	# the ne shunt also has a leisure battery 
+	# the ne shunt also has a leisure battery
 	# but this is not likely needed in Victron
 	# setup
 	############################################
@@ -261,11 +262,11 @@ class ne_shunt_services_controller:
 		logging.debug("_start_battery_services in")
 
 		serviceIdentifier = "sid_" + self._sid
-  
+
 		service = self._services.get("cab_battery", None)
 		if (service == None):
 			classAndVrmInstance = self._settings['cab_battery_class_and_vrm_instance']
-      
+
 			self._services["cab_battery"] = battery_service("Vehicle Battery",
 														self._serialPort,
 														serviceIdentifier,
@@ -284,43 +285,43 @@ class ne_shunt_services_controller:
 														onValueChanged = self._dbus_leisure_battery_value_changed)
 
 	############################################
-	# starts and stops all services 
+	# starts and stops all services
 	# note: only starts the vehicle battery service
 	############################################
 	def _start_stop_services(self, dbusSettingName = "", newValue = None):
-		
+
 		serviceIdentifier = "sid_" + self._sid
-  
+
 		if (dbusSettingName == "" or dbusSettingName.endswith("FreshWaterTank")):
 			classAndVrmInstance = self._settings['fresh_water_tank_class_and_vrm_instance']
- 
-			self._start_stop_tank_service("fresh_water_tank", 
-										createcallback = lambda: tank_service("Fresh Water", 
+
+			self._start_stop_tank_service("fresh_water_tank",
+										createcallback = lambda: tank_service("Fresh Water",
 										self._serialPort,
 										serviceIdentifier,
-										dbus_constants.FLUID_TYPE_FRESH_WATER, 
+										dbus_constants.FLUID_TYPE_FRESH_WATER,
 										classAndVrmInstance, 0.1))
-			
+
 		if (dbusSettingName == "" or dbusSettingName.endswith("GreyWasteTank")):
 			classAndVrmInstance = self._settings['grey_waste_tank_class_and_vrm_instance']
- 
-			self._start_stop_tank_service("grey_waste_tank", 
-										createcallback = lambda: tank_service("Grey Waste", 
+
+			self._start_stop_tank_service("grey_waste_tank",
+										createcallback = lambda: tank_service("Grey Waste",
 										self._serialPort,
 										serviceIdentifier,
 										dbus_constants.FLUID_TYPE_WASTE_WATER,
 										classAndVrmInstance, 0.1))
-		
+
 		if (dbusSettingName == "" or dbusSettingName.endswith("GreyWasteTank2")):
 			classAndVrmInstance = self._settings['grey_waste_tank2_class_and_vrm_instance']
- 
-			self._start_stop_tank_service("grey_waste_tank2", 
-										createcallback = lambda: tank_service("Grey Waste 2", 
+
+			self._start_stop_tank_service("grey_waste_tank2",
+										createcallback = lambda: tank_service("Grey Waste 2",
 										self._serialPort,
 										serviceIdentifier,
-										dbus_constants.FLUID_TYPE_WASTE_WATER, 
+										dbus_constants.FLUID_TYPE_WASTE_WATER,
 										classAndVrmInstance,0.1))
-		
+
 		if (dbusSettingName == "" or dbusSettingName.endswith("Switch")):
 			self._start_stop_switch_service()
 
@@ -334,15 +335,15 @@ class ne_shunt_services_controller:
 	# initial setup of services and settings
 	############################################
 	def initialize(self):
-	
+
 		self._services = dict()
 
 		self._initializeSettings()
- 
+
 		self._start_stop_services()
 
 	############################################
-	# updates a dbus service value from the 
+	# updates a dbus service value from the
 	# passed physical device value
 	############################################
 	def update_dbus_item(self, serviceName, servicePath, newValue):
@@ -352,13 +353,13 @@ class ne_shunt_services_controller:
 		if dbus_service:
 			globals.log_verbose(f"update_dbus_item set_value: {servicePath}/newValue = {newValue}")
 			dbus_service.set_value(servicePath, newValue)
-			
+
 		else:
 			globals.log_verbose(f"update_dbus_item: serviceName = None ({serviceName})" )
- 
+
 		globals.log_verbose("update_dbus_item out")
 
-	
+
 	############################################
 	# reads the 485 serial data from from the
 	# ne-shunt and passes any changed values
@@ -370,9 +371,9 @@ class ne_shunt_services_controller:
 	def _update(self):
 		if self._cancelled:
 			return False
-  
+
 		globals.log_verbose("_update in")
- 
+
 		if (self._serialService == None):
 			globals.log_verbose("_update out ss=None")
 			return True
@@ -380,16 +381,16 @@ class ne_shunt_services_controller:
 		globals.log_verbose("read_data in")
 		data = self._serialService.read_data()
 		if not data:
-			globals.log_verbose("_update out: no data returned")   
+			globals.log_verbose("_update out: no data returned")
 			return True
 
 		if self._cancelled:
 			return False
-  
+
 		if (data == self._lastData):
 			globals.log_verbose("no change exiting...")
 			return True
- 
+
 		#logging.debug(f"data: {data}\n_lastData:{self._lastData}")
 
 		newData = ne_shunt_data(data)
@@ -398,9 +399,9 @@ class ne_shunt_services_controller:
 		curData = self._curData.clone() if self._curData else None
 
 		for key, value in newData.diff(curData):
-			
+
 			logging.info(f"value changed: {key} = {value}")
-	  
+
 			match key:
 				case 'fresh_water_tank' | "grey_waste_tank" | 'grey_waste_tank2':
 					self.update_dbus_item(key, "/Level", value)
@@ -417,7 +418,7 @@ class ne_shunt_services_controller:
 					dbus_service = self._services.get(key, None)
 					if dbus_service:
 						self.update_dbus_item(key, "/Soc", dbus_service.calcBatterySoc(value))
-		
+
 		globals.log_verbose("_update out")
 
 		 #keep at end, helps dbus events from turning off values before we are populated

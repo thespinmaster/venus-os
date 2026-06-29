@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 set -euo pipefail
- 
+
 ####################################################################
 # Creates all (default) the opkg packages in the folders
 #   ../addons
@@ -106,7 +106,7 @@ cli_build_args=("${normalized_cli_build_args[@]}")
   echo "ERROR: --clean-develop cannot be combined with --promote" >&2
   exit 1
 }
- 
+
 cd "$this_path" || exit 1
 
 this_path="."
@@ -156,8 +156,9 @@ resolve_build_items() {
 
   if [[ ${#cli_build_args[@]} -eq 0 || "${cli_build_args[0]}" == "all" ]]; then
     echo "cur dir: $PWD"
-    mapfile -t build_items < <(find "${folders[@]}" -mindepth 1 -maxdepth 1 -type d -exec realpath {} +)
-    return 0
+    mapfile -t build_items < <(find "${folders[@]}" ! -name '*.old' -mindepth 1 -maxdepth 1 -type d -exec realpath {} +)
+
+		return 0
   fi
 
   if [[ "${cli_build_args[0]}" == "package" ]]; then
@@ -197,7 +198,7 @@ register_feed_targets() {
     mkdir -p "${update_feeds[$feed]}"
   done
 }
- 
+
 # args: ${1} [in] build path (../.build)
 #       ${2} in source path (../addons/project-name)
 #       ${3} [out] develop path (../.build/project-name)
@@ -241,7 +242,7 @@ develop_source_byref() {
   # `--mkpath` creates the destination path if it does not already exist.
   rsync -a --mkpath "$src_path/" "$dest_path" "${options[@]}" || return 1
   _develop_path="$dest_path"
- 
+
   return 0
 }
 
@@ -273,9 +274,9 @@ build_package() {
   feed_path_abs="$(cd "$feed_path" && pwd)"
 
   echo "building ${name} -> ${feed_path_abs}"
- 
+
   [[ -d "${path}" ]] || { echo "invalid path: ${path}" >&2 ; return 1; }
-  
+
   local build_path="../.build/${name}.$$.${RANDOM}"
   local develop_path;
   develop_source_byref "$build_path" "$path" develop_path || return 1
@@ -287,14 +288,14 @@ build_package() {
   fi
 
   mkdir -p "${develop_path}/data/${name}"
-  # shellcheck disable=SC2005 
+  # shellcheck disable=SC2005
   # echo "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" > "${develop_path}/data/${name}/buildtime"
   echo "$(date)" > "${develop_path}/data/${name}/buildtime"
- 
+
   opkg-build -o root -g root "${develop_path}/" "${feed_path_abs}"
- 
+
   rm -rf "${build_path:?}"
- 
+
 }
 
 promote_feed() {

@@ -2,12 +2,13 @@ class dbus_constants:
 
 	PRODUCT_NAME = "dbus-ne-shunt"
 	SAFE_PRODUCT_NAME="dbus_ne_shunt"
-   
+	DBUS_DEVICE_KEY="NeShunt"
+
 	PRODUCT_ID = 0xC01A
 	PRODUCT_VERSION = "0.01"
 	FIRMWARE_VERSION = "0.01"
 	HARDWARE_VERSION = "0.00"
- 
+
 	DEFAULT_DEVICE_INSTANCE = 812
 	SERVICE_TYPE_TANK="tank"
 	SERVICE_TYPE_SWITCH="switch"
@@ -21,5 +22,3 @@ class dbus_constants:
 
 	PATH_SETTING_INITIAL="initial"
 	PATH_SETTING_WRITABLE="writable"
-
-	

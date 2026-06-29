@@ -1,209 +1,184 @@
 import QtQuick 2
 import com.victron.velib 1.0
 import "utils.js" as Utils
-import "opkgPageSettingsPackages.js" as Vm
 
 MbPage {
 	id: root
 	title: qsTr("Package details")
- 
-	property var packageModel
-	property var packageListModel
-	property int packageIndex: -1
-	property bool upgradeAvailable: false
-  property var footer
 
-	function refreshPackageModel() {
-		if (!packageListModel)
-			return
-		if (packageIndex < 0 || packageIndex >= packageListModel.count)
-			return
-		footer = Vm.getFooter(packageModel, showCompact)
-		packageModel = packageListModel.get(packageIndex)
-		upgradeAvailable = packageModel && Vm.versionGreaterThan(packageModel.version, packageModel.installedVersion)
+	required property var model
+	required property OpkgManager opkgManager
+	required property var loadPackagesModelCallback
+
+	readonly property bool hasInstalled: model?.installedVersion.length > 0
+	readonly property bool hasAvailable: model?.availableVersion.length > 0
+	readonly property string actionLabel: hasInstalled && hasAvailable ? qsTr("Upgrade") : !hasInstalled ? qsTr("Install") : qsTr("")
+
+	readonly property MbStyle mbStyle: MbStyle {}
+
+	readonly property int hMargin: mbStyle.marginItemHorizontal
+	readonly property int vMargin: mbStyle.marginItemVertical
+	readonly property var primaryFontColor: root.mbStyle ? root.mbStyle.textColor : "#000000"
+	readonly property int secondaryFontSize: Math.round(root.mbStyle.fontPixelSize * 0.8)
+	readonly property var secondaryFontColor: mbStyle.color2
+
+	Component.onCompleted: {
+		opkgManager.setOutputLog(logViewer)
+ 	}
+	Component.onDestruction: {
+		opkgManager.setOutputLog(null)
 	}
- 
+
 	// protect the back button from being pressed while processing commands.
  	MouseArea {
 		x:0; y:-mbTools.height
 		width: mbTools.height; height: mbTools.height
-		visible: isBusy // isBusy, parent page (OpkgPageSettingsPackages)
+		visible: opkgManager.running
 	}
 
-	Component.onCompleted: {
-		refreshPackageModel()
-		console.log("Component.onCompleted:", title)
-		//rootWindow.dumpItemTree()
- 	}
 
-	Connections {
-		target: opkgBridge
-		function onRunningChanged() {
-			if (!opkgBridge.running)
-				refreshPackageModel()
+	Column {
+		id: column
+		anchors {
+			top: parent.top
+			left: parent.left
+			right: parent.right
+			topMargin: root.vMargin
 		}
-	}
- 
-	Component.onDestruction: {
-		//console.log("Component.onCompleted:", title)
- 	}
+		spacing: 0
 
- 	MbItem {
-		id: itm
-    anchors.fill: parent
-		
-		OpkgHeaderDescriptionItem {
-			id: packageDetails
-			header: packageModel == undefined ? "" : packageModel.name
-			description: packageModel == undefined ? "" : packageModel.description
-			footer: root.footer
-			showCompact: false
-			hasSubpage: false
-			editable: false
-			anchors.left: parent.left
-			anchors.right: parent.right
-			anchors.leftMargin: itm.mbStyle.marginDefault
-			anchors.rightMargin: itm.mbStyle.marginDefault
+		// Primary: package name, full width
+		Label {
+			width: parent.width
+			leftPadding: root.hMargin
+			rightPadding: root.hMargin
+			topPadding: root.vMargin
+			text: root.model?.packageName
+			color: root.primaryFontColor
+			wrapMode: Text.Wrap
 		}
-	
-		// Non-selectable, scrollable log area
-		Item {
-			id: logArea
-			anchors {
-				top: packageDetails.bottom
-				left: parent.left
-				right: parent.right
-				bottom: parent.bottom
-				bottomMargin: 2
+		Label {
+			width: parent.width
+			leftPadding: root.hMargin
+			rightPadding: root.hMargin
+			topPadding: root.vMargin
+			text: root.model?.description
+			color: root.primaryFontColor
+			font.pixelSize: root.secondaryFontSize
+			wrapMode: Text.Wrap
+		}
+		// Secondary: installed / available — wraps when space is insufficient
+		Flow {
+			width: parent.width
+			leftPadding: root.hMargin
+			rightPadding: root.hMargin
+			topPadding: root.vMargin
+			//spacing: mbStyle.marginItemHorizontal
+
+			// Label 1: Installed
+			Row {
+				spacing: mbStyle.marginItemHorizontal
+				Label {
+					text: qsTr("Installed:")
+					font.pixelSize: root.secondaryFontSize
+					color: root.secondaryFontColor
+				}
+				Label {
+					text: (root.hasInstalled)
+							? root.model?.installedVersion + (root.model.installedVersionSuffix ? "." + root.model.installedVersionSuffix : "")
+							: qsTr("none")
+					font.pixelSize: root.secondaryFontSize
+					color: root.primaryFontColor
+				}
 			}
 
-			property var logLines: []
-			Component.onCompleted: {
-				if (!logLines) logLines = [];
+			// Label 2: Available
+			Row {
+				leftPadding: mbStyle.marginItemHorizontal
+				spacing: mbStyle.marginItemHorizontal
+				Label {
+					text: qsTr("Available:")
+					font.pixelSize: root.secondaryFontSize
+					color: root.secondaryFontColor
+				}
+				Label {
+					text: (root.hasAvailable)
+							? root.model?.availableVersion + (root.model.availableVersionSuffix ? "." + root.model.availableVersionSuffix : "")
+							: qsTr("none")
+					font.pixelSize: root.secondaryFontSize
+					color: root.primaryFontColor
+				}
 			}
-			function addLogLine(line) {
+			Row {
+				id: row
+				//leftPadding: root.hMargin
+				topPadding: root.vMargin
+				spacing: mbStyle.marginItemHorizontal
 
-				logLines.push(line)
-				logText.text = logLines.join("\n")
-
-				if (logFlickable.contentHeight > logArea.height)
-					logFlickable.contentY = logFlickable.contentHeight - logFlickable.height
-			}
-	
-			Rectangle {
-				property color clr: itm.mbStyle.valueColor
-				anchors.fill: parent
-				anchors.topMargin: 2
-				anchors.leftMargin: itm.mbStyle.marginDefault
-				anchors.rightMargin: itm.mbStyle.marginDefault
-
-				color: itm.mbStyle.themer?.backgroundColor2 || "transparent"
-				border.color: itm.mbStyle.themer?.borderColor || Qt.rgba(clr.r, clr.g, clr.b, 0.5) 
-				radius: 8
-				Flickable {
-					id: logFlickable
-					anchors.fill: parent
-					contentWidth: logText.width
-					contentHeight: logText.height
-					clip: true
-					Column {
-						width: logFlickable.width - 12
-						spacing: 0
-						Text {
-							id: logText
-							text: logArea.logLines.join("\n")
-							font.pixelSize: 13
-							color: itm.mbStyle.themer?.textColor || itm.mbStyle.textColor
-							wrapMode: Text.Wrap
-							width: logFlickable.width - 12
-							horizontalAlignment: Text.AlignLeft
-							verticalAlignment: Text.AlignTop
-							anchors.left: parent.left
-							anchors.right: parent.right
-							anchors.margins: 6
-						}
-						Rectangle {
-							width: logFlickable.width - 12
-							height: 10 // bottom padding to prevent clipping
-							color: "transparent"
- 
-						}
-					}
+				Label {
+					text: qsTr("Feed:")
+					font.pixelSize: root.secondaryFontSize
+					color: root.secondaryFontColor
+				}
+				Label {
+					text: root.model?.feed
+					font.pixelSize: root.secondaryFontSize
+					color: root.primaryFontColor
 				}
 			}
 		}
+
 	}
- 
+
+	// Non-selectable, scrollable log area
+	OpkgLogViewer {
+		id: logViewer
+
+		anchors {
+			top: column.bottom; topMargin: root.vMargin
+			bottom: parent.bottom; bottomMargin: root.vMargin
+			left: parent.left; leftMargin: root.hMargin
+			right: parent.right; rightMargin: root.hMargin
+		}
+	}
+
 	pageToolbarHandler: ToolbarHandler {
-		
-		leftText: {
-			
-			if (packageModel) {
-				//console.log("ver1:" + packageModel.version + ", installed ver:" +  packageModel.installedVersion)
-	  			var upgradeAvailable = root.upgradeAvailable
+		leftText: root.model && !root.opkgManager.running && root.hasInstalled && root.model.packageName != "opkg-manager" ? "Remove" : ""
+		function leftAction() {
+			root.opkgManager.removePackage(root.model.packageName, completionCallback)
+		}
 
-				if (upgradeAvailable) {
-					return qsTr("Upgrade")
-				} else if (!packageModel.installedVersion?.length > 0) {
-					return qsTr("Install")
-				}
+		rightText: root.actionLabel
+		function rightAction() {
+			/*
+			// test model update
+			var updatedModel = {
+					packageName: "New Package",
+					description: "My new description",
+					installedVersion: "5.2",
+					availableVersion: "6.2", feed:"test-feed" }
+			root.model = updatedModel
+			return
+			*/
+
+			if (!root.hasInstalled) {
+				root.opkgManager.installPackage(root.model.packageName, completionCallback)
+			} else {
+				root.opkgManager.upgradePackage(root.model.packageName, completionCallback)
 			}
- 
-			return qsTr("")
 		}
-		function leftAction(mouse) {
- 			if (!mouse  || leftAction==="")
-				return
-			var action=""
-
-			if (packageModel) {
- 
-				var upgradeAvailable = Vm.versionGreaterThan(packageModel.version, packageModel.installedVersion)
-				if (upgradeAvailable) {
-					action = "upgrade"
-				} else if (!packageModel.installedVersion?.length > 0) {
-					action = "install"
-				}
-			}
-
-			doInstllerAction(action) 
-		}
-
-		rightText: {
-        if (packageModel && packageModel.installedVersion &&
-						packageModel.name != "opkg-manager") {
-							return qsTr("Remove");
-				}
-        return qsTr("");
-		}
- 
-		function rightAction(mouse) { 
-			if (!mouse || rightText==="")
-				return
-			doInstllerAction("remove") 
-		}
-
 	}
 
-	function doInstllerAction(action) {
-		if (!opkgBridge || opkgBridge.operationName !== "")
+	function completionCallback(result) {
+
+		if (!result.success)
 			return
 
-		logArea.logLines = [];
-		opkgBridge.logCallback = logArea.addLogLine.bind(logArea)
-		
-		var args = ["package", action, packageModel.name]
-		var noAction = noActionSetting.valid ? noActionSetting.value : false;
-		if (noAction)
-			args.push("--noaction")
-		
-		console.log("doInstllerAction:" + args)
+		root.loadPackagesModelCallback?.(result.data, root.model.packageName, function(updatedModel) {
+			root.model = updatedModel
+		})
 
-		opkgBridge.logCallback("--- Starting " + action + " for: " + packageModel.name + " ---")
-		opkgBridge.packageIndex = packageIndex
-		opkgBridge.operationName = action;
-		opkgBridge.start(args);
-
+		logViewer.log("--- Finished " + result.operationName + ". Exit code: " + result.exitCode + ", status: " + result.exitStatus + " ---")
 	}
 
 }

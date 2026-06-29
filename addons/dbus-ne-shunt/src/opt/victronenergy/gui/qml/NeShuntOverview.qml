@@ -6,26 +6,26 @@ import "color-utils.js" as ColorUtils
 
 OverviewPage {
   id: root
- 
-  property string settingsPrefix: "com.victronenergy.settings/Settings/Devices/dbus_neshunt/"
+
+  property string settingsPrefix: "com.victronenergy.settings/Settings/CustomDevices/dbus_neshunt/"
   property MbStyle mbStyle: MbStyle {isCurrentItem: true}
-  
+
   property string iconSuffix
   property string iconSuffixSelected
-  
+
   property string bindPrefix
- 
+
   VBusItem { id: customNameItem; bind: bindPrefix ? Utils.path(bindPrefix, "/CustomName") : undefined}
   VBusItem { id: internalLightItem; bind: bindPrefix ? Utils.path(bindPrefix, "/SwitchableOutput/InternalLights/State") : undefined }
   VBusItem { id: externalLightItem; bind: bindPrefix ? Utils.path(bindPrefix, "/SwitchableOutput/ExternalLights/State") : undefined }
   VBusItem { id: waterPumpItem; bind: bindPrefix ? Utils.path(bindPrefix, "/SwitchableOutput/WaterPump/State") : undefined }
   VBusItem { id: auxPowerItem; bind: bindPrefix ? Utils.path(bindPrefix, "/SwitchableOutput/Aux/State") : undefined }
-  
+
   VBusItem { id: internalLightCustomNameItem; bind: bindPrefix ? Utils.path(bindPrefix, "/SwitchableOutput/InternalLights/Settings/CustomName") : undefined }
   VBusItem { id: externalLightCustomNameItem; bind: bindPrefix ? Utils.path(bindPrefix, "/SwitchableOutput/ExternalLights/Settings/CustomName") : undefined }
   VBusItem { id: waterPumpCustomNameItem; bind: bindPrefix ? Utils.path(bindPrefix, "/SwitchableOutput/WaterPump/Settings/CustomName") : undefined }
   VBusItem { id: auxPowerCustomNameItem; bind: bindPrefix ? Utils.path(bindPrefix, "/SwitchableOutput/Aux/Settings/CustomName") : undefined }
- 
+
 	Connections {
 		target: mbStyle
 
@@ -35,15 +35,15 @@ OverviewPage {
     function onTextColorSelectedChanged() {root.iconSuffixSelected = getIconSuffix(mbStyle.textColorSelected)}
     function getIconSuffix(clr) {
       colorHelper = clr
-      return ColorUtils.isDarkColor(colorHelper) ? "-dark" : "-light" 
+      return ColorUtils.isDarkColor(colorHelper) ? "-dark" : "-light"
     }
-    
+
     Component.onCompleted: {
       onTextColorChanged()
       onTextColorSelectedChanged()
     }
   }
- 
+
   // Header
   Text {
       id: header
@@ -66,12 +66,12 @@ OverviewPage {
     anchors.horizontalCenter: parent.horizontalCenter
     anchors.verticalCenter: parent.verticalCenter
     spacing: 20
-    
+
     LargeRoundButton {
-      text: internalLightCustomNameItem.value && internalLightCustomNameItem.length > 0 || qsTr("Indoor Lights") 
+      text: internalLightCustomNameItem.value && internalLightCustomNameItem.length > 0 || qsTr("Indoor Lights")
       checked: internalLightItem.valid && internalLightItem.value != 0
       onCheckedChanged: { internalLightItem.setValue(checked ? 1 : 0)}
-      iconId: Utils.path("ne-shunt-inside-light", checked ? root.iconSuffixSelected : root.iconSuffix) 
+      iconId: Utils.path("ne-shunt-inside-light", checked ? root.iconSuffixSelected : root.iconSuffix)
     }
     LargeRoundButton {
       text: externalLightCustomNameItem.value && externalLightCustomNameItem.length > 0 || qsTr("Outdoor Light")
@@ -96,7 +96,7 @@ OverviewPage {
   }
 
   Component.onCompleted: discoverNeShunt()
-  
+
 	Connections {
 		target: DBusServices
 		function onDbusServiceFound(service) { tryAddService(service) }
@@ -105,17 +105,17 @@ OverviewPage {
 	function tryAddService(service) {
 
     if (!bindPrefix) {
-      if (service.type === DBusService.DBUS_SERVICE_TEMPERATURE_SENSOR && 
+      if (service.type === DBusService.DBUS_SERVICE_TEMPERATURE_SENSOR &&
           service.name.includes(".dbus_ne_shunt_sid_")) {
         bindPrefix = service.name
       }
     }
 	}
- 
+
 	function discoverNeShunt() {
-		for (var i = 0; i < DBusServices.count; i++) { 
+		for (var i = 0; i < DBusServices.count; i++) {
       tryAddService(DBusServices.at(i))
-    }  
+    }
 	}
 
 }

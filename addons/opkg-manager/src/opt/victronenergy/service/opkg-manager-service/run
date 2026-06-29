@@ -1,0 +1,4 @@
+#!/bin/bash
+. /etc/profile.d/profile.sh
+mkdir -p /var/log/opkg-manager-service
+exec /opt/victronenergy/opkg-manager-service/opkg-manager-service.py >> /var/log/opkg-manager-service/current 2>&1

@@ -1,0 +1,24 @@
+<RCC>
+<qresource prefix="/OpkgManager">
+<file>VeQuickItemAdapter.qml</file>
+<file>OpkgPageSettingsFeeds.qml</file>
+<file>OpkgPageSettings.qml</file>
+<file>OpkgManager.qml</file>
+<file>OpkgLogViewerBase.qml</file>
+<file>OpkgPageSettingsPackageInstall.qml</file>
+<file>OpkgActionsRow.qml</file>
+<file>OpkgCustomDeviceSettings.qml</file>
+<file>OpkgBridge.qml</file>
+<file>DeviceListDelegate_opkgmanager.qml</file>
+<file>OpkgPageSettingsCustomDevicesSetup.qml</file>
+<file>OpkgCustomDeviceListItem.qml</file>
+<file>OpkgLogViewer.qml</file>
+<file>OpkgJsonReader.qml</file>
+<file>OpkgManagerTestPage.qml</file>
+<file>OpkgPageSettingsCustomDevicesList.qml</file>
+<file>OpkgPageSettingsFeedEdit.qml</file>
+<file>OpkgPageSettingsPackages.qml</file>
+<file>OpkgManager_en.qm</file>
+<file>motorhome_icon_32x32_optimized.svg</file>
+</qresource>
+</RCC>

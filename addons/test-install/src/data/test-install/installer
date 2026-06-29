@@ -1,21 +1,21 @@
 #!/usr/bin/env bash
 
-PACKAGE_CUSTOM_SERVICE_KEY="TestInstall"
-PACKAGE_CUSTOM_SERVICE_NAME="test-install"
-PACKAGE_CUSTOM_SERVICE_DISPLAY_NAME="Test Install"
+PACKAGE_CUSTOM_DEVICE_KEY="TestInstall"
+PACKAGE_CUSTOM_DEVICE_SERVICE_NAME="test-install"
+PACKAGE_CUSTOM_DEVICE_DISPLAY_NAME="Test Install"
 
 PACKAGE_DBUS_SETTINGS=
 
 pre_install() {
 	if [[ $PACKAGE_ACTION == "dev-install" ]]; then
-		install_helper_add_custom_service
+		install_helper_add_custom_device
 		exit 0
 	fi
 }
 pre_remove() {
 	if [[ "$PACKAGE_ACTION" == "dev-remove" ]]; then
   	echo "dev-install"
-		install_helper_remove_custom_service
+		install_helper_remove_custom_device
 		exit 0
 	fi
 }
@@ -23,4 +23,3 @@ pre_remove() {
 # shellcheck source=/data/dev/addons/opkg-manager/src/data/opkg-manager/source-common
 source "${VE_ROOT_PATH:-}/data/opkg-manager/source-common"
 addsource install-helper "$@"
-

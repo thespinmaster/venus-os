@@ -2,15 +2,15 @@ import QtQuick 2
 import com.victron.velib 1.0
 import "utils.js" as Utils
 import "opkgPageSettingsPackages.js" as Vm
- 
+
 MbPage {
 	id: root
 
 	property MbStyle mbStyle: MbStyle {}
   property var outputLog
- 
+
 	onOutputLogChanged: {
- 
+
 	}
   Component.onCompleted: {
 		Vm.loadPackages(opkgBridge, packageModel, "package list", "")
@@ -28,7 +28,7 @@ MbPage {
 			footer: Vm.getFooter(model)
 		}
 	}
- 
+
 	listview.footer: Item {
 		id: footerItem
 		height: Math.max(0, root.listview.height - (root.listview.count * root.mbStyle.itemHeight))
@@ -37,7 +37,7 @@ MbPage {
 			left: parent.left
 			right: parent.right
 		}
- 
+
 		OpkgOutputLogArea {
 			id: outputLogArea
 			mbStyle: root.mbStyle
@@ -87,40 +87,40 @@ MbPage {
 	}
 
 	pageToolbarHandler: ToolbarHandler {
- 		
+
 		leftText: "do test 1"
 		//rightText: "do test 2"
-		function rightAction() { 
+		function rightAction() {
 
 		}
 
 		function leftAction(mouse) {
 			Vm.loadPackages(opkgBridge, packageModel, "package list", "")
 		}
- 
+
 	}
 
 	OpkgBridge {
 		id: opkgBridge
- 
+
 		property string opkgErrorLine: ""
     property string packagesPath: "/tmp/opkg-manager/packages.json"
 
 		function reset() {
- 
+
 			opkgErrorLine=""
 			operationName=""
 		}
 		onProcessError: function(line) {
 			console.log(line)
 		}
-		onErrorLine: function(line) {
+		onError: function(line) {
 			console.log(line)
 			opkgErrorLine = line
 		}
 		onFinished: function(exitCode, exitStatus) {
 			console.log("onFinished:" + operationName + ", " + exitCode)
-			
+
 			try {
 
 				if (exitCode !== 0) {
@@ -129,16 +129,16 @@ MbPage {
 					reset()
 					return
 				}
- 
+
 			switch (operationName) {
 				case "package list":
 						//console.log("onFinished: get-feeds:")
 						packageModel.clear()
 						Vm.loadPackagesFromFile(packagesPath, packageModel, FileHelper)
 						break;
- 
+
 				}
- 
+
 			} catch (err) {
 				console.log("ERROR:" + err.message);
 				if (toast != undefined)

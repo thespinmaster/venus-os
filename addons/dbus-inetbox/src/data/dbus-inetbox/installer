@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-PACKAGE_CUSTOM_SERVICE_KEY="Inetbox"
-PACKAGE_CUSTOM_SERVICE_NAME="dbus-inetbox"
-PACKAGE_CUSTOM_SERVICE_DISPLAY_NAME="Inetbox"
+PACKAGE_CUSTOM_DEVICE_KEY="Inetbox"
+PACKAGE_CUSTOM_DEVICE_SERVICE_NAME="dbus-inetbox"
+PACKAGE_CUSTOM_DEVICE_DISPLAY_NAME="Inetbox"
 
 PACKAGE_CUSTOM_OVERVIEW_PAGES=(InetboxOverview)
 PACKAGE_CUSTOM_MENUS=(PageSettings/InetboxPageSettingsSubMenu)
@@ -13,11 +13,10 @@ PACKAGE_DBUS_SETTINGS=
 # {'path':'/Settings/OpkgManager/CustomServices/Inetbox/UsbMappingName', 'default':'inetbox'}
 
 #PACKAGE_DBUS_SETTINGS_DEPRECATED='
-#		{'path':'/Settings/Devices/dbus_inetbox/Port'}
-#		{'path':'/Settings/Devices/dbus_inetbox/ServiceName'}
+#		{'path':'/Settings/CustomDevices/dbus_inetbox/Port'}
+#		{'path':'/Settings/CustomDevices/dbus_inetbox/ServiceName'}
 #'
 
 # shellcheck source=/data/dev/addons/opkg-manager/src/data/opkg-manager/source-common
 source "${VE_ROOT_PATH:-}/data/opkg-manager/source-common"
 addsource install-helper "$@"
-

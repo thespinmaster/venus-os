@@ -5,16 +5,30 @@ set -o nounset
 
 declare _this_path; _this_path=$(dirname "${BASH_SOURCE[0]}")
 source "$_this_path/../opkg-common"
- 
+
+__feed_command() {
+	local retVal=
+
+	feed_editor "${1:-}" "${2:-}" "${3:-}" "${4:-}"
+	retVal=$?
+
+	if [[ $retVal == 0 ]]; then
+		local this_path; this_path=$(dirname "${BASH_SOURCE[0]}")
+  	"$this_path/packages_helper" update force # update cached json
+	fi
+
+	return $retVal
+}
+
 case "${1:-}" in
   add)
-	feed_editor "add" "${2:-}" "${3:-}" "${4:-}"
+		__feed_command "add" "${2:-}" "${3:-}" "${4:-}"
 		;;
   edit)
-		feed_editor "edit" "${2:-}" "${3:-}" "${4:-}"
+		__feed_command "edit" "${2:-}" "${3:-}" "${4:-}"
 		;;
   remove)
-		feed_editor "remove" "${2:-}" "" ""
+		__feed_command "remove" "${2:-}" "" ""
 		;;
   set)
     opkg_common_set_feed "${2:-}"

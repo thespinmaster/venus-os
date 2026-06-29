@@ -1,4 +1,0 @@
-#!/bin/sh
-
-
-"${VE_ROOT_DIR:-}/data/test-service/installer" "$1" "$0"
