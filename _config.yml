@@ -1,5 +1,6 @@
 baseurl: "/venus-os-addons"
+layouts_dir: docs/assets/_layouts
 
 include:
   - docs
-  - docs/css
+  - docs/assets/css

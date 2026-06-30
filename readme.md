@@ -11,3 +11,8 @@
 | Solar Divert Relay (to come) | Tiggers a relay on&#124;off, when excess solar is available; or not. | [Overview](docs/user/solar-divert-overview.md) | - | - | - |
 | Event Logger | Event Logger captures event streams and writes them to logs. | [Overview](docs/user/event-logger-overview.md) | - | - | - |
 
+## Notes
+
+* Some add-ons require specific hardware and are not useful without compatible devices.
+* Setup steps and behavior can vary by Venus OS version.
+* Prefer release feeds on production systems; use development feeds only for testing.
