@@ -29,6 +29,7 @@ If you are new to this repository:
 | Mount Shares | Mount and use remote network shares from Venus OS. | [Overview](docs/user/mount-shares-overview.md) | - | - | [Usage](docs/user/mount-shares-usage.md) |
 | Solar Divert Relay (to come) | Tiggers a relay on&#124;off, when excess solar is available; or not. | [Overview](docs/user/solar-divert-overview.md) | - | - | - |
 | Event Logger | Event Logger captures event streams and writes them to logs. | [Overview](docs/user/event-logger-overview.md) | - | - | - |
+
 ## Notes
 
 * Some add-ons require specific hardware and are not useful without compatible devices.
