@@ -2,3 +2,4 @@ baseurl: "/venus-os-addons"
 
 include:
   - docs
+  - docs/css
