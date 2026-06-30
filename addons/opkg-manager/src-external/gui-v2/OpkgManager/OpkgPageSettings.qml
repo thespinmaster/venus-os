@@ -34,7 +34,7 @@ Page {
 				onClicked: Global.pageManager.pushPage("qrc:/OpkgManager/OpkgPageSettingsFeeds.qml",
 					{title: text, opkgManager: opkgManager})
 			}
- 
+
 			ListNavigation {
 				topInset: Theme.geometry_listItem_itemSeparator_height
 				bottomInset: Theme.geometry_listItem_itemSeparator_height
@@ -62,7 +62,11 @@ Page {
 			}
 
 			ListLink {
+				id: documentation
 
+				//% "Documentation"
+				text: qsTrId("pagecontrollableloads_documentation")
+				url: "https://thespinmaster.github.io/venus-os-addons/"
 			}
 		}
 	}
