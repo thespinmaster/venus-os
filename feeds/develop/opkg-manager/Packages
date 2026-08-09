@@ -1,11 +1,11 @@
 Package: opkg-manager
-Version: 1.1.0+d260717.2329
+Version: 1.1.0+d260809.2116
 Section: utilities
 Architecture: all
 Maintainer: thespinmaster@github.com
-MD5Sum: 6da5f05daad39e8122048559ec43207d
-Size: 130786
-Filename: opkg-manager_1.1.0+d260717.2329_all.ipk
+MD5Sum: 3c2b7c4da214c92b6dcade877262cd5c
+Size: 134422
+Filename: opkg-manager_1.1.0+d260809.2116_all.ipk
 Source: https://thespinmaster.github.io/venus-os-addons
 Description:  A manager for installing opkg packages on the Venus OS
 OE: einstine
