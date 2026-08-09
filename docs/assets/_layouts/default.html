@@ -9,6 +9,18 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.8.1/github-markdown.min.css">
 
     <style>
+			/* Outer body background matching GitHub's dark/light canvas */
+      body {
+        margin: 0;
+        background-color: #ffffff;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        body {
+          background-color: #0d1117;
+        }
+      }
+			
       /* Simple page centering layout */
       .markdown-body {
         box-sizing: border-box;
