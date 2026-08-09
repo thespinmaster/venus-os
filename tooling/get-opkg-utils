@@ -9,7 +9,7 @@ require_cmd() {
     exit 1
   fi
 }
- 
+
 if [[ ! -d ./opkg-utils ]]; then
   local opkg_source="https://github.com/thespinmaster/opkg-utils"
   echo "cloning opkg-utils from (${opkg_source})"
@@ -17,4 +17,4 @@ if [[ ! -d ./opkg-utils ]]; then
   git clone "${opkg_source}"
 fi
 
-./opkg-utils/install
+./install-opkg-utils

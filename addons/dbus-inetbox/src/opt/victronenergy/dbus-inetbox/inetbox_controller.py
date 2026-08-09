@@ -61,19 +61,20 @@ class InetboxController:
 
 	log = logging.getLogger(__name__)
 	_serialPort : str
-	_sid : str
 	_app : InetboxApp
 	_lin : Lin
 	_settings : SettingsDevice
 	_dbusInetboxService : dbusInetboxService
-
+ 
 	def __init__(self, tasks: TaskManager, serialPort, sid, debug_lin, debug_inet, record_file=None):
 
 		self.log.setLevel(logging.DEBUG)
 		self._serialPort = serialPort
-		self._sid = sid
 
-		self._initializeSettings() # sets/gets class_and_vrm_instance
+		serviceName = dbusInetboxService.serviceNameBuilder(dbus_constants.SERVICE_CLASS_NAME, "sid_" + sid)
+		self.log.debug(f'InetboxController.ctor:, serviceName={serviceName}')
+
+		self._initializeSettings(serviceName, sid) # sets/gets class_and_vrm_instance
 
 		self._app = InetboxApp(tasks, debug_inet)
 		self._lin = Lin(self._app, serialPort, tasks, debug_lin, record_file)
@@ -81,21 +82,23 @@ class InetboxController:
 		self._app.add_publish_callback(self.inetbox_value_to_dbus)
 
 		classAndVrmInstance = self._settings['class_and_vrm_instance']
-		serviceIdentifier = "sid_" + sid
+		classAndVrmInstanceParts = classAndVrmInstance.split(':')
+		deviceInstance = int(classAndVrmInstanceParts[1])
+		customName = self._settings['/CustomName']
 
 		self._dbusInetboxService = dbusInetboxService(
-																	serialPort,
-																	classAndVrmInstance,
-																	serviceIdentifier ,
-																	self.dbus_value_to_inetbox)
+				serialPort,
+				serviceName,
+				customName,
+				deviceInstance,
+				self.dbus_value_to_inetbox)
 
-
-	# serial port -> dbus
+	# serial port -> dbus com.victronenergy.inetbox_sid_[xxxx]
 	def inetbox_value_to_dbus(self, name: str, value):
 
 		try:
 
-			self.log.debug(f'inetbox_value_to_dbus:, {name}={value}: type={type(value)}')
+			self.log.debug(f'inetbox_value_to_dbus:, {name}={value}')
 
 			dbusName = self.map_or_debug(self.LIN_TO_DBUS_MAPPING, name)
 			if dbusName == "":
@@ -129,7 +132,7 @@ class InetboxController:
 		except Exception as e:
 			self.log.error(f"Exception in: inetbox_value_to_dbus: name={name}, value={value}: {e}")
 
-	# dbus -> serial port
+	# dbus service com.victronenergy.inetbox_sid_[xxxx] -> serial port / com.victronenergy.settings
 	def dbus_value_to_inetbox(self, path : str, value ):
 
 		self.log.debug(f'dbus_value_to_inetbox:, {path}={value}')
@@ -185,9 +188,7 @@ class InetboxController:
 			self.log.error(f"Exception in: dbus_value_to_inetbox: path={path}, value={value}: {e}")
 			return False
 
-	############################################
-	# Occurs when the a dbus setting value changes
-	############################################
+	# dbus com.victronenergy.settings changed
 	def _handle_dbus_setting_changed(self, path, oldvalue, newvalue):
 		try:
 			self.log.info('setting changed, setting: %s, old: %s, new: %s' % (path, oldvalue, newvalue))
@@ -265,17 +266,13 @@ class InetboxController:
 			self.log.warning("Skipping non-numeric temperature value: %r", value)
 			return 0
 
-	############################################
-	# Initializes the dbus device settings
-	# Needs custom UI
-	############################################
-	def _initializeSettings(self):
+	def _initializeSettings(self, service_name:str, sid:int):
 
 		logging.debug("Initializing settings")
 
 		# unique path used to generate unique ClassAndVrmInstance value
 		# see https://github.com/victronenergy/localsettings#using-addsetting-to-allocate-a-vrm-device-instance
-		self._settingsPath = f'/Settings/CustomDevices/{dbus_constants.DBUS_PRODUCT_NAME}_sid_{self._sid}'
+		self._settingsPath = f'/Settings/Devices/sid_{sid}'
 
 		self._settings = SettingsDevice(
 			bus = dbusconnection(),
@@ -283,11 +280,14 @@ class InetboxController:
 			supportedSettings = {
 				'class_and_vrm_instance' : [f'{self._settingsPath}/ClassAndVrmInstance',
 						f"{dbus_constants.SERVICE_CLASS_NAME}:{dbus_constants.DEFAULT_DEVICE_INSTANCE}", 0, 0],
-
-				'/Sid' : [f'{self._settingsPath}/Sid', self._sid, 0, 0],
+				'/Sid' : [f'{self._settingsPath}/Sid', sid, 0, 0],
+				'/Sid2' : [f'{self._settingsPath}/Sid2', sid, 0, 0],
+				'/ProductName' : [f'{self._settingsPath}/ProductName', dbus_constants.PRODUCT_NAME, "", ""],
+				'/ServiceName' : [f'{self._settingsPath}/ServiceName', service_name, "", ""],
 				'/CustomName' : [f'{self._settingsPath}/CustomName', "", "", ""],
-				'/LastHeatingTemp' : [f'{self._settingsPath}/LastHeatingTemp', 16, 4, 30]
-				#'syncClock' : [f'{settingsPath}/SyncClock', 1, 0, 1],
+				'/DeviceKey' : [f'{self._settingsPath}/DeviceKey', dbus_constants.DEVICE_KEY_NAME, "", ""],
+				'/LastHeatingTemp' : [f'{self._settingsPath}/LastHeatingTemp', 16, 4, 30],
+				'/OverviewPage': [f'{self._settingsPath}/OverviewPage', dbus_constants.OVERVIEW_PAGE, "", ""]
 				},
 			eventCallback = self._handle_dbus_setting_changed)
 

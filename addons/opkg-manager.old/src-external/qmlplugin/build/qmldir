@@ -1,7 +1,0 @@
-module OpkgManager
-linktarget OpkgManagerpluginplugin
-optional plugin OpkgManagerpluginplugin
-classname OpkgManagerPlugin
-typeinfo OpkgManagerplugin.qmltypes
-prefer :/OpkgManager/
-

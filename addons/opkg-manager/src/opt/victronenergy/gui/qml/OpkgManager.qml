@@ -14,6 +14,9 @@ QtObject {
 	property var outputLog: null
 	property string _lastErrorLine: ""
 	property var _completionCallback: undefined
+	property var _connected: _connectedItem.value == 1
+
+	signal log(string line)
 
 	function showToastNotification(level, message, duration) {
 		//OVERRIDE
@@ -45,6 +48,9 @@ QtObject {
 	property OpkgJsonReader dataReader: OpkgJsonReader {
 		id: dataReader
 	}
+	property VeQuickItemAdapter _connectedItem: VeQuickItemAdapter {
+		uid: opkgManagerServiceUid + "/Connected"
+	}
 
 	function cleanup() {
 		bridge.cleanup()
@@ -69,6 +75,8 @@ QtObject {
 			outputLog.log(line)
 		else if (traceEnabled)
 			console.log(line)
+
+		log(line)
 	}
 
 	function _notifyCompletion(result) {
@@ -136,6 +144,19 @@ QtObject {
 		return root.noAction ? [packageName, "--no-action"] : [packageName]
 	}
 
+
+	function usbScan(completionCallback) {
+		executeCommand(null, "device", "scan", [], completionCallback)
+	}
+	function bindDeviceToService(usbHash, port, serviceName, checkStable, completionCallback) {
+		//var reconnectArg = reconnect ? "true" : ""
+		executeCommand(null,"device", "bind", [usbHash, port, serviceName, checkStable], completionCallback)
+	}
+	function checkDeviceServiceState(port, completionCallback) {
+		//var reconnectArg = reconnect ? "true" : ""
+		executeCommand(null,"device", "check-service-state", [port], completionCallback)
+	}
+
 	function detectDevice(serviceType, reconnect, completionCallback) {
 		var reconnectArg = reconnect ? "true" : ""
 		executeCommand(null,"device", "detect", [serviceType, reconnectArg], completionCallback)
@@ -145,6 +166,10 @@ QtObject {
 		executeCommand(null,"device", "apply", [serviceType, port, usbProps], completionCallback)
 	}
 
+	function removeDeviceEx(sid, devicePath, completionCallback) {
+		executeCommand(null, "device", "remove", [sid, devicePath], completionCallback)
+	}
+
 	function removeDevice(sid, completionCallback) {
 		executeCommand(null,"device", "remove", [sid], completionCallback)
 	}
@@ -152,14 +177,17 @@ QtObject {
 	function executeCommand(operationName, familyName, commandName, args, completionCallback) {
 		var opName = operationName || familyName + " " + commandName
 
-		if (bridge.running) {
-			var result = {success: false, error: "Bridge already running"}
+		var error
+		if (!_connected) error = "Opkg Manager Service not running"
+		if (!error && bridge.running) error = "Bridge already running"
+		if (error) {
+			var result = {success: false, error: error}
 			root.showToastNotification(0,result.error, 3000)
 			completionCallback?.(result)
 			console.log("executeCommand out: "  + result.error)
 			return
 		}
-
+		console.log("BAD:" + _connectedItem.value)
 		root._operationName = opName
  		root._completionCallback = (completionCallback && completionCallback.call) ? completionCallback : undefined
 

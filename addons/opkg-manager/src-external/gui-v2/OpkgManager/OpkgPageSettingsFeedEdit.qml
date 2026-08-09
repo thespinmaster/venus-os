@@ -109,8 +109,7 @@ Page {
 		// only alphanumeric, no spaces or symbols
 		// must contain at least one letter (prevents "12345")
 		if (!/^[A-Za-z0-9-]+$/.test(text) || (!/[A-Za-z]/.test(text))) {
-			//% "'%1' is not a valid IP address."
-			// qsTrId("ip_address_input_not_valid").arg(trimmed)
+			// "'%1' is not a valid IP address."
 			return Utils.validationResult(VenusOS.InputValidation_Result_Error,"Invalid Name")
 		}
 		return Utils.validationResult(VenusOS.InputValidation_Result_OK, "", text)
@@ -121,7 +120,7 @@ Page {
 		var text = feedUrlTextField.text
 		const pattern = /^https?:\/\/([a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*|\d{1,3}(\.\d{1,3}){3})(:\d+)?(\/.*)?$/;
 		if (!pattern.test(text)) {
-			//% "'%1' is not a valid IP address."
+			// "'%1' is not a valid IP address."
 			// qsTrId("ip_address_input_not_valid").arg(trimmed)
 			return Utils.validationResult(VenusOS.InputValidation_Result_Error,"Invalid URL")
 		}

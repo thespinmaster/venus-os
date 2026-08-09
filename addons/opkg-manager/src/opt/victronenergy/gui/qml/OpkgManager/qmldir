@@ -1,0 +1,2 @@
+module Theming
+singleton OpkgDeviceModel 1.0 OpkgDeviceModel.qml

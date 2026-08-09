@@ -1,28 +1,38 @@
-/*
-** Copyright (C) 2024 Victron Energy B.V.
-** See LICENSE.txt for license information.
-*/
-
 import QtQuick
 import Victron.VenusOS
+import "qrc:/OpkgManager/OpkgSingleton.js" as OpkgSingleton
 
 DeviceListDelegate {
 	id: root
 
-	quantityModel: QuantityObjectModel {
-		QuantityObject { object: state; key: "textValue"; unit: VenusOS.Units_None }
+	onDeviceChanged: {
+		console.log("OpkgManager: DeviceListDelegate::onDeviceChanged: isRelead=", OpkgSingleton.getIsReload())
+
+		parent.active = false
+
+		var isReload = OpkgSingleton.getIsReload()
+		if (isReload) {
+			Global.mainView.swipeView.animationEnabled = false
+			Global.mainView.navBar.setCurrentIndex(-1)
+		}
+
+		if (!OpkgSingleton.OpkgCustomPageModelExists()) {
+			OpkgSingleton.createOpkgCustomPageModel(Global.main)
+		} else {
+			console.log("OpkgManager: OpkgSingleton exists")
+		}
+
+		if (isReload) {
+			OpkgSingleton.setIsReload(false)
+
+			Global.pageManager.popAllPages(1)
+			Global.mainView.navBar.setCurrentIndex(0)
+		}
+
 	}
 
-	onClicked: {
-		Global.pageManager.pushPage("/pages/settings/devicelist/rs/PageRsSystem.qml",
-				{ bindPrefix : root.device.serviceUid })
+	Component.onDestruction: {
+		console.log("OpkgManager device delegate:DESTROYED")
 	}
 
-	VeQuickItem {
-		id: state
-
-		readonly property string textValue: VenusOS.system_stateToText(value)
-
-		uid: root.device.serviceUid + "/State"
-	}
 }

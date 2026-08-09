@@ -23,6 +23,7 @@ from serial_port_reader import SerialPortReader
 PRODUCT_NAME = "test device service"
 PRODUCT_ID = 0
 SAFE_PRODUCT_NAME="test_device_service"
+DEVICE_KEY_NAME="TestDevice"
 DEFAULT_DEVICE_INSTANCE=764
 
 class DbusTestDeviceService(object):
@@ -43,18 +44,15 @@ class DbusTestDeviceService(object):
 
 				# Keep initialize_settings before serviceName, as deviceInstance may use a
 				# an optional ClassAndVrmInstance value
-				self.initialize_settings(deviceClassName)
 
-				#deviceInstance = int(self._settings['class_and_vrm_instance'].split(':')[1])
-				#serviceName = "com.victronenergy.{}.id_{}.{}_{}".format(
-		#			deviceClassName, deviceInstance, SAFE_PRODUCT_NAME, serviceIdentifier)
+				service_name = "com.victronenergy.{}.{}".format(
+					deviceClassName, serviceIdentifier)
 
-				serviceName = "com.victronenergy.{}.{}_{}".format(
-					deviceClassName, SAFE_PRODUCT_NAME, serviceIdentifier)
+				self.initialize_settings(deviceClassName, service_name)
 
-				self._dbusservice = VeDbusService(serviceName, register=False)
+				self._dbusservice = VeDbusService(service_name, register=False)
 
-				logging.debug("%s /Device = %s" % (serviceName, sid))
+				logging.debug("%s /Device = %s" % (service_name, sid))
 
 				# Create the management objects, as specified in the ccgx dbus-api document
 				self._dbusservice.add_path('/Mgmt/ProcessName', __file__)
@@ -85,18 +83,22 @@ class DbusTestDeviceService(object):
 						'/Temperature', 5, writeable=True,
 						onchangecallback=self._handle_service_value_changed)
 
-		def initialize_settings(self, deviceClassName: str):
-				settingsPath = f'/Settings/CustomDevices/{SAFE_PRODUCT_NAME}_sid_{self._sid}'
+		def initialize_settings(self, deviceClassName: str, service_name:str ):
+				settingsPath = f'/Settings/Devices/sid_{self._sid}'
 
 				self._settingsPath = settingsPath
 
 				self._settings = SettingsDevice(
 			bus = dbusconnection(),
 			supportedSettings = {
-				'sid': [f'{settingsPath}/Sid', self._sid, 0, 1],
 				'class_and_vrm_instance' : [f'{settingsPath}/ClassAndVrmInstance',
-				f"{deviceClassName}:{DEFAULT_DEVICE_INSTANCE}", 0, 0]
+				f"{deviceClassName}:{DEFAULT_DEVICE_INSTANCE}", 0, 0],
  				#'show_fresh_water_tank': [f'{settingsPath}/ShowFreshWaterTank', 1, 0, 1],
+				'/Sid' : [f'{self._settingsPath}/Sid', self._sid, 0, 0],
+				'/ProductName' : [f'{self._settingsPath}/ProductName', PRODUCT_NAME, "", ""],
+				'/ServiceName' : [f'{self._settingsPath}/ServiceName', service_name, "", ""],
+				'/CustomName' : [f'{self._settingsPath}/CustomName', "", "", ""],
+				'/DeviceKey' : [f'{self._settingsPath}/DeviceKey', DEVICE_KEY_NAME, "", ""]
 
 				},
 			eventCallback = self._handle_changed_setting)

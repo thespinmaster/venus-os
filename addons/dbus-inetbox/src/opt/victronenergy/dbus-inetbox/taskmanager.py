@@ -59,10 +59,10 @@ class TaskManager:
 	# List entries: (name, callback, task) where `task` is Optional[asyncio.Task]
 	_tasks_callbacks: List[Tuple[str, Callable[[], Coroutine[Any, Any, None]],
 								 Optional[asyncio.Task]]] = []
- 
+
 	def add_task(self, name: str, callback: Callable[[], Coroutine[Any, Any, None]]):
 		self._tasks_callbacks.append((name, callback, None))
- 
+
 	"""
 	Run an indefinite asynchronous monitoring loop that ensures registered background
 	tasks are active.
@@ -91,9 +91,8 @@ class TaskManager:
 									print(f"Creating task {name}")
 									# Tuples are immutable; reassign the list element with the new task instance.
 									self._tasks_callbacks[i] = (name, cb, asyncio.create_task(cb()))
-                 
+
 					print(f"main_loop sleeping for {self.WAIT_BETWEEN_TASKS_SEC} secs")
 					await asyncio.sleep(self.WAIT_BETWEEN_TASKS_SEC)
 		except Exception as ex:
 			logging.error("Error in published_inetbox_value %s" % (ex))
-      

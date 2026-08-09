@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 150">
-  <defs>
-    <radialGradient gradientUnits="userSpaceOnUse" cx="75" cy="75" r="75" id="gradient-0" spreadMethod="pad">
-      <stop offset="0" style="stop-color: rgb(78, 117, 177);"></stop>
-      <stop offset="1" style="stop-opacity: 0; stop-color: rgb(79, 118, 178);"></stop>
-    </radialGradient>
-  </defs>
-  <ellipse style="transform-box: fill-box; fill: url(#gradient-0); fill-rule: nonzero;" cx="75" cy="75" rx="75" ry="75"></ellipse>
-</svg>

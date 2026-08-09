@@ -1,7 +1,0 @@
-#!/bin/bash
-
-SERVICE_STARTER="${VE_ROOT_DIR:-}/opt/victronenergy/opkg-manager-service/start-opkg-manager-service.sh"
-
-if [[ -x "$SERVICE_STARTER" ]]; then
-  "$SERVICE_STARTER"
-fi

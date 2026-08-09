@@ -7,6 +7,7 @@ MbPage {
 	title: qsTr("Packages")
 	//tryPop: opkgManager.tryPop
 	model: feedsModel
+	pageToolbarHandler: customToolbar
 
 	required property var opkgManager
 	property bool _loading: true
@@ -50,20 +51,26 @@ MbPage {
 			_loading = false
 		})
 	}
+	Component {
+		id: editFeedPageComponent
+		OpkgPageSettingsFeedEdit {}
+	}
 
-	pageToolbarHandler: ToolbarHandler {
-		rightText: "Add New Feed",
+	ToolbarHandler {
+		id: customToolbar
+		rightText: "Add New Feed"
 
 		function rightAction() {
 			if (root.opkgManager.running) {
 				return
 			}
+
 			var feedModel = {name:"", description:"", builtin:false}
 			var page = editFeedPageComponent.createObject(
 				pageStack, {
 					opkgManager: root.opkgManager,
 					isNew: true,
-					model: feedModel,
+					feedModel: feedModel,
 					loadFeedsModelCallback: root.loadFeeds
 					});
 

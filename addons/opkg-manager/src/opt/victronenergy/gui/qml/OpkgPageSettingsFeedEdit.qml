@@ -5,12 +5,14 @@ import com.victron.velib 1.0
 MbPage {
 	id: root
 	title: qsTr("Edit Feed")
-	//tryPop: opkgManager?.tryPop
-
+	pageToolbarHandler: customToolbar
+	
 	required property var feedModel
 	required property OpkgManager opkgManager
 	required property var loadFeedsModelCallback
 	property bool isNew: false
+	property string _removeButtonText: isNew ? "Cancel" : "Remove"
+	property string _saveButtonText: "Save"
 
 	model: VisibleItemModel {
 		MbEditBox {
@@ -43,16 +45,21 @@ MbPage {
 		}
 	}
 
-	pageToolbarHandler: ToolbarHandler {
+	ToolbarHandler {
+		id: customToolbar
 		//leftIcon: (feedModel?.builtin) ? "" : "icon-toolbar-cancel"
 		//rightIcon: (feedModel?.builtin) ? "" :"icon-toolbar-ok"
 		leftText: !feedModel.builtin ? root._removeButtonText : ""
-		function leftAction() { root.remove() }
-
+		function leftAction() {
+			if (root.isNew) {
+				pageStack.pop()
+			} else {
+				root.remove()
+			}
+		}
 		rightText: !feedModel.builtin ? root._saveButtonText : ""
 		function rightAction() {root.save()}
 	}
-
 
 	function remove() {
 		if (root._builtin || opkgManager.running)
@@ -60,12 +67,12 @@ MbPage {
 
 		var completedCallback = function(result) {
 			if (!result.success) {
-				resetButtonText()
+				root._removeButtonText = "Remove"
 				return
 			}
 
 			loadFeedsModelCallback?.(result.data)
-			Global.pageManager.popPage()
+			pageStack.pop()
 		}
 
 		root._removeButtonText = "Removing..."
@@ -86,7 +93,7 @@ MbPage {
 				: status2
 
 		if (error) {
-			toast.createToast(qsTr("✗ " + error), 3000, "icon-info-active");
+			toast.createToast(qsTr(error), 3000, "icon-info-active");
 			return
 		}
 
@@ -95,7 +102,7 @@ MbPage {
 
 		var completedCallback = function(result) {
 			if (!result.success) {
-				resetButtonText()
+				root._saveButtonText = "Save"
 				return
 			}
 			root.title = "Edit Feed" // update breadcrumb

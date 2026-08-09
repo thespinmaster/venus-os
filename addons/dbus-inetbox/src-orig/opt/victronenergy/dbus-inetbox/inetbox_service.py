@@ -189,21 +189,20 @@ class InetboxService:
 		# unique path used to generate unique ClassAndVrmInstance value
 		# see https://github.com/victronenergy/localsettings#using-addsetting-to-allocate-a-vrm-device-instance
 
-		settingsPath = f'/Settings/CustomDevices/{dbus_constants.SAFE_PRODUCT_NAME}_{self._sid}'
+		settingsPath = f'/Settings/Devices/{dbus_constants.SAFE_PRODUCT_NAME}_{self._sid}'
 
 		self._settings = SettingsDevice(
 			bus = dbusconnection(),
 			#name, path, value, min (0), max (0)
 			supportedSettings = {
 				'class_and_vrm_instance' : [f'{settingsPath}/ClassAndVrmInstance',
-						f"{dbus_constants.SERVICE_TYPE_TEMPERATURE}:{dbus_constants.DEFAULT_DEVICE_INSTANCE}", 0, 0],
-				'theme' : [f'{settingsPath}/Theme',"light", 0, 0],
+						f"{dbus_constants.z}:{dbus_constants.DEFAULT_DEVICE_INSTANCE}", 0, 0],
 				'showAircon' : [f'{settingsPath}/ShowAircon', 1, 0, 1],
+
 				'enabled' : [f'{settingsPath}/Enabled', 1, 0, 1]
 				#'syncClock' : [f'{settingsPath}/SyncClock', 1, 0, 1],
 				},
 			eventCallback = self._handle_changed_setting)
-
 
 	def map_or_debug(self, mapping, name):
 		if name in mapping:

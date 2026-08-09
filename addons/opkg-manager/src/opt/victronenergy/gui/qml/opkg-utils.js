@@ -2,15 +2,15 @@
 .pragma library
 
 function initCreateComponent(customItems) {
-  
+
   if (customItems.value === undefined)
     return
-  
+
   for (var path in customItems.value) {
     var parts = path.split("/");
     var qmlItemName = parts[parts.length - 1]; // "OpkgPageSettingsSubMenu"
     //console.log("caching:" + qmlItemName + ".qml")
-    var cmo=Qt.createComponent(qmlItemName + ".qml")
+    var cmo = Qt.createComponent(qmlItemName + ".qml")
     cmo.destroy()
   }
 
@@ -30,50 +30,51 @@ function qmlFileExists(qmlFileName) {
 }
 
 //functionality
-// empty (add to end) undefinded
-// add at top (value is string) (top) (insert 0) ^
-// add before item name (value is name) (insert index) opp +
-// replace item (value starts with "+")  (insert index) opp *
-// remove item (value starts with "-")  (remove index) opp -
-function addRemoveCustomItems(customItems, model, getItemIndexCallback, addRemoveItemCallback, getComponentArgs) {
+// actions:
+// "" : empty/undefined (add to end)
+// ^  : add at top (value is string) (top) (insert 0)
+// +  : add before item name (value is name) (insert index)
+// *  : replace item (value starts with "+")  (insert index)
+// -  : remove item (value starts with "-")  (remove index)
+function addRemoveCustomItems(customItems, model, componentFactoryCallback, itemIndexCallback) {
   if (!customItems.valid || customItems.value.length === 0) {
     return;
   }
-  addRemoveCustomItemsQuick(customItems, model, getItemIndexCallback, addRemoveItemCallback, getComponentArgs)
+  addRemoveCustomItemsQuick(customItems, model, componentFactoryCallback, itemIndexCallback)
 }
 
-function addRemoveCustomItemsQuick(customItems, model, getItemIndexCallback, addRemoveItemCallback, getComponentArgs) {
- 
+function addRemoveCustomItemsQuick(customItems, model, componentFactoryCallback, itemIndexCallback) {
+
   if (customItems == undefined)
     return
-  
-  //if (!getItemIndexCallback || !addRemoveItemCallback)
-  //  throw Error("model cannot be undefinded or null") 
-  
-  if (!getItemIndexCallback) {
-    if (!getComponentArgs)
-      throw Error("getComponentArgs callback not set") 
- 
-    getItemIndexCallback = modelGetItemIndex 
-  }
- 
-  if (!addRemoveItemCallback)
-    addRemoveItemCallback = modelAddRemoveItem
- 
+
+	if (itemIndexCallback == undefined)
+		throw new Error("itemIndexCallback not set")
+
   for (var prop in customItems.value) {
- 
     var qmlItemName = prop
     var qmlItemValue = customItems.value[qmlItemName]
-    
-    _doItemAction(qmlItemName, qmlItemValue, model, getItemIndexCallback, addRemoveItemCallback, getComponentArgs)
+    _doItemAction(qmlItemName, qmlItemValue, model, componentFactoryCallback, itemIndexCallback)
   }
 }
 
-function modelGetItemIndex(model, description) {
-  for (var i = 0; i < model.count; i++)
-    if (model.get(i).description === description)
-      return i
-  return -1
+function findIndex(model, typeName, typeCallback) {
+
+	for (var i = 0; i < model.count; i++) {
+
+		var itm = model.get(i)
+		if (itm === null)
+			continue
+		if ((itm?.toString() || "").startsWith(typeName)) {
+			if (typeCallback)
+				if (typeCallback(model, itm, i) == -1)
+					continue
+				else
+					return i
+			return i
+		}
+	}
+	return -1
 }
 
 function dumpInstanceProperties(instance) {
@@ -81,66 +82,67 @@ function dumpInstanceProperties(instance) {
     console.log("dumpInstanceProperties: no instance provided")
     return
   }
+	try {
+		Object.keys(instance).forEach(function(key) {
+			try {
+				var val = instance[key].toString()
 
-  Object.keys(instance).forEach(function(key) {
-    try {
-      var val = instance[key].toString()
+				if (val.indexOf("function()") === 0)
+					return
 
-      if (val.indexOf("function()") === 0)
-        return
- 
-      console.log("instance." + key + ":", val)
-    } catch (error) {
-      console.log("instance." + key + ": <error reading value: " + error + ">");
-    }
-  })
+				console.log("instance." + key + ":", val)
+			} catch (error) {
+				console.log("instance." + key + ": <error reading value: " + error + ">");
+			}
+		})
+	} catch (error) {
+		console.log("instance." + key + ": <error reading value: " + error + ">");
+	}
+
 }
 
-function modelAddRemoveItem(model, action, index, qmlFileName, getComponentArgs) {
+function modelAddRemoveItem(model, action, index, qmlFileName, componentFactoryCallback) {
 
-  if (action == "-") {
+	if (index === -1)
+		return
+
+  if (action === "-") {
     //console.log("hiding index:" + index)
     model.get(index).show = false // if removing just hide
     return
   }
-  // Component.Ready = 1
 
-  //Must call getComponentArgs *Before* createComponent
-  // some kind of invisible context causes parenting issues
- 
-  var component = Qt.createComponent(qmlFileName)
+  const COMPONENT_READY = 1
 
-  if (component.status === 1) {
- 
-    var componentArgs = getComponentArgs()
-    var instance = component.createObject(componentArgs.parent, componentArgs.args) // incubateObject is non blocking
-    instance.y = -instance.height-10 //make sure the item is not initialy visible
-  }
-  else {
-    console.error("Failed to create component:", component.errorString());
+	//Qt.CreatComponent needs to be created in the same context that it
+	// will be used in (so that it inherits stackPage, mbTools, toast etc)
+  var componentFactory = componentFactoryCallback(qmlFileName, model, action, index)
+	if (componentFactory == undefined)
+		return // assume componentFactoryCallback has handled everything
+
+  if (componentFactory.component.status === COMPONENT_READY) {
+    var instance = componentFactory.component.createObject(
+			componentFactory.parent,
+			componentFactory.component.args) // incubateObject is non blocking
+  } else {
+    console.error("Failed to create component:", componentFactory.component.errorString());
     return
   }
-  
-  if (action == "*")
+
+  if (action === "*")
     model.get(index).show = false // if replacing just hide
 
-  if (index==-2) {
-    //console.log("---------------------------------")
-    //dumpInstanceProperties(instance)
-    //console.log("---------------------------------")
+  if (index === -2) {
     model.append(instance)
-  
-    //var m=model.get(model.count-2)
-    //dumpInstanceProperties(m)
   } else {
     model.insert(index, instance)
   }
-  //console.log("UUU:" + p.dumpItemTree())
+	return instance
 }
- 
-function _doItemAction(qmlItemName, qmlItemValue, model, getItemIndexCallback, addRemoveItemCallback, createComponentCallback) {
+
+function _doItemAction(qmlItemName, qmlItemValue, model, componentFactoryCallback, getItemIndexCallback) {
   //console.log("_doItemOperation:" + qmlItemName + ", opp:" + operation + ", value:" + qmlItemValue)
-  
+
   var index = -1
   var action = undefined
 
@@ -154,10 +156,10 @@ function _doItemAction(qmlItemName, qmlItemValue, model, getItemIndexCallback, a
   switch (action) {
     case "":
     case undefined:
-      index=-2 // insert at end
+      index = -2 // insert at end
       break
     case "^":
-      index=0 // insert at start
+      index = 0 // insert at start
       break
     case "-": // remove @ item
     case "+": // insert @ item
@@ -174,8 +176,7 @@ function _doItemAction(qmlItemName, qmlItemValue, model, getItemIndexCallback, a
     console.log("index not found:" + qmlItemValue)
     return
   }
-  
-  addRemoveItemCallback(model, action, index, qmlItemName, createComponentCallback)
- 
-}
 
+  modelAddRemoveItem(model, action, index, qmlItemName, componentFactoryCallback)
+
+}

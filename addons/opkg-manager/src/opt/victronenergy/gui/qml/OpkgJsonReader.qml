@@ -5,11 +5,11 @@
 // Reads named datasets (e.g. "packages", "feeds") from the
 // com.victronenergy.opkgmanager service via the /Chunk/ D-Bus paths.
 
-import QtQuick
+import QtQuick 2
 
 QtObject {
 	id: root
- 
+
 	// Emitted when a dataset has been fully read and parsed.
 	signal jsonReady(var jsonData, string jsonText, string name)
 	signal jsonError(string error, string name)

@@ -1,20 +1,23 @@
 {
 	"folders": [
 		{
-			"name": "opkg-manager",
 			"path": "addons/opkg-manager"
 		},
+		{
+			"path": "/data/dev/addons/dbus-inetbox"
+		},
+
 		{
 			"name": "dev",
 			"path": "."
 		},
 		{
-			"name": "qml",
-			"path": "../../opt/victronenergy/gui/qml"
-		},
-		{
 			"name": "data",
 			"path": ".."
+		},
+		{
+			"name": "qml",
+			"path": "../../opt/victronenergy/gui/qml"
 		},
 		{
 			"name": "victronenergy",
@@ -27,6 +30,15 @@
 		{
 			"name": "gui-v2",
 			"path": "../../var/www/venus/gui-v2"
+		},
+		{
+			"path": "../../service"
+		},
+		{
+			"path": "../../opt/victronenergy/themes/ccgx/icons"
+		},
+		{
+			"path": "../../etc/venus"
 		}
 	],
 	"settings": {
@@ -34,25 +46,38 @@
 		"workbench.editor.enablePreviewFromQuickOpen": true,
 		"editor.colorDecorators": true,
 		"editor.colorDecoratorsLimit": 5000,
-		"qt-qml.qmlls.customExePath": "/home/admin_user/Qt/6.8.3/gcc_64/bin/qmlls",
+		"qt-qml.qmlls.customExePath": "/usr/bin/qmlls",
 		"qt-qml.qmlls.additionalImportPaths": [
-			"/usr/lib/x86_64-linux-gnu/qt6/qml",
-			"/home/admin_user/dev-local/gui-v2/build-wasm",
-			"/home/admin_user/dev/repos/venus-os/addons/opkg-manager/src/opt/victronenergy/gui/qml",
-			"/home/admin_user/dev/repos/venus-os/addons/themer/src/opt/victronenergy/gui/qml"
+			"/usr/lib/qml",
+			"/data/dev/.qmlls-stubs",
+			"/opt/victronenergy/gui/qml"
 		],
 		"qt-qml.qmlls.useNoCMakeCalls": true,
 		"qt-qml.doNotAskForQmllsDownload": true,
 		"python.analysis.include": [
 			"./addons",
 			"./scripts",
-			"./addons",
 			"./python"
 		],
 		"editor.rulers": [
 			110
 		],
-		"editor.wordWrap": "wordWrapColumn",
-		"editor.wordWrapColumn": 110
+
+		"editor.wordWrapColumn": 110,
+		"search.exclude": {
+				"**/.vscode-server/**": true
+		},
+		"files.watcherExclude": {
+				"**/.vscode-server/**": true
+		},
+		"files.exclude": {
+				"**/.vscode-server": true
+		},
+		"python.analysis.extraPaths": [
+			"/data/dev/addons/opkg-manager/src/opt/victronenergy/opkg-manager-service",
+		  "/data/dev/addons/dbus-inetbox/src/opt/victronenergy/dbus-inetbox",
+			"/data/dev/addons/dbus-ne-shunt/src/opt/victronenergy/dbus-ne-shunt",
+			"/data/dev/addons/test-device/src/opt/victronenergy/test-device-service"
+		]
 	}
 }

@@ -27,7 +27,7 @@ class ne_shunt_services_controller:
 	_serialService : Optional[ne_shunt_serial_service] = None
 	_settings : SettingsDevice
 	_curData : Optional[ne_shunt_data] = None
-	_serialPort : str
+	_serial_port : str
 	_inUpdate = False
 	_settingsPath = None
 	_lastData : str = ""
@@ -42,10 +42,9 @@ class ne_shunt_services_controller:
 	# service. i.e. /dev/ttyACM0
 	############################################
 	def __init__(self, serialPort, sid, readonly):
-		self._serialPort = serialPort
+		self._serial_port = serialPort
 		self._sid = sid
 		self._readonly = readonly
-
 
 	def close(self):
 		self._cancelled = True
@@ -63,7 +62,7 @@ class ne_shunt_services_controller:
 			self._serialService = None
 
 		if (self._serialService == None and len(self._services) > 0):
-			self._serialService = ne_shunt_serial_service(self._serialPort, self._readonly)
+			self._serialService = ne_shunt_serial_service(self._serial_port, self._readonly)
 
 	############################################
 	# Occurs when the a device setting value is
@@ -83,32 +82,38 @@ class ne_shunt_services_controller:
 
 		logging.debug("Initializing settings")
 
-
 		# unique path used to generate unique ClassAndVrmInstance value
 		# see https://github.com/victronenergy/localsettings#using-addsetting-to-allocate-a-vrm-device-instance
-		#portName = os.path.basename(self._serialPort)
-		settingsPath = f'/Settings/CustomDevices/{dbus_constants.SAFE_PRODUCT_NAME}_sid_{self._sid}'
+		#portName = os.path.basename(self._serial_port)
+		settingsPath = f'/Settings/Devices/sid_{self._sid}'
 
 		self._settings = SettingsDevice(
 			bus = dbusconnection(),
 			supportedSettings = {
-				'sid': [f'{settingsPath}/Sid', self._sid, 0, 1],
-				'device_name': [f'{settingsPath}/DeviceName', DBUS_DEVICE_KEY, 0, 0],
-				'show_fresh_water_tank': [f'{settingsPath}/ShowFreshWaterTank', 1, 0, 1],
-				'show_grey_waste_tank': [f'{settingsPath}/ShowGreyWasteTank', 1, 0, 1],  # When empty, default path will be used.
-				'show_grey_waste_tank2': [f'{settingsPath}/ShowGreyWasteTank2', 1, 0, 1],
-				'fresh_water_tank_class_and_vrm_instance' : [f'{settingsPath}FreshWaterTank/ClassAndVrmInstance',
+# default custom device settings start
+				'/Sid': [f'{settingsPath}/Sid', self._sid, 0, 0],
+				'/Sid2' : [f'{self._settingsPath}/Sid2', self._sid, 0, 0],
+				'/ProductName' : [f'{self._settingsPath}/ProductName', dbus_constants.PRODUCT_NAME, "", ""],
+				'/ServiceName' : [f'{self._settingsPath}/ServiceName', "", "", ""],
+				'/CustomName' : [f'{self._settingsPath}/CustomName', "", "", ""],
+				'/DeviceKey' : [f'{self._settingsPath}/DeviceKey', dbus_constants.DEVICE_KEY_NAME, "", ""],
+# default custom device settings end
+
+				'/ShowFreshWaterTank': [f'{settingsPath}/ShowFreshWaterTank', 1, 0, 1],
+				'/ShowGreyWasteTank': [f'{settingsPath}/ShowGreyWasteTank', 1, 0, 1],  # When empty, default path will be used.
+				'/ShowGreyWasteTank2': [f'{settingsPath}/ShowGreyWasteTank2', 1, 0, 1],
+				'/FreshWaterTank/ClassAndVrmInstance' : [f'{settingsPath}/FreshWaterTank/ClassAndVrmInstance',
 													f"{dbus_constants.SERVICE_TYPE_TANK}:{dbus_constants.DEFAULT_DEVICE_INSTANCE}", 0, 0],
-				'grey_waste_tank_class_and_vrm_instance' : [f'{settingsPath}/GreyWasteTank/ClassAndVrmInstance',
+				'/GreyWasteTank/ClassAndVrmInstance' : [f'{settingsPath}/GreyWasteTank/ClassAndVrmInstance',
 													f"{dbus_constants.SERVICE_TYPE_TANK}:{dbus_constants.DEFAULT_DEVICE_INSTANCE}", 0, 0],
-				'grey_waste_tank2_class_and_vrm_instance' : [f'{settingsPath}/GreyWasteTank2/ClassAndVrmInstance',
+				'/GreyWasteTank2/ClassAndVrmInstance' : [f'{settingsPath}/GreyWasteTank2/ClassAndVrmInstance',
 													f"{dbus_constants.SERVICE_TYPE_TANK}:{dbus_constants.DEFAULT_DEVICE_INSTANCE}", 0, 0],
-				'cab_battery_class_and_vrm_instance' : [f'{settingsPath}/CabBattery/ClassAndVrmInstance',
+				'/CabBattery/ClassAndVrmInstance' : [f'{settingsPath}/CabBattery/ClassAndVrmInstance',
 													f"{dbus_constants.SERVICE_TYPE_BATTERY}:{dbus_constants.DEFAULT_DEVICE_INSTANCE}", 0, 0],
-				'leisure_battery_class_and_vrm_instance' : [f'{settingsPath}/LeisureBattery/ClassAndVrmInstance',
+				'/LeisureBattery/ClassAndVrmInstance' : [f'{settingsPath}/LeisureBattery/ClassAndVrmInstance',
 													f"{dbus_constants.SERVICE_TYPE_BATTERY}:{dbus_constants.DEFAULT_DEVICE_INSTANCE}", 0, 0],
-				'switches_class_and_vrm_instance' : [f'{settingsPath}/Switches/ClassAndVrmInstance',
-													f"{dbus_constants.SERVICE_TYPE_TEMPERATURE}:{dbus_constants.DEFAULT_DEVICE_INSTANCE}", 0, 0]
+				'/Switches/ClassAndVrmInstance' : [f'{settingsPath}/Switches/ClassAndVrmInstance',
+													f"{dbus_constants.SERVICE_TYPE_SWITCH}:{dbus_constants.DEFAULT_DEVICE_INSTANCE}", 0, 0]
 				},
 			eventCallback = self._handle_changed_setting)
 
@@ -186,14 +191,22 @@ class ne_shunt_services_controller:
 	# There can be upto 3 three tanks.
 	# FreshWater, GreyWaste1 and GreyWaste2
 	############################################
-	def _start_stop_tank_service(self, name, createcallback):
+	def _start_stop_tank_service(self, name, create_callback):
 		logging.debug(f"_start_stop_tank_service: {name}")
 		service = self._services.get(name, None)
 
 		if (self._settings['show_' + name] == 1):
 			if (service is None):
 				logging.debug(f"_start_stop_tank_service: {name} creating")
-				service = createcallback()
+
+				service_name, display_name, fluid_type = create_callback()
+
+				_, _, device_instance = self._vrm_parts[service_name]
+				service_name = switch_service.serviceNameBuilder(
+						dbus_constants.SERVICE_TYPE_TANK, f"_id_{device_instance}_{self._sid}")
+
+				service = tank_service(display_name, self._serial_port, service_name, device_instance, fluid_type, 1.0)
+
 				self._services[name] = service
 			else:
 				logging.debug(f"_start_stop_tank_service: {name} already running")
@@ -238,18 +251,18 @@ class ne_shunt_services_controller:
 		switches.append("Aux")
 
 		if len(switches) != 0:
-			logging.debug("_start_stop_switch_service: starting")
 
-			serviceIdentifier = "sid_" + self._sid
-			classAndVrmInstance = self._settings['switches_class_and_vrm_instance']
+			_, _, device_instance = self._vrm_parts['Switches']
+			serviceName = switch_service.serviceNameBuilder(
+					dbus_constants.SERVICE_TYPE_SWITCH, f"_id_{device_instance}_{self._sid}")
 
 			self._services["switches"] = switch_service(
 											"Electrics",
-											self._serialPort,
-											serviceIdentifier,
+											self._serial_port,
+											serviceName,
+											device_instance,
 											switches,
-											classAndVrmInstance,
-											onValueChanged = self._dbus_switch_value_changed)
+											onValueChangedCallback = self._dbus_switch_value_changed)
 
 	############################################
 	# Starts the dbus vehicle battery service
@@ -261,72 +274,60 @@ class ne_shunt_services_controller:
 
 		logging.debug("_start_battery_services in")
 
-		serviceIdentifier = "sid_" + self._sid
-
 		service = self._services.get("cab_battery", None)
+
 		if (service == None):
-			classAndVrmInstance = self._settings['cab_battery_class_and_vrm_instance']
+			_, _, device_instance = self._vrm_parts['CabBattery']
+			serviceName = battery_service.serviceNameBuilder(
+					dbus_constants.SERVICE_TYPE_BATTERY, f"_id_{device_instance}_{self._sid}")
 
 			self._services["cab_battery"] = battery_service("Vehicle Battery",
-														self._serialPort,
-														serviceIdentifier,
-														classAndVrmInstance,
-														capacity = None,
-														onValueChanged = self._dbus_cab_battery_value_changed)
+														self._serial_port,
+														serviceName,
+														device_instance
+														capacity = 0,
+														onValueChangedCallback = self._dbus_cab_battery_value_changed)
 
 		service = self._services.get("leisure_battery", None)
 		if (service == None):
-			classAndVrmInstance = self._settings['leisure_battery_class_and_vrm_instance']
+			_, _, device_instance = self._vrm_parts['LeisureBattery']
+			serviceName = battery_service.serviceNameBuilder(
+					dbus_constants.SERVICE_TYPE_BATTERY, f"_id_{device_instance}_{self._sid}")
+
 			self._services["leisure_battery"] = battery_service("Leisure Battery",
-														self._serialPort,
-														serviceIdentifier,
-														classAndVrmInstance,
-														capacity = None,
+														self._serial_port,
+														serviceName,
+														device_instance,
+														capacity = 0,
 														onValueChanged = self._dbus_leisure_battery_value_changed)
 
 	############################################
 	# starts and stops all services
 	# note: only starts the vehicle battery service
 	############################################
-	def _start_stop_services(self, dbusSettingName = "", newValue = None):
+	def _start_stop_services(self, dbusservice_name = "", newValue = None):
 
-		serviceIdentifier = "sid_" + self._sid
-
-		if (dbusSettingName == "" or dbusSettingName.endswith("FreshWaterTank")):
-			classAndVrmInstance = self._settings['fresh_water_tank_class_and_vrm_instance']
-
+		if (dbusservice_name == "" or dbusservice_name.endswith("FreshWaterTank")):
 			self._start_stop_tank_service("fresh_water_tank",
-										createcallback = lambda: tank_service("Fresh Water",
-										self._serialPort,
-										serviceIdentifier,
-										dbus_constants.FLUID_TYPE_FRESH_WATER,
-										classAndVrmInstance, 0.1))
+				createCallback=lambda: ("FreshWaterTank", "Fresh Water", dbus_constants.FLUID_TYPE_FRESH_WATER))
 
-		if (dbusSettingName == "" or dbusSettingName.endswith("GreyWasteTank")):
-			classAndVrmInstance = self._settings['grey_waste_tank_class_and_vrm_instance']
-
+		if (dbusservice_name == "" or dbusservice_name.endswith("GreyWasteTank")):
 			self._start_stop_tank_service("grey_waste_tank",
-										createcallback = lambda: tank_service("Grey Waste",
-										self._serialPort,
-										serviceIdentifier,
-										dbus_constants.FLUID_TYPE_WASTE_WATER,
-										classAndVrmInstance, 0.1))
+				createCallback=lambda: ("GreyWasteTank", "Grey Waste", dbus_constants.FLUID_TYPE_WASTE_WATER))
 
-		if (dbusSettingName == "" or dbusSettingName.endswith("GreyWasteTank2")):
-			classAndVrmInstance = self._settings['grey_waste_tank2_class_and_vrm_instance']
+		if (dbusservice_name == "" or dbusservice_name.endswith("GreyWasteTank2")):
+			self._start_stop_tank_service("grey_waste_tank",
+				createCallback=lambda: ("GreyWasteTank2", "Grey Waste 2", dbus_constants.FLUID_TYPE_WASTE_WATER))
 
-			self._start_stop_tank_service("grey_waste_tank2",
-										createcallback = lambda: tank_service("Grey Waste 2",
-										self._serialPort,
-										serviceIdentifier,
-										dbus_constants.FLUID_TYPE_WASTE_WATER,
-										classAndVrmInstance,0.1))
-
-		if (dbusSettingName == "" or dbusSettingName.endswith("Switch")):
+		if (dbusservice_name == "" or dbusservice_name.endswith("Switch")):
 			self._start_stop_switch_service()
 
-		if (dbusSettingName == ""):
+		if (dbusservice_name == ""):
 			self._start_battery_services()
+
+		if (len(self._services)):
+			first_value = next(iter(self._services.values()))
+			self._settings['/ServiceName'] = first_value
 
 		# start stop the serial service as required.
 		self._start_stop_serial_service()

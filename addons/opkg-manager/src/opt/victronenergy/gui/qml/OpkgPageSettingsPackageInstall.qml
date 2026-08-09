@@ -5,6 +5,7 @@ import "utils.js" as Utils
 MbPage {
 	id: root
 	title: qsTr("Package details")
+	pageToolbarHandler: customToolbar
 
 	required property var model
 	required property OpkgManager opkgManager
@@ -35,7 +36,6 @@ MbPage {
 		width: mbTools.height; height: mbTools.height
 		visible: opkgManager.running
 	}
-
 
 	Column {
 		id: column
@@ -104,7 +104,7 @@ MbPage {
 				Label {
 					text: (root.hasAvailable)
 							? root.model?.availableVersion + (root.model.availableVersionSuffix ? "." + root.model.availableVersionSuffix : "")
-							: qsTr("none")
+							: qsTr("none sd sd ")
 					font.pixelSize: root.secondaryFontSize
 					color: root.primaryFontColor
 				}
@@ -142,7 +142,8 @@ MbPage {
 		}
 	}
 
-	pageToolbarHandler: ToolbarHandler {
+	ToolbarHandler {
+		id: customToolbar
 		leftText: root.model && !root.opkgManager.running && root.hasInstalled && root.model.packageName != "opkg-manager" ? "Remove" : ""
 		function leftAction() {
 			root.opkgManager.removePackage(root.model.packageName, completionCallback)

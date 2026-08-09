@@ -15,7 +15,7 @@
   // opkg-manager 1.0
   OpkgObjectCustomOverviewPages {}
 ====
-@openfile 
+@openfile
 ====
 /opt/victronenergy/gui/qml/MbSubMenu.qml
 ====
@@ -28,7 +28,7 @@
 	// opkg-manager 1.0
 	OpkgPageSettingsCustomMenus {}
 ====
-@openfile 
+@openfile
 ====
 /opt/victronenergy/gui/qml/PageMain.qml
 ====
@@ -39,18 +39,5 @@
 @insertbefore
 ====
 	// opkg-manager 1.0
-	OpkgPageMain {id: opkgPageMain; deviceList: deviceList}
-====
-@openfile 
-====
-/opt/victronenergy/gui/qml/PageUnsupportedDevice.qml
-====
-@findbackwards
-====
-}
-====
-@insertbefore
-====
-	// opkg-manager 1.0
-	OpkgPageUnsupportedDevice {}
+	OpkgPageMain {id: opkgPageMain}
 ====

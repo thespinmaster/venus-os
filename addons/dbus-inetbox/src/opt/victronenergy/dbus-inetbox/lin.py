@@ -1,5 +1,5 @@
 # MIT License
-# 
+#
 # Copyright (c) 2022  Dr. Magnus Christ (mc0110)
 #
 #
@@ -7,17 +7,17 @@
 #
 # this project is based on the LIN Specification Package Revision 2.2A
 #
-# The essential basis is to incorporate the results of the specification in such a way that 
-# there are no performance problems. Therefore, for example, RAW PIDs are processed in which 
-# the parity bits have not been separated. These are shown on pages 53ff of the specification. 
+# The essential basis is to incorporate the results of the specification in such a way that
+# there are no performance problems. Therefore, for example, RAW PIDs are processed in which
+# the parity bits have not been separated. These are shown on pages 53ff of the specification.
 # Thus 3C/3D with parity becomes 3C/7D. If this leads to confusion, I apologise.
 # Same approach for the raw PID 0xD8. This corresponds to a PID 0x18
-# This module has been optimised for high performance.  
- 
+# This module has been optimised for high performance.
+
 import inetboxapp
 import serial
 from taskmanager import TaskManager
-from tools import calculate_checksum
+from calculate_checksum import calculate_checksum
 from lin_recorder import LinRecorder
 import logging
 import asyncio
@@ -36,23 +36,23 @@ class Lin:
 		cnt_rows = 1
 		stop_async = False
 		log = logging.getLogger(__name__)
-		cnt_in = 0
+
 		app : inetboxapp.InetboxApp
 		# Same approach for the raw PID 0xD8. This corresponds to a PID 0x18
 		d8_alive = False
 
-
 		# Only for display control / slow event timing
 		CNT_ROWS_MAX = 200
-		
+
 		# Check Alive-status periodically - with 1ms delay it is appx. 9s
 		# there must be more than 1 D8-requests in this periode, than is alive status "ON"
-		# otherwise it would set "OFF" 
-		CNT_IN_MAX = 9000
-		
+		# otherwise it would set "OFF"
+
+		STATUS_INTERVAL = 9.0  # Run status logic every 9 seconds
+
 		DISPLAY_STATUS_PIDS = [bytes([0x20]), bytes([0x61]), bytes([0xE2])]
-		
-		
+
+
 		# the correct (full) preamble starts in the first frame, but we see only one type of
 		# frames, all with the same length - so we can use a frame-preamble with a shorter length,
 		# starting in the 2. frame
@@ -77,20 +77,21 @@ class Lin:
 				xonxoff=False,
 				rtscts=False,
 				dsrdtr=False,
-				timeout=0.003,
+				#timeout=0.003,
+				timeout=1.0,
 			)
-			
+
 			# Initialize recorder if file specified
 			self.recorder = LinRecorder(record_file) if record_file else None
-			
+
 			self._rx_buf = bytearray()
 			self.cnt_rows = 1
 			if lin_debug:
 					self.log.setLevel(logging.DEBUG)
 			else:
 					self.log.setLevel(logging.INFO)
-					
-			self.lin_debug = lin_debug    
+
+			self.lin_debug = lin_debug
 
 			self.app = app
 			if not(tasks==None):
@@ -113,7 +114,7 @@ class Lin:
 						cs = calculate_checksum(databytes)
 				else:
 						cs = calculate_checksum(bytes([pid_for_checksum]) + databytes)
-				self._send_answer(databytes.extend([cs]))    
+				self._send_answer(databytes.extend([cs]))
 
 
 		def _send_answer(self, databytes):
@@ -123,19 +124,17 @@ class Lin:
 			#self.serial.flush()
 			time.sleep(0.002)
 			#print(f"[LIN-DEBUG] out > {databytes.hex(' ')}")
- 
+
 
 		def prepare_tl_str_response(self, message_str, info_str):
 				self.prepare_tl_response(bytes.fromhex(message_str.replace(" ","")))
 				#if info_str.startswith("_"):
 				#		self.log.debug(info_str)
-				#else:    
+				#else:
 				#		self.log.info(info_str)
-
 
 		def prepare_tl_response(self, messages):
 				self.ts_response_buffer.extend([messages])
-
 
 		def _answer_tl_request(self):
 				if len(self.ts_response_buffer):
@@ -153,7 +152,7 @@ class Lin:
 				if p.startswith("_"): return
 				#self.log.debug(p)
 
-			 
+
 		def display_status(self):
 				pass
 #        if self.info:
@@ -166,13 +165,13 @@ class Lin:
 
 
 		def assemble_cpp_buffer(self):
-				# gather the transfered frames 
+				# gather the transfered frames
 				# preamble "00 1E 00 00 0x22 0xFF 0xFF 0x54 0x01"
 				# buffer id (2 bytes)
 				buf = bytes([])
 				for i in range(5):
 						buf += self.cpp_in_buffer[i]
-				#print(buf.hex("+"))    
+				#print(buf.hex("+"))
 				if buf[:8] != self.BUFFER_PREAMBLE:
 						#self.log.debug("buffer preamble doesn't match")
 						return False
@@ -186,7 +185,7 @@ class Lin:
 
 		# send out - warm water
 		def generate_inet_upload(self, s, p):
- 
+
 				# Message warm water / counter = 1
 #         self.prepare_tl_response(bytes.fromhex("03 10 29 fa 00 1f 00 1e 8b".replace(" ","")))
 #         self.prepare_tl_response(bytes.fromhex("03 21 00 00 22 ff ff ff b9".replace(" ","")))
@@ -239,46 +238,55 @@ class Lin:
 								self.log.info("system reboot required")
 								# For standard Python, use sys.exit() instead of machine.reset()
 								sys.exit(1)
-		
+
 		# check alive status
-		def status_monitor(self):
-				self.cnt_in += 1
- 
-				if not(self.cnt_in % self.CNT_IN_MAX):
-						self.cnt_in=0
-						self.app.status["alive"] = ["ON", True, False] 
-# Same approach for the raw PID 0xD8. This corresponds to a PID 0x18
-						if self.d8_alive:
-								self.app.status["alive"][0] = "ON"
-						else:
-								self.app.status["alive"][0] = "OFF"
-						self.d8_alive = False
- 
+		def status_monitor_timed(self):
+
+			self.app.status["alive"] = ["ON", True, False]
+			# Same approach for the raw PID 0xD8. This corresponds to a PID 0x18
+			if self.d8_alive:
+					self.app.status["alive"][0] = "ON"
+			else:
+					self.app.status["alive"][0] = "OFF"
+			self.d8_alive = False
+
 
 		# major ctrl loop for inetbox-communication
 		async def _lin_loop(self):
-			#await asyncio.sleep(1) # Delay at begin
-			
-			#log.info("lin-loop is running")
+			# This is a task function running via asyncio.create_task()
+			# Set timeout=1.0 when opening self.serial
+			last_status_time = 0
 
 			while True:
-				self._loop_serial()
-				if not(self.stop_async): # full performance to send buffer
-					await asyncio.sleep(0.001)
+					if not self.stop_async:
+							# 1. Time-based status check (Uses 0% CPU compared to modulo counting)
+							current_time = time.time()
+							if current_time - last_status_time >= self.STATUS_INTERVAL:
+									self.status_monitor_timed()
+									last_status_time = current_time
 
-		def _loop_serial(self):
-			self.status_monitor()
+							try:
+									# 2. Read accumulated bytes from the OS buffer
+									n = self.serial.in_waiting
+									if n > 0:
+											data = self.serial.read(n)
+											if data:
+													self._loop_serial(data)
+							except Exception as e:
+									# Log your error here
+									await asyncio.sleep(1) # Prevent rapid looping if the USB unplugged
 
-			# Read whatever is available
-			n = self.serial.in_waiting
-			if n <= 0:
-				return
-			data = self.serial.read(n)
-			if data:
-				if self.recorder:
-					self.recorder.record_read(data)
-					#print(f"[LIN-DEBUG] RX raw: {data.hex(' ')} ({len(data)} bytes)")
-				self._rx_buf.extend(data)
+					# 3. Relinquish 100% of the CPU back to Venus OS.
+					# 100ms sleep provides excellent responsiveness for Victron protocols
+					# while keeping Cerbo GX CPU usage at absolute 0%.
+					await asyncio.sleep(0.1)
+
+		def _loop_serial(self, data):
+
+			if self.recorder:
+				self.recorder.record_read(data)
+				#print(f"[LIN-DEBUG] RX raw: {data.hex(' ')} ({len(data)} bytes)")
+			self._rx_buf.extend(data)
 
 			while True:
 				# Find sync 0x00 0x55
@@ -291,7 +299,7 @@ class Lin:
 					return
 
 				#print(f"[LIN-DEBUG] Sync found at index {sync_idx}")
-				
+
 				# Need at least 3 bytes for raw PID
 				if len(self._rx_buf) < sync_idx + 3:
 					#print(f"[LIN-DEBUG] Need 3 bytes, have {len(self._rx_buf) - sync_idx}")
@@ -362,7 +370,7 @@ class Lin:
 					return
 				else:
 					return
- 
+
 			cmd = line.hex(" ")
 			cmd_ctrl = {
 				"00 55 3c 7f 06 b2 00 17 46 00 1f 4b": [self.prepare_tl_str_response, "03 06 f2 17 46 00 1f 00 87", "_B2 - response request"],
@@ -377,9 +385,9 @@ class Lin:
 			}
 			if not(cmd in cmd_ctrl.keys()):
 				return
-	
+
 			#self.log.debug(cmd_ctrl[cmd][2])
-   
+
 			##print(f"[LIN-DEBUG] executing command: {cmd_ctrl[cmd][2]}")
 			cmd_ctrl[cmd][0](cmd_ctrl[cmd][1], cmd_ctrl[cmd][2])
 			return

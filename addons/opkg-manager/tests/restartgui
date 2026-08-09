@@ -1,3 +1,0 @@
-#!/bin/bash
-
-svc -t /service/gui

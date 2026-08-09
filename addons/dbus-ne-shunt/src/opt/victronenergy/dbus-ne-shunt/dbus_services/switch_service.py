@@ -1,5 +1,6 @@
 from dbus_base_service import dbus_base_service
 from dbus_constants import dbus_constants
+import os
 
 class switch_service(dbus_base_service):
 
@@ -13,12 +14,14 @@ class switch_service(dbus_base_service):
 
 	OUTPUT_FUNCTION_MANUAL = 2
 
-	def __init__(self, name, portName, serviceIdentifier, switches, classAndVrmInstance, onValueChanged):
+	def __init__(self, customName:str, portName:str, serviceName:str, deviceInstance:int, switches:list[str], onValueChangedCallback):
+
+		connection = os.path.basename(portName) # convert from /dev/ttyxxx to ttyxxx
 
 		validTypesLatching = 1 << self.OUTPUT_TYPE_LATCHING
 
 		paths = {f'/State': {'initial': self.MODULE_STATE_CONNECTED, 'writable': True},
-						f'/CustomName': {'initial': name, 'writable': True}
+						f'/CustomName': {'initial': customName, 'writable': True}
 		}
 
 		for switchName in switches:
@@ -36,12 +39,15 @@ class switch_service(dbus_base_service):
 			paths[f'/SwitchableOutput/{dbusName}/Settings/ValidTypes'] = {'initial': validTypesLatching, 'writable': False}
 
 		self._registerCore(
-			portName,
-			serviceIdentifier,
-			classAndVrmInstance = classAndVrmInstance,
+			connection,
+			deviceInstance,
+			serviceName,
+			dbus_constants.PRODUCT_ID,
+			dbus_constants.PRODUCT_NAME,
+			dbus_constants.FIRMWARE_VERSION,
+			dbus_constants.HARDWARE_VERSION,
 			paths = paths,
-			
-			onValueChanged = onValueChanged
+			onValueChanged = onValueChangedCallback
 		)
 
 		def ShowUIControl(self, name):

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from gi.repository import GLib
+from gi.repository import GLib # type: ignore
 from taskmanager import TaskManager
 from argparse import ArgumentParser
 from contextlib import suppress
@@ -11,7 +11,8 @@ import sys
 from inetbox_controller import InetboxController
 import signal
 
-log = logging.getLogger("main")
+logging.basicConfig(level=logging.INFO)
+log = logging.getLogger('main')
 
 async def dbus_loop(mainloop):
 
@@ -88,14 +89,17 @@ async def async_main(args):
 				pass
 
 def main():
- 
+
 	args = getArgs()
- 
-	logging.basicConfig(
-		level=logging.INFO,
-		format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-		handlers=[logging.StreamHandler(sys.stdout)],
-	)
+
+
+	# logging.basicConfig(
+	# 	level=logging.INFO,
+	# 	format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+	# 	#handlers=[logging.StreamHandler(sys.stdout)],
+	# )
+
+
 
 	args.debug_lin = False
 	log.info('Using serial port: ' + args.serial)
@@ -107,16 +111,16 @@ def main():
 
 	try:
 		asyncio.run(async_main(args))
- 
+
 	except KeyboardInterrupt:
 		log.info("Shutting down...")
 	finally:
 		log.info("quitting...")
-  
+
 	log.info("Connected to dbus, and switching over to GLib.MainLoop() (= event based)")
- 
-	log.info("EXITED: dbus-neshunt")
- 
+
+	log.info("EXITED: dbus-inetbox")
+
 def getArgs():
 	# "--serial /dev/ttyUSB0 --debug_lin --debug_inet"
 	parser = ArgumentParser(description='truma-inetbox', add_help=True)
@@ -135,11 +139,9 @@ def getArgs():
 	if not args.sid:
 		log.error('No sid specified, see -h')
 		exit(1)
-  
+
 	return args
 
 
 if __name__ == "__main__":
 	main()
-
-

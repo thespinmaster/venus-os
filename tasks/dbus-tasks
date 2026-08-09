@@ -1,0 +1,18 @@
+
+
+source ../addons/opkg-manager/src/data/opkg-manager/dbus-common
+
+case "${1:-}" in
+  dbus-add-setting)
+
+    opkg_common_ensure_installed
+    ;;
+
+  ensure-feeds)
+    shift
+    opkg_common_ensure_feed_symlink "${1:-}"
+    ;;
+  remove-feed-symlink)
+    opkg_common_remove_feed_symlink
+    ;;
+esac

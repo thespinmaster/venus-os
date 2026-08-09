@@ -10,20 +10,20 @@ DEVICES=(
 )
 
 for DEVICE in "${DEVICES[@]}"; do
-	dbus -y com.victronenergy.settings /Settings/CustomDevices/${DEVICE}_fresh_water_tank RemoveSettings "%['ClassAndVrmInstance']"
+	dbus -y com.victronenergy.settings /Settings/Devices/${DEVICE}_fresh_water_tank RemoveSettings "%['ClassAndVrmInstance']"
 
-  dbus -y com.victronenergy.settings /Settings/CustomDevices/${DEVICE}_cab_battery RemoveSettings "%['ClassAndVrmInstance']"
-  dbus -y com.victronenergy.settings /Settings/CustomDevices/${DEVICE}_fresh_water_tank RemoveSettings "%['ClassAndVrmInstance']"
-  dbus -y com.victronenergy.settings /Settings/CustomDevices/${DEVICE}_grey_waste_tank RemoveSettings "%['ClassAndVrmInstance']"
-  dbus -y com.victronenergy.settings /Settings/CustomDevices/${DEVICE}_grey_waste_tank_2 RemoveSettings "%['ClassAndVrmInstance']"
-  dbus -y com.victronenergy.settings /Settings/CustomDevices/${DEVICE}_switches RemoveSettings "%['ClassAndVrmInstance']"
-  dbus -y com.victronenergy.settings /Settings/CustomDevices/${DEVICE}_leisure_battery RemoveSettings "%['ClassAndVrmInstance']"
-  dbus -y com.victronenergy.settings /Settings/CustomDevices/${DEVICE}_inetbox RemoveSettings "%['ClassAndVrmInstance']"
+  dbus -y com.victronenergy.settings /Settings/Devices/${DEVICE}_cab_battery RemoveSettings "%['ClassAndVrmInstance']"
+  dbus -y com.victronenergy.settings /Settings/Devices/${DEVICE}_fresh_water_tank RemoveSettings "%['ClassAndVrmInstance']"
+  dbus -y com.victronenergy.settings /Settings/Devices/${DEVICE}_grey_waste_tank RemoveSettings "%['ClassAndVrmInstance']"
+  dbus -y com.victronenergy.settings /Settings/Devices/${DEVICE}_grey_waste_tank_2 RemoveSettings "%['ClassAndVrmInstance']"
+  dbus -y com.victronenergy.settings /Settings/Devices/${DEVICE}_switches RemoveSettings "%['ClassAndVrmInstance']"
+  dbus -y com.victronenergy.settings /Settings/Devices/${DEVICE}_leisure_battery RemoveSettings "%['ClassAndVrmInstance']"
+  dbus -y com.victronenergy.settings /Settings/Devices/${DEVICE}_inetbox RemoveSettings "%['ClassAndVrmInstance']"
 
-  dbus -y com.victronenergy.settings /Settings/CustomDevices/${DEVICE} RemoveSettings "%['ShowGreyWasteTank']"
-  dbus -y com.victronenergy.settings /Settings/CustomDevices/${DEVICE} RemoveSettings "%['ShowGreyWasteTank2']"
-  dbus -y com.victronenergy.settings /Settings/CustomDevices/${DEVICE} RemoveSettings "%['ShowFreshWaterTank']"
-  dbus -y com.victronenergy.settings /Settings/CustomDevices/${DEVICE} RemoveSettings "%['ShowGreyWasteTank']"
-  dbus -y com.victronenergy.settings /Settings/CustomDevices/${DEVICE} RemoveSettings "%['ShowGreyWasteTank']"
-  dbus -y com.victronenergy.settings /Settings/CustomDevices/${DEVICE} RemoveSettings "%['ShowGreyWasteTank']"
+  dbus -y com.victronenergy.settings /Settings/Devices/${DEVICE} RemoveSettings "%['ShowGreyWasteTank']"
+  dbus -y com.victronenergy.settings /Settings/Devices/${DEVICE} RemoveSettings "%['ShowGreyWasteTank2']"
+  dbus -y com.victronenergy.settings /Settings/Devices/${DEVICE} RemoveSettings "%['ShowFreshWaterTank']"
+  dbus -y com.victronenergy.settings /Settings/Devices/${DEVICE} RemoveSettings "%['ShowGreyWasteTank']"
+  dbus -y com.victronenergy.settings /Settings/Devices/${DEVICE} RemoveSettings "%['ShowGreyWasteTank']"
+  dbus -y com.victronenergy.settings /Settings/Devices/${DEVICE} RemoveSettings "%['ShowGreyWasteTank']"
 done

@@ -1,5 +1,4 @@
 // SYM LINKED
-pragma ComponentBehavior: Bound
 import QtQuick 2
 
 Rectangle {
@@ -19,7 +18,7 @@ Rectangle {
 	property color warningLineColor
 	property color errorLineColor
 	property alias backgroundColor : root.color
-	
+
 	radius: 4
 
 	ListModel {

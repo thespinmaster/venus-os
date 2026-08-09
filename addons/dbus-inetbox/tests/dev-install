@@ -1,14 +1,16 @@
 #!/bin/bash
 
 set -o nounset
- 
+
 declare this_path; this_path="$(dirname "${BASH_SOURCE[0]}")"
- 
+
 QML_TARGET_PATH="/opt/victronenergy/gui/qml"
 QML_SOURCE_PATH="$this_path/../src${QML_TARGET_PATH}"
- 
-[[ -d "${QML_TARGET_PATH}" ]] || { echo "Wrong Server! (path not found ${QML_TARGET_PATH})"; exit 1; }
- 
+
+[[ -d "${QML_TARGET_PATH}" ]] || {
+	 echo "Wrong Server! (path not found ${QML_TARGET_PATH})"; exit 1;
+}
+
 QML_ICONS_TARGET_PATH="/opt/victronenergy/themes/ccgx/icons"
 QML_ICONS_SOURCE_PATH="$this_path/../src${QML_ICONS_TARGET_PATH}"
 
@@ -39,9 +41,8 @@ ln -sf "$SERVICE_SOURCE_PATH" "$SERVICE_TARGET_PATH"
 SERVICE_TEMPLATES_TARGET_PATH="/opt/victronenergy/service-templates/dbus-inetbox"
 SERVICE_TEMPLATES_SOURCE_PATH="$this_path/../src${SERVICE_TEMPLATES_TARGET_PATH}"
 rm -rf "$SERVICE_TEMPLATES_TARGET_PATH"
-cp -srf "$SERVICE_TEMPLATES_SOURCE_PATH" "$SERVICE_TEMPLATES_TARGET_PATH"
+cp -rf "$SERVICE_TEMPLATES_SOURCE_PATH" "$SERVICE_TEMPLATES_TARGET_PATH"
 
 # $this_path/../src/data/dbus-inetbox/installer "dev-install"
 
 echo "done"
- 

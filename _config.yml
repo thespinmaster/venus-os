@@ -1,5 +1,6 @@
 baseurl: "/venus-os-addons"
 layouts_dir: docs/assets/_layouts
+remote_theme: pages-themes/primer
 
 include:
   - docs

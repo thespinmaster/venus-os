@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Bash equivalent of the Makefile install target.
+# Defaults match the Makefile and can be overridden via environment variables:
+#   DESTDIR=/tmp/stage PREFIX=/usr ./install
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+UTILS=(
+  opkg-build
+  opkg-unbuild
+  opkg-compare-versions
+  opkg-make-index
+  opkg.py
+  opkg-list-fields
+  arfile.py
+  opkg-buildpackage
+  opkg-diff
+  opkg-extract-file
+  opkg-show-deps
+  opkg-compare-indexes
+  opkg-compare-versions.sh
+)
+
+DESTDIR="${DESTDIR:-}"
+PREFIX="${PREFIX:-/usr/local}"
+BINDIR="${PREFIX}/bin"
+
+usage() {
+  cat <<'EOF'
+Usage:
+  ./install
+
+Environment overrides:
+  DESTDIR   Installation staging root (default: empty)
+  PREFIX    Installation prefix (default: /usr/local)
+  CC        C compiler (default: cc)
+  CFLAGS    Compiler flags (default: empty)
+EOF
+}
+
+if [[ -n "${1:-}" ]]; then
+  usage
+  exit 1
+fi
+
+CC_BIN="${CC:-cc}"
+CFLAGS_STR="${CFLAGS:-}"
+
+# Build in the script directory to avoid path issues when invoked from elsewhere.
+cd "${SCRIPT_DIR}/opkg-utils"
+
+# Match Makefile dependency: build opkg-compare-versions first.
+${CC_BIN} ${CFLAGS_STR} -o opkg-compare-versions opkg-compare-versions.c
+
+mkdir -p "${DESTDIR}${BINDIR}"
+cp "${UTILS[@]}" "${DESTDIR}${BINDIR}/"
+for file in "${UTILS[@]}"; do
+  chmod 755 "${DESTDIR}${BINDIR}/${file}"
+done
+
+echo "Installed to ${DESTDIR}${BINDIR}"

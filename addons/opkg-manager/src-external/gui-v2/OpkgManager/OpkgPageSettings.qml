@@ -24,13 +24,13 @@ Page {
 
 			ListNavigation {
 				//% "Packages"
-				text: "Packages"
+				text: qsTrId("opkg_packages")
 				onClicked: Global.pageManager.pushPage("qrc:/OpkgManager/OpkgPageSettingsPackages.qml",
 					{title: text, opkgManager: opkgManager})
 			}
 			ListNavigation {
 				//% "Feeds"
-				text: "Feeds"
+				text: qsTrId("opkg_feeds")
 				onClicked: Global.pageManager.pushPage("qrc:/OpkgManager/OpkgPageSettingsFeeds.qml",
 					{title: text, opkgManager: opkgManager})
 			}
@@ -39,25 +39,27 @@ Page {
 				topInset: Theme.geometry_listItem_itemSeparator_height
 				bottomInset: Theme.geometry_listItem_itemSeparator_height
 				//% "Custom Devices"
-				text: "Custom Devices"
-				onClicked: Global.pageManager.pushPage("qrc:/OpkgManager/OpkgPageSettingsCustomDevicesList.qml",
+				text: qsTrId("opkg_custom_devices")
+				onClicked: Global.pageManager.pushPage("qrc:/OpkgManager/OpkgPageSettingsDevicesList.qml",
 					{title: text, opkgManager: opkgManager})
 			}
 
 			ListSwitch {
 				dataItem.uid: opkgManager.showCompactSetting.uid
-				text: "Show Compact"
+				//% "Show Compact"
+				text: qsTrId("opkg_show_compact")
 			}
 			ListSwitch {
 				dataItem.uid: opkgManager.noActionSetting.uid
-				text: "No Action"
+				//% "No Action"
+				text: qsTrId("opkg_no_action")
 			}
 
 			ListNavigation {
 				topInset: Theme.geometry_listItem_itemSeparator_height
 				bottomInset: Theme.geometry_listItem_itemSeparator_height
 				//% "Tests"
-				text: "Tests"
+				text: qsTrId("opkg_tests")
 				onClicked: Global.pageManager.pushPage("qrc:/OpkgManager/OpkgManagerTestPage.qml", {title: text})
 			}
 

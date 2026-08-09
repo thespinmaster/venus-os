@@ -1,0 +1,25 @@
+<RCC>
+<qresource prefix="/Inetbox">
+<file>MotorhomePage_Landscape.qml</file>
+<file>InetboxPageSettings.qml</file>
+<file>MotorhomeGaugeQuantityRow.qml</file>
+<file>MotorhomePage.qml</file>
+<file>MotorhomeBattery.qml</file>
+<file>InetboxDevice.qml</file>
+<file>MotorhomePage_Portrait.qml</file>
+<file>Inetbox_en.qm</file>
+<file>Inetbox_fr.qm</file>
+<file>image_temperature.svg</file>
+<file>image_charging_renewables.svg</file>
+<file>image_motorhome.svg</file>
+<file>image_freshwater.svg</file>
+<file>image_heating.svg</file>
+<file>image_battery.svg</file>
+<file>image_fan.svg</file>
+<file>image_aircon.svg</file>
+<file>image_energy_mix.svg</file>
+</qresource>
+<qresource prefix="/qt/qml/Victron/VenusOS/pages/settings/devicelist/delegates">
+<file>DeviceListDelegate_inetbox.qml</file>
+</qresource>
+</RCC>

@@ -6,16 +6,9 @@ from dbus_constants import dbus_constants
 
 class dbusInetboxService(dbus_base_service):
 
-	def __init__(self, portName:str, classAndVrmInstance:str, serviceIdentifier:str = "", onValueChangedCallback = None):
+	def __init__(self, portName:str, serviceName:str,customName:str, deviceInstance:int, onValueChangedCallback = None):
 
 		connection = os.path.basename(portName) # convert from /dev/ttyxxx to ttyxxx
-
-		classAndVrmInstanceParts = classAndVrmInstance.split(':')
-		className = classAndVrmInstanceParts[0]
-		deviceInstance = int(classAndVrmInstanceParts[1])
-
-		serviceName = "com.victronenergy.{}.{}".format(
-			className, dbus_constants.DBUS_PRODUCT_NAME + "_" + serviceIdentifier)
 
 		self._registerCore(
 			connection,
@@ -23,17 +16,19 @@ class dbusInetboxService(dbus_base_service):
 			serviceName,
 			dbus_constants.PRODUCT_ID,
 			dbus_constants.PRODUCT_NAME,
-			dbus_constants.FIRMWARE_VERSION,
-			dbus_constants.HARDWARE_VERSION,
+			dbus_constants.PRODUCT_VERSION,
+			'',
+			'',
 			paths =  {
-				'/CustomName': {'initial': "",'writable': True},
+				'/CustomName': {'initial': "",'writable': customName},
+				'/State': {'initial': 0x100, 'writable': False},
+
 				'/Temperature': {'initial': None,'writable': False},
-				'/CustomDevicePage': {'initial': dbus_constants.CUSTOM_DEVICE_PAGE,'writable': False},
 				'/CustomAlarm': {'initial': 0,'writable': True},
 				'/CustomAlarmText': {'initial': "",'writable': True},
 				'/Values/WaterCurrentTemp': {'initial': None,'writable': False},
 				'/Values/WaterTargetTemp': {'initial': None,'writable': True},
-    		'/Values/HeatingMode': {'initial': None,'writable': True},
+				'/Values/HeatingMode': {'initial': None,'writable': True},
 				'/Values/HeatingTargetTemp': {'initial': None,'writable': True},
 				'/Values/CurrentRoomTemp': {'initial': None,'writable': False},
 				'/Values/ElectricityPowerLevel': {'initial': None,'writable': True},
@@ -47,7 +42,8 @@ class dbusInetboxService(dbus_base_service):
 				'/Values/ErrorDescription': {'initial': None,'writable': False},
 				'/Values/Clock': {'initial': None,'writable': False},
 				'/Values/Alive': {'initial': None,'writable': False},
-				'/SwitchableOutput/heating/ShowUIControl': {'initial': 0,'writable': False},
+
+				'/SwitchableOutput/heating/Settings/ShowUIControl': {'initial': 0,'writable': False},
 				'/SwitchableOutput/heating/Settings/Type': {'initial': 3,'writable': False},
 				'/SwitchableOutput/heating/Settings/Unit': {'initial': '/Temperature','writable': False},
 				'/SwitchableOutput/heating/Settings/DimmingMin': {'initial': 5,'writable': False},
@@ -56,8 +52,9 @@ class dbusInetboxService(dbus_base_service):
 				'/SwitchableOutput/heating/Settings/Decimals': {'initial': 1,'writable': False},
 				'/SwitchableOutput/heating/Dimming': {'initial': None,'writable': True},
 				'/SwitchableOutput/heating/Measurement': {'initial': None,'writable': False},
+
 				'/SwitchableOutput/aircon/Dimming': {'initial': None,'writable': True},
-				'/SwitchableOutput/aircon/ShowUIControl': {'initial': 0,'writable': False},
+				'/SwitchableOutput/aircon/Settings/ShowUIControl': {'initial': 0,'writable': False},
 				'/SwitchableOutput/aircon/Settings/Type': {'initial': 3,'writable': False},
 				'/SwitchableOutput/aircon/Settings/Unit': {'initial': '/Temperature','writable': False},
 				'/SwitchableOutput/aircon/Settings/DimmingMin': {'initial': 16,'writable': False},
@@ -66,6 +63,17 @@ class dbusInetboxService(dbus_base_service):
 				'/SwitchableOutput/aircon/Settings/Decimals': {'initial': 1,'writable': False},
 				'/SwitchableOutput/aircon/Measurement': {'initial': None,'writable': False},
 
+
+				# '/SwitchableOutput/output_1/Settings/ShowUIControl': {'initial': 1,'writable': False},
+				# '/SwitchableOutput/output_1/Name': {'initial': "Test",'writable': True},
+				# '/SwitchableOutput/output_1/Settings/Adjustable': {'initial': 0,'writable': True},
+				# '/SwitchableOutput/output_1/Settings/CustomName': {'initial': "Water",'writable': True},
+				# '/SwitchableOutput/output_1/Settings/Group': {'initial': "Inetbox",'writable': True},
+				# '/SwitchableOutput/output_1/Settings/Type': {'initial': 1,'writable': True},
+				# '/SwitchableOutput/output_1/Settings/ValidTypes': {'initial': 2,'writable': True},
+				# '/SwitchableOutput/output_1/State': {'initial': 0,'writable': True},
+				# '/SwitchableOutput/output_1/Status': {'initial': 0,'writable': True}
 			},
 			onValueChanged = onValueChangedCallback
+
 			)

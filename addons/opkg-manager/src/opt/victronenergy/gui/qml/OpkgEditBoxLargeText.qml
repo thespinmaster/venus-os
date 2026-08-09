@@ -6,9 +6,8 @@
 //	  Added a setScrollOffset method to calculate the scroll offset
 
 import QtQuick 2
-import Qt.labs.components.native 1.0
 import com.victron.velib 1.0
- 
+
 MbItem {
 	id: root
 	cornerMark: !readonly && !editMode
@@ -33,12 +32,12 @@ MbItem {
 	property alias unit: _unitText.text
 	property int _cursorWidth: -1
 	property var deftoolbarHandler: null
- 
+
 	// internal
 	property string _editText
 
 	signal editDone(string newValue)
- 
+
 	Component.onCompleted: {
     // Capture once
     deftoolbarHandler = toolbarHandler
@@ -48,7 +47,7 @@ MbItem {
         return readonly ? null : deftoolbarHandler
     })
 	}
-	
+
 	NumberAnimation {
 		id: blink
 		target: textInput
@@ -110,7 +109,7 @@ MbItem {
 			tmpValue = item.value
 			editMode = true
 			if (_cursorWidth == -1) {
-				// Measure once and cache 
+				// Measure once and cache
 				_cursorWidth = vePlatform.measureText(ti.font.family, ti.font.pixelSize, "W", 0, 1)
 			}
 			ti.cursorPosition = 0;
@@ -152,7 +151,7 @@ MbItem {
 function setCursorPosition(position, direction) {
 		if (direction)
 			position += direction
-		
+
 		while (position >= 0 && position < textInput.text.length) {
 			if (!direction || ignoreChars.indexOf(textInput.text[position]) < 0) {
 				textInput.cursorPosition = position
@@ -165,17 +164,17 @@ function setCursorPosition(position, direction) {
 			textInput.cursorPosition = position
 			setScrollOffset()
 		}
-			
+
 	}
-	
- 
+
+
 	function setScrollOffset() {
-		
+
 		//var cursorX = vePlatform.measureText(ti.font.family, ti.font.pixelSize, ti.text, 0, ti.cursorPosition)
 		var cursorX = cursorItem.anchors.leftMargin //optsm; use existing calc
 		var minX = 0;
 		var maxX = textClipper.width;
- 
+
 		if (_cursorWidth === -1) {
 			console.log("Warning: _cursorWidth not set")
 			return
@@ -197,7 +196,7 @@ function setCursorPosition(position, direction) {
 		}
 
 		ti.x = -ti.scrollOffset;
- 
+
 	}
 
 	function resetScrollOffset() {
@@ -260,7 +259,7 @@ function setCursorPosition(position, direction) {
 			return
 
 		event.accepted = true
- 
+
 		switch (event.key) {
 		case Qt.Key_Backspace:
 			if (overwriteMode || overwriteMode)
@@ -342,10 +341,10 @@ function setCursorPosition(position, direction) {
 		Item {
 			id: textClipper
 			clip: true
-			
-	
+
+
 			height: parent.height
-	
+
 			anchors {
 				left: ti.width > 0 ? undefined : parent.left
 				right: rightSide.left
@@ -364,14 +363,14 @@ function setCursorPosition(position, direction) {
 				z: 1000
 			}
 			*/
-			
+
 			Text {
 				id: ti
 				property int scrollOffset: 0
 				width: textClipper.width - anchors.rightMargin
 				anchors{
 					//right: textClipper.right
-			
+
 					//width: parent.width
 					// If there is a unit, make the two round boxes overlap..
 					rightMargin: _unitText.width ? 0 : root.mbStyle.marginDefault
@@ -452,7 +451,7 @@ function setCursorPosition(position, direction) {
 		}
 
 		MouseArea {
-				
+
 				anchors {
 					left: textClipper.left
 					right: inputItem.right
@@ -474,12 +473,12 @@ function setCursorPosition(position, direction) {
 						if (!isEditablePosition(n)) {
 							return
 						}
- 
+
 						ti.cursorPosition = n
 						setScrollOffset()
- 
+
 					} else {
- 
+
 						handleMouseClick();
 					}
 				}

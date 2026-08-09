@@ -226,20 +226,7 @@
 			},
 			"problemMatcher": []
 		},
-		{
-			"label": "Venus UI Logs",
-			"type": "shell",
-			"command": "tail -F /var/log/gui/current | cut -c27-",
-			"presentation": {
-				"reveal": "always",
-				"panel": "dedicated",
-				"focus": true,
-				"showReuseMessage": false,
-				"clear": false,
-				"close": false
-			},
-			"problemMatcher": []
-		},
+		
 		{
 			"label": "Build opkg-manager Blind Install",
 			"type": "shell",

@@ -3,16 +3,20 @@
 # version 2.1.0
 # slight changes, hidden status display, typos
 # modify logging structure
- 
+
 from typing import Callable
 from taskmanager import TaskManager
-from tools import calculate_checksum
+from calculate_checksum import calculate_checksum
 import conversions as cnv
 import logging
 from decimal import Decimal
-
+import asyncio
+import time
 
 class InetboxApp:
+
+	ALIVE_INTERVAL = 60.0 # 60 seconds
+	PUBLISH_INTERVAL = 3.0 # 3 seconds
 
 	ENERGY_MIX_MAPPING = {
 		0x00: "electricity",
@@ -321,11 +325,12 @@ class InetboxApp:
 		"target_temp_aircon": [2990, False, False],
 		"aircon_on": [1, False, False],
 	}
- 
+
 	upload_buffer = 0
 	upload02_buffer = 0
 	upload_wait = 1
 	reflect = True
+	stop_async = False
 
 	display_status = {}
 	log = logging.getLogger(__name__)
@@ -338,7 +343,7 @@ class InetboxApp:
 			self.log.setLevel(logging.DEBUG)
 		else:
 			self.log.setLevel(logging.INFO)
-			
+
 		self.log.debug(f"Status: {self.status}")
 
 		self.reflect = reflect
@@ -346,19 +351,31 @@ class InetboxApp:
 		tasks.add_task("inetbox_publish_loop", self._publish_loop)
 
 	async def _publish_loop(self):
-			i = 0
+
+		last_alive_time = 0
+
+		# Loop for checking if there is any data available
+		# If data is availble then publish using the
+		# regisered callbacks.
+		# Every minute, publish an alive-heartbeat
+		# Sleep between loops for 3 seconds
+
+		while True:
 			items = self.get_all(True)
 			for idx, key in enumerate(items.keys()):
-					try:
-							for callback in self.publish_callback:
-									callback(key, items[key])
-					except Exception as e:
-							self.log.exception(f"Error in publish_loop, index {idx}, key {key}: {e}" )
-			i += 1
-			if not (i % 6):
-					i = 0
+				try:
+					for callback in self.publish_callback:
+						callback(key, items[key])
+				except Exception as e:
+					self.log.exception(f"Error in publish_loop, index {idx}, key {key}: {e}" )
+
+			current_time = time.time()
+			if current_time - last_alive_time >= self.ALIVE_INTERVAL:
 					self.status["alive"][1] = True  # publish alive-heartbeat every min
- 
+					last_alive_time = current_time
+
+			await asyncio.sleep(self.PUBLISH_INTERVAL)
+
 	def add_publish_callback(self, callback: Callable[[str, None], None]):
 		self.publish_callback.append(callback)
 
@@ -708,13 +725,13 @@ class InetboxApp:
 			)
 		#        self.log.info(f"Setting {key} to {value}")
 		self.log.debug(f"set_status: {key}:{value}")
-		
+
 		old_data = self.status[key][0]
 		old_flg = self.status[key][2]
 		self.log.debug(f"set_status: old_data:{old_data}, old_flg:{old_flg}")
 		# self.reflect chance the behavior of system control: True means that set commands reflected in control_status
 		# False means that the control_status only changed after feedback from truma
-    
+
 		self.status[key] = [
 			self.STATUS_CONVERSION_FUNCTIONS[key][1](value),
 			self.reflect,
@@ -755,16 +772,16 @@ class InetboxApp:
 	# Status-Dump - with False, it sends all status-values
 	# with True it sends only a list of changed values - but resets the change-flag
 	def get_all(self, only_updates):
- 
+
 		if not (only_updates):
 			#self.status_updated = False
 			return {key: self.get_status(key) for key in self.status.keys()}
 		else:
 			items = {}
 			for key in self.status.keys():
-				
+
 				if self.status[key][1]:
 					self.status[key][1] = False
-					 
+
 					items.update({key: self.get_status(key)})
 			return items

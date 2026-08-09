@@ -10,9 +10,9 @@ PACKAGE_ACTION="${1:-}"
 # set package name using the path of the calling file's location
 PACKAGE_NAME="${PACKAGE_NAME-"$(basename "$(dirname "$(realpath "${0}")")")"}"
 PACKAGE_DBUS_SETTINGS="${PACKAGE_DBUS_SETTINGS-}"
-PACKAGE_CUSTOM_DEVICE_KEY="${PACKAGE_CUSTOM_DEVICE_KEY-}"
-PACKAGE_CUSTOM_DEVICE_SERVICE_NAME="${PACKAGE_CUSTOM_DEVICE_SERVICE_NAME-}"
-PACKAGE_CUSTOM_DEVICE_DISPLAY_NAME="${PACKAGE_CUSTOM_DEVICE_DISPLAY_NAME-}"
+PACKAGE_DEVICE_KEY="${PACKAGE_DEVICE_KEY-}"
+PACKAGE_DEVICE_SERVICE_NAME="${PACKAGE_DEVICE_SERVICE_NAME-}"
+PACKAGE_DEVICE_DISPLAY_NAME="${PACKAGE_DEVICE_DISPLAY_NAME-}"
 
 PACKAGE_VERSION_NEW=
 PACKAGE_VERSION_CURRENT=
@@ -36,10 +36,10 @@ __try_call() {
 	fi
 }
 
-__install_helper_has_custom_device_vars() {
-	[[ -n "${PACKAGE_CUSTOM_DEVICE_KEY:-}" ]] ||
-	[[ -n "${PACKAGE_CUSTOM_DEVICE_SERVICE_NAME:-}" ]] ||
-	[[ -n "${PACKAGE_CUSTOM_DEVICE_DISPLAY_NAME:-}" ]]
+__install_helper_has_device_vars() {
+	[[ -n "${PACKAGE_DEVICE_KEY:-}" ]] ||
+	[[ -n "${PACKAGE_DEVICE_SERVICE_NAME:-}" ]] ||
+	[[ -n "${PACKAGE_DEVICE_DISPLAY_NAME:-}" ]]
 }
 
 __install_helper_has_custom_overview_pages() {
@@ -179,18 +179,18 @@ EOF
 }
 
 __install_helper_require_custom_device_vars() {
-	__install_helper_has_custom_device_vars || return 1
+	__install_helper_has_device_vars || return 1
 
-	[[ -n "${PACKAGE_CUSTOM_DEVICE_KEY:-}" ]] || {
-		echo "ERROR: PACKAGE_CUSTOM_DEVICE_KEY not set" >&2
+	[[ -n "${PACKAGE_DEVICE_KEY:-}" ]] || {
+		echo "ERROR: PACKAGE_DEVICE_KEY not set" >&2
 		return 1
 	}
-	[[ -n "${PACKAGE_CUSTOM_DEVICE_SERVICE_NAME:-}" ]] || {
-		echo "ERROR: PACKAGE_CUSTOM_DEVICE_SERVICE_NAME not set" >&2
+	[[ -n "${PACKAGE_DEVICE_SERVICE_NAME:-}" ]] || {
+		echo "ERROR: PACKAGE_DEVICE_SERVICE_NAME not set" >&2
 		return 1
 	}
-	[[ -n "${PACKAGE_CUSTOM_DEVICE_DISPLAY_NAME:-}" ]] || {
-		echo "ERROR: PACKAGE_CUSTOM_DEVICE_DISPLAY_NAME not set" >&2
+	[[ -n "${PACKAGE_DEVICE_DISPLAY_NAME:-}" ]] || {
+		echo "ERROR: PACKAGE_DEVICE_DISPLAY_NAME not set" >&2
 		return 1
 	}
 
@@ -201,21 +201,18 @@ install_helper_add_custom_device() {
 	__install_helper_require_custom_device_vars || return 1
 
 	dbus_common_add_settings <<EOF
-{'path':'/Settings/OpkgManager/CustomDevices/${PACKAGE_CUSTOM_DEVICE_KEY}/ProductName', 'default':'${PACKAGE_CUSTOM_DEVICE_DISPLAY_NAME}'}
-{'path':'/Settings/OpkgManager/CustomDevices/${PACKAGE_CUSTOM_DEVICE_KEY}/ServiceName', 'default':'${PACKAGE_CUSTOM_DEVICE_SERVICE_NAME}'}
+{'path':'/Settings/OpkgManager/Devices/${PACKAGE_DEVICE_KEY}/ProductName', 'default':'${PACKAGE_DEVICE_DISPLAY_NAME}'}
+{'path':'/Settings/OpkgManager/Devices/${PACKAGE_DEVICE_KEY}/ServiceName', 'default':'${PACKAGE_DEVICE_SERVICE_NAME}'}
 EOF
-	dbus_common_add_dbus_csv_values "/Settings/OpkgManager/CustomDevicesList" "${PACKAGE_CUSTOM_DEVICE_KEY}"
 }
 
 install_helper_remove_custom_device() {
 	__install_helper_require_custom_device_vars || return 1
 
 	dbus_common_remove_settings <<EOF
-{'path':'/Settings/OpkgManager/CustomDevices/${PACKAGE_CUSTOM_DEVICE_KEY}/ProductName'}
-{'path':'/Settings/OpkgManager/CustomDevices/${PACKAGE_CUSTOM_DEVICE_KEY}/ServiceName'}
+{'path':'/Settings/OpkgManager/Devices/${PACKAGE_DEVICE_KEY}/ProductName'}
+{'path':'/Settings/OpkgManager/Devices/${PACKAGE_DEVICE_KEY}/ServiceName'}
 EOF
-
-	dbus_common_remove_dbus_csv_values "/Settings/OpkgManager/CustomDevicesList" "${PACKAGE_CUSTOM_DEVICE_KEY}"
 }
 
 # arguments {1} (optional): set to remove to remove
@@ -303,13 +300,13 @@ install_helper_install() {
 		install_helper_add_custom_menus || return 1
 	fi
 
-	if __install_helper_has_custom_device_vars; then
+	if __install_helper_has_device_vars; then
 		install_helper_add_custom_device || return 1
 	fi
 
-	if [[ -n "${PACKAGE_CUSTOM_DEVICE_SERVICE_NAME}" ]]; then
+	if [[ -n "${PACKAGE_DEVICE_SERVICE_NAME}" ]]; then
 		addsource "serial-device-installer"
-		DEVICE_SERVICE_NAME="${PACKAGE_CUSTOM_DEVICE_SERVICE_NAME}"
+		DEVICE_SERVICE_NAME="${PACKAGE_DEVICE_SERVICE_NAME}"
 		serial_device_installer_add_service_mapping
 		install_helper_update_services
 	fi
@@ -324,14 +321,13 @@ install_helper_install() {
 }
 
 install_helper_uninstall_services() {
-	addsource "serial-device-installer"
-	DEVICE_SERVICE_NAME="${PACKAGE_CUSTOM_DEVICE_SERVICE_NAME}"
 
-  local args=
 	[[ "$PACKAGE_ACTION" == "upgrade-remove" ]] &&
-		args="--no-remove-usb-rule --no-remove-service-mapping"
+		return
 
-	serial_device_installer_uninstall_package $args # do not use "
+	addsource "serial-device-installer"
+
+	serial_device_installer_uninstall_service "${PACKAGE_DEVICE_SERVICE_NAME}"
 }
 
 install_helper_update_services() {
@@ -341,7 +337,7 @@ install_helper_update_services() {
 	echo "Restarting services..."
 
 	addsource "serial-device-installer"
-	DEVICE_SERVICE_NAME="${PACKAGE_CUSTOM_DEVICE_SERVICE_NAME}"
+	DEVICE_SERVICE_NAME="${PACKAGE_DEVICE_SERVICE_NAME}"
 	serial_device_installer_restart_services
 }
 
@@ -363,7 +359,7 @@ install_helper_remove() {
 
 	install_helper_add_remove_patch remove
 
-	if __install_helper_has_custom_device_vars; then
+	if __install_helper_has_device_vars; then
 		echo "Removing custom service settings"
 		install_helper_remove_custom_device || return 1
 	fi
@@ -383,8 +379,8 @@ install_helper_remove() {
 		install_helper_remove_custom_menus || return 1
 	fi
 
-	if [[ -n "${PACKAGE_CUSTOM_DEVICE_SERVICE_NAME}" ]]; then
-		echo "Removing services for ${PACKAGE_CUSTOM_DEVICE_SERVICE_NAME}"
+	if [[ -n "${PACKAGE_DEVICE_SERVICE_NAME}" ]]; then
+		echo "Removing services for ${PACKAGE_DEVICE_SERVICE_NAME}"
 		install_helper_uninstall_services
 	fi
 

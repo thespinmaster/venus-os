@@ -6,10 +6,10 @@ MbPage {
 	id: root
 	title: qsTr("Open Package Manager")
 
-	OpkgManager {
+	property var opkgManager: OpkgManager {
 		id: opkgManager
 		function showToastNotification(level, message, duration) {
-			Global.showToastNotification(VenusOS.Notification_Warning, message, duration)
+			toast.createToast(message, duration);
 		}
 	}
 
@@ -21,17 +21,17 @@ MbPage {
 	model: VisibleItemModel {
 		MbSubMenu {
 			description: qsTr("Packages")
-			subpage: Component { OpkgPageSettingsPackages {opkgManager:root.opkgManager} }
+			subpage: Component { OpkgPageSettingsPackages {opkgManager: root.opkgManager} }
 		}
 		MbSubMenu {
 			description: qsTr("Feeds")
-			subpage: Component { OpkgPageSettingsFeeds {opkgManager:root.opkgManager} }
+			subpage: Component { OpkgPageSettingsFeeds {opkgManager: root.opkgManager} }
 		}
 
 		MbSubMenu {
 			id:cdi
-			description: qsTr("Usb Serial Device Installer")
-			subpage: Component {OpkgPageSettingsDeviceSetup {title:cdi.description; opkgManager:root.opkgManager} }
+			description: qsTr("Custom Devices")
+			subpage: Component {OpkgPageSettingsDevices {title:cdi.description; opkgManager:root.opkgManager} }
 		}
 
 		MbSwitch {

@@ -19,6 +19,8 @@ PACKAGE_DBUS_SETTINGS="
 		{'path':'/Settings/Themer/Themes/Dark/ServiceBackgroundColor', 'default':'#b07c04'}
 		{'path':'/Settings/Themer/Themes/Dark/BackgroundColorSelected', 'default':'#2969a1'}
 		{'path':'/Settings/Themer/Themes/Dark/BackgroundTankColor', 'default':'#cccccc'}
+		{'path':'/Settings/Themer/Themes/Dark/BackgroundTankColor', 'default':'#cccccc'}
+		{'path':'/Settings/Themer/Themes/Dark/Color2', 'default':'#c4c4c4'}
 "
 
 #PACKAGE_DBUS_SETTINGS_DEPRECATED=""
@@ -29,7 +31,7 @@ pre_install() {
 	install_helper_add_remove_dbus_csv_items "add" "/Settings/Themer/AvailableThemes" "$DBUS_AVAILABLE_THEMES"
 }
 pre_remove() {
-	install_helper_add_remove_dbus_csv_items "remove" "/Settings/Themer/AvailableThemes" "$DBUS_AVAILABLE_THEMES" 
+	install_helper_add_remove_dbus_csv_items "remove" "/Settings/Themer/AvailableThemes" "$DBUS_AVAILABLE_THEMES"
 }
 
 # shellcheck source=/data/dev/addons/opkg-manager/src/data/opkg-manager/source-common

@@ -5,22 +5,27 @@ MbPage {
 	id: root
 	title: qsTr("Packages")
 	//tryPop: opkgManager.tryPop
-	model
-	: packagesModel
-	required property var opkgManager
+	model: packagesModel
+	pageToolbarHandler: customToolbar
+
+  property var opkgManager
+	property var test
 	property bool _loading: true
 	property var curPage: pageStack ? (pageStack.currentPage || pageStack.currentItem) : undefined
 	property var packagesModel: []
+	property MbStyle mbStyle: MbStyle {}
 
-	onOpkgManagerChanged: {
-		root.refreshPackages()
-	}
+	 onOpkgManagerChanged: {
+	 	if (opkgManager == undefined)
+	 		return
+	 	root.refreshPackages()
+	 }
 
 	Label {
 		text: "Loading..."
 		visible: root._loading
 		anchors.centerIn: parent
-		//font.pixelSize: Theme.font_size_body3
+		color: mbStyle.textColor
 		onVisibleChanged: {
 			root.listview.visible = !_loading
 		}
@@ -47,12 +52,14 @@ MbPage {
 	}
 
 	function refreshPackages(force) {
-		_loading = true
+		console.log("refreshPackages in")
+		root._loading = true
 
 		root.opkgManager.loadPackages(force, function(result) {
+			console.log("loadPackages in")
 			if (result.success)
 				onLoadPackagesModel(result.data)
-			_loading = false
+			root._loading = false
 		})
 	}
 
@@ -67,8 +74,8 @@ MbPage {
 		}
 	}
 
-	pageToolbarHandler: ToolbarHandler {
-
+	ToolbarHandler {
+		id: customToolbar
 		leftText: qsTr("Refresh")
 		function leftAction(mouse) {
 			if (!mouse)

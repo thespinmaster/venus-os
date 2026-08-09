@@ -1,5 +1,3 @@
-
-pragma ComponentBehavior: Bound
 import QtQuick 2
 import Victron.VenusOS
 

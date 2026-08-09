@@ -30,7 +30,7 @@ if [[ ! -x "${SERVICE_DIR}/log/run" && -x "${SERVICE_TEMPLATE_DIR}/log/run" ]]; 
 fi
 
 # Stop legacy/manual instance that can hold the D-Bus name and cause supervise restarts.
-legacy_pid="$(ps | awk '/python3 \/opt\/victronenergy\/service\/opkg-manager-service\/opkg-manager-service.py/ { print $1; exit }')"
+legacy_pid="$(ps | awk '/python3 \/opt\/victronenergy\/service\/opkg-manager-service\/__main__.py|python3 \/opt\/victronenergy\/opkg-manager-service\/__main__.py|\/opt\/victronenergy\/opkg-manager-service\/__main__.py/ { print $1; exit }')"
 if [[ -n "${legacy_pid}" ]]; then
   kill "${legacy_pid}" >/dev/null 2>&1 || true
 fi

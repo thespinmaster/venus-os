@@ -3,10 +3,12 @@ import com.victron.velib 1.0
 import "utils.js" as Utils
 import QtQuick.Controls
 
-OverviewPage {
-		id: root
- 
-	property string bindPrefix
+OpkgCustomOverviewPage {
+	id: root
+
+	//required by OpkgCustomOverviewPage
+	source: "InetboxOverview.qml"
+	
   property int headerFont: 20
 	property int groupFont: 12
   property int textFont: 12
@@ -30,24 +32,17 @@ OverviewPage {
 
 	VBusItem { id: customNameItem; bind: Utils.path(bindPrefix, "/CustomName")}
 	VBusItem { id: waterCurrentTempItem; bind: Utils.path(bindPrefix, "/Values/WaterCurrentTemp")}
- 
+
 	VBusItem { id: heatingTargetTempItem; bind: Utils.path(bindPrefix, "/Values/HeatingTargetTemp")}
 	VBusItem { id: heatingCurrentTempItem; bind: Utils.path(bindPrefix, "/Values/HeatingCurrentTemp")}
 	VBusItem { id: airconTargetTempItem; bind: Utils.path(bindPrefix, "/Values/AirconTargetTemp")}
- 
+
 	VBusItem { id: statusItem; bind: Utils.path(bindPrefix, "/Values/Status")}
- 
-	Component.onCompleted: discoverInetboxService()
-	
-	Connections {
-		target: DBusServices
-		function onDbusServiceFound(service) { tryAddService(service) }
-	}
- 
+
 	function formatTemp(value, round) {
 		var num = parseFloat(value)
 		if (!round)
-			round=0
+			round = 0
 
 		if (isNaN(num)) {
 			return "--"
@@ -57,25 +52,7 @@ OverviewPage {
 		}
 		return num.toFixed(round) + "°C"
 	}
- 
-	function tryAddService(service) {
 
-		if (!bindPrefix && service.type === DBusService.DBUS_SERVICE_TEMPERATURE_SENSOR && 
-				service.name.includes(".dbus_inetbox_sid_")) {
-			//console.log("found inetbox service")
-			bindPrefix = service.name
-			return true
-		}
-	}
- 
-	function discoverInetboxService() {
-		for (var i = 0; i < DBusServices.count; i++) { 
-			//console.log ("Service:" + DBusServices.at(i).name)
-      tryAddService(DBusServices.at(i))
-    }  
-	}
- 
- 
 	Led {
 		id: aliveLed
 		value: item.valid && item.value == "ON" ? 1 : 0
@@ -89,9 +66,9 @@ OverviewPage {
 			leftMargin: 6
 		}
 	}
-	
+
 	Text {
-		text: statusItem.value
+		text: statusItem?.value ?? ""
 		font.pixelSize: root.textFont
 		color: headerFontColor
 		anchors {
@@ -331,7 +308,7 @@ OverviewPage {
 				rightMargin: 4
 				top: heatingButtonControl.bottom
 				topMargin: 30
-				
+
 			}
 	}
 
@@ -482,4 +459,3 @@ Rectangle {
 	}
 
 }
- 

@@ -4,16 +4,15 @@ import "utils.js" as Utils
 import "opkg-custom-service.js" as CustomService
 import "color-utils.js" as ColorUtils
 
-OverviewPage {
+OpkgCustomOverviewPage {
   id: root
+	source: "NeShuntOverview.qml"
 
-  property string settingsPrefix: "com.victronenergy.settings/Settings/CustomDevices/dbus_neshunt/"
+  property string settingsPrefix: "com.victronenergy.settings/Settings/Devices/dbus_neshunt/"
   property MbStyle mbStyle: MbStyle {isCurrentItem: true}
-
+	VBusItem { id: customNameItem; bind: Utils.path(bindPrefix, "/CustomName")}
   property string iconSuffix
   property string iconSuffixSelected
-
-  property string bindPrefix
 
   VBusItem { id: customNameItem; bind: bindPrefix ? Utils.path(bindPrefix, "/CustomName") : undefined}
   VBusItem { id: internalLightItem; bind: bindPrefix ? Utils.path(bindPrefix, "/SwitchableOutput/InternalLights/State") : undefined }

@@ -4,6 +4,9 @@
 			"path": "/home/admin_user/dev/repos/venus-os/addons/opkg-manager"
 		},
 		{
+			"path": "/home/admin_user/dev/repos/venus-os/addons/dbus-inetbox"
+		},
+		{
 			"name": "dev",
 			"path": "."
 		},
@@ -16,6 +19,15 @@
 		"workbench.editor.enablePreviewFromQuickOpen": true,
 		"editor.colorDecorators": true,
 		"editor.colorDecoratorsLimit": 5000,
+		"search.exclude": {
+			"**/.vscode-server/**": true
+		},
+		"files.watcherExclude": {
+				"**/.vscode-server/**": true
+		},
+		"files.exclude": {
+				"**/.vscode-server": true
+		},
 		"python.analysis.include": [
 			"./addons",
 			"./scripts",
@@ -25,12 +37,12 @@
 		"editor.rulers": [
 			110
 		],
-		"editor.wordWrap": "wordWrapColumn",
+		"editor.wordWrap": "on",
 		"editor.wordWrapColumn": 110,
 		"qt-qml.qmlls.customExePath": "/home/admin_user/Qt/6.8.3/gcc_64/bin/qmlls",
 		"qt-qml.qmlls.additionalImportPaths": [
 			"/home/admin_user/dev-local/gui-v2/build-wasm"
-		],b
+		],
 	}
 
 
