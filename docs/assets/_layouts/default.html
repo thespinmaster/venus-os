@@ -1,23 +1,28 @@
 <!DOCTYPE html>
-<html lang="{{ page.lang | default: site.lang | default: "en-US" }}">
+<html lang="{{ page.lang | default: site.lang | default: 'en-US' }}" data-color-mode="auto" data-light-theme="light" data-dark-theme="dark">
   <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-{% seo %}
-		<link rel="stylesheet" href="{{ "/docs/css/github-markdown.css" | relative_url }}">
-    <link rel="stylesheet" href="{{ "/docs/css/custom.css" | relative_url }}">
-  </head>
-	<body>
-		<main class="markdown-body">
-			{% if site.title and site.title != page.title %}
-				<h1><a href="{{ "/" | absolute_url }}">{{ site.title }}</a></h1>
-			{% endif %}
+    {% seo %}
 
-			{{ content }}
-		</main>
+    <!-- Load Primer Theme Stylesheet -->
+    <link rel="stylesheet" href="{{ '/assets/css/style.css?v=' | append: site.github.build_revision | relative_url }}">
+
+    <!-- Custom CSS (if you have additional overrides) -->
+    <link rel="stylesheet" href="{{ '/docs/css/custom.css' | relative_url }}">
+  </head>
+  <body class="markdown-body">
+    <main class="container-lg px-3 my-5">
+      {% if site.title and site.title != page.title %}
+        <h1><a href="{{ '/' | absolute_url }}">{{ site.title }}</a></h1>
+      {% endif %}
+
+      {{ content }}
+    </main>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/anchor-js/4.1.0/anchor.min.js" integrity="sha256-lZaRhKri35AyJSypXXs4o6OPFTbTmUoltBbDCbdzegg=" crossorigin="anonymous"></script>
     <script>anchors.add();</script>
-	</body>
+  </body>
 </html>

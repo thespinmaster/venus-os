@@ -5,3 +5,6 @@ remote_theme: pages-themes/primer
 include:
   - docs
   - docs/assets/css
+
+plugins:
+  - jekyll-remote-theme
