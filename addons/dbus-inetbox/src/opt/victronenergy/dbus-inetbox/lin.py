@@ -258,24 +258,30 @@ class Lin:
 			last_status_time = 0
 
 			while True:
-					if not self.stop_async:
-							# 1. Time-based status check (Uses 0% CPU compared to modulo counting)
-							current_time = time.time()
-							if current_time - last_status_time >= self.STATUS_INTERVAL:
-									self.status_monitor_timed()
-									last_status_time = current_time
 
-							try:
-									# 2. Read accumulated bytes from the OS buffer
-									n = self.serial.in_waiting
-									if n > 0:
-											data = self.serial.read(n)
-											if data:
-													self._loop_serial(data)
-							except Exception as e:
-									# Log your error here
-									await asyncio.sleep(1) # Prevent rapid looping if the USB unplugged
+				# 1. Time-based status check (Uses 0% CPU compared to modulo counting)
+				current_time = time.time()
+				if current_time - last_status_time >= self.STATUS_INTERVAL:
+						self.status_monitor_timed()
+						last_status_time = current_time
 
+				try:
+						# 2. Read accumulated bytes from the OS buffer
+						n = self.serial.in_waiting
+						if n > 0:
+								data = self.serial.read(n)
+								if data:
+										self._loop_serial(data)
+						elif self.response_waiting():
+								self.log.debug(f"[LIN-DEBUG] response_waiting")
+								self._answer_tl_request()
+				except Exception as e:
+						# Log your error here
+						await asyncio.sleep(1) # Prevent rapid looping if the USB unplugged
+
+				if not self.stop_async :
+					# Note stop_async is set to true only when writing data back.
+					#self.log.debug("_lin_loop: yielding")
 					# 3. Relinquish 100% of the CPU back to Venus OS.
 					# 100ms sleep provides excellent responsiveness for Victron protocols
 					# while keeping Cerbo GX CPU usage at absolute 0%.
@@ -317,14 +323,10 @@ class Lin:
 				#print(f"[LIN-DEBUG] Full frame received: {line.hex(' ')} ({len(line)} bytes)")				#print(f"[LIN-DEBUG] Extracted frame: {line.hex(' ')}")
 				del self._rx_buf[:sync_idx + frame_len]
 
-				self._process_frame(line)
+				self._process_frame(raw_pid, line)
 
-		def _process_frame(self, line: bytes):
+		def _process_frame(self, raw_pid: int, line: bytes):
 			#print(f"[LIN-DEBUG] Processing frame: {line.hex(' ')}")
-			raw_pid = line[2]
-
-			#if raw_pid in self.DISPLAY_STATUS_PIDS:
-					#print(f"status-message found with {raw_pid:x}")
 
 			if raw_pid == 0xd8:
 				self.d8_alive = True
@@ -386,8 +388,7 @@ class Lin:
 			if not(cmd in cmd_ctrl.keys()):
 				return
 
-			#self.log.debug(cmd_ctrl[cmd][2])
-
-			##print(f"[LIN-DEBUG] executing command: {cmd_ctrl[cmd][2]}")
+			self.log.debug(f"[LIN-DEBUG] executing command: {cmd_ctrl[cmd][2]}")
+			self.log.debug(f"[LIN-DEBUG] self.app.upload_buffer={self.app.upload_buffer}")
 			cmd_ctrl[cmd][0](cmd_ctrl[cmd][1], cmd_ctrl[cmd][2])
 			return

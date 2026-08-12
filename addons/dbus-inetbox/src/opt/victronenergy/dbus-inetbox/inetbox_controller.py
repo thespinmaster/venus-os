@@ -20,10 +20,6 @@ from dbus_services.dbus_inetbox_service import dbusInetboxService
 
 class InetboxController:
 	DBUS_PATH="/Values/"
-	HEATING_DIMMING_PATH = "/SwitchableOutput/heating/Dimming"
-	AIRCON_DIMMING_PATH = "/SwitchableOutput/aircon/Dimming"
-	HEATING_MEASUREMENT_PATH = "/SwitchableOutput/heating/Measurement"
-	AIRCON_MEASUREMENT_PATH = "/SwitchableOutput/aircon/Measurement"
 
 	DBUS_TO_LIN_MAPPING = {
 		"WaterCurrentTemp": "current_temp_water",
@@ -65,7 +61,7 @@ class InetboxController:
 	_lin : Lin
 	_settings : SettingsDevice
 	_dbusInetboxService : dbusInetboxService
- 
+
 	def __init__(self, tasks: TaskManager, serialPort, sid, debug_lin, debug_inet, record_file=None):
 
 		self.log.setLevel(logging.DEBUG)
@@ -115,34 +111,24 @@ class InetboxController:
 
 			self._dbusInetboxService.set_value(self.DBUS_PATH + dbusName, value)
 
-			if (name == "target_temp_room"):
-				self._dbusInetboxService.set_value(self.HEATING_DIMMING_PATH, value)
-			elif (name == "target_temp_aircon"):
-				self._dbusInetboxService.set_value(self.AIRCON_DIMMING_PATH, value)
-
 			if (name == "current_temp_room"):
 				temperature_value = self._to_float(value) # MUST be a float
 				if temperature_value is not None:
 					self._dbusInetboxService.set_value("/Temperature", temperature_value)
-					self._dbusInetboxService.set_value(self.HEATING_MEASUREMENT_PATH, temperature_value)
-					self._dbusInetboxService.set_value(self.AIRCON_MEASUREMENT_PATH, temperature_value)
 			elif (name == "el_power_level" or name == "energy_mix"):
 				self._toEnergyMixCombined(dbusName, value)
 
 		except Exception as e:
 			self.log.error(f"Exception in: inetbox_value_to_dbus: name={name}, value={value}: {e}")
 
-	# dbus service com.victronenergy.inetbox_sid_[xxxx] -> serial port / com.victronenergy.settings
+	# dbus service com.victronenergy.inetbox_sid_[xxxx] ->
+	# serial port or
+	# com.victronenergy.settings
 	def dbus_value_to_inetbox(self, path : str, value ):
 
 		self.log.debug(f'dbus_value_to_inetbox:, {path}={value}')
 
 		try:
-			if (path == self.HEATING_DIMMING_PATH):
-				return self.dbus_value_to_inetbox("/Values/HeatingTargetTemp", value)
-			if (path == self.AIRCON_DIMMING_PATH):
-				return self.dbus_value_to_inetbox("/Values/AirconTargetTemp", value)
-
 			if not path.startswith(self.DBUS_PATH):
 				if (path == "/CustomName"):
 					self._settings[path] = value
@@ -161,11 +147,6 @@ class InetboxController:
 			self._app.set_status(linName, value)
 
 			self._dbusInetboxService.set_value(path, value)
-
-			if (name == "HeatingTargetTemp"):
-				self._dbusInetboxService.set_value(self.HEATING_DIMMING_PATH, value)
-			elif (name == "AirconTargetTemp"):
-				self._dbusInetboxService.set_value(self.AIRCON_DIMMING_PATH, value)
 
 			if (name == "HeatingTargetTemp"):
 				if (self._dbusInetboxService.get_value("/Values/HeatingMode") == "off"):

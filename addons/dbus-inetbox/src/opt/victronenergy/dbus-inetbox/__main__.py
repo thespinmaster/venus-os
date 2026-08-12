@@ -92,16 +92,15 @@ def main():
 
 	args = getArgs()
 
-
 	# logging.basicConfig(
 	# 	level=logging.INFO,
 	# 	format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 	# 	#handlers=[logging.StreamHandler(sys.stdout)],
 	# )
+ 
+	args.debug_lin = True
+	args.debug_inet = True
 
-
-
-	args.debug_lin = False
 	log.info('Using serial port: ' + args.serial)
 	log.info('Serial device ID: ' + args.sid)
 	log.info('debug_lin: ' + str(args.debug_lin))
@@ -133,6 +132,7 @@ def getArgs():
 	parser.add_argument('-r', '--record', help='record serial traffic to file')
 
 	args = parser.parse_args()
+
 	if not args.serial:
 		log.error('No serial port specified, see -h')
 		exit(1)
