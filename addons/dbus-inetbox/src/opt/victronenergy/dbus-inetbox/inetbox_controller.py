@@ -125,9 +125,7 @@ class InetboxController:
 	# serial port or
 	# com.victronenergy.settings
 	def dbus_value_to_inetbox(self, path : str, value ):
-
-		self.log.debug(f'dbus_value_to_inetbox:, {path}={value}')
-
+ 
 		try:
 			if not path.startswith(self.DBUS_PATH):
 				if (path == "/CustomName"):
@@ -137,13 +135,16 @@ class InetboxController:
 			name = path.removeprefix(self.DBUS_PATH)
 
 			if (name == "EnergyMixCombined"):
+				self.log.debug(f"dbus_value_to_inetbox: calling _fromEnergyMixCombined: {value}")
 				self._fromEnergyMixCombined(value)
 				return True
 
 			linName = self.map_or_debug(self.DBUS_TO_LIN_MAPPING, name)
 			if linName == "":
+				self.log.debug("dbus_value_to_inetbox: EXITING linName=\"\"")
 				return False
 
+			self.log.debug(f"dbus_value_to_inetbox: calling set_status: {linName}={value}")
 			self._app.set_status(linName, value)
 
 			self._dbusInetboxService.set_value(path, value)
@@ -187,18 +188,18 @@ class InetboxController:
 		mix = ""
 		elpower = ""
 
-		if (energyMixCombined == "Gas"):
+		if (energyMixCombined == "gas"):
 			mix = "gas"
-		elif (energyMixCombined == "EL1"):
+		elif (energyMixCombined == "el1"):
 			elpower = "900"
 			mix = "electricity"
-		elif (energyMixCombined == "EL2"):
+		elif (energyMixCombined == "el2"):
 			elpower = "1800"
 			mix = "electricity"
-		elif (energyMixCombined == "Mix1"):
+		elif (energyMixCombined == "mix1"):
 			elpower = "900"
 			mix = "mix"
-		elif (energyMixCombined == "Mix2"):
+		elif (energyMixCombined == "mix2"):
 			elpower = "1800"
 			mix = "mix"
 		else:
@@ -225,17 +226,17 @@ class InetboxController:
 			elpower = value
 
 		if (energyMix == "gas"):
-			energyMixCombined = "Gas"
+			energyMixCombined = "gas"
 		elif (energyMix == "mix"):
 			if elpower == "900":
-				energyMixCombined = "Mix1"
+				energyMixCombined = "mix1"
 			elif elpower == "1800":
-				energyMixCombined = "Mix2"
+				energyMixCombined = "mix2"
 		elif (energyMix == "electricity"):
 			if elpower == "900":
-				energyMixCombined = "EL1"
+				energyMixCombined = "el2"
 			elif elpower == "1800":
-				energyMixCombined = "EL2"
+				energyMixCombined = "el2"
 
 		if (energyMixCombined):
 			self._dbusInetboxService.set_value(self.DBUS_PATH + "EnergyMixCombined", energyMixCombined)

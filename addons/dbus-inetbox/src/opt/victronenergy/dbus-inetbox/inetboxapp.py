@@ -762,12 +762,12 @@ class InetboxApp:
 				]
 			]
 		if key in map_key:
-			self.log.debug(f"aircon: {key}:{self.status[key]}")
+			self.log.debug(f"set_status: aircon: {key}:{self.status[key]}")
 			if self.status[key][2]:
 				self.upload02_buffer = 2
 		self.upload_wait = 3  # wait for 3 "fe"-cycles to collect commands
-		self.log.debug(f"upload_buffer: {self.upload_buffer}")
-		self.log.debug(f"upload02_buffer: {self.upload02_buffer}")
+		self.log.debug(f"set_status:upload_buffer: {self.upload_buffer}")
+		self.log.debug(f"set_status:upload02_buffer: {self.upload02_buffer}")
 
 	# Status-Dump - with False, it sends all status-values
 	# with True it sends only a list of changed values - but resets the change-flag

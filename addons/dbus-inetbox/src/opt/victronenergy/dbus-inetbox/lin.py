@@ -270,11 +270,11 @@ class Lin:
 						n = self.serial.in_waiting
 						if n > 0:
 								data = self.serial.read(n)
-								if data:
-										self._loop_serial(data)
-						elif self.response_waiting():
-								self.log.debug(f"[LIN-DEBUG] response_waiting")
-								self._answer_tl_request()
+								#if data:
+								self._loop_serial(data)
+						# elif self.response_waiting():
+						# 		self.log.debug(f"[LIN-DEBUG] response_waiting")
+						# 		self._answer_tl_request()
 				except Exception as e:
 						# Log your error here
 						await asyncio.sleep(1) # Prevent rapid looping if the USB unplugged
