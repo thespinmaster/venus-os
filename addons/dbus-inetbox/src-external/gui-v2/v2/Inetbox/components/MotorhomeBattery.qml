@@ -143,14 +143,14 @@ OverviewWidget {
 
 	}
 
-		// +-----+------------+
-		// |     | Charging   |
-		// | 90% +------------+
-    // |     | TimeToGo   |
-    // +-----+------------+
-		// | Temp/renewables  |
-    // | Volts/Amps/Watts |
-		// +------------------+
+	// +-----+------------+
+	// |     | Status     |
+	// | 90% +------------+
+	// |     | TimeToGo   |
+	// +-----+------------+
+	// | Temp/renewables  |
+	// | Volts/Amps/Watts |
+	// +------------------+
 
 	contentItem: ColumnLayout {
 
@@ -225,7 +225,7 @@ OverviewWidget {
 					fillMode: Image.PreserveAspectFit
 					color: Theme.color_font_primary
 					visible: root.demoMode ? true : root.preferRenewable
-					source: "qrc:/Inetbox/image_charging_renewables.svg"
+					source: "qrc:/Inetbox/images/charging_renewables.svg"
 				}
 			}
 

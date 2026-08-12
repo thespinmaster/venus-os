@@ -23,6 +23,7 @@ tooling/**/
 venv/
 env/
 .env/
+*.pyc
 __pycache__/
 .build/
 tmp/

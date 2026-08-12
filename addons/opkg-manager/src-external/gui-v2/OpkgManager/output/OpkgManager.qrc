@@ -1,0 +1,25 @@
+<RCC>
+<qresource prefix="/OpkgManager">
+<file>../VeQuickItemAdapter.qml</file>
+<file>../OpkgPageSettingsPackageInstall.qml</file>
+<file>../OpkgLogViewerBase.qml</file>
+<file>../OpkgPageSettingsFeeds.qml</file>
+<file>../OpkgActionsRow.qml</file>
+<file>../OpkgDeviceSettings.qml</file>
+<file>../OpkgPageSettingsDevicesSetup.qml</file>
+<file>../OpkgPageSettings.qml</file>
+<file>../OpkgCustomPageModel.qml</file>
+<file>../OpkgDeviceListItem.qml</file>
+<file>../OpkgPageSettingsFeedEdit.qml</file>
+<file>../OpkgPageSettingsDevicesList.qml</file>
+<file>../OpkgJsonReader.qml</file>
+<file>../OpkgLogViewer.qml</file>
+<file>../OpkgPageSettingsPackages.qml</file>
+<file>../OpkgBridge.qml</file>
+<file>../OpkgSingleton.js</file>
+<file>../OpkgManager_en.qm</file>
+</qresource>
+<qresource prefix="/qt/qml/Victron/VenusOS/pages/settings/devicelist/delegates">
+<file>../DeviceListDelegate_opkgmanager.qml</file>
+</qresource>
+</RCC>

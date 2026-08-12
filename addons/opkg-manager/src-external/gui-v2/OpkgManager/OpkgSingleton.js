@@ -37,7 +37,7 @@ function findIndexInCache(key) {
 }
 
 function createPage(url, parent, args) {
-	console.log("OpkgCustomPageModel: createPage: " + url)
+	console.debug("OpkgSingleton: createPage: " + url)
 	var component = Qt.createComponent(url);
 
 	if (component.status === 1) {
@@ -46,12 +46,12 @@ function createPage(url, parent, args) {
 			var page = component.createObject(parent, args);
 
 			if (page === null) {
-					console.error("OpkgCustomPageModel: Error instantiating the Motorhome object:");
+					console.error("OpkgSingleton: Error instantiating the Motorhome object:");
 			} else {
-					console.log("OpkgCustomPageModel: Successfully created:", page);
+					console.debug("OpkgSingleton: Successfully created:", page);
 					return page
 			}
 	} else if (component.status === 3) {
-			console.error("OpkgCustomPageModel: Error loading component:", component.errorString());
+			console.error("OpkgSingleton: Error loading component:", component.errorString());
 	}
 }

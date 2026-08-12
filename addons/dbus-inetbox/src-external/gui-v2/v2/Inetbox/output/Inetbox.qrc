@@ -1,0 +1,24 @@
+<RCC>
+<qresource prefix="/Inetbox">
+<file>../MotorhomePage_Landscape.qml</file>
+<file>../InetboxPageSettings.qml</file>
+<file>../MotorhomePage.qml</file>
+<file>../InetboxDevice.qml</file>
+<file>../MotorhomePage_Portrait.qml</file>
+<file>../components/MinimalSlider.qml</file>
+<file>../components/MotorhomeTankLevels.qml</file>
+<file>../components/CycleButton.qml</file>
+<file>../components/MotorhomeGaugeQuantityRow.qml</file>
+<file>../components/CycleButtonGroup.qml</file>
+<file>../components/MotorhomeBattery.qml</file>
+<file>../Inetbox_en.qm</file>
+<file>../Inetbox_fr.qm</file>
+<file>../images/motorhome.svg</file>
+<file>../images/charging_renewables.svg</file>
+<file>../images/heating.svg</file>
+<file>../images/energy_mix.svg</file>
+<file>../images/aircon.svg</file>
+<file>../images/freshwater.svg</file>
+<file>../images/fan.svg</file>
+</qresource>
+</RCC>

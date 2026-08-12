@@ -1,14 +1,6 @@
-/*
-** Copyright (C) 2023 Victron Energy B.V.
-** See LICENSE.txt for license information.
-*/
-
-import QtQuick
+ import QtQuick
 import Victron.VenusOS
 
-/*
-	Provides a list of settings for a gps device.
-*/
 DevicePage {
 	id: root
 
@@ -24,13 +16,13 @@ DevicePage {
 			//% "Connected"
 			text: qsTrId("inetbox_connected")
 			dataItem.uid: root.bindPrefix + "/Connected"
-			secondaryText: dataItem.valid && dataItem.value == 1 ? "Ok" : "--"
+			secondaryText: dataItem.valid && dataItem.value == 1 ? CommonWords.ok : "--"
 		}
 			ListNavigation {
 				topInset: Theme.geometry_listItem_itemSeparator_height
 				//% "Overview Page"
-				text: qsTrId("inetbox_devicelist_overview_page")
- 
+				text: qsTrId("inetbox_overview_page")
+
 			}
 	}
 

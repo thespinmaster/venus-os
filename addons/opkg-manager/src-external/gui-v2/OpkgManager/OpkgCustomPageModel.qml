@@ -5,11 +5,11 @@ import "qrc:/OpkgManager/OpkgSingleton.js" as OpkgSingleton
 QtObject {
 	id: root
 
-	Component.onDestruction: {
-		console.debug("OpkgCustomPageModel: DESTROYED: ", root)
-	}
+	//Component.onDestruction: {
+		//console.debug("OpkgCustomPageModel: DESTROYED: ", root)
+	//}
 	Component.onCompleted: {
-		console.debug("OpkgCustomPageModel: CREATED", root)
+		//console.debug("OpkgCustomPageModel: CREATED", root)
 		if (allPagesLoaded)
 			root.syncPages()
 	}
@@ -43,7 +43,7 @@ QtObject {
 		if (_customPagesItem.uid == "" || value == undefined || typeof(value) !== "string")
 			return
 
-		console.debug("OpkgCustomPageModel: onCustomPagesChanged:", "pages=", value, "allPagesLoaded=", allPagesLoaded)
+		//console.debug("OpkgCustomPageModel: onCustomPagesChanged:", "pages=", value, "allPagesLoaded=", allPagesLoaded)
 
 		var customPagesArray = JSON.parse(value)
 		if (!customPagesArray) {
@@ -60,7 +60,7 @@ QtObject {
 	}
 
 	function syncPages(customPages) {
-		console.debug("OpkgCustomPageModel: syncPages in:", root._inSyncPages)
+		//console.debug("OpkgCustomPageModel: syncPages in:", root._inSyncPages)
 		if (root._inSyncPages)
 			return
 
@@ -106,7 +106,7 @@ QtObject {
 		// Add new custom pages.
 		// Insert backwards so final order matches customPages.
 		//
-		console.debug("OpkgCustomPageModel: syncPages customPages:", customPages.length )
+		//console.debug("OpkgCustomPageModel: syncPages customPages:", customPages.length )
 		for (var i = customPages.length - 1; i >= 0; --i) {
 			const url = customPages[i]
 
@@ -119,7 +119,7 @@ QtObject {
 				if (!page) continue
 				_customPageItems[url] = page
 			}
-			console.debug("OpkgCustomPageModel: syncPages insertItem:", page )
+			//console.debug("OpkgCustomPageModel: syncPages insertItem:", page )
 			Global.mainView.swipeView.insertItem(0, page)
 		}
 
@@ -151,10 +151,10 @@ QtObject {
 	}
 
 	onAllPagesLoadedChanged: {
-		console.debug("OpkgCustomPageModel: onAllPagesLoadedChanged:",
-		"allPagesLoaded=", allPagesLoaded,
-		"hadCustomPages=", _customPageItems.length>0,
-		)
+		//console.debug("OpkgCustomPageModel: onAllPagesLoadedChanged:",
+		//"allPagesLoaded=", allPagesLoaded,
+		//"hadCustomPages=", _customPageItems.length>0,
+		//)
 
 		OpkgSingleton.setIsReload(true)
 		if (allPagesLoaded == false) {

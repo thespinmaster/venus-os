@@ -1,1 +1,0 @@
-TODO add tests for all the the scripts in this folder

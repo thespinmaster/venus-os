@@ -6,7 +6,7 @@ DeviceListDelegate {
 	id: root
 
 	onDeviceChanged: {
-		console.log("OpkgManager: DeviceListDelegate::onDeviceChanged: isRelead=", OpkgSingleton.getIsReload())
+		console.debug("OpkgManager: DeviceListDelegate::onDeviceChanged: isRelead=", OpkgSingleton.getIsReload())
 
 		parent.active = false
 
@@ -19,7 +19,7 @@ DeviceListDelegate {
 		if (!OpkgSingleton.OpkgCustomPageModelExists()) {
 			OpkgSingleton.createOpkgCustomPageModel(Global.main)
 		} else {
-			console.log("OpkgManager: OpkgSingleton exists")
+			console.debug("OpkgManager: OpkgSingleton exists")
 		}
 
 		if (isReload) {
@@ -32,7 +32,7 @@ DeviceListDelegate {
 	}
 
 	Component.onDestruction: {
-		console.log("OpkgManager device delegate:DESTROYED")
+		console.debug("OpkgManager device delegate:DESTROYED")
 	}
 
 }
