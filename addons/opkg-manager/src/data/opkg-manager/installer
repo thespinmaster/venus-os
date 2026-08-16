@@ -4,8 +4,11 @@ RC_LOCAL_SCRIPT="
 # opkg-manager (do not edit)
 /data/opkg-manager/rc.local-startup
 "
-PACKAGE_GUI_V2_PLUGIN_NAME="opkg-manager"
+PACKAGE_GUI_V2_PLUGIN_NAME="OpkgManager"
 
+PACKAGE_SERVICES=(
+	opkg-manager
+)
 PACKAGE_CUSTOM_MENUS=(
 	PageSettings/OpkgPageSettingsSubMenu
 	PageSettingsDisplay/OpkgPageSettingsDisplaySubMenu
@@ -26,10 +29,6 @@ post_install() {
   echo "Please wait, updating packages..."
   opkg_common_update_packages
 
-  if [[ -x "${VE_ROOT_DIR:-}/opt/victronenergy/opkg-manager-service/start-opkg-manager-service.sh" ]]; then
-    "${VE_ROOT_DIR:-}/opt/victronenergy/opkg-manager-service/start-opkg-manager-service.sh" || true
-  fi
-
   RESTART_GUI_SERVICE=1
 }
 
@@ -44,10 +43,6 @@ post_remove() {
   serial_device_installer_remove_rules_file_symlink
 
   opkg_common_remove_feed_symlink
-
-  if [[ -x "${VE_ROOT_DIR:-}/opt/victronenergy/opkg-manager-service/stop-opkg-manager-service.sh" ]]; then
-    "${VE_ROOT_DIR:-}/opt/victronenergy/opkg-manager-service/stop-opkg-manager-service.sh" || true
-  fi
 
   echo "Please wait, updating packages..."
   opkg_common_update_packages

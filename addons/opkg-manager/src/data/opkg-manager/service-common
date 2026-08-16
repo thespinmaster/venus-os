@@ -1,4 +1,4 @@
-#/bin/bash
+#!/usr/bin/env bash
 
 service_common_service_up() { svstat "/service/${1}" | grep -q "^/service/${1}: up "; }
 

@@ -14,7 +14,7 @@ PACKAGE_DBUS_SETTINGS="${PACKAGE_DBUS_SETTINGS-}"
 PACKAGE_DEVICE_KEY="${PACKAGE_DEVICE_KEY-}"
 PACKAGE_DEVICE_SERVICE_NAME="${PACKAGE_DEVICE_SERVICE_NAME-}"
 PACKAGE_DEVICE_DISPLAY_NAME="${PACKAGE_DEVICE_DISPLAY_NAME-}"
-
+PACKAGE_SERVICES=
 PACKAGE_VERSION_NEW=
 PACKAGE_VERSION_CURRENT=
 
@@ -66,6 +66,7 @@ __install_helper_validate_custom_overview_pages_definition() {
 	return 0
 }
 
+
 __install_helper_validate_custom_menus_definition() {
 	declare -p PACKAGE_CUSTOM_MENUS >/dev/null 2>&1 || return 0
 
@@ -108,11 +109,10 @@ __install_helper_parse_custom_overview_page_entry() {
 __install_helper_install_guiv2_plugin() {
   [[ -z "${PACKAGE_GUI_V2_PLUGIN_NAME:-}" ]] && return 0
 
-  local pluginName="${PACKAGE_GUI_V2_PLUGIN_NAME}"
-  local availablePath="/data/apps/available/${pluginName}"
-  local enabledPath="/data/apps/enabled/${pluginName}"
+  local availablePath="/data/apps/available/${PACKAGE_GUI_V2_PLUGIN_NAME}"
+  local enabledPath="/data/apps/enabled/${PACKAGE_GUI_V2_PLUGIN_NAME}"
 
-  if [[ -f "${availablePath}/${pluginName}.json" ]]; then
+  if [[ -f "${availablePath}/gui-v2/${PACKAGE_GUI_V2_PLUGIN_NAME}.json" ]]; then
     mkdir -p "/data/apps/enabled"
     # -n prevents nesting inside the target if the symlink already exists
     ln -sfn "${availablePath}" "${enabledPath}"
@@ -122,8 +122,7 @@ __install_helper_install_guiv2_plugin() {
 __install_helper_remove_guiv2_plugin() {
   [[ -z "${PACKAGE_GUI_V2_PLUGIN_NAME:-}" ]] && return 0
 
-  local pluginName="${PACKAGE_GUI_V2_PLUGIN_NAME}"
-  local enabledPath="/data/apps/enabled/${pluginName}"
+  local enabledPath="/data/apps/enabled/${PACKAGE_GUI_V2_PLUGIN_NAME}"
 
   # -L checks if path is a symlink (even if dangling/broken)
   if [[ -L "${enabledPath}" || -d "${enabledPath}" ]]; then
@@ -242,7 +241,7 @@ install_helper_remove_custom_device() {
 EOF
 }
 
-# arguments {1} (optional): set to remove to remove
+# arguments {1} (optional): set to "remove" to remove
 install_helper_add_remove_patch() {
 	local remove=0
 	local msg=
@@ -359,6 +358,18 @@ install_helper_uninstall_services() {
 	serial_device_installer_uninstall_service "${PACKAGE_DEVICE_SERVICE_NAME}"
 }
 
+__install_helper_stop_services() {
+
+	[[ -z ${PACKAGE_SERVICES:-} ]] && return
+
+	local service=
+	for service in "${PACKAGE_SERVICES[@]}"; do
+		svc -dx "/service/$service"
+		svc -dx "/service/${service}/log"
+		rm -f "/service/${service}"
+	done
+}
+
 install_helper_update_services() {
 	# always call this code (as we need it to run on a firmware upgrade)
 	# [[ "$PACKAGE_ACTION" != "upgrade-install" ]] && return
@@ -385,6 +396,8 @@ install_helper_remove() {
 		opkg_common_remove_script_from_rc_local "${RC_LOCAL_SCRIPT}"
 
 	opkg_common_unregister_package "$PACKAGE_NAME"
+
+	__install_helper_stop_services
 
 	install_helper_add_remove_patch remove
 

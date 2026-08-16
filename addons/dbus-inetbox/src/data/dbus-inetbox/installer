@@ -9,14 +9,6 @@ PACKAGE_CUSTOM_OVERVIEW_PAGES=(InetboxOverview)
 PACKAGE_CUSTOM_MENUS=(PageSettings/InetboxPageSettingsSubMenu)
 
 PACKAGE_DBUS_SETTINGS=
-#use defaults
-# {'path':'/Settings/OpkgManager/Devices/Inetbox/UsbProps', 'default':'ID_VENDOR,ID_MODEL,ID_SERIAL'}
-# {'path':'/Settings/OpkgManager/Devices/Inetbox/UsbMappingName', 'default':'inetbox'}
-
-#PACKAGE_DBUS_SETTINGS_DEPRECATED='
-#		{'path':'/Settings/Devices/dbus_inetbox/Port'}
-#		{'path':'/Settings/Devices/dbus_inetbox/ServiceName'}
-#'
 
 # shellcheck source=/data/dev/addons/opkg-manager/src/data/opkg-manager/source-common
 source "${VE_ROOT_PATH:-}/data/opkg-manager/source-common"
