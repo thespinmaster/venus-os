@@ -6,7 +6,9 @@
 		{
 			"path": "/data/dev/addons/dbus-inetbox"
 		},
-
+		{
+			"path": "/home/admin_user/dev/repos/venus-os/docs"
+		},
 		{
 			"name": "dev",
 			"path": "."

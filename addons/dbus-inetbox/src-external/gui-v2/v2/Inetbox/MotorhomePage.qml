@@ -133,17 +133,17 @@ SwipeViewPage {
 					value: "40.0",
 					//% "Eco"
 					valueText:  qsTrId("inetbox_eco"),
-					color: "white"
+					//color: "white"
 				}, {
 					value: "60.0",
 					//% "Hot"
 					valueText: qsTrId("inetbox_hot"),
-					color: "white"
+					//color: "white"
 				}, {
 					value: "200.0",
 					//% "Boost"
 					valueText: qsTrId("inetbox_boost"),
-					color: "white"
+					//color: "white"
 				}
 			]
 
@@ -156,12 +156,12 @@ SwipeViewPage {
 					value: "eco",
 					//% "Eco"
 					valueText: qsTrId("inetbox_eco"),
-					color: "white"
+					//color: "white"
 				}, {
 					value: "high",
 					//% "High"
 					valueText: qsTrId("inetbox_high"),
-					color: "white"
+					//color: "white"
 				}
 			]
 
@@ -174,22 +174,22 @@ SwipeViewPage {
 				value: "cool",
 				//% "Cool"
 				valueText: qsTrId("inetbox_cool"),
-				color: "white"
+				//color: "white"
 			}, {
 				value: "vent",
 				//% "Vent"
 				valueText:  qsTrId("inetbox_vent"),
-				color: "white"
+				//color: "white"
 			}, {
 				value: "hot",
 				//% "Hot"
 				valueText: qsTrId("inetbox_hot"),
-				color: "white"
+				//color: "white"
 			}, {
 				value: "auto",
 				//% "Auto"
 				valueText: qsTrId("inetbox_auto"),
-				color: "white"
+				//color: "white"
 			}
 		]
 
@@ -197,27 +197,27 @@ SwipeViewPage {
 				value: "low",
 				//% "Low"
 				valueText: qsTrId("inetbox_low"),
-				color: "white"
+				//color: "white"
 			}, {
 				value: "mid",
 				//% "Mid"
 				valueText: qsTrId("inetbox_mid"),
-				color: "white"
+				//color: "white"
 			}, {
 				value: "high",
 				//% "High"
 				valueText: qsTrId("inetbox_high"),
-				color: "white"
+				//color: "white"
 			}, {
 				value: "night",
 				//% "Night"
 				valueText: qsTrId("inetbox_night"),
-				color: "white"
+				//color: "white"
 			}, {
 				value: "auto",
 				//% "Auto"
 				valueText: qsTrId("inetbox_auto"),
-				color: "lightseagreen"
+				//color: "lightseagreen"
 			}
 		]
 
@@ -225,7 +225,7 @@ SwipeViewPage {
 				value: "gas",
 				//% "Gas"
 				valueText: qsTrId("inetbox_gas"),
-				color: '#ffab03'
+				color: Theme.colorScheme == Theme.Dark ? '#ffab03' :  '#c58300'
 			}, {
 				value: "mix1",
 				//% "Mix1"

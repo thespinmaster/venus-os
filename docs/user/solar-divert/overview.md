@@ -7,13 +7,13 @@ One use for this is for fridges that support solar+ (S+) (basicaly the same a ve
 
 ## Prerequisite
 
-Install [Opkg Manager](opkg-manager-setup.md) first before using this add-on.
+Install [Opkg Manager](../opkg-manager/setup.md) first before using this add-on.
 
 ---
 
 
 
-uses one of the CerboGx relays 
+uses one of the CerboGx relays
 
 ---
 #### Next - [Setup](node-red-setup.md)

@@ -68,7 +68,7 @@
         <translation>Élec 2</translation>
     </message>
     <message id="inetbox_loading">
-        <location filename="../components/CycleButton.qml" line="52"/>
+        <location filename="../components/CycleButton.qml" line="57"/>
         <source>Waiting for data...</source>
         <translation type="unfinished">En attente de données...</translation>
     </message>

@@ -68,4 +68,4 @@ This reads `/data/conf/mount-shares.conf` and remounts all saved entries.
 * If a mount fails, run the command manually over SSH to inspect the error output.
 
 ---
-#### Previous - [Overview](mount-shares-overview.md)
+#### Previous - [Overview](overview.md)

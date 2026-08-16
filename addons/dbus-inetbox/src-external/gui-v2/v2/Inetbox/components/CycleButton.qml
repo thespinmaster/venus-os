@@ -21,7 +21,12 @@ Item {
 
 		implicitHeight: button.height
 		implicitWidth: valueLabel.x + valueLabel.width
-		icon.color: model === undefined ? "dimgrey" : model[currentIndex].color
+		icon.color: model === undefined
+				? "dimgrey"
+				: model[currentIndex].color
+					? model[currentIndex].color
+					: Theme.color_font_primary
+
 		icon.height: 24
 		icon.width: 24
 		onCurrentIndexChanged: {

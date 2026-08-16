@@ -159,15 +159,12 @@ OverviewWidget {
 			Layout.fillHeight: true
 			spacing: Theme.geometry_overviewPage_widget_content_horizontalMargin
 
-			Image {
-				source: Global.system.battery.icon
+			CP.ColorImage {
 				sourceSize.height: 44
+				source: Global.system.battery.icon
 				fillMode: Image.PreserveAspectCrop
-
+				color: Theme.color_font_primary
 				Layout.preferredWidth: 24
-				transform: Translate {
-					x: 0//-10
-				}
 			}
 
 			// Battery %

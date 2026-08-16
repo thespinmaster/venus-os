@@ -5,7 +5,7 @@ It allows you to mount SMB/CIFS and NFS network shares using a helper script.
 
 ## Prerequisite
 
-Install [Opkg Manager](opkg-manager-setup.md) first before using this add-on.
+Install [Opkg Manager](../opkg-manager/setup.md) first before using this add-on.
 
 ## Main Script
 
@@ -46,4 +46,4 @@ At startup, Mount Shares runs:
 This command reads `/data/conf/mount-shares.conf` and mounts each saved share.
 
 ---
-#### Next - [Usage](mount-shares-usage.md)
+#### Next - [Usage](usage.md)

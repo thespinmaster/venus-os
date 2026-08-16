@@ -2,7 +2,7 @@
 
 The Opkg Manager allows end users to install `opkg` packages (add-ons) on the Venus OS without the need for complex SSH shell commands. It also allows users to add custom feeds (sources) for add-ons created by third parties.
 
-![Opkg Manager main menu screenshot](images/opkg-manager-settings.webp "Opkg Manager Settings")
+![Opkg Manager main menu screenshot](images/settings.webp "Opkg Manager Settings")
 
 ## What is Opkg?
 Opkg (Open Package Management) is a compact package manager built for embedded Linux environments and Internet of Things (IoT) devices. Widely used in platforms such as OpenWrt routers, smart home controllers, and Yocto-based distributions, it provides functionality comparable to apt while maintaining a minimal memory footprint. Opkg comes pre-installed with Venus OS.
@@ -33,4 +33,4 @@ Instead, Opkg Manager uses a custom `file-patcher` method for very small, contro
 
 
 ---
-#### Next - [Setup](opkg-manager-setup.md)
+#### Next - [Setup](setup.md)

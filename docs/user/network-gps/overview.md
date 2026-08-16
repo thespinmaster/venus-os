@@ -4,7 +4,7 @@ The Network GPS add-on enables forwarding NMEA GPS messages from a compatible ne
 
 ## Prerequisite
 
-Install [Opkg Manager](opkg-manager-setup.md) first before using this add-on.
+Install [Opkg Manager](../opkg-manager/setup.md) first before using this add-on.
 
 Venus OS automatically recognizes standard NMEA0183 messages after startup and initial data flow.
 
@@ -16,4 +16,4 @@ Once the GPS has a lock, your unit location is sent to the Victron Remote Manage
 * Historical data: you can download GPS tracks as `.kml` files for tools such as Google Earth.
 
 ---
-#### Next - [Setup](network-gps-setup.md)
+#### Next - [Setup](setup.md)

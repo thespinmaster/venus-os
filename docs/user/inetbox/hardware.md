@@ -4,7 +4,7 @@ In order for the Inetbox Service to function it needs some hardware to interface
 
 On the Truma side the Heating control panel must be a Truma CP Plus (INet Ready) model
 
-If you already have a TRUMA INet X box connected. This must be disconnected first. 
+If you already have a TRUMA INet X box connected. This must be disconnected first.
 
 The hardware setup is very simple. You need a LIN>UART board and a USB>UART converter board, and an RJ12 cable (similar to an RJ11 cable but uses 6 wires not 2). Finally a case.
 
@@ -15,16 +15,15 @@ The recomended UART board is a waveshare UART FT232 board.
 ### Wiring Diagram
 Below is the wiring diagram, if your lucky you can get away with no soldering.
 
-![Inetbox Wiring diagram](images/inetbox-hardware-diagram.webp "Inetbox Wiring diagram")
+![Inetbox Wiring diagram](images/hardware-diagram.webp "Inetbox Wiring diagram")
 
 The easiest way to connect the RJ12 cable to the Truma system is connecting it to the Truma Boiler. Usualy this is more accessable than the Truma CP control panel and often there is a spare RJ12 port. If no port is available then you can use an RJ12 splitter.
 
 ## Example Images
-![Inetbox Example Image](images/inetbox-example.webp "Inetbox Example Image")
+![Inetbox Example Image](images/example-hardware.webp "Inetbox gui-v2 Example Image")
 
 For the above hardware, the RJ12 Female socket was salvaged from an old ASDL Telephone filter.
 
---- 
-#### Previous - [Overview](inetbox-overview.md)
-#### Next - [Setup](inetbox-setup.md)
-
+---
+#### Previous - [Overview](overview.md)
+#### Next - [Setup](setup.md)

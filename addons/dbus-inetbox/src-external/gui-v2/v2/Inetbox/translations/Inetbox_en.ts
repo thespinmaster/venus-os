@@ -4,7 +4,7 @@
 <context>
     <name></name>
     <message id="inetbox_loading">
-        <location filename="../components/CycleButton.qml" line="52"/>
+        <location filename="../components/CycleButton.qml" line="57"/>
         <source>Waiting for data...</source>
         <translation type="unfinished"></translation>
     </message>
