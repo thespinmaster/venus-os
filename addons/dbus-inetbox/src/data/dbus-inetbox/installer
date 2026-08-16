@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+PACKAGE_GUI_V2_PLUGIN_NAME="Inetbox"
 PACKAGE_DEVICE_KEY="Inetbox"
 PACKAGE_DEVICE_SERVICE_NAME="dbus-inetbox"
 PACKAGE_DEVICE_DISPLAY_NAME="Inetbox"

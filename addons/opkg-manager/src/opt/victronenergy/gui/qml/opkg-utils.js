@@ -107,7 +107,6 @@ function modelAddRemoveItem(model, action, index, qmlFileName, componentFactoryC
 		return
 
   if (action === "-") {
-    //console.log("hiding index:" + index)
     model.get(index).show = false // if removing just hide
     return
   }
@@ -141,7 +140,6 @@ function modelAddRemoveItem(model, action, index, qmlFileName, componentFactoryC
 }
 
 function _doItemAction(qmlItemName, qmlItemValue, model, componentFactoryCallback, getItemIndexCallback) {
-  //console.log("_doItemOperation:" + qmlItemName + ", opp:" + operation + ", value:" + qmlItemValue)
 
   var index = -1
   var action = undefined

@@ -21,8 +21,6 @@ Row {
 
 	ElectricalQuantityLabel {
 		id: quantityLabel
-
-		//height: icon.height
 		anchors.verticalCenter: parent.verticalCenter
 		font.pixelSize: Theme.font_briefPage_quantityLabel_size
 	}

@@ -45,7 +45,6 @@ QtObject {
 	}
 
   function movePageSettingsToTop(modelIndexes) {
-		// console.log("MODEL:" + root.model.count)
 
 		const OPKG_DELEGATE_MODEL_INDEX = 0
 		const DELEGATE_MODEL_INDEX = 1

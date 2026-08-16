@@ -3,170 +3,119 @@
 <TS version="2.1" language="fr_FR">
 <context>
     <name></name>
-    <message id="inetbox_label_waiting_for_data">
-        <source>Waiting for data...</source>
-        <translation type="vanished">En attente de données...</translation>
-    </message>
-    <message id="inetbox_header_water">
-        <source>Water</source>
-        <translation type="vanished">Eau</translation>
-    </message>
-    <message id="inetbox_header_energy_mix">
-        <source>Energy Mix</source>
-        <translation type="vanished">Mix énergétique</translation>
-    </message>
-    <message id="inetbox_header_heating">
-        <source>Heating</source>
-        <translation type="vanished">Chauffage</translation>
-    </message>
-    <message id="inetbox_header_aircon">
-        <source>Aircon</source>
-        <translation type="vanished">Climatisation</translation>
-    </message>
-    <message id="inetbox_header_target_temp">
-        <source>Target Temperature</source>
-        <translation type="vanished">Température cible</translation>
-    </message>
-    <message id="inetbox_option_off">
-        <location filename="../MotorhomePage_Landscape.qml" line="194"/>
-        <location filename="../MotorhomePage_Landscape.qml" line="239"/>
-        <location filename="../MotorhomePage_Landscape.qml" line="267"/>
-        <location filename="../MotorhomePage.qml" line="142"/>
-        <location filename="../MotorhomePage.qml" line="165"/>
-        <location filename="../MotorhomePage.qml" line="183"/>
+    <message id="inetbox_off">
+        <location filename="../MotorhomePage.qml" line="130"/>
+        <location filename="../MotorhomePage.qml" line="153"/>
+        <location filename="../MotorhomePage.qml" line="171"/>
         <source>Off</source>
         <translation>Arrêt</translation>
     </message>
-    <message id="inetbox_option_eco">
-        <location filename="../MotorhomePage_Landscape.qml" line="198"/>
-        <location filename="../MotorhomePage_Landscape.qml" line="243"/>
-        <location filename="../MotorhomePage.qml" line="147"/>
-        <location filename="../MotorhomePage.qml" line="170"/>
+    <message id="inetbox_eco">
+        <location filename="../MotorhomePage.qml" line="135"/>
+        <location filename="../MotorhomePage.qml" line="158"/>
         <source>Eco</source>
         <translation>Éco</translation>
     </message>
-    <message id="inetbox_option_hot">
-        <location filename="../MotorhomePage_Landscape.qml" line="202"/>
-        <location filename="../MotorhomePage_Landscape.qml" line="279"/>
-        <location filename="../MotorhomePage.qml" line="152"/>
-        <location filename="../MotorhomePage.qml" line="198"/>
+    <message id="inetbox_hot">
+        <location filename="../MotorhomePage.qml" line="140"/>
+        <location filename="../MotorhomePage.qml" line="186"/>
         <source>Hot</source>
         <translation>Chaud</translation>
     </message>
-    <message id="inetbox_option_boost">
-        <location filename="../MotorhomePage_Landscape.qml" line="206"/>
-        <location filename="../MotorhomePage.qml" line="157"/>
+    <message id="inetbox_boost">
+        <location filename="../MotorhomePage.qml" line="145"/>
         <source>Boost</source>
         <translation>Boost</translation>
     </message>
-    <message id="inetbox_option_energy_heating">
-        <location filename="../MotorhomePage_Landscape.qml" line="230"/>
-        <location filename="../MotorhomePage_Portrait.qml" line="198"/>
+    <message id="inetbox_energy_heating">
+        <location filename="../components/MotorhomeInetbox.qml" line="98"/>
         <source>Heating</source>
         <translation type="unfinished">Chauffage</translation>
     </message>
-    <message id="inetbox_option_energy_fan_speed">
-        <location filename="../MotorhomePage_Landscape.qml" line="296"/>
-        <location filename="../MotorhomePage_Portrait.qml" line="223"/>
+    <message id="inetbox_energy_fan_speed">
+        <location filename="../components/MotorhomeInetbox.qml" line="141"/>
         <source>Fan speed</source>
         <translation type="unfinished"></translation>
     </message>
-    <message id="inetbox_option_energy_mix">
-        <location filename="../MotorhomePage_Landscape.qml" line="331"/>
-        <location filename="../MotorhomePage_Portrait.qml" line="234"/>
+    <message id="inetbox_energy_mix">
+        <location filename="../components/MotorhomeInetbox.qml" line="152"/>
         <source>Energy Mix</source>
         <translation type="unfinished">Mix énergétique</translation>
     </message>
-    <message id="inetbox_option_gas">
-        <location filename="../MotorhomePage_Landscape.qml" line="341"/>
-        <location filename="../MotorhomePage.qml" line="239"/>
+    <message id="inetbox_gas">
+        <location filename="../MotorhomePage.qml" line="227"/>
         <source>Gas</source>
         <translation>Gaz</translation>
     </message>
-    <message id="inetbox_option_mix1">
-        <location filename="../MotorhomePage_Landscape.qml" line="345"/>
-        <location filename="../MotorhomePage.qml" line="244"/>
+    <message id="inetbox_mix1">
+        <location filename="../MotorhomePage.qml" line="232"/>
         <source>Mix1</source>
         <translation>Mix 1</translation>
     </message>
-    <message id="inetbox_option_mix2">
-        <location filename="../MotorhomePage_Landscape.qml" line="349"/>
-        <location filename="../MotorhomePage.qml" line="249"/>
+    <message id="inetbox_mix2">
+        <location filename="../MotorhomePage.qml" line="237"/>
         <source>Mix2</source>
         <translation>Mix 2</translation>
     </message>
-    <message id="inetbox_option_el1">
-        <location filename="../MotorhomePage_Landscape.qml" line="353"/>
-        <location filename="../MotorhomePage.qml" line="254"/>
+    <message id="inetbox_el1">
+        <location filename="../MotorhomePage.qml" line="242"/>
         <source>El1</source>
         <translation>Élec 1</translation>
     </message>
-    <message id="inetbox_option_el2">
-        <location filename="../MotorhomePage_Landscape.qml" line="356"/>
-        <location filename="../MotorhomePage.qml" line="258"/>
+    <message id="inetbox_el2">
+        <location filename="../MotorhomePage.qml" line="247"/>
         <source>El2</source>
         <translation>Élec 2</translation>
     </message>
     <message id="inetbox_loading">
-        <location filename="../components/CycleButton.qml" line="41"/>
+        <location filename="../components/CycleButton.qml" line="52"/>
         <source>Waiting for data...</source>
         <translation type="unfinished">En attente de données...</translation>
     </message>
-    <message id="inetbox_option_energy_aircon">
-        <location filename="../MotorhomePage_Landscape.qml" line="258"/>
-        <location filename="../MotorhomePage_Portrait.qml" line="209"/>
+    <message id="inetbox_energy_aircon">
+        <location filename="../components/MotorhomeInetbox.qml" line="111"/>
         <source>Aircon</source>
         <translation type="unfinished">Climatisation</translation>
     </message>
-    <message id="inetbox_option_vent">
-        <location filename="../MotorhomePage_Landscape.qml" line="275"/>
-        <location filename="../MotorhomePage.qml" line="193"/>
+    <message id="inetbox_vent">
+        <location filename="../MotorhomePage.qml" line="181"/>
         <source>Vent</source>
         <translation>Ventilation</translation>
     </message>
-    <message id="inetbox_option_cool">
-        <location filename="../MotorhomePage_Landscape.qml" line="271"/>
-        <location filename="../MotorhomePage.qml" line="188"/>
+    <message id="inetbox_cool">
+        <location filename="../MotorhomePage.qml" line="176"/>
         <source>Cool</source>
         <translation>Froid</translation>
     </message>
-    <message id="inetbox_option_auto">
-        <location filename="../MotorhomePage_Landscape.qml" line="283"/>
-        <location filename="../MotorhomePage_Landscape.qml" line="320"/>
-        <location filename="../MotorhomePage.qml" line="203"/>
-        <location filename="../MotorhomePage.qml" line="231"/>
+    <message id="inetbox_auto">
+        <location filename="../MotorhomePage.qml" line="191"/>
+        <location filename="../MotorhomePage.qml" line="219"/>
         <source>Auto</source>
         <translation>Auto</translation>
     </message>
-    <message id="inetbox_option_low">
-        <location filename="../MotorhomePage_Landscape.qml" line="304"/>
-        <location filename="../MotorhomePage.qml" line="211"/>
+    <message id="inetbox_low">
+        <location filename="../MotorhomePage.qml" line="199"/>
         <source>Low</source>
         <translation>Faible</translation>
     </message>
-    <message id="inetbox_option_mid">
-        <location filename="../MotorhomePage_Landscape.qml" line="308"/>
-        <location filename="../MotorhomePage.qml" line="216"/>
+    <message id="inetbox_mid">
+        <location filename="../MotorhomePage.qml" line="204"/>
         <source>Mid</source>
         <translation>Moyen</translation>
     </message>
-    <message id="inetbox_option_high">
-        <location filename="../MotorhomePage_Landscape.qml" line="247"/>
-        <location filename="../MotorhomePage_Landscape.qml" line="312"/>
-        <location filename="../MotorhomePage.qml" line="175"/>
-        <location filename="../MotorhomePage.qml" line="221"/>
+    <message id="inetbox_high">
+        <location filename="../MotorhomePage.qml" line="163"/>
+        <location filename="../MotorhomePage.qml" line="209"/>
         <source>High</source>
         <translation>Élevé</translation>
     </message>
-    <message id="inetbox_option_energy_water">
-        <location filename="../MotorhomePage_Landscape.qml" line="184"/>
-        <location filename="../MotorhomePage_Portrait.qml" line="179"/>
+    <message id="inetbox_energy_water">
+        <location filename="../components/MotorhomeInetbox.qml" line="78"/>
         <source>Water</source>
         <translation type="unfinished">Eau</translation>
     </message>
-    <message id="inetbox_option_night">
-        <location filename="../MotorhomePage_Landscape.qml" line="316"/>
-        <location filename="../MotorhomePage.qml" line="226"/>
+    <message id="inetbox_night">
+        <location filename="../MotorhomePage.qml" line="214"/>
         <source>Night</source>
         <translation>Nuit</translation>
     </message>
@@ -195,6 +144,16 @@
         <source>Overview Page</source>
         <translation type="unfinished">Page d&apos;ensemble</translation>
     </message>
+    <message id="inetbox_settings">
+        <location filename="../InetboxPageSettings.qml" line="8"/>
+        <source>Inetbox settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message id="inetbox_show_motorhome_page">
+        <location filename="../InetboxPageSettings.qml" line="18"/>
+        <source>Show Motorhome Page</source>
+        <translation type="unfinished"></translation>
+    </message>
     <message id="inetbox_version">
         <location filename="../InetboxPageSettings.qml" line="23"/>
         <source>Version</source>
@@ -208,19 +167,6 @@
     <message id="inetbox_motorhome">
         <location filename="../MotorhomePage.qml" line="11"/>
         <source>Motorhome</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>InetboxPageSettings</name>
-    <message>
-        <location filename="../InetboxPageSettings.qml" line="8"/>
-        <source>inetbox_settings</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../InetboxPageSettings.qml" line="18"/>
-        <source>inetbox_show_motorhome_page</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

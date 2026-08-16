@@ -3,14 +3,9 @@
 <TS version="2.1" language="en_US">
 <context>
     <name></name>
-    <message id="opkg_serial_device">
-        <location filename="../OpkgPageSettingsDevicesSetup.qml" line="169"/>
-        <source>Serial Device</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message id="opkg_select">
-        <location filename="../OpkgPageSettingsDevicesSetup.qml" line="173"/>
-        <source>Select</source>
+    <message id="opkgmanager_open_package_manager">
+        <location filename="../OpkgPageSettings.qml" line="8"/>
+        <source>Open Package Manager</source>
         <translation type="unfinished"></translation>
     </message>
     <message id="opkg_packages">
@@ -38,40 +33,232 @@
         <source>No Action</source>
         <translation type="unfinished"></translation>
     </message>
-    <message id="opkg_tests">
-        <location filename="../OpkgPageSettings.qml" line="62"/>
-        <source>Tests</source>
-        <translation type="unfinished"></translation>
-    </message>
     <message id="pagecontrollableloads_documentation">
-        <location filename="../OpkgPageSettings.qml" line="70"/>
+        <location filename="../OpkgPageSettings.qml" line="62"/>
         <source>Documentation</source>
         <translation type="unfinished"></translation>
     </message>
-    <message id="opkg_remove_device">
-        <location filename="../OpkgPageSettingsDevicesList.qml" line="34"/>
-        <source>Remove Custom Device?</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message id="opkg_add_device">
-        <location filename="../OpkgPageSettingsDevicesList.qml" line="69"/>
-        <source>Add Device</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>OpkgPageSettings</name>
-    <message>
-        <location filename="../OpkgPageSettings.qml" line="6"/>
-        <source>Open Package Manager</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>OpkgPageSettingsDevicesList</name>
-    <message>
-        <location filename="../OpkgPageSettingsDevicesList.qml" line="7"/>
+    <message id="opkgmanager_custom_devices">
+        <location filename="../OpkgPageSettingsDevicesList.qml" line="8"/>
         <source>Custom Devices</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message id="page_settings_modbus_scan_for_devices">
+        <location filename="../OpkgPageSettingsDevicesList.qml" line="34"/>
+        <source></source>
+        <oldsource>Scan for devices</oldsource>
+        <translation type="unfinished"></translation>
+    </message>
+    <message id="page_settings_modbus_saved_devices">
+        <location filename="../OpkgPageSettingsDevicesList.qml" line="42"/>
+        <source></source>
+        <oldsource>Saved devices</oldsource>
+        <translation type="unfinished"></translation>
+    </message>
+    <message id="opkgmanager_no_devices_discovered">
+        <location filename="../OpkgPageSettingsDiscoveredDevices.qml" line="23"/>
+        <location filename="../OpkgPageSettingsSavedDevices.qml" line="23"/>
+        <source>No Usb devices discovered</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message id="opkgmanager_add_usb_serial_device">
+        <location filename="../OpkgPageSettingsDiscoveredDevice.qml" line="10"/>
+        <source>Add USB serial device</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message id="opkgmanager_device_options">
+        <location filename="../OpkgPageSettingsDiscoveredDevice.qml" line="48"/>
+        <source>Device Options</source>
+        <oldsource>Device options</oldsource>
+        <translation type="unfinished"></translation>
+    </message>
+    <message id="opkgmanager_serial_device_service">
+        <location filename="../OpkgPageSettingsDiscoveredDevice.qml" line="54"/>
+        <source>Serial Device Service</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message id="opkgmanager_press_to_select_service">
+        <location filename="../OpkgPageSettingsDiscoveredDevice.qml" line="56"/>
+        <source>Press to select service</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message id="opkgmanager_device_properties">
+        <location filename="../OpkgPageSettingsDiscoveredDevice.qml" line="65"/>
+        <source>Device Properties</source>
+        <oldsource>Device properties</oldsource>
+        <translation type="unfinished"></translation>
+    </message>
+    <message id="opkgmanager_port">
+        <location filename="../OpkgPageSettingsDiscoveredDevice.qml" line="69"/>
+        <source>Port</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message id="opkgmanager_adding_device">
+        <location filename="../OpkgPageSettingsDiscoveredDevice.qml" line="99"/>
+        <source>Adding Device</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message id="opkgmanager_added_device_success">
+        <location filename="../OpkgPageSettingsDiscoveredDevice.qml" line="109"/>
+        <source>Device Added Successfully
+The service will start shortly...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message id="opkgmanager_saved_usb_serial_device">
+        <location filename="../OpkgPageSettingsSavedDevice.qml" line="8"/>
+        <source>Saved USB serial device</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message id="opkgmanager_device_name">
+        <location filename="../OpkgPageSettingsSavedDevice.qml" line="37"/>
+        <source>Device name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message id="opkgmanager_remove_device">
+        <location filename="../OpkgPageSettingsSavedDevice.qml" line="56"/>
+        <source>Remove Device</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message id="opkgmanager_removing_device">
+        <location filename="../OpkgPageSettingsSavedDevice.qml" line="66"/>
+        <source>Removing Device</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message id="opkgmanager_device_successfully_removed">
+        <location filename="../OpkgPageSettingsSavedDevice.qml" line="74"/>
+        <source>Device successfully removed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message id="opkgmanager_are_you_sure">
+        <location filename="../OpkgPageSettingsSavedDevice.qml" line="87"/>
+        <source>Are you sure?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message id="opkgmanager_remove_device_description">
+        <location filename="../OpkgPageSettingsSavedDevice.qml" line="89"/>
+        <source>Clicking yes will permanently remove this devices settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message id="opkgmanager_package_details">
+        <location filename="../OpkgPageSettingsPackageInstall.qml" line="8"/>
+        <source>Package Details</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message id="opkgmanager_package_upgrade">
+        <location filename="../OpkgPageSettingsPackageInstall.qml" line="19"/>
+        <source>Upgrade</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message id="opkgmanager_package_intsall">
+        <location filename="../OpkgPageSettingsPackageInstall.qml" line="21"/>
+        <source>Install</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message id="opkgmanager_installed">
+        <location filename="../OpkgPageSettingsPackageInstall.qml" line="82"/>
+        <source>Installed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message id="opkgmanager_none">
+        <location filename="../OpkgPageSettingsPackageInstall.qml" line="90"/>
+        <location filename="../OpkgPageSettingsPackageInstall.qml" line="109"/>
+        <source>none</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message id="opkgmanager_available">
+        <location filename="../OpkgPageSettingsPackageInstall.qml" line="101"/>
+        <source>Available</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message id="opkgmanager_feed">
+        <location filename="../OpkgPageSettingsPackageInstall.qml" line="125"/>
+        <source>Feed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message id="opkgmanager_remove">
+        <location filename="../OpkgPageSettingsPackageInstall.qml" line="155"/>
+        <location filename="../OpkgPageSettingsFeedEdit.qml" line="25"/>
+        <source>Remove</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message id="opkgmanager_feeds">
+        <location filename="../OpkgPageSettingsFeeds.qml" line="8"/>
+        <source>Feeds</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message id="opkgmanager_loading">
+        <location filename="../OpkgPageSettingsFeeds.qml" line="18"/>
+        <location filename="../OpkgPageSettingsPackages.qml" line="18"/>
+        <source>Loading...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message id="opkgmanager_add_new_feed">
+        <location filename="../OpkgPageSettingsFeeds.qml" line="70"/>
+        <location filename="../OpkgPageSettingsFeeds.qml" line="72"/>
+        <source>Add New Feed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message id="opkgmanager_save">
+        <location filename="../OpkgPageSettingsFeedEdit.qml" line="23"/>
+        <source>Save</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message id="opkgmanager_feed_name">
+        <location filename="../OpkgPageSettingsFeedEdit.qml" line="52"/>
+        <source>Feed name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message id="opkgmanager_feed_url">
+        <location filename="../OpkgPageSettingsFeedEdit.qml" line="69"/>
+        <source>Feed Url</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message id="opkgmanager_invalid_feed_name">
+        <location filename="../OpkgPageSettingsFeedEdit.qml" line="117"/>
+        <source>%1 is an invalid feed name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message id="opkgmanager_invalid_url">
+        <location filename="../OpkgPageSettingsFeedEdit.qml" line="129"/>
+        <source>%1 is an invalid feed URL</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message id="opkgmanager_removing">
+        <location filename="../OpkgPageSettingsFeedEdit.qml" line="150"/>
+        <source>Removing...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message id="opkgmanager_edit_feed">
+        <location filename="../OpkgPageSettingsFeedEdit.qml" line="175"/>
+        <source>Edit Feed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message id="opkgmanager_saving">
+        <location filename="../OpkgPageSettingsFeedEdit.qml" line="182"/>
+        <source>Saving...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message id="opkgmanager_packages">
+        <location filename="../OpkgPageSettingsPackages.qml" line="8"/>
+        <source>Packages</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message id="opkgmanager_refresh">
+        <location filename="../OpkgPageSettingsPackages.qml" line="81"/>
+        <source>Refresh</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>OpkgManager</name>
+    <message>
+        <location filename="../components/OpkgManager.qml" line="30"/>
+        <source>Please wait for the operation to finish</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../components/OpkgManager.qml" line="102"/>
+        <source>Operation failed</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -80,66 +267,6 @@
     <message>
         <location filename="../OpkgPageSettingsFeedEdit.qml" line="8"/>
         <source>Edit Feed</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>OpkgPageSettingsFeeds</name>
-    <message>
-        <location filename="../OpkgPageSettingsFeeds.qml" line="6"/>
-        <source>Feeds</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>OpkgPageSettingsPackageInstall</name>
-    <message>
-        <location filename="../OpkgPageSettingsPackageInstall.qml" line="6"/>
-        <source>Package details</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../OpkgPageSettingsPackageInstall.qml" line="16"/>
-        <source>Upgrade</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../OpkgPageSettingsPackageInstall.qml" line="16"/>
-        <source>Install</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../OpkgPageSettingsPackageInstall.qml" line="76"/>
-        <source>Installed:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../OpkgPageSettingsPackageInstall.qml" line="83"/>
-        <location filename="../OpkgPageSettingsPackageInstall.qml" line="100"/>
-        <source>none</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../OpkgPageSettingsPackageInstall.qml" line="93"/>
-        <source>Available:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../OpkgPageSettingsPackageInstall.qml" line="115"/>
-        <source>Feed:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../OpkgPageSettingsPackageInstall.qml" line="143"/>
-        <source>Remove</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>OpkgPageSettingsPackages</name>
-    <message>
-        <location filename="../OpkgPageSettingsPackages.qml" line="6"/>
-        <source>Packages</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

@@ -36,7 +36,6 @@ OverviewPage {
 
 	function addServices() {
 		//see Main.qml for customOverviewPages
-		console.log("ADD_SERVICES:" + customOverviewPages.pages.rowCount)
 		for (var i = 0; i < customOverviewPages.pages.rowCount; i++) {
 			let [uid, pageName] = customOverviewPages.getPageInfo(i)
 			if (addService(uid, pageName))
@@ -47,7 +46,6 @@ OverviewPage {
 	function addService(uid, pageName) {
 		if (pageName === source) {
 			settingsPrefix = uid
-			console.log("ADD_SERVICE:" + settingsPrefix)
 			// check for and call override if available
 			if (typeof onAddService === "function")
 					return onAddService(uid)

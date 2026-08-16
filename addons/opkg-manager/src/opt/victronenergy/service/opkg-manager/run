@@ -1,0 +1,5 @@
+#!/bin/bash
+. /etc/profile.d/profile.sh
+mkdir -p /var/log/opkg-manager
+exec /opt/victronenergy/opkg-manager
+/__main__.py >>	/var/log/opkg-manager/current 2>&1

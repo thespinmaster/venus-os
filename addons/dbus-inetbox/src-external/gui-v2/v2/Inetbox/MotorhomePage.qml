@@ -10,24 +10,29 @@ SwipeViewPage {
 	//% "Motorhome"
 	title: qsTrId("inetbox_motorhome")
 	iconSource: "qrc:/Inetbox/images/motorhome.svg"
-	url: "qrc:/Inetbox/Motorhome.qml"
+	url: "qrc:/Inetbox/MotorhomePage.qml"
 
 	fullScreenWhenIdle: true
 	topLeftButton: VenusOS.StatusBar_LeftButton_ControlsInactive
 
 	Component.onCompleted: {
-		console.log("OpkgCustomPageModel: onCompleted:", "page=", url, "version=", inetboxDevice.version)
-		setDevice()
+		console.log("Inetbox: onCompleted:",
+		"page=", url,
+		"version=", inetboxDevice.version,
+		"device.firstObject=", devices.firstObject)
+		inetboxDevice.device = devices.firstObject
 	}
 	Component.onDestruction: {
-		console.log("OpkgCustomPageModel: onDestruction:", "page=", url, "version=", inetboxDevice.version)
+		console.log("Inetbox: onDestruction:", "page=", url, "version=", inetboxDevice.version)
 	}
 
 	FilteredDeviceModel {
+		id: devices
 		serviceTypes: ["inetbox"]
 		function onFirstObjectChanged() {
-			inetboxDevice.device = firstObject
+			inetboxDevice.device = devices.firstObject
 		}
+
 	}
 
 	GaugeModel { id: tankGauges } // aka storage tanks
@@ -99,7 +104,10 @@ SwipeViewPage {
 		property VeQuickItem energyMixItem: VeQuickItem {uid: inetboxDevice.deviceUid("EnergyMixCombined")}
 
 		function deviceUid(value) {
-			return device && device.serviceUid ? (device.serviceUid + "/Values/" + value) : ""
+
+			var uid = device && device.serviceUid ? (device.serviceUid + "/Values/" + value) : ""
+			console.log("Inetbox: uid=",uid)
+			return uid
 		}
 
 		function exclusiveHeating(itemToTurnOff) {
@@ -119,22 +127,22 @@ SwipeViewPage {
 		property var waterModeModel: [{
 					value: "0",
 					//% "Off"
-					valueText: qsTrId("inetbox_option_off"),
+					valueText: qsTrId("inetbox_off"),
 					color: "grey"
 				}, {
 					value: "40.0",
 					//% "Eco"
-					valueText:  qsTrId("inetbox_option_eco"),
+					valueText:  qsTrId("inetbox_eco"),
 					color: "white"
 				}, {
 					value: "60.0",
 					//% "Hot"
-					valueText: qsTrId("inetbox_option_hot"),
+					valueText: qsTrId("inetbox_hot"),
 					color: "white"
 				}, {
 					value: "200.0",
 					//% "Boost"
-					valueText: qsTrId("inetbox_option_boost"),
+					valueText: qsTrId("inetbox_boost"),
 					color: "white"
 				}
 			]
@@ -142,17 +150,17 @@ SwipeViewPage {
 		property var heatingModeModel: [{
 					value: "off",
 					//% "Off"
-					valueText: qsTrId("inetbox_option_off"),
+					valueText: qsTrId("inetbox_off"),
 					color: "grey"
 				}, {
 					value: "eco",
 					//% "Eco"
-					valueText: qsTrId("inetbox_option_eco"),
+					valueText: qsTrId("inetbox_eco"),
 					color: "white"
 				}, {
 					value: "high",
 					//% "High"
-					valueText: qsTrId("inetbox_option_high"),
+					valueText: qsTrId("inetbox_high"),
 					color: "white"
 				}
 			]
@@ -160,27 +168,27 @@ SwipeViewPage {
 		property var airconModeModel: [{
 				value: "off",
 				//% "Off"
-				valueText: qsTrId("inetbox_option_off"),
+				valueText: qsTrId("inetbox_off"),
 				color: "grey"
 			}, {
 				value: "cool",
 				//% "Cool"
-				valueText: qsTrId("inetbox_option_cool"),
+				valueText: qsTrId("inetbox_cool"),
 				color: "white"
 			}, {
 				value: "vent",
 				//% "Vent"
-				valueText:  qsTrId("inetbox_option_vent"),
+				valueText:  qsTrId("inetbox_vent"),
 				color: "white"
 			}, {
 				value: "hot",
 				//% "Hot"
-				valueText: qsTrId("inetbox_option_hot"),
+				valueText: qsTrId("inetbox_hot"),
 				color: "white"
 			}, {
 				value: "auto",
 				//% "Auto"
-				valueText: qsTrId("inetbox_option_auto"),
+				valueText: qsTrId("inetbox_auto"),
 				color: "white"
 			}
 		]
@@ -188,27 +196,27 @@ SwipeViewPage {
 		property var airconFanSpeedModel: [{
 				value: "low",
 				//% "Low"
-				valueText: qsTrId("inetbox_option_low"),
+				valueText: qsTrId("inetbox_low"),
 				color: "white"
 			}, {
 				value: "mid",
 				//% "Mid"
-				valueText: qsTrId("inetbox_option_mid"),
+				valueText: qsTrId("inetbox_mid"),
 				color: "white"
 			}, {
 				value: "high",
 				//% "High"
-				valueText: qsTrId("inetbox_option_high"),
+				valueText: qsTrId("inetbox_high"),
 				color: "white"
 			}, {
 				value: "night",
 				//% "Night"
-				valueText: qsTrId("inetbox_option_night"),
+				valueText: qsTrId("inetbox_night"),
 				color: "white"
 			}, {
 				value: "auto",
 				//% "Auto"
-				valueText: qsTrId("inetbox_option_auto"),
+				valueText: qsTrId("inetbox_auto"),
 				color: "lightseagreen"
 			}
 		]
@@ -216,26 +224,27 @@ SwipeViewPage {
 		property var energyMixModel: [{
 				value: "gas",
 				//% "Gas"
-				valueText: qsTrId("inetbox_option_gas"),
+				valueText: qsTrId("inetbox_gas"),
 				color: '#ffab03'
 			}, {
 				value: "mix1",
 				//% "Mix1"
-				valueText: qsTrId("inetbox_option_mix1"),
+				valueText: qsTrId("inetbox_mix1"),
 				color: "green"
 			}, {
 				value: "mix2",
 				//% "Mix2"
-				valueText: qsTrId("inetbox_option_mix2"),
+				valueText: qsTrId("inetbox_mix2"),
 				color: "green"
 			}, {
 				value: "el1",
 				//% "El1"
-				valueText: qsTrId("inetbox_option_el1"),
+				valueText: qsTrId("inetbox_el1"),
 				color: "lightskyblue"
 			}, {
+				value: "el2",
 				//% "El2"
-				valueText: qsTrId("inetbox_option_el2"),
+				valueText: qsTrId("inetbox_el2"),
 				color: "lightskyblue"
 			}
 		]

@@ -20,6 +20,7 @@ from dbus_services.dbus_inetbox_service import dbusInetboxService
 
 class InetboxController:
 	DBUS_PATH="/Values/"
+	MIN_AIRCON_TARGET_TEMP = 16
 
 	DBUS_TO_LIN_MAPPING = {
 		"WaterCurrentTemp": "current_temp_water",
@@ -109,6 +110,9 @@ class InetboxController:
 				if (value == "0"):
 					value = self._settings["/LastHeatingTemp"]
 
+			if (name == "target_temp_aircon"):
+				value = self._coerce_aircon_target_temp(value)
+
 			self._dbusInetboxService.set_value(self.DBUS_PATH + dbusName, value)
 
 			if (name == "current_temp_room"):
@@ -125,7 +129,7 @@ class InetboxController:
 	# serial port or
 	# com.victronenergy.settings
 	def dbus_value_to_inetbox(self, path : str, value ):
- 
+
 		try:
 			if not path.startswith(self.DBUS_PATH):
 				if (path == "/CustomName"):
@@ -133,16 +137,22 @@ class InetboxController:
 				return True
 
 			name = path.removeprefix(self.DBUS_PATH)
+			if (name == "AirconTargetTemp"):
+				value = self._coerce_aircon_target_temp(value)
 
 			if (name == "EnergyMixCombined"):
 				self.log.debug(f"dbus_value_to_inetbox: calling _fromEnergyMixCombined: {value}")
-				self._fromEnergyMixCombined(value)
-				return True
+				return self._fromEnergyMixCombined(value)
 
 			linName = self.map_or_debug(self.DBUS_TO_LIN_MAPPING, name)
 			if linName == "":
 				self.log.debug("dbus_value_to_inetbox: EXITING linName=\"\"")
 				return False
+
+			current_value = self._dbusInetboxService.get_value(path)
+			if current_value == value:
+				self.log.debug(f"dbus_value_to_inetbox: no-op for {path}={value}")
+				return True
 
 			self.log.debug(f"dbus_value_to_inetbox: calling set_status: {linName}={value}")
 			self._app.set_status(linName, value)
@@ -203,7 +213,7 @@ class InetboxController:
 			elpower = "1800"
 			mix = "mix"
 		else:
-			return
+			return False
 
 		self._app.set_status("energy_mix", mix)
 		self._dbusInetboxService.set_value(self.DBUS_PATH + "EnergyMix", mix)
@@ -234,12 +244,23 @@ class InetboxController:
 				energyMixCombined = "mix2"
 		elif (energyMix == "electricity"):
 			if elpower == "900":
-				energyMixCombined = "el2"
+				energyMixCombined = "el1"
 			elif elpower == "1800":
 				energyMixCombined = "el2"
-
+ 
 		if (energyMixCombined):
 			self._dbusInetboxService.set_value(self.DBUS_PATH + "EnergyMixCombined", energyMixCombined)
+
+	def _coerce_aircon_target_temp(self, value):
+		temp = self._to_float(value)
+		coerced = int(round(temp))
+		if coerced < self.MIN_AIRCON_TARGET_TEMP:
+			coerced = self.MIN_AIRCON_TARGET_TEMP
+
+		if str(value) != str(coerced):
+			self.log.debug(f"Coercing AirconTargetTemp from {value} to {coerced}")
+
+		return coerced
 
 	def _to_float(self, value):
 		try:

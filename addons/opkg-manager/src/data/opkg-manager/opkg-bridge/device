@@ -57,18 +57,19 @@ device_bind_usb_to_service() {
 	local sid="$1"
 	local tty="$2"
 	local device_path="$3"
+	local jsonUsbProps "$4"
 	local usbProps
 
 	test -e "/dev/$tty" \
 		|| { echo "Error: tty ($tty) does not exist" >&2; return 1; }
 
-	[[ $(serial_device_installer_get_available_devices $tty) != $tty ]] \
+	[[ $(serial_device_installer_get_available_devices "${tty}") != "${tty}" ]] \
 		&& { echo "Error: tty ($tty) is not available" >&2; return 1; }
 
-	serial_device_installer_fill_usb_props $tty $DEFAULT_USB_PROPS usbProps
-	serial_device_installer_set_device_sid $usbProps
+	serial_device_installer_fill_usb_props "${tty}" "${DEFAULT_USB_PROPS}" usbProps
+	serial_device_installer_set_device_sid "${usbProps}" # hashed usbProps
 
-	[[ $sid != $DEVICE_SID ]] && {
+	[[ "${sid}" != "${DEVICE_SID}" ]] && {
 		echo "Error: Device changed" >&2 ; return 1; }
 
 	# get dbus values
@@ -82,7 +83,9 @@ device_bind_usb_to_service() {
 
 	serial_device_installer_install 1>/dev/null || return 1
 
-	printf 'DEVICE:CLAIMED\t%s\n' "$DEVICE_SID"
+	dbus_common_set_string_value "/Settings/Devices/${sid}/UsbProps" "${jsonUsbProps}"
+
+	printf 'DEVICE:CLAIMED\t%s\n' "${DEVICE_SID}"
 }
 
 if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then

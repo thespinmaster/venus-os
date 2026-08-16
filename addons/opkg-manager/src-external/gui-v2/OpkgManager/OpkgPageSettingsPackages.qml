@@ -1,18 +1,21 @@
 import QtQuick 2
 import Victron.VenusOS
+import "qrc:/OpkgManager/components"
 
 Page {
 	id: root
-	title: qsTr("Packages")
+	//% "Packages"
+	title: qsTrId("opkgmanager_packages")
 	tryPop: opkgManager.tryPop
 
-	required property var opkgManager
+	required property OpkgManager opkgManager
 	property bool _loading: true
 
 	Component.onCompleted: root.refreshPackages()
 
 	Label {
-		text: "Loading..."
+		//% "Loading..."
+		text: qsTrId("opkgmanager_loading")
 		visible: root._loading
 		anchors.centerIn: parent
 		font.pixelSize: Theme.font_size_body3
@@ -74,7 +77,8 @@ Page {
 		id: actionsRow
 		buttonModel: [
 			{
-				text:"Refresh",
+				//% "Refresh"
+				text: qsTrId("opkgmanager_refresh"),
 				enabled: root.opkgManager ? (!root.opkgManager.running && visible) : false,
 				onClicked: function() {
 					root.refreshPackages(true)

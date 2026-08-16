@@ -1,9 +1,11 @@
 import QtQuick 2
 import Victron.VenusOS
+import "qrc:/OpkgManager/components"
 
 Page {
 	id: root
-	title: qsTr("Feeds")
+	//% "Feeds"
+	title: qsTrId("opkgmanager_feeds")
 	tryPop: opkgManager.tryPop
 
 	required property var opkgManager
@@ -12,7 +14,8 @@ Page {
 	Component.onCompleted: refreshFeeds()
 
 	Label {
-		text: "Loading..."
+		//% "Loading..."
+		text: qsTrId("opkgmanager_loading")
 		visible: root._loading
 		anchors.centerIn: parent
 		font.pixelSize: Theme.font_size_body3
@@ -63,9 +66,10 @@ Page {
 		id: actionsRow
 		buttonModel: [
 			 {
-				text:"Add New Feed",
+				//% "Add New Feed"
+				text: qsTrId("opkgmanager_add_new_feed"),
 				onClicked: function() {Global.pageManager.pushPage("qrc:/OpkgManager/OpkgPageSettingsFeedEdit.qml", {
-							title: "Add New Feed",
+							title: qsTrId("opkgmanager_add_new_feed"),
 							opkgManager: root.opkgManager,
 							model: {name:"", url:"", builtin: false, isNew: true},
 							loadFeedsModelCallback: root.loadFeeds})}

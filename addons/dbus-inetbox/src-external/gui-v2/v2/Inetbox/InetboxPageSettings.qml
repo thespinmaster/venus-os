@@ -5,7 +5,7 @@ import "qrc:/OpkgManager/OpkgSingleton.js" as OpkgSingleton
 Page {
 	id: page
 	//% "Inetbox settings"
-	title: qsTr("inetbox_settings")
+	title: qsTrId("inetbox_settings")
 
 	GradientListView {
 		id: settingsListView
@@ -15,7 +15,7 @@ Page {
 			ListSwitch {
 				dataItem.uid:!!Global.systemSettings ? Global.systemSettings.serviceUid + "/Settings/Inetbox/ShowMotorhomePage" : ""
 				//% "Show Motorhome Page"
-				text:  qsTr("inetbox_show_motorhome_page")
+				text: qsTrId("inetbox_show_motorhome_page")
 			}
 
 			ListText {

@@ -97,8 +97,8 @@ def main():
 	# 	format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 	# 	#handlers=[logging.StreamHandler(sys.stdout)],
 	# )
- 
-	args.debug_lin = True
+
+	# args.debug_lin = True
 	args.debug_inet = True
 
 	log.info('Using serial port: ' + args.serial)

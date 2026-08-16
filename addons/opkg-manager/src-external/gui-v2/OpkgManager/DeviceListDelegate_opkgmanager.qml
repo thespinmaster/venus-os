@@ -1,16 +1,20 @@
 import QtQuick
 import Victron.VenusOS
-import "qrc:/OpkgManager/OpkgSingleton.js" as OpkgSingleton
+import "qrc:/OpkgManager/components/OpkgSingleton.js" as OpkgSingleton
 
 DeviceListDelegate {
 	id: root
 
 	onDeviceChanged: {
-		console.debug("OpkgManager: DeviceListDelegate::onDeviceChanged: isRelead=", OpkgSingleton.getIsReload())
-
-		parent.active = false
-
 		var isReload = OpkgSingleton.getIsReload()
+
+		console.debug("OpkgManager: DeviceListDelegate::onDeviceChanged: isRelead=", isReload)
+
+		// Using callLater fixes intermitten lock ups
+		Qt.callLater(function () {
+			parent.active = false
+		})
+
 		if (isReload) {
 			Global.mainView.swipeView.animationEnabled = false
 			Global.mainView.navBar.setCurrentIndex(-1)
@@ -30,9 +34,8 @@ DeviceListDelegate {
 		}
 
 	}
-
-	Component.onDestruction: {
-		console.debug("OpkgManager device delegate:DESTROYED")
-	}
+	// Component.onDestruction: {
+	// 	console.debug("OpkgManager device delegate:DESTROYED")
+	// }
 
 }

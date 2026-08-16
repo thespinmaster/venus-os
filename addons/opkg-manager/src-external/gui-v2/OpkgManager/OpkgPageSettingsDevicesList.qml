@@ -1,81 +1,55 @@
 import QtQuick 2
-import QtQuick.Layouts
 import Victron.VenusOS
+import "qrc:/OpkgManager/components"
 
 Page {
 	id: root
-	title: qsTr("Custom Devices")
+	//% "Custom Devices"
+	title: qsTrId("opkgmanager_custom_devices")
 	tryPop: opkgManager.tryPop
+
 	required property OpkgManager opkgManager
-	property var devicesModel
+	property string service: "com.victronenergy.opkgmanager"
+	property string settings: "com.victronenergy.settings/Settings/OpkgManager"
 
-	VeQuickItemAdapter {
-		id: devices
-		uid: systemSettingsServiceUid + "/Settings/DevicesList"
-		onValueChanged: {
-			root.createDevicesModel()
-		}
-	}
-
-	function createDevicesModel() {
-		var deviceList = devices.value
-		if (!deviceList?.length)
+	function toggleScan() {
+		if (opkgManager.running) {
+			opkgManager.cancel()
 			return
-		//console.log("deviceList:" + deviceList)
-		root.devicesModel = deviceList.split(",")
-	}
-
-	Component {
-		id: removalDialogComponent
-
-		ModalWarningDialog {
-			id: warningDialog
-			//% "Remove Custom Device?"
-			title: qsTrId("opkg_remove_device")
-			dialogDoneOptions: VenusOS.ModalDialog_DoneOptions_OkAndCancel
-			icon.color: Theme.color_orange
-			acceptText: CommonWords.remove
-			property string sid
-
-			onAccepted: {
-				var theRoot = root
-				var sidValue = sid
-				theRoot.opkgManager.removeDevice(sidValue, function(result) {
-					if (!result.success)
-						return
-					var array = theRoot.devicesModel
-					const index = array.indexOf(sidValue);
-					if (index > -1) {
-						array.splice(index, 1);
-						theRoot.devicesModel = array
-					}
-
-				})
-			}
 		}
+
+		progressText.start(CommonWords.scanning.arg("").slice(0, -1))
+		opkgManager.usbScan(function (result) {
+			progressText.stop()
+		})
 	}
+
+	OpkgProgressText {id: progressText}
 
 	GradientListView {
-		id: settingsListView
-		clip: true
-		anchors.fill: parent
-		model: root.devicesModel
+		model: VisibleItemModel {
 
-		header: ListNavigation {
-			bottomInset: Theme.geometry_listItem_itemSeparator_height
-			bottomPadding: bottomInset + topPadding
+			ListButton {
+				// "Scan for devices"
+				text: qsTrId("page_settings_modbus_scan_for_devices")
+				secondaryText: progressText.running  ? progressText.text : CommonWords.press_to_scan
+				onClicked: root.toggleScan()
+				preferredVisible: userHasWriteAccess
+			}
 
-			//% "Add Device"
-			text: qsTrId("opkg_add_device")
-			iconSource: "qrc:/images/icon_plus_32.svg"
-			iconColor: Theme.color_ok
-			//showAccessLevel: root.writeAccessLevel
-			hasSubMenu: false
-				onClicked: Global.pageManager.pushPage("qrc:/OpkgManager/OpkgPageSettingsDevicesSetup.qml",
-					{title: text, opkgManager: root.opkgManager})
+			ListNavigation {
+				// "Saved devices"
+				text: qsTrId("page_settings_modbus_saved_devices")
+				//secondaryText: subpage.model.count //TODO
+				onClicked: Global.pageManager.pushPage("qrc:/OpkgManager/OpkgPageSettingsSavedDevices.qml", {"title": text, opkgManager: root.opkgManager})
+			}
+
+			ListNavigation {
+				text: CommonWords.discovered_devices
+				//secondaryText: subpage.model.count //TODO
+				onClicked: Global.pageManager.pushPage("qrc:/OpkgManager/OpkgPageSettingsDiscoveredDevices.qml", {"title": text, opkgManager: root.opkgManager})
+			}
 		}
-
-		delegate: OpkgCustomDeviceListItem {}
 	}
 
 }

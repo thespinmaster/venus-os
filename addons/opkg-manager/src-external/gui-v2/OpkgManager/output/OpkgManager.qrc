@@ -1,22 +1,26 @@
 <RCC>
 <qresource prefix="/OpkgManager">
-<file>../VeQuickItemAdapter.qml</file>
 <file>../OpkgPageSettingsPackageInstall.qml</file>
-<file>../OpkgLogViewerBase.qml</file>
 <file>../OpkgPageSettingsFeeds.qml</file>
-<file>../OpkgActionsRow.qml</file>
-<file>../OpkgDeviceSettings.qml</file>
-<file>../OpkgPageSettingsDevicesSetup.qml</file>
+<file>../OpkgPageSettingsDiscoveredDevice.qml</file>
+<file>../OpkgPageSettingsDiscoveredDevices.qml</file>
+<file>../OpkgPageSettingsSavedDevice.qml</file>
+<file>../OpkgPageSettingsSavedDevices.qml</file>
 <file>../OpkgPageSettings.qml</file>
-<file>../OpkgCustomPageModel.qml</file>
-<file>../OpkgDeviceListItem.qml</file>
 <file>../OpkgPageSettingsFeedEdit.qml</file>
 <file>../OpkgPageSettingsDevicesList.qml</file>
-<file>../OpkgJsonReader.qml</file>
-<file>../OpkgLogViewer.qml</file>
 <file>../OpkgPageSettingsPackages.qml</file>
-<file>../OpkgBridge.qml</file>
-<file>../OpkgSingleton.js</file>
+<file>../components/OpkgProgressText.qml</file>
+<file>../components/OpkgManager.qml</file>
+<file>../components/OpkgBridge.qml</file>
+<file>../components/OpkgLogViewer.qml</file>
+<file>../components/OpkgActionsRow.qml</file>
+<file>../components/OpkgLogViewerBase.qml</file>
+<file>../components/OpkgCustomPageModel.qml</file>
+<file>../components/VeQuickItemAdapter.qml</file>
+<file>../components/OpkgDbusChildModel.qml</file>
+<file>../components/OpkgJsonReader.qml</file>
+<file>../components/OpkgSingleton.js</file>
 <file>../OpkgManager_en.qm</file>
 </qresource>
 <qresource prefix="/qt/qml/Victron/VenusOS/pages/settings/devicelist/delegates">

@@ -10,7 +10,7 @@ Rectangle {
 
 	color: Theme.color_background_secondary
 	radius: Theme.geometry_button_radius
-	
+
 	property alias model: repeater.model
 	property real levelThickness: 6
 
@@ -18,7 +18,7 @@ ColumnLayout {
 	id: col
 	spacing: 1
 	anchors.fill: parent
-	anchors.margins: 4
+	anchors.margins: 8
 
 
 	Repeater {

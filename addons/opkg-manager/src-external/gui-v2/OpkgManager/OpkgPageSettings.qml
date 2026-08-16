@@ -1,10 +1,11 @@
 import QtQuick 2
 import Victron.VenusOS
+import "qrc:/OpkgManager/components"
 
 Page {
 	id: page
-	title: qsTr("Open Package Manager")
-
+	//% "Open Package Manager"
+	title: qsTrId("opkgmanager_open_package_manager")
 	Component.onDestruction: opkgManager?.cleanup()
 
 	OpkgManager {
@@ -14,7 +15,6 @@ Page {
 			Global.showToastNotification(VenusOS.Notification_Warning, message, duration)
 			console.log("opkgManager:" + level + ", " + message)
 		}
-
 	}
 
 	GradientListView {
@@ -53,14 +53,6 @@ Page {
 				dataItem.uid: opkgManager.noActionSetting.uid
 				//% "No Action"
 				text: qsTrId("opkg_no_action")
-			}
-
-			ListNavigation {
-				topInset: Theme.geometry_listItem_itemSeparator_height
-				bottomInset: Theme.geometry_listItem_itemSeparator_height
-				//% "Tests"
-				text: qsTrId("opkg_tests")
-				onClicked: Global.pageManager.pushPage("qrc:/OpkgManager/OpkgManagerTestPage.qml", {title: text})
 			}
 
 			ListLink {

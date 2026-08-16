@@ -6,25 +6,22 @@ MbPage {
 
 	required property OpkgManager opkgManager
 
+	OpkgDbusChildModel {
+		id: devicesModel
+		uid: "dbus/com.victronenergy.opkgmanager/Discovered"
+		filterRegExp: "\/sid_[^/]+$"
+		childId: "Port"
+	}
+
 	model: OpkgSafeDelegateModel {
 
-		model: VeQItemSortTableModel {
-			model: VeQItemTableModel {
-				uids: ["dbus/com.victronenergy.opkgmanager/Discovered"]
-				flags: VeQItemTableModel.AddChildren |
-						VeQItemTableModel.AddNonLeaves |
-						VeQItemTableModel.DontAddItem
-			}
-			filterRegExp: "\/sid_[^/]+$"
-			filterFlags: VeQItemSortTableModel.FilterInvalid
-		}
+		model: devicesModel
 
 		delegate: MbSubMenu {
 			id: discoveredDevice
-			description: deviceProps.port
+			required property var model
+			description: model.value
 
-			property var deviceProps: discoveredDevice.model.item.value
-										? JSON.parse(discoveredDevice.model.item.value) : ""
 			property bool deviceAdded: false
 
 			function onDeviceAddedCallback(added) {
@@ -36,7 +33,8 @@ MbPage {
 			subpage: Component {
 					OpkgPageDiscoveredDevice {
 						opkgManager: root.opkgManager
-						deviceProps: discoveredDevice.deviceProps
+						serviceUid: discoveredDevice.model.buddy.uid
+						port: discoveredDevice.model.value
 						deviceAddedCallback: discoveredDevice.onDeviceAddedCallback}
 				}
 			}

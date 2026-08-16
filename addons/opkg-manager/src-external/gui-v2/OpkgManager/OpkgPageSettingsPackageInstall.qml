@@ -1,9 +1,11 @@
 import QtQuick 2
 import Victron.VenusOS
+import "qrc:/OpkgManager/components"
 
 Page {
 	id: root
-	title: qsTr("Package details")
+	//% "Package Details"
+	title: qsTrId("opkgmanager_package_details")
 	tryPop: opkgManager?.tryPop
 
 	required property var model
@@ -13,7 +15,10 @@ Page {
 	readonly property bool hasInstalled: model.installedVersion?.length > 0
 	readonly property bool hasAvailable: model.availableVersion?.length > 0
 	readonly property string actionLabel: hasInstalled && hasAvailable
-			? qsTr("Upgrade") : qsTr("Install")
+			//% "Upgrade"
+			? qsTrId("opkgmanager_package_upgrade")
+			//% "Install"
+			: qsTrId("opkgmanager_package_intsall")
 
 	readonly property int hMargin: Theme.geometry_page_content_horizontalMargin + Theme.geometry_listItem_content_horizontalMargin
 	readonly property int vMargin: Theme.geometry_listItem_content_verticalMargin
@@ -73,14 +78,16 @@ Page {
 			Row {
 				spacing: Theme.geometry_listItem_content_spacing / 2
 				Label {
-					text: qsTr("Installed:")
+					//% "Installed"
+					text: qsTrId("opkgmanager_installed") + ":"
 					font.pixelSize: Theme.font_size_body2
 					color: Theme.color_font_secondary
 				}
 				Label {
 					text: (root.hasInstalled)
 							? root.model.installedVersion + (root.model.installedVersionSuffix ? "." + root.model.installedVersionSuffix : "")
-							: qsTr("none")
+							//% "none"
+							: qsTrId("opkgmanager_none")
 					font.pixelSize: Theme.font_size_body2
 					color: Theme.color_font_primary
 				}
@@ -90,14 +97,16 @@ Page {
 			Row {
 				spacing: Theme.geometry_listItem_content_spacing / 2
 				Label {
-					text: qsTr("Available:")
+					//% "Available"
+					text: qsTrId("opkgmanager_available")  + ":"
 					font.pixelSize: Theme.font_size_body2
 					color: Theme.color_font_secondary
 				}
 				Label {
 					text: (root.hasAvailable)
 							? root.model.availableVersion + (root.model.availableVersionSuffix ? "." + root.model.availableVersionSuffix : "")
-							: qsTr("none")
+							//% "none"
+							: qsTrId("opkgmanager_none")
 					font.pixelSize: Theme.font_size_body2
 					color: Theme.color_font_primary
 				}
@@ -112,7 +121,8 @@ Page {
 			spacing: Theme.geometry_listItem_content_spacing / 2
 
 			Label {
-				text: qsTr("Feed:")
+				//% "Feed"
+				text: qsTrId("opkgmanager_feed") + ":"
 				font.pixelSize: Theme.font_size_body1
 				color: Theme.color_font_secondary
 			}
@@ -140,7 +150,9 @@ Page {
 	OpkgActionsRow {
 		id: actionsRow
 		buttonModel: [
-			{ text: qsTr("Remove"),
+			{
+				//% "Remove"
+				text: qsTrId("opkgmanager_remove"),
 				enabled: !root.opkgManager.running && root.hasInstalled,
 				onClicked: function() {
 					root.opkgManager.removePackage(root.model.packageName, completionCallback)

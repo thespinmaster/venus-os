@@ -6,89 +6,64 @@ MbPage {
 	title: "Add USB serial device"
 
 	required property var opkgManager
-	required property var deviceProps
+	required property string serviceUid
+	required property string port
 	required property var deviceAddedCallback
 
-	property string selectedServiceTypePath: "" //"Inetbox"
+	property string selectedServiceTypePath: ""
 	property var addingDeviceText: progressText.running ? progressText.text : ""
 	property bool deviceAdded: deviceAddedCallback !== undefined ? deviceAddedCallback() : false
+	property var usbProps: usbPropsItem.value ? JSON.parse(usbPropsItem.value) : {}
 
 	pageToolbarHandler: addDeviceToolbarHandler
+
+	VeQuickItem {
+		id: usbPropsItem
+    uid: serviceUid + "/UsbProps"
+  }
 
 	model: VisualModels {
 		VisibleItemModel {
 			MbItemOptions {
 				id: selectServiceType
+
 				description: qsTr("Serial Device Service")
 				unknownOptionText: qsTr("Press to select service")
 				message: root.serviceTypesModel?.length === 0 ? qsTr("No custom devices currently installed") : ""
 				value: root.selectedServiceTypePath
-				onOptionSelected: function (newValue) {
-					root.onSerialDeviceServiceSelected(newValue) }
+				onOptionSelected: function (newValue) { root.onSerialDeviceServiceSelected(newValue) }
 				//Fix for spacebar not working after DelegateModel use!
 				Keys.onSpacePressed: { edit() }
 			}
 			MbItemRow { description: qsTr("Port")
-				values: [MbTextBlock { item.text: deviceProps.port} ]}
+				values: [MbTextBlock { item.text: root.port} ]}
 		}
 
 		DelegateModel {
-			id: usbProps
-			model: root.deviceProps.usbProps
+			model: root.usbProps
 			delegate: MbItemRow { description: modelData.name
 				values: [MbTextBlock { item.text: modelData.value} ]}
 		}
 
 	}
 
-	VeQItemSortTableModel {
-		id: customDevices
-		model: VeQItemChildModel {
-
-			model: VeQItemSortTableModel {
-				model: VeQItemTableModel {
-					uids: ["dbus/com.victronenergy.settings/Settings/OpkgManager/Devices"]
-					flags: VeQItemTableModel.AddChildren |
-							VeQItemTableModel.AddNonLeaves |
-							VeQItemTableModel.DontAddItem
-				}
-				dynamicSortFilter: true
-				filterFlags: VeQItemSortTableModel.FilterOffline
-			}
-			childId: "ProductName"
-		}
-		dynamicSortFilter: true
-		filterFlags: VeQItemSortTableModel.FilterInvalid
-		onRowCountChanged: buildCustomDeviceOptions()
-	}
-
-	Component  { id: mbOptionLoader; MbOption {}}
-
 	OpkgProgressText { id: progressText}
+	Component  { id: mbOptionFactory; MbOption {}}
 
-	function buildCustomDeviceOptions() {
-
-		var devices = []
-		for (var i = 0; i < customDevices.model.rowCount; i++) {
-			var currentIndex = customDevices.model.index(i, 0)
-			var uid = customDevices.model.data(currentIndex, VeQItemTableModel.UniqueIdRole)
-			var productName = customDevices.model.getValue(i, VeQItemTableModel.ValueColumn)
-
-			const parts = uid.split("/");
-			const value = parts[parts.length - 2];
-			var params =  { value: value, description: productName }
-			var device = mbOptionLoader.createObject(root, params)
-			devices.push(device)
+	OpkgDbusChildModel {
+		id: customDevices
+		uid: "dbus/com.victronenergy.settings/Settings/OpkgManager/Devices"
+		childId: "ProductName"
+		valueDelegate: function (model) {
+			return mbOptionFactory.createObject(root, {description:model.value, value: model.buddyId})
 		}
-		selectServiceType.possibleValues = devices
+		//MbOptions uses list<MbOption> so we need this hack
+		onValuesChanged: selectServiceType.possibleValues = Array.prototype.slice.call(values)
 	}
 
 	function onSerialDeviceServiceSelected(newValue)	{
 		var changed = root.selectedServiceTypePath != "" && root.selectedServiceTypePath != newValue
-		console.log("onSerialDeviceServiceSelected:" + newValue)
 		root.selectedServiceTypePath = newValue
-		//if (changed && deviceModel)
-		//	root.doStep("detect-device-done")
 	}
 
 	function addDevice() {

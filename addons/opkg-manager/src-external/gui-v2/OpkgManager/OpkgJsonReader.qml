@@ -1,1 +1,0 @@
-../../../src/opt/victronenergy/gui/qml/OpkgJsonReader.qml

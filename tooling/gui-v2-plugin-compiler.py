@@ -172,6 +172,8 @@ def _precompile_qml_resources(qrc_file, temp_qrc_file, qmlcachegen_path, pre_com
 					print(f"    Stripped leading lines/whitespace from text file: {relative_path}")
 					optimized_text_path = _minify_qml_text(relative_path)
 					generated_artifacts.append(optimized_text_path)
+					file_elem.set('alias', relative_path)
+					file_elem.text = optimized_text_path
 				else:
 					optimized_text_path = relative_path
 
@@ -288,6 +290,7 @@ def b64_encode_rcc(name):
 		return base64Str
 
 def write_compiled_json(output_path, name, version, minRequiredVersion, maxRequiredVersion, translations, integrations, resource):
+
 		dataDict = {
 				"name": name,
 				"version": version,
@@ -297,6 +300,7 @@ def write_compiled_json(output_path, name, version, minRequiredVersion, maxRequi
 				"integrations": integrations,
 				"resource": resource
 		}
+
 		with open(output_path + name+'.json', 'w', encoding='utf-8') as file:
 				json.dump(dataDict, file, indent=4)
 				file.write('\n')

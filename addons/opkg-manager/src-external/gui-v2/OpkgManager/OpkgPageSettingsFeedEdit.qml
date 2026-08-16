@@ -1,7 +1,7 @@
 import QtQuick 2
 import Victron.VenusOS
 import QtQuick.Layouts
-import "."
+import "qrc:/OpkgManager/components"
 
 Page {
 	id: root
@@ -13,14 +13,16 @@ Page {
 	required property var loadFeedsModelCallback
 	property bool _isNew: false
 	property bool _builtin: false
-	property string _removeButtonText: "Remove"
-	property string _saveButtonText: "Save"
+	property string _removeButtonText
+	property string _saveButtonText
 
 	onModelChanged: refreshModel()
 
 	function resetButtonText() {
-		root._saveButtonText = "Save"
-		root._removeButtonText = "Remove"
+		//% "Save"
+		root._saveButtonText = qsTrId("opkgmanager_save")
+		//% "Remove"
+		root._removeButtonText = qsTrId("opkgmanager_remove")
 	}
 
 	//also called from parent feeds page
@@ -46,7 +48,8 @@ Page {
 
 			ListTextField {
 				id: feedNameTextField
-				text: "Feed Name"
+				//% "Feed name"
+				text: qsTrId("opkgmanager_feed_name")
 				validateInput: root.validateFeedName
 				interactive: !root._builtin
 			}
@@ -62,7 +65,8 @@ Page {
 
 					Label {
 						id: label
-						text: "Feed Url"
+						//% "Feed Url"
+						text: qsTrId("opkgmanager_feed_url")
 						font.family: listItem.font.family
 						font.pixelSize: listItem.font.pixelSize
 						Layout.alignment: Qt.AlignVCenter
@@ -109,8 +113,9 @@ Page {
 		// only alphanumeric, no spaces or symbols
 		// must contain at least one letter (prevents "12345")
 		if (!/^[A-Za-z0-9-]+$/.test(text) || (!/[A-Za-z]/.test(text))) {
-			// "'%1' is not a valid IP address."
-			return Utils.validationResult(VenusOS.InputValidation_Result_Error,"Invalid Name")
+			//% "%1 is an invalid feed name"
+			var msg = qsTrId("opkgmanager_invalid_feed_name").arg(text)
+			return Utils.validationResult(VenusOS.InputValidation_Result_Error, msg)
 		}
 		return Utils.validationResult(VenusOS.InputValidation_Result_OK, "", text)
 	}
@@ -120,9 +125,9 @@ Page {
 		var text = feedUrlTextField.text
 		const pattern = /^https?:\/\/([a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*|\d{1,3}(\.\d{1,3}){3})(:\d+)?(\/.*)?$/;
 		if (!pattern.test(text)) {
-			// "'%1' is not a valid IP address."
-			// qsTrId("ip_address_input_not_valid").arg(trimmed)
-			return Utils.validationResult(VenusOS.InputValidation_Result_Error,"Invalid URL")
+			//% "%1 is an invalid feed URL"
+			var msg = qsTrId("opkgmanager_invalid_url").arg(text)
+			return Utils.validationResult(VenusOS.InputValidation_Result_Error, msg)
 		}
 
 		return Utils.validationResult(VenusOS.InputValidation_Result_OK, "", text)
@@ -141,8 +146,8 @@ Page {
 			loadFeedsModelCallback?.(result.data)
 			Global.pageManager.popPage()
 		}
-
-		root._removeButtonText = "Removing..."
+		//% "Removing..."
+		root._removeButtonText = qsTrId("opkgmanager_removing")
 		opkgManager.removeFeed(root.model.name, completedCallback)
 
 	}
@@ -166,13 +171,15 @@ Page {
 				resetButtonText()
 				return
 			}
-			root.title = "Edit Feed" // update breadcrumb
+			//% "Edit Feed"
+			root.title = qsTrId("opkgmanager_edit_feed") // update breadcrumb
 			root._isNew = false
 			loadFeedsModelCallback?.(result.data, feedName, root.refreshModel)
 
 		}
 
-		root._saveButtonText = "Saving..."
+		//% "Saving..."
+		root._saveButtonText = qsTrId("opkgmanager_saving")
 
 		if (root._isNew) {
 			opkgManager.addFeed(feedName, feedUrl, completedCallback)

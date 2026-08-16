@@ -8,6 +8,7 @@ RESTART_GUI_SERVICE="${RESTART_GUI_SERVICE:=0}"
 
 PACKAGE_ACTION="${1:-}"
 # set package name using the path of the calling file's location
+PACKAGE_GUI_V2_PLUGIN_NAME=
 PACKAGE_NAME="${PACKAGE_NAME-"$(basename "$(dirname "$(realpath "${0}")")")"}"
 PACKAGE_DBUS_SETTINGS="${PACKAGE_DBUS_SETTINGS-}"
 PACKAGE_DEVICE_KEY="${PACKAGE_DEVICE_KEY-}"
@@ -102,6 +103,32 @@ __install_helper_parse_custom_overview_page_entry() {
 	}
 
 	return 0
+}
+
+__install_helper_install_guiv2_plugin() {
+  [[ -z "${PACKAGE_GUI_V2_PLUGIN_NAME:-}" ]] && return 0
+
+  local pluginName="${PACKAGE_GUI_V2_PLUGIN_NAME}"
+  local availablePath="/data/apps/available/${pluginName}"
+  local enabledPath="/data/apps/enabled/${pluginName}"
+
+  if [[ -f "${availablePath}/${pluginName}.json" ]]; then
+    mkdir -p "/data/apps/enabled"
+    # -n prevents nesting inside the target if the symlink already exists
+    ln -sfn "${availablePath}" "${enabledPath}"
+  fi
+}
+
+__install_helper_remove_guiv2_plugin() {
+  [[ -z "${PACKAGE_GUI_V2_PLUGIN_NAME:-}" ]] && return 0
+
+  local pluginName="${PACKAGE_GUI_V2_PLUGIN_NAME}"
+  local enabledPath="/data/apps/enabled/${pluginName}"
+
+  # -L checks if path is a symlink (even if dangling/broken)
+  if [[ -L "${enabledPath}" || -d "${enabledPath}" ]]; then
+    rm -rf "${enabledPath}"
+  fi
 }
 
 __install_helper_parse_custom_menu_entry() {
@@ -311,6 +338,8 @@ install_helper_install() {
 		install_helper_update_services
 	fi
 
+	__install_helper_install_guiv2_plugin
+
 	__try_call "post_install"
 
 	install_helper_restart_gui_service
@@ -358,6 +387,8 @@ install_helper_remove() {
 	opkg_common_unregister_package "$PACKAGE_NAME"
 
 	install_helper_add_remove_patch remove
+
+	__install_helper_remove_guiv2_plugin
 
 	if __install_helper_has_device_vars; then
 		echo "Removing custom service settings"

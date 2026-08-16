@@ -170,17 +170,12 @@ function setCursorPosition(position, direction) {
 
 	function setScrollOffset() {
 
-		//var cursorX = vePlatform.measureText(ti.font.family, ti.font.pixelSize, ti.text, 0, ti.cursorPosition)
 		var cursorX = cursorItem.anchors.leftMargin //optsm; use existing calc
 		var minX = 0;
 		var maxX = textClipper.width;
 
-		if (_cursorWidth === -1) {
-			console.log("Warning: _cursorWidth not set")
+		if (_cursorWidth === -1)
 			return
-		}
-
-		//console.log("leftMargin:" + cursorItem.anchors.leftMargin + ",cursorX " + cursorX)
 
 		if (cursorX - ti.scrollOffset <= minX) {
 			if (ti.cursorPosition !== 0)
