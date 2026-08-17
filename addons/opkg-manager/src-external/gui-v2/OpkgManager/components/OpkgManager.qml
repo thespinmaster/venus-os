@@ -1,7 +1,6 @@
 // SYM LINKED
 import QtQuick 2
 
-
 QtObject {
 	id: root
 
@@ -192,7 +191,7 @@ QtObject {
 
 		root._operationName = opName
  		root._completionCallback = (completionCallback && completionCallback.call) ? completionCallback : undefined
-		
+
 		bridge.start(familyName, commandName, ...(args || []))
 	}
 

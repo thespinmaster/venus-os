@@ -12,13 +12,9 @@ Page {
 	required property var opkgManager
 	required property string port
 	required property string serviceUid
-	//required property var deviceAddedCallback
 
 	property string selectedDeviceServicePathName: "" //"Inetbox"
 	property var addingDeviceText: progressText.running ? progressText.text : ""
-	//property bool deviceAdded: deviceAddedCallback !== undefined ? deviceAddedCallback() : false
-	property alias selectedIndex: opkgAvailableServicesModel.selectedIndex
-
 	property var jsonUsbProps: usbPropsItem.valid ? JSON.parse(usbPropsItem.value) : {}
 
 	VeQuickItem {
@@ -30,7 +26,7 @@ Page {
 
 	OpkgDbusChildModel {
 		id: opkgAvailableServicesModel
-		uid: "dbus/com.victronenergy.settings/Settings/OpkgManager/Devices"
+		uid: Global.systemSettings.serviceUid + "/Settings/OpkgManager/Devices"
 		childId: "ProductName"
 		valueDelegate: function (model) {
 			return {display: model.value, value: model.buddyId}
@@ -49,15 +45,18 @@ Page {
 			}
 			ListRadioButtonGroup {
 				id: selectServiceType
-				optionModel: opkgAvailableServicesModel.values
+				optionModel: Array.prototype.slice.call(opkgAvailableServicesModel.values)
+
 				//% "Serial Device Service"
 				text: qsTrId("opkgmanager_serial_device_service")
 				//% "Press to select service"
 				defaultSecondaryText: qsTrId("opkgmanager_press_to_select_service")
 
 				onOptionClicked: function(index) {
-					root.selectedDeviceServicePathName = opkgAvailableServicesModel.services[index].value
+					currentIndex = index
+					root.selectedDeviceServicePathName = opkgAvailableServicesModel.values[index].value
 				}
+
 			}
 
 			SettingsListHeader {

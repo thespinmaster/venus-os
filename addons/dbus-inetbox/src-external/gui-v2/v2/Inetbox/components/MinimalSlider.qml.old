@@ -6,7 +6,7 @@ T.Slider {
 	snapMode: T.Slider.SnapOnRelease
 
 	property color progressColor: "#2196F3"
-	property color handleColor: '#1e88e5'
+	property color handleColor: '#911e88e5'
 	property color handlePressedColor: "#1565C0"
 	property color tickColor: '#ffffff'
 
@@ -96,85 +96,15 @@ T.Slider {
 	}
 
 	// --- Circular Handle Delegate ---
-	handle:  Item {
-				implicitWidth: root.handleDiameter
-				implicitHeight: root.handleDiameter
-			Rectangle {
-				id: original
-				x: root.leftPadding + root.visualPosition * root.availableWidth - width / 2
-				y: root.topPadding + root.availableHeight / 2 - height / 2
-				implicitWidth: root.handleDiameter
-				implicitHeight: root.handleDiameter
-				radius: width / 2
-				color: root.pressed ? root.handlePressedColor : root.handleColor
+	handle: Rectangle {
+		x: root.leftPadding + root.visualPosition * root.availableWidth - width / 2
+		y: root.topPadding + root.availableHeight / 2 - height / 2
+		implicitWidth: root.handleDiameter
+		implicitHeight: root.handleDiameter
+		radius: width / 2
+		color: root.pressed ? root.handlePressedColor : root.handleColor
 
-				border.color: "#FFFFFF"
-				border.width: 2
-			}
-			Item {
-				id: reflection
-				x: original.x
-				y: original.height + 3
-				width: original.width
-				height: original.height
-				opacity: .5
-
-				Rectangle {
-					id: reflectionMask
-
-					width: original.width
-					height: original.height
-					radius: original.radius
-
-					gradient: Gradient {
-						GradientStop {
-							position: 0.0
-							color: '#ffffffff'
-						}
-						GradientStop {
-							position: .8
-							color: "#00ffffff"
-						}
-					}
-				}
-				Rectangle {
-					id: reflectionMask3
-					x: 2
-					y: 2
-					width: original.width -4
-					height: original.height -4
-					radius: original.radius
-
-					gradient: Gradient {
-						GradientStop {
-							position: 0.0
-							color: '#ff000000'
-						}
-						GradientStop {
-							position: .8
-							color: "#00000000"
-						}
-					}
-				}
-				Rectangle {
-					id: reflectionMask2
-					x: 2
-					y: 2
-					width: original.width -4
-					height: original.height -4
-					radius: original.radius
-
-					gradient: Gradient {
-						GradientStop {
-							position: 0.0
-							color: '#1e88e5'
-						}
-						GradientStop {
-							position: 0.8
-							color: "#00ffffff"
-						}
-					}
-				}
-			}
-		}
+		border.color: "#FFFFFF"
+		border.width: 2
+	}
 }

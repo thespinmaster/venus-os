@@ -7,6 +7,7 @@ Item {
     required property VeQuickItem binding
     property int currentIndex
     readonly property var currentValue: binding?.value
+
 		property alias icon: button.icon
 		property var model: []
 
@@ -15,41 +16,46 @@ Item {
 
 		property alias valueColor: valueLabel.color
 		property real fontPixelSize: 24
-
+		property alias cycleDelay: timer.interval
 		property CycleButtonGroup group
-		property bool _syncingFromBinding: false
 
 		implicitHeight: button.height
 		implicitWidth: valueLabel.x + valueLabel.width
 		icon.color: model === undefined
-				? "dimgrey"
+				? Theme.color_font_disabled
 				: model[currentIndex].color
 					? model[currentIndex].color
 					: Theme.color_font_primary
 
 		icon.height: 24
 		icon.width: 24
-		onCurrentIndexChanged: {
-			if (_syncingFromBinding || !binding || !model || currentIndex < 0 || currentIndex >= model.length)
-				return
 
-			const nextValue = model[currentIndex].value
-			if (nextValue !== currentValue)
-				binding.setValue(nextValue)
-		}
-		onCurrentValueChanged: {
-			if (!model || model.length === 0)
+		onCurrentIndexChanged: {
+			if (!model || currentIndex < 0 || currentIndex >= model.length)
 				return
+			if (!timer.running)
+				updateBindingValue()
+		}
+
+		onCurrentValueChanged: {
+			if (!model) return
 			for (var i = 0; i < model.length; i++) {
-				if (model[i].value == currentValue) {
-					if (currentIndex !== i) {
-						_syncingFromBinding = true
-						currentIndex = i
-						_syncingFromBinding = false
-					}
-					return
+				if (currentValue == model[i].value) {
+					currentIndex = i
+					break;
 				}
 			}
+		}
+		// function setCurrentIndex(index) {
+		// 	if (currentIndex < 0 || currentIndex >= model.length)
+		// 		return
+		// 	currentIndex = index
+		// }
+
+		function updateBindingValue() {
+			if (!binding || !model || currentIndex < 0 || currentIndex >= model.length)
+				return
+			binding.setValue(model[currentIndex].value)
 		}
 
 		Label {
@@ -65,10 +71,15 @@ Item {
 			font.pixelSize: root.fontPixelSize
 			visible: !root.binding || root.binding.valid
 
+			Timer {
+				id: timer
+				interval: 700
+				onTriggered: root.updateBindingValue()
+			}
 			onClicked: {
+				timer.restart() //keep before setting currentIndex
 				root.currentIndex = (root.currentIndex === root.model.length - 1)
-				? 0
-				: root.currentIndex + 1;
+					? 0 : root.currentIndex + 1;
 			}
 
 			anchors {
@@ -87,7 +98,7 @@ Item {
 			visible: !root.binding || root.binding.valid
 			text: root.model[root.currentIndex].valueText ?? ""
 			font.pixelSize: root.fontPixelSize
-			color: "dimgrey"
+			color: Theme.color_font_secondary
 			width: root.group === undefined ? undefined: root.group.valueWidth
 			anchors {
 				left: root.group == undefined ? button.right : button.left

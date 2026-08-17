@@ -67,39 +67,38 @@
         <translation type="unfinished"></translation>
     </message>
     <message id="opkgmanager_device_options">
-        <location filename="../OpkgPageSettingsDiscoveredDevice.qml" line="48"/>
+        <location filename="../OpkgPageSettingsDiscoveredDevice.qml" line="44"/>
         <source>Device Options</source>
-        <oldsource>Device options</oldsource>
         <translation type="unfinished"></translation>
     </message>
     <message id="opkgmanager_serial_device_service">
-        <location filename="../OpkgPageSettingsDiscoveredDevice.qml" line="54"/>
+        <location filename="../OpkgPageSettingsDiscoveredDevice.qml" line="51"/>
         <source>Serial Device Service</source>
         <translation type="unfinished"></translation>
     </message>
     <message id="opkgmanager_press_to_select_service">
-        <location filename="../OpkgPageSettingsDiscoveredDevice.qml" line="56"/>
+        <location filename="../OpkgPageSettingsDiscoveredDevice.qml" line="53"/>
         <source>Press to select service</source>
         <translation type="unfinished"></translation>
     </message>
     <message id="opkgmanager_device_properties">
-        <location filename="../OpkgPageSettingsDiscoveredDevice.qml" line="65"/>
+        <location filename="../OpkgPageSettingsDiscoveredDevice.qml" line="64"/>
         <source>Device Properties</source>
         <oldsource>Device properties</oldsource>
         <translation type="unfinished"></translation>
     </message>
     <message id="opkgmanager_port">
-        <location filename="../OpkgPageSettingsDiscoveredDevice.qml" line="69"/>
+        <location filename="../OpkgPageSettingsDiscoveredDevice.qml" line="68"/>
         <source>Port</source>
         <translation type="unfinished"></translation>
     </message>
     <message id="opkgmanager_adding_device">
-        <location filename="../OpkgPageSettingsDiscoveredDevice.qml" line="99"/>
+        <location filename="../OpkgPageSettingsDiscoveredDevice.qml" line="98"/>
         <source>Adding Device</source>
         <translation type="unfinished"></translation>
     </message>
     <message id="opkgmanager_added_device_success">
-        <location filename="../OpkgPageSettingsDiscoveredDevice.qml" line="109"/>
+        <location filename="../OpkgPageSettingsDiscoveredDevice.qml" line="108"/>
         <source>Device Added Successfully
 The service will start shortly...</source>
         <translation type="unfinished"></translation>
@@ -252,12 +251,12 @@ The service will start shortly...</source>
 <context>
     <name>OpkgManager</name>
     <message>
-        <location filename="../components/OpkgManager.qml" line="30"/>
+        <location filename="../components/OpkgManager.qml" line="29"/>
         <source>Please wait for the operation to finish</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../components/OpkgManager.qml" line="102"/>
+        <location filename="../components/OpkgManager.qml" line="101"/>
         <source>Operation failed</source>
         <translation type="unfinished"></translation>
     </message>

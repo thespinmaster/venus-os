@@ -18,19 +18,19 @@ SwipeViewPage {
 	Component.onCompleted: {
 		console.log("Inetbox: onCompleted:",
 		"page=", url,
-		"version=", inetboxDevice.version,
+		"version=", inetbox.version,
 		"device.firstObject=", devices.firstObject)
-		inetboxDevice.device = devices.firstObject
+		inetbox.device = devices.firstObject
 	}
 	Component.onDestruction: {
-		console.log("Inetbox: onDestruction:", "page=", url, "version=", inetboxDevice.version)
+		console.log("Inetbox: onDestruction:", "page=", url, "version=", inetbox.version)
 	}
 
 	FilteredDeviceModel {
 		id: devices
 		serviceTypes: ["inetbox"]
 		function onFirstObjectChanged() {
-			inetboxDevice.device = devices.firstObject
+			inetbox.device = devices.firstObject
 		}
 
 	}
@@ -48,8 +48,9 @@ SwipeViewPage {
 			id: landscapeComponent
 
 			MotorhomePage_Landscape {
+
 				title: root.title
-				inetbox: inetboxDevice
+				inetboxModel: inetbox
 				gaugeModel: tankGauges
 				animationEnabled: root.animationEnabled
 			}
@@ -60,7 +61,7 @@ SwipeViewPage {
 
 			MotorhomePage_Portrait {
 				title: root.title
-				inetbox: inetboxDevice
+				inetboxModel: inetbox
 				gaugeModel: tankGauges
 				animationEnabled: root.animationEnabled
 			}
@@ -79,44 +80,48 @@ SwipeViewPage {
 // Data
 ////////////////////////////////////////////
 
-	QtObject {
-		id: inetboxDevice
+	InetboxModel {
+		id: inetbox
+		serviceUid: device?.serviceUid
 
 		property var device : null
+		property bool showAircon : showAirconItem.valid && showAirconItem.value == 1
+		function bindPrefix(name) { return device ? device.serviceUid + "/Values" + name : ""}
+		function bindSettingsPrefix(name) { return settingsPrefix ? settingsPrefix + name : ""}
+
 		property string version: GuiPluginLoader.plugin("Inetbox").version
 
 		property bool heatingOn: heatingModeItem.valid && heatingModeItem.value != "off"
-		property bool airconOn: airconModeItem.valid && airconModeItem.value != "off"
+		property bool airconOn: showAircon && airconModeItem.valid && airconModeItem.value != "off"
 		readonly property real targetTemperature: (heatingOn ? heatingTargetTempItem.value : airconTargetTemperatureItem.value) ?? NaN
+
+		property VeQuickItemTemperature currentTemperatureItem: VeQuickItemTemperature {uid: inetbox.bindPrefix("/CurrentRoomTemp")}
+		property VeQuickItemTemperature waterCurrentTemperatureItem: VeQuickItemTemperature {uid: inetbox.bindPrefix("/WaterCurrentTemp")}
+		property VeQuickItem waterTargetTemperatureItem: VeQuickItem { uid: inetbox.bindPrefix("/WaterTargetTemp")}
+		property VeQuickItem heatingModeItem: VeQuickItem { uid: inetbox.bindPrefix("/HeatingMode")}
+		property VeQuickItemTemperature heatingTargetTempItem: VeQuickItemTemperature {uid: inetbox.bindPrefix("/HeatingTargetTemp")}
+		property VeQuickItem airconModeItem: VeQuickItem {uid: inetbox.bindPrefix("/AirconMode")}
+		property VeQuickItemTemperature airconTargetTemperatureItem: VeQuickItemTemperature { uid: inetbox.bindPrefix("/AirconTargetTemp")}
+		property VeQuickItem airconFanSpeedItem: VeQuickItem {uid: inetbox.bindPrefix("/AirconFanSpeed")}
+		property VeQuickItem energyMixItem: VeQuickItem {uid: inetbox.bindPrefix("/EnergyMixCombined")}
+		property VeQuickItem showAirconItem: VeQuickItem {uid: inetbox.bindSettingsPrefix("/ShowAircon")}
+
+		Component.onCompleted: {
+			console.log("InetboxModel:",
+			"showAirconItem.uid =", showAirconItem.uid,
+			"showAirconItem.valid =", showAirconItem.valid,
+			"showAirconItem.value =", showAirconItem.value)
+		}
 
 		onHeatingOnChanged: exclusiveHeating(airconModeItem)
 		onAirconOnChanged: exclusiveHeating(heatingModeItem)
 
-		property VeQuickItemTemperature currentTemperatureItem: VeQuickItemTemperature {uid: inetboxDevice.deviceUid("CurrentRoomTemp")}
-		property VeQuickItemTemperature waterCurrentTemperatureItem: VeQuickItemTemperature {uid: inetboxDevice.deviceUid("WaterCurrentTemp")}
-		property VeQuickItem waterTargetTemperatureItem: VeQuickItem { uid: inetboxDevice.deviceUid("WaterTargetTemp")}
-		property VeQuickItem heatingModeItem: VeQuickItem { uid: inetboxDevice.deviceUid("HeatingMode")}
-		property VeQuickItemTemperature heatingTargetTempItem: VeQuickItemTemperature {uid: inetboxDevice.deviceUid("HeatingTargetTemp")}
-
-		property VeQuickItem airconModeItem: VeQuickItem {uid: inetboxDevice.deviceUid("AirconMode")}
-		property VeQuickItemTemperature airconTargetTemperatureItem: VeQuickItemTemperature { uid: inetboxDevice.deviceUid("AirconTargetTemp")}
-		property VeQuickItem airconFanSpeedItem: VeQuickItem {uid: inetboxDevice.deviceUid("AirconFanSpeed")}
-		property VeQuickItem energyMixItem: VeQuickItem {uid: inetboxDevice.deviceUid("EnergyMixCombined")}
-
-		function deviceUid(value) {
-
-			var uid = device && device.serviceUid ? (device.serviceUid + "/Values/" + value) : ""
-			console.log("Inetbox: uid=",uid)
-			return uid
-		}
-
 		function exclusiveHeating(itemToTurnOff) {
-			console.log("MH:exclusiveHeating:", itemToTurnOff)
 			if (heatingOn === true && airconOn === true)
 				itemToTurnOff.setValue("off")
 		}
-		function updateTargetTemperature(value) {
 
+		function updateTargetTemperature(value) {
 			if (heatingOn) {
 				heatingTargetTempItem.setValue(value)
 			} else if (airconOn) {
@@ -124,130 +129,7 @@ SwipeViewPage {
 			}
 		}
 
-		property var waterModeModel: [{
-					value: "0",
-					//% "Off"
-					valueText: qsTrId("inetbox_off"),
-					color: "grey"
-				}, {
-					value: "40.0",
-					//% "Eco"
-					valueText:  qsTrId("inetbox_eco"),
-					//color: "white"
-				}, {
-					value: "60.0",
-					//% "Hot"
-					valueText: qsTrId("inetbox_hot"),
-					//color: "white"
-				}, {
-					value: "200.0",
-					//% "Boost"
-					valueText: qsTrId("inetbox_boost"),
-					//color: "white"
-				}
-			]
 
-		property var heatingModeModel: [{
-					value: "off",
-					//% "Off"
-					valueText: qsTrId("inetbox_off"),
-					color: "grey"
-				}, {
-					value: "eco",
-					//% "Eco"
-					valueText: qsTrId("inetbox_eco"),
-					//color: "white"
-				}, {
-					value: "high",
-					//% "High"
-					valueText: qsTrId("inetbox_high"),
-					//color: "white"
-				}
-			]
-
-		property var airconModeModel: [{
-				value: "off",
-				//% "Off"
-				valueText: qsTrId("inetbox_off"),
-				color: "grey"
-			}, {
-				value: "cool",
-				//% "Cool"
-				valueText: qsTrId("inetbox_cool"),
-				//color: "white"
-			}, {
-				value: "vent",
-				//% "Vent"
-				valueText:  qsTrId("inetbox_vent"),
-				//color: "white"
-			}, {
-				value: "hot",
-				//% "Hot"
-				valueText: qsTrId("inetbox_hot"),
-				//color: "white"
-			}, {
-				value: "auto",
-				//% "Auto"
-				valueText: qsTrId("inetbox_auto"),
-				//color: "white"
-			}
-		]
-
-		property var airconFanSpeedModel: [{
-				value: "low",
-				//% "Low"
-				valueText: qsTrId("inetbox_low"),
-				//color: "white"
-			}, {
-				value: "mid",
-				//% "Mid"
-				valueText: qsTrId("inetbox_mid"),
-				//color: "white"
-			}, {
-				value: "high",
-				//% "High"
-				valueText: qsTrId("inetbox_high"),
-				//color: "white"
-			}, {
-				value: "night",
-				//% "Night"
-				valueText: qsTrId("inetbox_night"),
-				//color: "white"
-			}, {
-				value: "auto",
-				//% "Auto"
-				valueText: qsTrId("inetbox_auto"),
-				//color: "lightseagreen"
-			}
-		]
-
-		property var energyMixModel: [{
-				value: "gas",
-				//% "Gas"
-				valueText: qsTrId("inetbox_gas"),
-				color: Theme.colorScheme == Theme.Dark ? '#ffab03' :  '#c58300'
-			}, {
-				value: "mix1",
-				//% "Mix1"
-				valueText: qsTrId("inetbox_mix1"),
-				color: "green"
-			}, {
-				value: "mix2",
-				//% "Mix2"
-				valueText: qsTrId("inetbox_mix2"),
-				color: "green"
-			}, {
-				value: "el1",
-				//% "El1"
-				valueText: qsTrId("inetbox_el1"),
-				color: "lightskyblue"
-			}, {
-				value: "el2",
-				//% "El2"
-				valueText: qsTrId("inetbox_el2"),
-				color: "lightskyblue"
-			}
-		]
 	}
 
 }

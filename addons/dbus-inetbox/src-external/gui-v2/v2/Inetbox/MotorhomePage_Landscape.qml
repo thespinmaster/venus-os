@@ -8,7 +8,7 @@ import "./components" as IC
 Page {
 	id: root
 
-	required property var inetbox
+	required property var inetboxModel
 	required property bool animationEnabled
 	required property GaugeModel gaugeModel
 
@@ -42,7 +42,7 @@ Page {
 	}
 
 	//  width: 225
-	//  otation: 250.5
+	//  rotation: 250.5
   //  topMargin: root.inetboxOffsetY + 198
 
 	IC.ScheduleButton {
@@ -70,7 +70,7 @@ Page {
 		}
 
 		IC.MotorhomeInetbox {
-			model: root.inetbox
+			model: root.inetboxModel
 			color: "transparent"
 			targetTemperatureSlider.hideTicks: Theme.screenSize !== Theme.Portrait
 			buttonOffsetX: 30
@@ -80,131 +80,6 @@ Page {
 		}
 	}
 
-	// // Room Temps
-	// ColumnLayout {
-	// 	id: mainTemps
-	// 	anchors {
-	// 		top: mainRow.bottom
-	// 		left: parent.left
-	// 		leftMargin: 40
-	// 		topMargin: 10
-	// 	}
-	// 	QuantityLabel {
-	// 		id: tempValue
-	// 		font.pixelSize: 44
-	// 		unit: Global.systemSettings.temperatureUnit
-
-	// 		value: inetbox.currentTemperatureItem.value ?? NaN
-	// 	}
-
-	// 	QuantityLabel {
-	// 		font.pixelSize: 24
-	// 		value: targetTemperatureSlider.pressed ? targetTemperatureSlider.value : inetbox.targetTemperature ?? NaN
-	// 		visible: inetbox.heatingOn | inetbox.airconOn
-	// 		unit: Global.systemSettings.temperatureUnit
-	// 		unitColor: Theme.color_overviewPage_widget_battery_font_secondary
-	// 	}
-	// }
-
-	// IC.CycleButtonGroup {
-	// 	id: cycleButtonGroup
-	// }
-
-	// // Water
-	// IC.CycleButton {
-	// 	id: waterHeaterCycleButton
-	// 	group: cycleButtonGroup
-	// 	icon.source: "qrc:/Inetbox/images/freshwater.svg"
-	// 	//% "Water"
-	// 	text: qsTrId("inetbox_energy_water")
-	// 	binding: inetbox.waterTargetTemperatureItem
-	// 	anchors {
-	// 		left: parent.left
-	// 		leftMargin: 150
-	// 		top: mainRow.bottom
-	// 		topMargin: root.inetboxOffsetY
-	// 	}
-	// 	model: inetbox.waterModeModel
-	// }
-	// QuantityLabel {
-	// 	//id: waterHeaterCurrentTemperature
-	// 	font.pixelSize: 24
-	// 	visible: inetbox.waterCurrentTemperatureItem.valid
-	// 	unit: Global.systemSettings.temperatureUnit
-	// 	value: inetbox.waterCurrentTemperatureItem.value ?? NaN
-	// 	anchors {
-	// 		left: waterHeaterCycleButton.right
-	// 		verticalCenter: waterHeaterCycleButton.verticalCenter
-	// 	}
-	// }
-	// // Heating
-	// IC.CycleButton {
-	// 	id: heatingCycleButton
-	// 	group: cycleButtonGroup
-	// 	icon.source: "qrc:/Inetbox/images/heating.svg"
-	// 	binding: root.inetbox.heatingModeItem
-
-	// 	//% "Heating"
-	// 	text: qsTrId("inetbox_energy_heating")
-	// 	anchors {
-	// 		left: waterHeaterCycleButton.left
-	// 		leftMargin: root.buttonOffsetX
-	// 		top: waterHeaterCycleButton.bottom
-	// 		topMargin: root.buttonOffsetY
-	// 	}
-	// 	model: root.inetbox.heatingModeModel
-	// }
-	// // Aircon mode
-	// IC.CycleButton {
-	// 	id: airconModeCycleButton
-	// 	group: cycleButtonGroup
-	// 	icon.source: "qrc:/Inetbox/images/aircon.svg"
-	// 	binding: root.inetbox.airconModeItem
-	// 	//% "Aircon"
-	// 	text: qsTrId("inetbox_energy_aircon")
-	// 	anchors {
-	// 		left: heatingCycleButton.left
-	// 		leftMargin: root.buttonOffsetX
-	// 		top: heatingCycleButton.bottom
-	// 		topMargin: root.buttonOffsetY
-	// 	}
-	// 	model: root.inetbox.airconModeModel
-	// }
-	// // Aircon Fan Speed
-	// IC.CycleButton {
-	// 	id: airconFanSpeedCycleButton
-	// 	group: cycleButtonGroup
-	// 	visible: root.inetbox.airconFanSpeedItem.valid
-	// 	icon.source: "qrc:/Inetbox/images/fan.svg"
-	// 	icon.color: airconModeCycleButton.icon.color
-	// 	binding: root.inetbox.airconFanSpeedItem
-	// 	//% "Fan speed"
-	// 	text: qsTrId("inetbox_energy_fan_speed")
-
-	// 	anchors {
-	// 		left: airconModeCycleButton.right
-	// 		top: airconModeCycleButton.top
-	// 	}
-	// 	model: root.inetbox.airconFanSpeedModel
-	// }
-	// // EnergyMix
-	// IC.CycleButton {
-	// 	id: energyMixButton
-	// 	group: cycleButtonGroup
-	// 	icon.source: "qrc:/Inetbox/images/energy_mix.svg"
-	// 	binding: root.inetbox.energyMixItem
-	// 	//% "Energy Mix"
-	// 	text: qsTrId("inetbox_energy_mix")
-
-	// 	anchors {
-	// 		left: airconModeCycleButton.left
-	// 		leftMargin: root.buttonOffsetX //* root.xOffset
-	// 		top: airconModeCycleButton.bottom
-	// 		topMargin: root.buttonOffsetY
-	// 	}
-	// 	model: root.inetbox.energyMix
-	// }
-
 	// version
 	Label {
 		color: "grey"
@@ -213,7 +88,7 @@ Page {
 			rightMargin: 50
 			bottom: bg_image.bottom
 		}
-		text: root.inetbox.version
+		text: root.inetboxModel.version
 	}
 
 	// left image

@@ -9,7 +9,7 @@ import "./components" as IC
 Page {
 	id: root
 
-	required property var inetbox
+	required property var inetboxModel
 	required property bool animationEnabled
 	required property GaugeModel gaugeModel
 	readonly property real buttonOffsetX: 0
@@ -35,7 +35,7 @@ Page {
 			animationEnabled: root.animationEnabled
 		}
 		IC.MotorhomeInetbox {
-			model: root.inetbox
+			model: root.inetboxModel
 			Layout.fillWidth: true
 		}
 	}

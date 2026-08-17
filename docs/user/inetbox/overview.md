@@ -2,26 +2,29 @@
 
 The Inetbox addon brings Truma Heating and Aircon control to the Venus OS.
 
-The serial bus micropython code was adapted from the inetbox2mqqt project:
+The serial bus micropython code was adapted from the inetbox2mqtt project:
 [inetbox2mqtt](https://github.com/mc0110/inetbox2mqtt)
 Many thanks guys!
 
 ## Prerequisites
 
-Install [Opkg Manager](../opkg-manager/setup.md) first before using this add-on.
+Install [Opkg Manager](../opkg-manager/setup.md) first before using this addon.
 
-The Inetbox addon requires some hardwere inbetween the CerboBX/Raspbery PI.
+The Inetbox addon requires some hardwere inbetween the CerboBX/Raspberry PI.
 See [Here](hardware.md) for details
 
 
 #### Gui-V2 - Dark Mode
-![Inetbox Overview Page](images/overview-page-gui-v2-dark.png "Inetbox Overview Page Image")
+![Inetbox Overview Page](images/motorhome-page-gui-v2-dark.webp "Inetbox Overview Page Image")
 
 #### Gui-V2 - Dark Mode - Portrait (phone)
-![Inetbox Overview Page Portrait](images/overview-page-gui-v2-dark.png "Inetbox Overview Page Portrait Image")
+
+<p align="center">
+  <img src="images/motorhome-page-gui-v2-portrait-dark.webp" alt="Motorhome dashboard" width="50%">
+</p>
 
 #### Gui-V2 - Light Mode
-![Inetbox Overview Page](images/overview-page-gui-v2-light.png "Inetbox Overview Page Image")
+![Inetbox Overview Page](images/motorhome-page-gui-v2-light.webp "Inetbox Overview Page Image")
 
 #### Gui-V1 - Light Mode
 ![Inetbox Overview Page](images/overview-page-gui-v1-light.webp "Inetbox Overview Page Image")

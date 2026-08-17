@@ -88,6 +88,7 @@ class InetboxController:
 				serviceName,
 				customName,
 				deviceInstance,
+				"sid_" + sid,
 				self.dbus_value_to_inetbox)
 
 	# serial port -> dbus com.victronenergy.inetbox_sid_[xxxx]
@@ -247,7 +248,7 @@ class InetboxController:
 				energyMixCombined = "el1"
 			elif elpower == "1800":
 				energyMixCombined = "el2"
- 
+
 		if (energyMixCombined):
 			self._dbusInetboxService.set_value(self.DBUS_PATH + "EnergyMixCombined", energyMixCombined)
 
@@ -290,7 +291,8 @@ class InetboxController:
 				'/CustomName' : [f'{self._settingsPath}/CustomName', "", "", ""],
 				'/DeviceKey' : [f'{self._settingsPath}/DeviceKey', dbus_constants.DEVICE_KEY_NAME, "", ""],
 				'/LastHeatingTemp' : [f'{self._settingsPath}/LastHeatingTemp', 16, 4, 30],
-				'/OverviewPage': [f'{self._settingsPath}/OverviewPage', dbus_constants.OVERVIEW_PAGE, "", ""]
+				'/OverviewPage': [f'{self._settingsPath}/OverviewPage', dbus_constants.OVERVIEW_PAGE, "", ""],
+				'/ShowAircon': [f'{self._settingsPath}/ShowAircon', True, 0, 1]
 				},
 			eventCallback = self._handle_dbus_setting_changed)
 

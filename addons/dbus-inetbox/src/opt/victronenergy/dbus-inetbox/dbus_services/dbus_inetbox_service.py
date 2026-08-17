@@ -6,7 +6,7 @@ from dbus_constants import dbus_constants
 
 class dbusInetboxService(dbus_base_service):
 
-	def __init__(self, portName:str, serviceName:str,customName:str, deviceInstance:int, onValueChangedCallback = None):
+	def __init__(self, portName:str, serviceName:str,customName:str, deviceInstance:int, sid:str, onValueChangedCallback = None):
 
 		connection = os.path.basename(portName) # convert from /dev/ttyxxx to ttyxxx
 
@@ -20,10 +20,9 @@ class dbusInetboxService(dbus_base_service):
 			'',
 			'',
 			paths =  {
-				'/CustomName': {'initial': "",'writable': customName},
+				'/Sid': {'initial': sid,'writable': False},
+				'/CustomName': {'initial': customName,'writable': True },
 				'/State': {'initial': 0x100, 'writable': False},
-
-				'/Temperature': {'initial': None,'writable': False},
 				'/CustomAlarm': {'initial': 0,'writable': True},
 				'/CustomAlarmText': {'initial': "",'writable': True},
 				'/Values/WaterCurrentTemp': {'initial': None,'writable': False},

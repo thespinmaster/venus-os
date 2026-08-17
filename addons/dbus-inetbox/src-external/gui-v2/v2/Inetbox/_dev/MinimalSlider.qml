@@ -2,9 +2,10 @@ import QtQuick 2.15
 import QtQuick.Templates 2.15 as T
 import QtQuick.Controls as Controls
 import QtQuick.Layouts
+import Qt5Compat.GraphicalEffects
 
 Rectangle {
-	id: root
+	id: rt
 
 	color: "black"
 	anchors.fill: parent
@@ -28,11 +29,11 @@ Rectangle {
 			to: 32
 			stepSize: 1
 
-			angle: 250 // Slanted 25 degrees
+			//angle: 250 // Slanted 25 degrees
 
 			//onValueChanged: console.log("Value changed to:", value)
 		}
- 
+
 		anchors {
 			fill: parent
 			leftMargin: 5
@@ -41,13 +42,13 @@ Rectangle {
 	}
 
 	component MinimalSlider: T.Slider {
-		id: control
+		id: root
 
 		property real angle: 0
 		//property color trackColor: "#E0E0E0"
 		property color progressColor: "#2196F3"
-		property color handleColor: '#911e88e5'
-		property color handlePressedColor: "#1565C0"
+		property color handleColor: '#ff1e88e5'
+		property color handlePressedColor: "#ff1565C0"
 		property color tickColor: '#ffffff'
 
 		property bool hideProgress: true
@@ -76,26 +77,26 @@ Rectangle {
 
 		// --- Track / Background Delegate ---
 		background: Item {
-			x: control.leftPadding
-			y: control.topPadding + control.availableHeight / 2 - height / 2
+			x: root.leftPadding
+			y: root.topPadding + root.availableHeight / 2 - height / 2
 			implicitWidth: 200 // default width
-			implicitHeight: control.trackThickness
-			width: control.availableWidth
+			implicitHeight: root.trackThickness
+			width: root.availableWidth
 			height: implicitHeight
 
 			// Active Progress Fill
 			Rectangle {
-				width: control.visualPosition * parent.width
+				width: root.visualPosition * parent.width
 				height: parent.height
-				color: control.progressColor
+				color: root.progressColor
 
-				opacity: control.hideProgress ? (control.pressed ? 1.0 : 0.0) : 1.0
+				opacity: root.hideProgress ? (root.pressed ? 1.0 : 0.0) : 1.0
 				Behavior on opacity  {
-					enabled: control.hideProgress
+					enabled: root.hideProgress
 					NumberAnimation {
-						duration: control.pressed ? 2000 : 150
+						duration: root.pressed ? 2000 : 150
 						// Optional: Easing curves make the transition feel even smoother
-						easing.type: control.pressed ? Easing.OutCubic : Easing.InQuad
+						easing.type: root.pressed ? Easing.OutCubic : Easing.InQuad
 					}
 				}
 			}
@@ -104,52 +105,119 @@ Rectangle {
 			Item {
 				anchors.fill: parent
 
-				opacity: control.hideTicks ? (control.pressed ? 1.0 : 0.0) : 1.0
+				opacity: root.hideTicks ? (root.pressed ? 1.0 : 0.0) : 1.0
 				Behavior on opacity  {
-					enabled: control.hideTicks
+					enabled: root.hideTicks
 					NumberAnimation {
-						duration: control.pressed ? 2000 : 150
+						duration: root.pressed ? 2000 : 150
 						// Optional: Easing curves make the transition feel even smoother
-						easing.type: control.pressed ? Easing.OutCubic : Easing.InQuad
+						easing.type: root.pressed ? Easing.OutCubic : Easing.InQuad
 					}
 				}
 
 				Repeater {
-					model: (control.stepSize > 0 && control.to > control.from) ? Math.floor((control.to - control.from) / control.stepSize) + 1 : 0
+					model: (root.stepSize > 0 && root.to > root.from) ? Math.floor((root.to - root.from) / root.stepSize) + 1 : 0
 
 					delegate: Rectangle {
 						id: tick
-						rotation: control.tickAngle
+						rotation: root.tickAngle
 						transformOrigin: Item.Center
 						required property int index
-						property real range: control.to - control.from
-						property real fraction: range > 0 ? (index * control.stepSize) / range : 0
+						property real range: root.to - root.from
+						property real fraction: range > 0 ? (index * root.stepSize) / range : 0
 
 						x: fraction * parent.width - (width / 2)
 						anchors.verticalCenter: parent.verticalCenter
-						width: control.tickThickness
-						height: control.tickLength
-						color: control.tickColor
-						radius: control.tickThickness
+						width: root.tickThickness
+						height: root.tickLength
+						color: root.tickColor
+						radius: root.tickThickness
 					}
 				}
 			}
 		}
 
 		// --- Circular Handle Delegate ---
-		handle: Rectangle {
-			x: control.leftPadding + control.visualPosition * control.availableWidth - width / 2
-			y: control.topPadding + control.availableHeight / 2 - height / 2
-			implicitWidth: control.handleDiameter
-			implicitHeight: control.handleDiameter
-			radius: width / 2
-			color: control.pressed ? control.handlePressedColor : control.handleColor
+		handle: Item {
+				implicitWidth: root.handleDiameter
+				implicitHeight: root.handleDiameter
+			Rectangle {
+				id: original
+				x: root.leftPadding + root.visualPosition * root.availableWidth - width / 2
+				y: root.topPadding + root.availableHeight / 2 - height / 2
+				implicitWidth: root.handleDiameter
+				implicitHeight: root.handleDiameter
+				radius: width / 2
+				color: root.pressed ? root.handlePressedColor : root.handleColor
 
-			border.color: "#FFFFFF"
-			border.width: 2
+				border.color: "#FFFFFF"
+				border.width: 2
+			}
+			Item {
+				id: reflection
+				x: original.x
+				y: original.height + 3
+				width: original.width
+				height: original.height
+				opacity: .5
+
+				Rectangle {
+					id: reflectionMask
+
+					width: original.width
+					height: original.height
+					radius: original.radius
+
+					gradient: Gradient {
+						GradientStop {
+							position: 0.0
+							color: '#ffffffff'
+						}
+						GradientStop {
+							position: .8
+							color: "#00ffffff"
+						}
+					}
+				}
+				Rectangle {
+					id: reflectionMask3
+					x: 2
+					y: 2
+					width: original.width -4
+					height: original.height -4
+					radius: original.radius
+
+					gradient: Gradient {
+						GradientStop {
+							position: 0.0
+							color: '#ff000000'
+						}
+						GradientStop {
+							position: .8
+							color: "#00000000"
+						}
+					}
+				}
+				Rectangle {
+					id: reflectionMask2
+					x: 2
+					y: 2
+					width: original.width -4
+					height: original.height -4
+					radius: original.radius
+
+					gradient: Gradient {
+						GradientStop {
+							position: 0.0
+							color: '#1e88e5'
+						}
+						GradientStop {
+							position: 0.8
+							color: "#00ffffff"
+						}
+					}
+				}
+			}
 		}
 	}
-
-
-
 }

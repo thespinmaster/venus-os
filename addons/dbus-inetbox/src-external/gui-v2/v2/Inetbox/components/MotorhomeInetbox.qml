@@ -107,18 +107,22 @@ Rectangle {
 				icon.source: "qrc:/Inetbox/images/aircon.svg"
 				binding: root.model.airconModeItem
 				model: root.model.airconModeModel
+				visible: root.model.showAircon
 				//% "Aircon"
 				text: qsTrId("inetbox_energy_aircon")
 				Layout.leftMargin: heatingCycleButton.x + root.buttonOffsetX
 			}
 			Loader {
-				active: Theme.screenSize !== Theme.Portrait
+				active: root.model.showAircon && Theme.screenSize !== Theme.Portrait
+				// needed incase showAircon was previously true
+				Layout.preferredHeight: !root.model.showAircon ? 0 : implicitHeight
 				Layout.leftMargin: 40
 				sourceComponent: airconFanSpeedCycleButtonFactory
 			}
 		}
 		Loader {
-			active: Theme.screenSize === Theme.Portrait
+			active: root.model.showAircon && Theme.screenSize === Theme.Portrait
+			Layout.preferredHeight: !root.model.showAircon ? 0 : implicitHeight
 			Layout.leftMargin: 40
 			sourceComponent: airconFanSpeedCycleButtonFactory
 		}
@@ -135,8 +139,6 @@ Rectangle {
 				binding: root.model.airconFanSpeedItem
 				model: root.model.airconFanSpeedModel
 
-
-
 				//% "Fan speed"
 				text: qsTrId("inetbox_energy_fan_speed")
 			}
@@ -150,7 +152,9 @@ Rectangle {
 			model: root.model.energyMixModel
 			//% "Energy Mix"
 			text: qsTrId("inetbox_energy_mix")
-			Layout.leftMargin: airconModeCycleButton.x + root.buttonOffsetX
+			Layout.leftMargin: (root.model.showAircon
+				? airconModeCycleButton.x
+				: heatingCycleButton.x) + root.buttonOffsetX
 
 		}
 	}

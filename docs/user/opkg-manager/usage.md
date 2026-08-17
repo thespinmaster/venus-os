@@ -7,7 +7,7 @@ This guide walks you through the basic use of Opkg Manager, including how to man
 ### Packages
 Use the Packages page to install, upgrade, reinstall, or remove add-ons.
 
-![Opkg Manager Packages](images/settings-packages.webp "Opkg Manager Packages")
+![Opkg Manager Packages](images/settings-packages-list.webp "Opkg Manager Packages")
 
 Typical workflow:
 
@@ -28,7 +28,7 @@ Tip: Enable **No Action** first to preview dependency resolution before making c
 ### Feeds
 Feeds are package sources. The **Feeds** page lets you manage which repositories Opkg Manager uses.
 
-![Opkg Manager Feeds](images/settings-feeds.webp "Opkg Manager Feeds")
+![Opkg Manager Feeds](images/settings-feeds-list.webp "Opkg Manager Feeds")
 
 Common feed tasks:
 
