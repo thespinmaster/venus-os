@@ -1,6 +1,8 @@
 import QtQuick
 import QtQuick.Layouts
 import Victron.VenusOS
+import "qrc:/OpkgManager/components/OpkgSingleton.js" as OpkgSingleton
+
 
 Rectangle {
 	id: root
@@ -18,6 +20,13 @@ Rectangle {
 		anchors.fill: parent
 		anchors.margins: 4
 		// Room Temps
+
+		Connections {
+			target: Global.pageManager.navBar
+			function onCurrentIndexChanged() {
+				console.log("AAA: onCurrentIndexChanged", Global.mainView.navBar.currentIndex)
+			}
+		}
 		RowLayout {
 			id: mainTemps
 			spacing: 10
@@ -115,14 +124,14 @@ Rectangle {
 			Loader {
 				active: root.model.showAircon && Theme.screenSize !== Theme.Portrait
 				// needed incase showAircon was previously true
-				Layout.preferredHeight: !root.model.showAircon ? 0 : implicitHeight
+				Layout.preferredHeight: !root.model?.showAircon ? 0 : implicitHeight
 				Layout.leftMargin: 40
 				sourceComponent: airconFanSpeedCycleButtonFactory
 			}
 		}
 		Loader {
 			active: root.model.showAircon && Theme.screenSize === Theme.Portrait
-			Layout.preferredHeight: !root.model.showAircon ? 0 : implicitHeight
+			Layout.preferredHeight: !root.model?.showAircon ? 0 : implicitHeight
 			Layout.leftMargin: 40
 			sourceComponent: airconFanSpeedCycleButtonFactory
 		}
