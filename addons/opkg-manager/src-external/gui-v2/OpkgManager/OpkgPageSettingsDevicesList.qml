@@ -32,7 +32,7 @@ Page {
 			ListButton {
 				// "Scan for devices"
 				text: qsTrId("page_settings_modbus_scan_for_devices")
-				secondaryText: progressText.running  ? progressText.text : CommonWords.press_to_scan
+				secondaryText: progressText.running  ? progressText.text : CommonWords.scan_action
 				onClicked: root.toggleScan()
 				preferredVisible: userHasWriteAccess
 			}
