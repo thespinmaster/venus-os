@@ -278,7 +278,7 @@ install_helper_initialize() {
 	addsource "opkg-common"
 	addsource "dbus-common"
 	addsource "file-patcher"
-
+  addsource "serial-device-installer"
 }
 
 install_helper_restart_gui_service() {
