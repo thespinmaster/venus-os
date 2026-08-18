@@ -162,7 +162,7 @@ install_helper_add_custom_overview_pages() {
 	for entry in "${PACKAGE_CUSTOM_OVERVIEW_PAGES[@]}"; do
 		__install_helper_parse_custom_overview_page_entry "${entry}" key value || return 1
 
-		dbus_common_add_settings <<EOF
+		dbus_common_add_settings 1>/dev/null <<EOF
 {'path':'/Settings/OpkgManager/CustomOverviewPages/${key}', 'default':'${value}'}
 EOF
 	done
@@ -174,7 +174,7 @@ install_helper_remove_custom_overview_pages() {
 	for entry in "${PACKAGE_CUSTOM_OVERVIEW_PAGES[@]}"; do
 		__install_helper_parse_custom_overview_page_entry "${entry}" key value || return 1
 
-		dbus_common_remove_settings <<EOF
+		dbus_common_remove_settings 1>/dev/null <<EOF
 {'path':'/Settings/OpkgManager/CustomOverviewPages/${key}'}
 EOF
 	done
@@ -186,7 +186,7 @@ install_helper_add_custom_menus() {
 	for entry in "${PACKAGE_CUSTOM_MENUS[@]}"; do
 		__install_helper_parse_custom_menu_entry "${entry}" menu_path value || return 1
 
-		dbus_common_add_settings <<EOF
+		dbus_common_add_settings 1>/dev/null <<EOF
 {'path':'/Settings/OpkgManager/CustomMenus/${menu_path}', 'default':'${value}'}
 EOF
 	done
@@ -198,7 +198,7 @@ install_helper_remove_custom_menus() {
 	for entry in "${PACKAGE_CUSTOM_MENUS[@]}"; do
 		__install_helper_parse_custom_menu_entry "${entry}" menu_path value || return 1
 
-		dbus_common_remove_settings <<EOF
+		dbus_common_remove_settings 1>/dev/null <<EOF
 {'path':'/Settings/OpkgManager/CustomMenus/${menu_path}'}
 EOF
 	done
@@ -226,7 +226,7 @@ __install_helper_require_custom_device_vars() {
 install_helper_add_custom_device() {
 	__install_helper_require_custom_device_vars || return 1
 
-	dbus_common_add_settings <<EOF
+	dbus_common_add_settings 1>/dev/null <<EOF
 {'path':'/Settings/OpkgManager/Devices/${PACKAGE_DEVICE_KEY}/ProductName', 'default':'${PACKAGE_DEVICE_DISPLAY_NAME}'}
 {'path':'/Settings/OpkgManager/Devices/${PACKAGE_DEVICE_KEY}/ServiceName', 'default':'${PACKAGE_DEVICE_SERVICE_NAME}'}
 EOF
@@ -235,7 +235,7 @@ EOF
 install_helper_remove_custom_device() {
 	__install_helper_require_custom_device_vars || return 1
 
-	dbus_common_remove_settings <<EOF
+	dbus_common_remove_settings 1>/dev/null <<EOF
 {'path':'/Settings/OpkgManager/Devices/${PACKAGE_DEVICE_KEY}/ProductName'}
 {'path':'/Settings/OpkgManager/Devices/${PACKAGE_DEVICE_KEY}/ServiceName'}
 EOF
@@ -357,10 +357,10 @@ install_helper_install() {
 		echo "Adding dbus settings"
 
 	[[ -n "${PACKAGE_DBUS_SETTINGS_DEPRECATED:-}" ]] &&
-		dbus_common_remove_settings <<< "${PACKAGE_DBUS_SETTINGS_DEPRECATED}"
+		dbus_common_remove_settings <<< "${PACKAGE_DBUS_SETTINGS_DEPRECATED}" 1>/dev/null
 
 	[[ -n "${PACKAGE_DBUS_SETTINGS:-}" ]] && {
-		dbus_common_add_settings <<< "${PACKAGE_DBUS_SETTINGS}"
+		dbus_common_add_settings <<< "${PACKAGE_DBUS_SETTINGS}" 1>/dev/null
 	}
 
 	if __install_helper_has_custom_overview_pages; then
@@ -424,7 +424,7 @@ install_helper_remove() {
 
 	[[ -n "${PACKAGE_DBUS_SETTINGS:-}" ]] && {
 		echo "Removing dbus settings"
-		dbus_common_remove_settings <<< "$PACKAGE_DBUS_SETTINGS"
+		dbus_common_remove_settings <<< "$PACKAGE_DBUS_SETTINGS" 1>/dev/null
 	}
 
 	if __install_helper_has_custom_overview_pages; then
