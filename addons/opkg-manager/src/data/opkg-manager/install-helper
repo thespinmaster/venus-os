@@ -289,6 +289,49 @@ install_helper_restart_gui_service() {
 	nohup svc -t /service/gui >/dev/null 2>&1 &
 }
 
+install_helper_uninstall_services() {
+
+	[[ "$PACKAGE_ACTION" == "upgrade-remove" ]] &&
+		return
+
+	addsource "serial-device-installer"
+
+	serial_device_installer_uninstall_service "${PACKAGE_DEVICE_SERVICE_NAME}"
+}
+
+__install_helper_stop_services() {
+
+	[[ -z ${PACKAGE_SERVICES:-} ]] && return
+
+	local service=
+	for service in "${PACKAGE_SERVICES[@]}"; do
+		svc -dx "/service/$service"
+		svc -dx "/service/${service}/log"
+		rm -f "/service/${service}"
+	done
+}
+
+__install_helper_start_services() {
+
+	[[ -z ${PACKAGE_SERVICES:-} ]] && return
+
+	local service=
+	for service in "${PACKAGE_SERVICES[@]}"; do
+		cp -rf "/opt/victronenergy/service/${service}" "/service"
+	done
+}
+
+install_helper_update_services() {
+	# always call this code (as we need it to run on a firmware upgrade)
+	# [[ "$PACKAGE_ACTION" != "upgrade-install" ]] && return
+
+	echo "Restarting services..."
+
+	addsource "serial-device-installer"
+	DEVICE_SERVICE_NAME="${PACKAGE_DEVICE_SERVICE_NAME}"
+	serial_device_installer_restart_services
+}
+
 install_helper_install() {
 
   [[ -z "${PACKAGE_NAME:-}" ]] && { echo "ERROR: PACKAGE_NAME not set"; return 1; }
@@ -332,10 +375,13 @@ install_helper_install() {
 
 	if [[ -n "${PACKAGE_DEVICE_SERVICE_NAME}" ]]; then
 		addsource "serial-device-installer"
+		# shellcheck disable=SC2034  # used by serial_device_installer
 		DEVICE_SERVICE_NAME="${PACKAGE_DEVICE_SERVICE_NAME}"
 		serial_device_installer_add_service_mapping
 		install_helper_update_services
 	fi
+
+	__install_helper_start_services
 
 	__install_helper_install_guiv2_plugin
 
@@ -347,40 +393,6 @@ install_helper_install() {
 
 	return 0
 }
-
-install_helper_uninstall_services() {
-
-	[[ "$PACKAGE_ACTION" == "upgrade-remove" ]] &&
-		return
-
-	addsource "serial-device-installer"
-
-	serial_device_installer_uninstall_service "${PACKAGE_DEVICE_SERVICE_NAME}"
-}
-
-__install_helper_stop_services() {
-
-	[[ -z ${PACKAGE_SERVICES:-} ]] && return
-
-	local service=
-	for service in "${PACKAGE_SERVICES[@]}"; do
-		svc -dx "/service/$service"
-		svc -dx "/service/${service}/log"
-		rm -f "/service/${service}"
-	done
-}
-
-install_helper_update_services() {
-	# always call this code (as we need it to run on a firmware upgrade)
-	# [[ "$PACKAGE_ACTION" != "upgrade-install" ]] && return
-
-	echo "Restarting services..."
-
-	addsource "serial-device-installer"
-	DEVICE_SERVICE_NAME="${PACKAGE_DEVICE_SERVICE_NAME}"
-	serial_device_installer_restart_services
-}
-
 
 install_helper_remove() {
 
