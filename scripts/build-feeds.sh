@@ -6,7 +6,7 @@
 #####################################################
 
 set -euo pipefail
- 
+
 echo "======================================="
 echo " Validating feeds"
 echo "======================================="
@@ -26,16 +26,21 @@ echo "======================================="
 echo "Creating latest feed package"
 echo "======================================="
 
-declare newest_opkg_manager_ipk=$(find feeds/release/opkg-manager -type f -name 'opkg-manager*.ipk' -printf '%T@ %p\n' | sort -nr | head -n1 | cut -d' ' -f2-)
+function create_latest_feed_package() {
+	local feed="${1}"
+	local newest_opkg_manager_ipk="$(find feeds/"${feed}"/opkg-manager -type f -name 'opkg-manager*.ipk' -printf '%T@ %p\n' | sort -nr | head -n1 | cut -d' ' -f2-)"
 
-if [ -n "$newest_opkg_manager_ipk" ]; then
-    latest_copy_path="$(dirname "$newest_opkg_manager_ipk")/opkg-manager-latest.ipk"
-    cp -f "$newest_opkg_manager_ipk" "$latest_copy_path"
-    echo "Created latest package copy: $latest_copy_path"
-else
-    echo "No opkg-manager*.ipk package found under feeds/"
-fi
+	if [ -n "$newest_opkg_manager_ipk" ]; then
+			latest_copy_path="$(dirname "$newest_opkg_manager_ipk")/opkg-manager-latest.ipk"
+			cp -f "$newest_opkg_manager_ipk" "$latest_copy_path"
+			echo "Created latest package copy: feeds/${feed}/$latest_copy_path"
+	else
+			echo "No opkg-manager*.ipk package found under feeds/${feed}"
+	fi
+}
 
+create_latest_feed_package "release"
+create_latest_feed_package "develop"
 
 echo "======================================="
 echo " Generating feed HTML indexes"
@@ -77,7 +82,7 @@ find feeds -type d | while read -r dir; do
         [ -e "$f" ] || continue
         name=$(basename "$f")
         [ "$name" = "index.html" ] && continue
-        
+
         if [ -f "$f" ]; then
             size=$(stat -c %s "$f")
             size=$(numfmt --to=iec --suffix=B "$size")
