@@ -302,12 +302,13 @@ install_helper_uninstall_services() {
 __install_helper_stop_services() {
 
 	[[ -z ${PACKAGE_SERVICES:-} ]] && return
+	echo "Removing services"
 
 	local service=
 	for service in "${PACKAGE_SERVICES[@]}"; do
 		svc -dx "/service/$service"
 		svc -dx "/service/${service}/log"
-		rm -f "/service/${service}"
+		rm -rf "/service/${service}"
 	done
 }
 
