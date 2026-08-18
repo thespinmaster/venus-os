@@ -8,19 +8,7 @@ QtObject {
 	//Component.onDestruction: {
 		//console.debug("OpkgCustomPageModel: DESTROYED: ", root)
 	//}
-	property Timer timer: Timer{
-		interval: 3000
-		onTriggered: {
-			console.log("AAA: onTriggered 22")
-			Global.pageManager.navBar.setCurrentIndex(0)
-			//Global.mainView.swipeView.setCurrentIndex(0)
-			console.log("AAA: onTriggered 2")
-		}
-	}
-	function test() {
-		console.log("AAA: starting timer")
-		timer.start()
-	}
+
 	Component.onCompleted: {
 		//console.debug("OpkgCustomPageModel: CREATED", root)
 		if (allPagesLoaded)
@@ -141,7 +129,7 @@ QtObject {
 		//
 
 		Global.mainView.navBar.pages.length = model.count
-		for (var i = 0; i < model.count; ++i) {
+		for (var i = 0; i < model.count; ++i)
 			Global.mainView.navBar.pages[i] = model.get(i)
 
 		_customPages = customPages.slice()
