@@ -226,7 +226,7 @@ develop_source_byref() {
   dest_path="$build_path/$rel_src_path"
 
   options=(--exclude=*.bak --exclude=.git --exclude=*.tmp --exclude=tests/)
-  options+=(--exclude=*-v[0-9] --exclude=*.old --exclude=.venv/)
+  options+=(--exclude=*.old --exclude=.venv/)
 
   # Exclude directories containing .opkg-ignore
   while IFS= read -r rel_dir; do
