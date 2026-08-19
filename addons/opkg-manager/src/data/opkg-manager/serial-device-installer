@@ -158,9 +158,10 @@ serial_device_installer_add_service_mapping() {
 		local tmp
 		tmp=$(mktemp)
 		local entry="service ${service_mapping_name}"$'\t\t'"${DEVICE_SERVICE_NAME}"
+
 		{
 			printf '%s\n' "${entry}"
-			cat "${SERIAL_STARTER_CONFIG_FILE}"
+			[[ -f "${SERIAL_STARTER_CONFIG_FILE}" ]] && cat "${SERIAL_STARTER_CONFIG_FILE}"
 		} >"$tmp" || {
 					rm -f "$tmp"
 					log_error "ERROR: could not update ${SERIAL_STARTER_CONFIG_FILE}"
