@@ -304,9 +304,6 @@ __install_helper_stop_services() {
 
 	[[ -z ${PACKAGE_SERVICES:-} ]] && return
 
-	[[ "$PACKAGE_ACTION" == "upgrade-remove" ]] &&
-		return
-
 	echo "Removing services"
 
 	local service=
@@ -326,18 +323,13 @@ __install_helper_start_services() {
 
 	local service=
 
-	# Use up/down rather than -t as there may be new services when upgrading
-	# Dont rely on svscan to auto start as some services may be new,
-	# and some might be old, and need re-starting
-
 	echo "Restarting services"
 
-	cp -rf "/opt/victronenergy/service/${service}" "/service"
-
 	for service in "${PACKAGE_SERVICES[@]}"; do
+		cp -rf "/opt/victronenergy/service/${service}" "/service"
 
-		svc -dx "/service/$service"
-		svc -dx "/service/${service}/log"
+		svc -t "/service/$service"
+		svc -t "/service/${service}/log"
 
 		svc -u "/service/$service"
 		svc -u "/service/${service}/log"
