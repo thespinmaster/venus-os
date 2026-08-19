@@ -289,7 +289,7 @@ install_helper_restart_gui_service() {
 	nohup svc -t /service/gui >/dev/null 2>&1 &
 }
 
-install_helper_uninstall_services() {
+install_helper_uninstall_serial_device_services() {
 
 	[[ "$PACKAGE_ACTION" == "upgrade-remove" ]] &&
 		return
@@ -299,9 +299,28 @@ install_helper_uninstall_services() {
 	serial_device_installer_uninstall_service "${PACKAGE_DEVICE_SERVICE_NAME}"
 }
 
+
+__install_helper_restart_services() {
+
+	[[ "$PACKAGE_ACTION" != "upgrade-indtall" ]] &&
+		return
+
+	echo "Restarting services"
+
+	local service=
+	for service in "${PACKAGE_SERVICES[@]}"; do
+		svc -t "/service/$service"
+		svc -t "/service/${service}/log"
+	done
+}
+
 __install_helper_stop_services() {
 
 	[[ -z ${PACKAGE_SERVICES:-} ]] && return
+
+	[[ "$PACKAGE_ACTION" == "upgrade-remove" ]] &&
+		return
+
 	echo "Removing services"
 
 	local service=
@@ -315,12 +334,25 @@ __install_helper_stop_services() {
 __install_helper_start_services() {
 
 	[[ -z ${PACKAGE_SERVICES:-} ]] && return
-	echo "Installing services"
 
 	local service=
+
+	# Use up/down rather than -t as there may be new services when upgrading
+	# Dont rely on svscan to auto start as some services may be new,
+	# and some might be old, and need re-starting
+
+	echo "Restarting services"
+
+	cp -rf "/opt/victronenergy/service/${service}" "/service"
+
 	for service in "${PACKAGE_SERVICES[@]}"; do
-		cp -rf "/opt/victronenergy/service/${service}" "/service"
+		svc -dx "/service/$service"
+		svc -dx "/service/${service}/log"
+
+		svc -u "/service/$service"
+		svc -u "/service/${service}/log"
 	done
+
 }
 
 install_helper_update_services() {
@@ -439,7 +471,7 @@ install_helper_remove() {
 
 	if [[ -n "${PACKAGE_DEVICE_SERVICE_NAME}" ]]; then
 		echo "Removing services for ${PACKAGE_DEVICE_SERVICE_NAME}"
-		install_helper_uninstall_services
+		install_helper_uninstall_serial_device_services
 	fi
 
 	__try_call "post_remove"

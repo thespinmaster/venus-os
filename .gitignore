@@ -1,19 +1,5 @@
 # Ignore build and generated files in qmlplugin
-addons/opkg-manager/src/qmlplugin/build*/
-addons/opkg-manager/src/qmlplugin/*.o
-addons/opkg-manager/src/qmlplugin/*.so
-addons/opkg-manager/src/qmlplugin/*.a
-addons/opkg-manager/src/qmlplugin/*.user
-addons/opkg-manager/src/qmlplugin/*.pro.user
-addons/opkg-manager/src/qmlplugin/.qmake.stash
-addons/opkg-manager/src/qmlplugin/.qmake.cache
-addons/opkg-manager/src/qmlplugin/.qt/
-addons/opkg-manager/src/qmlplugin/Makefile
-addons/opkg-manager/src/qmlplugin/CMakeFiles/
-addons/opkg-manager/src/qmlplugin/CMakeCache.txt
-addons/opkg-manager/src/qmlplugin/cmake_install.cmake
-addons/opkg-manager/src/qmlplugin/*.autosave
-addons/opkg-manager/src/qmlplugin/*_autogen/
+
 archive/
 .build/**/
 tooling/**/
@@ -27,3 +13,4 @@ env/
 __pycache__/
 .build/
 tmp/
+opkg-manager-latest.ipk

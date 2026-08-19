@@ -310,7 +310,20 @@ promote_feed() {
 
   echo "promoted ${feed_name} feed"
 }
+function create_latest_feed_package() {
+	local feed="${1}"
+	local feed_path="${feeds_root}/${feed}/opkg-manager"
+	local newest_opkg_manager_ipk
+	newest_opkg_manager_ipk="$(find "$feed_path" -type f -name 'opkg-manager*.ipk' -printf '%T@ %p\n' | sort -nr | head -n1 | cut -d' ' -f2-)"
 
+	if [ -n "$newest_opkg_manager_ipk" ]; then
+			local latest_copy_path="${feed_path}/opkg-manager-latest.ipk"
+			cp -f "$newest_opkg_manager_ipk" "$latest_copy_path"
+			echo "Created latest package copy: ${latest_copy_path}"
+	else
+			echo "No opkg-manager*.ipk package found under ${feed_path}"
+	fi
+}
 promote_release() {
   local feed_name
   local -a feeds_to_promote=()
@@ -400,6 +413,13 @@ build_feed_indexes
 
 if (( develop_only == 0 )); then
   promote_release
+fi
+
+if ((develop_only == 1)); then
+	if echo "${build_items[@]}" | grep -q "opkg-manager"; then
+	  #NOTE not part of feed indexes, this is a direct opkg download.
+		create_latest_feed_package develop
+	fi
 fi
 
 cd "$pwd_old" || true

@@ -31,6 +31,7 @@ Page {
 
 			text: modelData.name
 			caption: root.opkgManager.showCompact ? "" : modelData.url
+
 			onClicked: Global.pageManager.pushPage(
 				"qrc:/OpkgManager/OpkgPageSettingsFeedEdit.qml", {
 					title: modelData.name,
@@ -43,7 +44,6 @@ Page {
 	}
 
 	function loadFeeds(feeds, refreshFeedName, refreshModelCallback) {
-		console.log("loadFeeds in:" + feeds)
 		settingsListView.model = feeds
 		// Refresh the model
 		if (refreshModelCallback)
