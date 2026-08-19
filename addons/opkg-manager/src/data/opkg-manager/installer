@@ -29,6 +29,9 @@ post_install() {
   echo "Please wait, updating packages..."
   opkg_common_update_packages
 
+	[[ "$PACKAGE_ACTION" == "upgrade-install" ]] &&
+		svc -t /service/opkg-manager
+
   RESTART_GUI_SERVICE=1
 }
 

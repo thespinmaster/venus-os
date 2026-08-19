@@ -300,20 +300,6 @@ install_helper_uninstall_serial_device_services() {
 }
 
 
-__install_helper_restart_services() {
-
-	[[ "$PACKAGE_ACTION" != "upgrade-indtall" ]] &&
-		return
-
-	echo "Restarting services"
-
-	local service=
-	for service in "${PACKAGE_SERVICES[@]}"; do
-		svc -t "/service/$service"
-		svc -t "/service/${service}/log"
-	done
-}
-
 __install_helper_stop_services() {
 
 	[[ -z ${PACKAGE_SERVICES:-} ]] && return
@@ -325,6 +311,9 @@ __install_helper_stop_services() {
 
 	local service=
 	for service in "${PACKAGE_SERVICES[@]}"; do
+	  # Don't remove the opkg-manager service if upgrading
+		[[ "$service" == "opkg-manager" && "$PACKAGE_ACTION" == "upgrade-remove" ]] && continue
+
 		svc -dx "/service/$service"
 		svc -dx "/service/${service}/log"
 		rm -rf "/service/${service}"
@@ -346,6 +335,7 @@ __install_helper_start_services() {
 	cp -rf "/opt/victronenergy/service/${service}" "/service"
 
 	for service in "${PACKAGE_SERVICES[@]}"; do
+
 		svc -dx "/service/$service"
 		svc -dx "/service/${service}/log"
 
@@ -355,7 +345,7 @@ __install_helper_start_services() {
 
 }
 
-install_helper_update_services() {
+install_helper_restart_serial_device_services() {
 	# always call this code (as we need it to run on a firmware upgrade)
 	# [[ "$PACKAGE_ACTION" != "upgrade-install" ]] && return
 
@@ -412,7 +402,7 @@ install_helper_install() {
 		# shellcheck disable=SC2034  # used by serial_device_installer
 		DEVICE_SERVICE_NAME="${PACKAGE_DEVICE_SERVICE_NAME}"
 		serial_device_installer_add_service_mapping
-		install_helper_update_services
+		install_helper_restart_serial_device_services
 	fi
 
 	__install_helper_start_services
