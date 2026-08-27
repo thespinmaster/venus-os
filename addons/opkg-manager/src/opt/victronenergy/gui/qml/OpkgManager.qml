@@ -1,20 +1,21 @@
-// SYM LINKED
+// HARD LINKED
 import QtQuick 2
 
 QtObject {
 	id: root
 
 	property alias traceEnabled: bridge.traceEnabled
-	readonly property bool running: _operationName != ""// bridge.running || dataReader.running
+	readonly property bool running: _operationName != "" || _finalizing_install
 	readonly property string operationName: _operationName
 	property string _operationName: ""
-	property bool noAction: noActionSetting.value !== 0
-	property bool showCompact: showCompactSetting.value !== 0
+	property bool noAction: noActionSetting.value == 1
+	property bool showCompact: showCompactSetting.value == 1
 	property var outputLog: null
 	property string _lastErrorLine: ""
 	property var _completionCallback: undefined
 	property var _connected: _connectedItem.value == 1
 	readonly property string serviceUid: _connectedItem.opkgManagerServiceUid
+	property bool _finalizing_install: false
 
 	signal log(string line)
 
@@ -25,8 +26,11 @@ QtObject {
 
 	function tryPop(toPage) {
 		//var _unused = toPage
-		if (running) {
-			root.showToastNotification(0, qsTr("Please wait for the operation to finish"), 2000)
+		if (running && !_finalizing_install) {
+
+			//% "Please wait for the operation to finish"
+			root.showToastNotification(0, qsTrId("opkg_wait_for_opkg_operation_to_finish"), 2000)
+
 			return false
 		}
 		return true
@@ -72,12 +76,21 @@ QtObject {
 	}
 
 	function _writeLog(line) {
+		if (line=="--#$~") {
+			_finalizing_install = true
+			const Notification_Info=2
+			//% "Finiazing install. The UI will restart shortly"
+			line = qsTrId("opkg_finalize_install")
+			showToastNotification(Notification_Info, line, 5000)
+		}
+
 		if (outputLog)
 			outputLog.log(line)
-		else if (traceEnabled)
+
+		if (traceEnabled)
 			console.log(line)
 
-		log(line)
+		log(line) // signal
 	}
 
 	function _notifyCompletion(result) {
@@ -142,7 +155,7 @@ QtObject {
 	}
 
 	function _makePackageArgs(packageName) {
-		return root.noAction ? [packageName, "--no-action"] : [packageName]
+		return root.noAction ? [packageName, "--noaction"] : [packageName]
 	}
 
 

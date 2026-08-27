@@ -19,8 +19,8 @@ Page {
 		header: PrimaryListLabel {
 			horizontalAlignment: Text.AlignHCenter
 			preferredVisible: listview.count === 0
-			//% "No Usb devices discovered"
-			text: qsTrId("opkgmanager_no_devices_discovered")
+			//% "No Usb devices saved"
+			text: qsTrId("opkgmanager_no_devices_saved")
 		}
 
 		model: devicesModel

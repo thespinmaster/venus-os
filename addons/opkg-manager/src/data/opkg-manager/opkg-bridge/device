@@ -23,31 +23,33 @@ device_remove_all() {
 	done < <(printf '%s\n' "$settings_list" | grep '/Sid$')
 }
 
+
 device_remove() {
 
 	DEVICE_SID="${1}"
 	[[ -z "$DEVICE_SID" ]] && { echo "Invalid argument: sid empty" >&2; return 1; }
-
-	dbus_common_delete_tree "/Settings/Devices/sid_${DEVICE_SID}"
-
+ 
+	echo "Removing serial device service"
 	serial_device_installer_remove_service
+
+	echo "Removing device settings sid_${DEVICE_SID}"
+	dbus_common_delete_tree "/Settings/Devices/sid_${DEVICE_SID}" 1>/dev/null
 
 	return 0
 }
 
 device_scan_usb() {
-	local -i discovered_count=0
 	local tty
 	local usbProps=
 
 	for tty in $(serial_device_installer_get_available_devices); do
 
-		serial_device_installer_fill_usb_props $tty $DEFAULT_USB_PROPS usbProps || { continue; }
-		serial_device_installer_set_device_sid $usbProps
+		serial_device_installer_fill_usb_props "$tty" "$DEFAULT_USB_PROPS" usbProps || { continue; }
+
+		serial_device_installer_set_device_sid "$usbProps"
 		usbProps=$(printf '%s\n' "$usbProps" | sed 's/,\?ID_PATH=[^,]*//')
 
 		printf 'DEVICE:DISCOVERED\t%s\t%s\t%s\n' "$DEVICE_SID" "$tty" "$usbProps"
-		((discovered_count += 1))
 	done
 
 	return 0
@@ -57,13 +59,13 @@ device_bind_usb_to_service() {
 	local sid="$1"
 	local tty="$2"
 	local device_path="$3"
-	local jsonUsbProps "$4"
+	local jsonUsbProps="$4"
 	local usbProps
 
 	test -e "/dev/$tty" \
 		|| { echo "Error: tty ($tty) does not exist" >&2; return 1; }
 
-	[[ $(serial_device_installer_get_available_devices "${tty}") != "${tty}" ]] \
+	[[ $(serial_device_installer_get_available_devices "/dev/${tty}") != "${tty}" ]] \
 		&& { echo "Error: tty ($tty) is not available" >&2; return 1; }
 
 	serial_device_installer_fill_usb_props "${tty}" "${DEFAULT_USB_PROPS}" usbProps
@@ -74,16 +76,18 @@ device_bind_usb_to_service() {
 
 	# get dbus values
 	local service_name=
-	dbus_common_get_value "${dbus_available_devices_prefix}/${device_path}/ServiceName" service_name
+	dbus_common_get_value "/Settings/OpkgManager/CustomServices/${device_path}/ServiceName" service_name
 
 	# fill serial-starter-installer variables
 	DEVICE_UDEV_PROPS="${usbProps}"
 	DEVICE_TTY="${tty}"
 	DEVICE_SERVICE_NAME="${service_name}"
 
+	# echo "DEVICE_UDEV_PROPS=${usbProps}, DEVICE_TTY=${tty}, DEVICE_SERVICE_NAME=${service_name}"
+
 	serial_device_installer_install 1>/dev/null || return 1
 
-	dbus_common_set_string_value "/Settings/Devices/${sid}/UsbProps" "${jsonUsbProps}"
+	dbus_common_set_string_value "/Settings/Devices/${sid}/UsbProps" "${jsonUsbProps}" 1>/dev/null
 
 	printf 'DEVICE:CLAIMED\t%s\n' "${DEVICE_SID}"
 }

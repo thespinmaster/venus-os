@@ -1,4 +1,5 @@
 {
   "qt-qml.qmlls.useNoCMakeCalls": true,
-  "qt-qml.doNotAskForQmllsDownload": true
+  "qt-qml.doNotAskForQmllsDownload": true,
+  "python.defaultInterpreterPath": "/usr/bin/python"
 }

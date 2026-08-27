@@ -31,6 +31,7 @@ python3 "$compiler_script" \
     --name ${PLUGIN_NAME} \
     --min-required-version v1.2.13 \
     --settings OpkgPageSettings.qml \
+		--version ${PLUGIN_VERSION} \
 		${MINIFY:-} \
 		${PRE_COMPILE:-}
 
@@ -49,8 +50,7 @@ EOF
 
 fi
 
-mkdir -p ../../../src/data/apps/available/${PLUGIN_NAME}/gui-v2
-cp ./output/${PLUGIN_NAME}.json ../../../src/data/apps/available/${PLUGIN_NAME}/gui-v2/
+cp ./output/${PLUGIN_NAME}.json ../../../src/data/opkg-manager/${PLUGIN_NAME}.json
 
 declare human;human="$(du -h "$OUTPUT_PATH/${PLUGIN_NAME}.json" | awk '{print $1}')"
 declare bytes;bytes="$(wc -c < "$OUTPUT_PATH/${PLUGIN_NAME}.json")"

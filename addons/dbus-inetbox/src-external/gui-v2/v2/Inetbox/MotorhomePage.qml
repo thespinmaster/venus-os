@@ -5,7 +5,6 @@ import QtQuick.Controls 2.12
 
 SwipeViewPage {
 	id: root
-	readonly property bool pluginReady: !GuiPluginLoader.busy && GuiPluginLoader.plugin("Inetbox").name === "Inetbox"
 
 	//% "Motorhome"
 	title: qsTrId("inetbox_motorhome")
@@ -29,7 +28,8 @@ SwipeViewPage {
 	FilteredDeviceModel {
 		id: devices
 		serviceTypes: ["inetbox"]
-		function onFirstObjectChanged() {
+		onFirstObjectChanged: {
+			console.log("onFirstObjectChanged")
 			inetbox.device = devices.firstObject
 		}
 
@@ -82,7 +82,7 @@ SwipeViewPage {
 
 	InetboxModel {
 		id: inetbox
-		serviceUid: device?.serviceUid
+		serviceUid: device?.serviceUid ?? ""
 
 		property var device : null
 		property bool showAircon : showAirconItem.valid && showAirconItem.value == 1

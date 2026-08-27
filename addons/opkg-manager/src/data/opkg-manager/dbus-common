@@ -130,23 +130,29 @@ dbus_common_remove_settings() {
 	}
 }
 
+# Function: dbus_common_set_string_value
+# Sets a single string setting, if the setting does not exist its added
+# Arguments:
+#   $1 - path (optional prefix)
+#   $2 - the string value to set
 dbus_common_set_string_value() {
 	local path="${1}"
-  local value="${2}"
+	local value="${2}"
 
-	if ! dbus -y com.victronenergy.settings "$path" SetValue "$value" ; then
-		local basePath="${basePath%/*}"
-		local name="${basePath##*/}"
-		if dbus -y com.victronenergy.settings / AddSetting "$basePath" "$name" s 0 0; then
-			dbus -y com.victronenergy.settings "$path" SetValue "$value"
-		else
-			echo "Error: Adding setting: AddSettings \"%[ {'path':'${path}', 'default':''} ]\""
-		fi
-		return 1
+	if dbus -y com.victronenergy.settings "$path" SetValue "$value"; then
+		return 0
 	fi
 
+	local basePath="${path%/*}"
+  local name="${path##*/}"
+	if dbus -y com.victronenergy.settings / AddSetting "$basePath" "$name" "$value" s 0 0; then
+		return 0
+	fi
 
+	echo "Error: Adding setting: AddSetting \"${path}\""
+	return 1
 }
+
 
 # Function: dbus_common_get_value
 # Get a value from the dbus settings service

@@ -23,7 +23,7 @@ strings-lib     # String manipulation library
 **Non-library scripts:**
 
 ```
-install-helpers # May contain helpers but is executable
+installer-commons # May contain helpers but is executable
 run-backup      # Script intended to be executed
 install-common
 ```
@@ -63,7 +63,7 @@ conf_lib_save_vars() {
 conf_lib__parse_internal() {
     # implementation
 }
- 
+
 ```
 #### Private functions
 
@@ -75,7 +75,7 @@ __parse_internal() {
 
 The two exceptions to this rule are the following,
 which drop 'lib' from the method name:
-file name  | method name   
+file name  | method name
 log-lib  -> log, log_push_indent... etc
 test-lib -> test_file_exists... etc
 
@@ -280,5 +280,3 @@ done
 | Indentation       | 2–4 spaces for continuation lines          |                       |   |               |
 
 Following these guidelines will make Bash scripts **readable, maintainable, and easier to debug**.
-
-

@@ -9,7 +9,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message id="inetbox_motorhome">
-        <location filename="../MotorhomePage.qml" line="11"/>
+        <location filename="../MotorhomePage.qml" line="10"/>
         <source>Motorhome</source>
         <translation type="unfinished"></translation>
     </message>
@@ -121,55 +121,66 @@
     </message>
     <message id="inetbox_energy_water">
         <location filename="../InetboxDevicePage.qml" line="69"/>
-        <location filename="../components/MotorhomeInetbox.qml" line="101"/>
+        <location filename="../components/MotorhomeInetbox.qml" line="108"/>
         <source>Water</source>
         <translation type="unfinished"></translation>
     </message>
     <message id="inetbox_energy_heating">
         <location filename="../InetboxDevicePage.qml" line="76"/>
-        <location filename="../components/MotorhomeInetbox.qml" line="121"/>
+        <location filename="../components/MotorhomeInetbox.qml" line="128"/>
         <source>Heating</source>
         <translation type="unfinished"></translation>
     </message>
     <message id="inetbox_energy_aircon">
         <location filename="../InetboxDevicePage.qml" line="82"/>
-        <location filename="../components/MotorhomeInetbox.qml" line="135"/>
+        <location filename="../components/MotorhomeInetbox.qml" line="142"/>
         <source>Aircon</source>
         <translation type="unfinished"></translation>
     </message>
     <message id="inetbox_energy_fan_speed">
         <location filename="../InetboxDevicePage.qml" line="90"/>
-        <location filename="../components/MotorhomeInetbox.qml" line="166"/>
+        <location filename="../components/MotorhomeInetbox.qml" line="173"/>
         <source>Fan speed</source>
         <translation type="unfinished"></translation>
     </message>
     <message id="inetbox_show_aircon">
-        <location filename="../InetboxDevicePage.qml" line="121"/>
+        <location filename="../InetboxDevicePage.qml" line="114"/>
         <source>Show aircon</source>
         <translation type="unfinished"></translation>
     </message>
+    <message id="inetbox_no_device_found">
+        <location filename="../components/MotorhomeInetbox.qml" line="25"/>
+        <source>No Inetbox device found</source>
+        <oldsource>No Inetbox device foundd</oldsource>
+        <translation type="unfinished"></translation>
+    </message>
+    <message id="inetbox_click_to_install_device">
+        <location filename="../components/MotorhomeInetbox.qml" line="32"/>
+        <source>Click to install device</source>
+        <translation type="unfinished"></translation>
+    </message>
     <message id="inetbox_energy_mix">
-        <location filename="../components/MotorhomeInetbox.qml" line="177"/>
+        <location filename="../components/MotorhomeInetbox.qml" line="184"/>
         <source>Energy Mix</source>
         <translation type="unfinished"></translation>
     </message>
     <message id="inetbox_settings">
-        <location filename="../InetboxPageSettings.qml" line="8"/>
+        <location filename="../InetboxPageSettings.qml" line="9"/>
         <source>Inetbox settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message id="inetbox_show_motorhome_page">
-        <location filename="../InetboxPageSettings.qml" line="18"/>
+        <location filename="../InetboxPageSettings.qml" line="27"/>
         <source>Show Motorhome Page</source>
         <translation type="unfinished"></translation>
     </message>
-    <message id="inetbox_version">
-        <location filename="../InetboxPageSettings.qml" line="23"/>
-        <source>Version</source>
+    <message id="opkg_version">
+        <location filename="../InetboxPageSettings.qml" line="35"/>
+        <source></source>
         <translation type="unfinished"></translation>
     </message>
     <message id="pagecontrollableloads_documentation">
-        <location filename="../InetboxPageSettings.qml" line="31"/>
+        <location filename="../InetboxPageSettings.qml" line="43"/>
         <source>Documentation</source>
         <translation type="unfinished"></translation>
     </message>

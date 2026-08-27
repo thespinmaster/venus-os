@@ -28,12 +28,12 @@ PACKAGE_DBUS_SETTINGS="
 RESTART_GUI_SERVICE=1
 
 pre_install() {
-	install_helper_add_remove_dbus_csv_items "add" "/Settings/Themer/AvailableThemes" "$DBUS_AVAILABLE_THEMES"
+	install_common_add_remove_dbus_csv_items "add" "/Settings/Themer/AvailableThemes" "$DBUS_AVAILABLE_THEMES"
 }
 pre_remove() {
-	install_helper_add_remove_dbus_csv_items "remove" "/Settings/Themer/AvailableThemes" "$DBUS_AVAILABLE_THEMES"
+	install_common_add_remove_dbus_csv_items "remove" "/Settings/Themer/AvailableThemes" "$DBUS_AVAILABLE_THEMES"
 }
 
 # shellcheck source=/data/dev/addons/opkg-manager/src/data/opkg-manager/source-common
 source "${VE_ROOT_PATH:-}/data/opkg-manager/source-common"
-addsource install-helper "$@"
+addsource installer-common "$@"

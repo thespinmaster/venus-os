@@ -3,6 +3,7 @@
 import importlib.util
 import logging
 import os
+import signal
 import sys
 import threading
 
@@ -78,7 +79,10 @@ threading.excepthook = _log_thread_exception
 
 def main():
 		log.info("Starting opkg-manager service process")
+		pid = os.getpid()
+		log.info("Process PID: %s", pid)
 		service = OpkgManagerService()
+
 		service.run()
 
 

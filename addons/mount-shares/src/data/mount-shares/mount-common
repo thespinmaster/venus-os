@@ -3,8 +3,8 @@
 __this_path="$(dirname "${BASH_SOURCE[0]}")"
 
 source "$__this_path/../opkg-manager/source-common"
-addsource "log-lib"
- 
+addsource "libs/log-lib"
+
 # readonly mount_common_path="${VENUS_ROOT_DIR:-}/data/mount-shares"
 readonly mountshares_conf_file="/data/conf/mount-shares.conf"
 
@@ -84,7 +84,7 @@ mount_common_wait_on_mount_point() {
 #   {*} mount command args passed directly to mount
 #############################################################################
 mount_common_mount_server() {
-  local mount_point=
+  local mount_point=""
   local -a mount_args=()
   local -i retval=0
 
@@ -109,13 +109,18 @@ mount_common_mount_server() {
     return 1
   }
 
-  if [[ -n "${mount_point}" ]] && [[ "${mount_point}" == /* ]] && [[ ! -d "${mount_point}" ]]; then
-    mkdir -p "${mount_point}" || {
-      log_error "Unable to create mountpount folder"
-      return 1
-    }
+  if [[ -n "${mount_point}" ]]; then
+    if [[ "${mount_point}" == /* ]] && [[ ! -d "${mount_point}" ]]; then
+      mkdir -p "${mount_point}" || {
+        log_error "Unable to create mountpoint folder"
+        return 1
+      }
+    fi
+    # Append the mount point so mount receives both source and destination
+    mount_args+=("${mount_point}")
   fi
 
+  # ALWAYS quote array expansions to keep arguments split correctly
   mount "${mount_args[@]}" || {
     retval=$?
     log_error "ERROR: mount returned exit code $retval"
@@ -269,7 +274,7 @@ mount_common_remove_mount() {
 
   return 0
 }
-
+ 
 case "${1:-}" in
   mount_server)
     shift

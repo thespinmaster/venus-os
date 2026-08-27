@@ -31,6 +31,7 @@
 		"files.exclude": {
 				"**/.vscode-server": true
 		},
+		"python.defaultInterpreterPath": "/usr/bin/python",
 		"python.analysis.include": [
 			"./addons",
 			"./scripts",

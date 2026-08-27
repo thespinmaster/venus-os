@@ -30,7 +30,13 @@ DeviceListDelegate {
 			OpkgSingleton.setIsReload(false)
 
 			Global.pageManager.popAllPages(1)
-			Global.mainView.navBar.setCurrentIndex(0)
+
+			Qt.callLater(function () {
+
+				Global.mainView.navBar.setCurrentIndex(0)
+				Global.mainView.swipeView.animationEnabled = true
+			})
+
 		}
 
 	}

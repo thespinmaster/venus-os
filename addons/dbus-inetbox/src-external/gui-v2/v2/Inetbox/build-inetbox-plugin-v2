@@ -26,7 +26,7 @@ rm -f ./output/${PLUGIN_NAME}.json
 
 python3 "$compiler_script" \
     --name ${PLUGIN_NAME} \
-		--version ${PLUGIN_VERSION} \
+		--version "${PLUGIN_VERSION}" \
     --min-required-version v1.2.13 \
     --settings InetboxPageSettings.qml ${MINIFY:-} ${PRE_COMPILE:-}
 
@@ -48,10 +48,7 @@ EOF
 
 fi
 
-mkdir -p ../../../../src/data/apps/available/${PLUGIN_NAME}/gui-v2
-
-cp ./output/${PLUGIN_NAME}.json \
-		../../../../src/data/apps/available/${PLUGIN_NAME}/gui-v2/${PLUGIN_NAME}.json
+cp ./output/${PLUGIN_NAME}.json ../../../../src/data/dbus-inetbox/${PLUGIN_NAME}.json
 
 declare human;human="$(du -h "./output/${PLUGIN_NAME}.json" | awk '{print $1}')"
 declare bytes;bytes="$(wc -c < "./output/${PLUGIN_NAME}.json")"

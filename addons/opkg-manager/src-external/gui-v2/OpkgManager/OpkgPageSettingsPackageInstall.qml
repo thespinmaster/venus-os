@@ -153,7 +153,7 @@ Page {
 			{
 				//% "Remove"
 				text: qsTrId("opkgmanager_remove"),
-				enabled: !root.opkgManager.running && root.hasInstalled,
+				enabled: !root.opkgManager.running && root.hasInstalled && root.model.packageName != "opkg-manager",
 				onClicked: function() {
 					root.opkgManager.removePackage(root.model.packageName, completionCallback)
 				}

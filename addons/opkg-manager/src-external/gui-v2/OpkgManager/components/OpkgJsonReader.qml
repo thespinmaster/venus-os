@@ -5,6 +5,8 @@
 // Reads named datasets (e.g. "packages", "feeds") from the
 // com.victronenergy.opkgmanager service via the /Chunk/ D-Bus paths.
 
+pragma ComponentBehavior: Bound
+
 import QtQuick 2
 
 QtObject {
@@ -17,6 +19,8 @@ QtObject {
 
 	// -- private read-session state --
 
+	property string  _sessionId:     ""
+	property string  _sessionBase:   ""
 	property string  _name:          ""
 	property var     _callback:      null
 	property string  _buffer:        ""
@@ -25,42 +29,43 @@ QtObject {
 	property int     _pendingSeq:    0
 	property bool    _active:        false
 
-	// -- request paths (writable) --
-	property VeQuickItemAdapter _reqName: VeQuickItemAdapter {
-		uid: opkgManagerServiceUid + "/Chunk/Request/Name"
+	// -- control + request paths (writable) --
+	property VeQuickItemAdapter _createSession: VeQuickItemAdapter {
+		uid: opkgManagerServiceUid + "/Chunk/Control/CreateSessionId"
 	}
-	property VeQuickItemAdapter _reqOffset: VeQuickItemAdapter {
-		uid: opkgManagerServiceUid + "/Chunk/Request/Offset"
+	property VeQuickItemAdapter _closeSession: VeQuickItemAdapter {
+		uid: opkgManagerServiceUid + "/Chunk/Control/CloseSessionId"
 	}
-	property VeQuickItemAdapter _reqMaxSize: VeQuickItemAdapter {
-		uid: opkgManagerServiceUid + "/Chunk/Request/MaxSize"
-	}
-	property VeQuickItemAdapter _reqSeq: VeQuickItemAdapter {
-		uid: opkgManagerServiceUid + "/Chunk/Request/Seq"
+	property VeQuickItemAdapter _requestJson: VeQuickItemAdapter {
+		uid: opkgManagerServiceUid + "/Chunk/RequestJson"
 	}
 
 	// -- result paths (readable) --
 	property VeQuickItemAdapter _resSeq: VeQuickItemAdapter {
-		uid: opkgManagerServiceUid + "/Chunk/Result/Seq"
+		uid: root._sessionBase.length > 0 ? root._sessionBase + "/Result/Seq" : ""
 		onValueChanged: root._onResultSeq(value)
 	}
 	property VeQuickItemAdapter _resData: VeQuickItemAdapter {
-		uid: opkgManagerServiceUid + "/Chunk/Result/Data"
+		uid: root._sessionBase.length > 0 ? root._sessionBase + "/Result/Data" : ""
 	}
 	property VeQuickItemAdapter _resEndOfData: VeQuickItemAdapter {
-		uid: opkgManagerServiceUid + "/Chunk/Result/EndOfData"
+		uid: root._sessionBase.length > 0 ? root._sessionBase + "/Result/EndOfData" : ""
 	}
 	property VeQuickItemAdapter _resSourceVersion: VeQuickItemAdapter {
-		uid: opkgManagerServiceUid + "/Chunk/Result/SourceVersion"
+		uid: root._sessionBase.length > 0 ? root._sessionBase + "/Result/SourceVersion" : ""
 	}
 	property VeQuickItemAdapter _resError: VeQuickItemAdapter {
-		uid: opkgManagerServiceUid + "/Chunk/Result/Error"
+		uid: root._sessionBase.length > 0 ? root._sessionBase + "/Result/Error" : ""
 	}
 
 	property Timer _timeoutTimer: Timer {
 		interval: 5000
 		repeat: false
-		onTriggered: root._fail("Chunk request timed out for: " + root._name)
+		onTriggered: {
+			if (!root._active)
+				return
+			root._fail("Chunk request timed out for: " + root._name)
+		}
 	}
 
 	// -- public API --
@@ -74,11 +79,15 @@ QtObject {
 			}
 			return
 		}
+		_sessionId     = _newSessionId()
+		_sessionBase   = _createSession.opkgManagerServiceUid + "/Chunk/Sessions/" + _sessionId
+		_createSession.setValue(_sessionId)
 		_name          = name
 		_callback      = callback
 		_buffer        = ""
 		_sourceVersion = ""
 		_nextOffset    = 0
+		_pendingSeq    = 0
 		_active        = true
 		_requestNextChunk()
 	}
@@ -86,15 +95,19 @@ QtObject {
 	// -- private --
 
 	function _requestNextChunk() {
-		var currentSeq = (_reqSeq.value !== undefined && _reqSeq.value !== null)
-						 ? parseInt(_reqSeq.value) : 0
-		_pendingSeq = currentSeq + 1
+		if (!_active)
+			return
+		_pendingSeq += 1
 
-		_reqName.setValue(_name)
-		_reqOffset.setValue(_nextOffset)
-		_reqMaxSize.setValue(32768)
+		var requestPayload = {
+			sessionId: _sessionId,
+			name: _name,
+			offset: _nextOffset,
+			maxSize: 32768,
+			seq: _pendingSeq,
+		}
 		_timeoutTimer.restart()
-		_reqSeq.setValue(_pendingSeq)
+		_requestJson.setValue(JSON.stringify(requestPayload))
 	}
 
 	function _onResultSeq(seq) {
@@ -105,7 +118,8 @@ QtObject {
 		if (parseInt(seq) !== _pendingSeq)
 			return
 
-		_timeoutTimer.stop()
+		if (_timeoutTimer)
+			_timeoutTimer.stop()
 
 		var errText = _resError.value || ""
 		if (errText.length > 0) {
@@ -173,13 +187,25 @@ QtObject {
 	}
 
 	function _reset() {
+		var sessionId = _sessionId
 		_active        = false
+		if (_timeoutTimer)
+			_timeoutTimer.stop()
 		_callback      = null
 		_buffer        = ""
 		_sourceVersion = ""
 		_name          = ""
 		_nextOffset    = 0
 		_pendingSeq    = 0
-		_timeoutTimer.stop()
+		_sessionId     = ""
+		_sessionBase   = ""
+
+		if (sessionId.length > 0)
+			_closeSession.setValue(sessionId)
+	}
+
+	function _newSessionId() {
+		var randomPart = Math.floor(Math.random() * 1000000000).toString(16)
+		return "s" + Date.now().toString(16) + randomPart
 	}
 }

@@ -1,14 +1,29 @@
 #!/bin/bash
 
+# Valid callbacks
+# pre_remove
+# post_remove
+# finalize_remove - called after opkg has finished
+#
+# pre_install
+# post_install
+# finalize_install - called after opkg has finished
+
+# Valid $PACKAGE_ACTION's
+# install|upgrade-install|configure|dev-install
+# remove|upgrade-remove|dev-remove
+
+# shellcheck disable=SC2034
+
 RC_LOCAL_SCRIPT="
 # opkg-manager (do not edit)
 /data/opkg-manager/rc.local-startup
 "
 PACKAGE_GUI_V2_PLUGIN_NAME="OpkgManager"
 
-PACKAGE_SERVICES=(
-	opkg-manager
-)
+# PACKAGE_SERVICES=(
+# 	opkg-manager
+# )
 PACKAGE_CUSTOM_MENUS=(
 	PageSettings/OpkgPageSettingsSubMenu
 	PageSettingsDisplay/OpkgPageSettingsDisplaySubMenu
@@ -18,40 +33,54 @@ PACKAGE_CUSTOM_MENUS=(
 PACKAGE_DBUS_SETTINGS="
     {'path':'/Settings/OpkgManager/ShowCompact', 'default':0, 'min':0, 'max':1}
     {'path':'/Settings/OpkgManager/NoAction', 'default':0, 'min':0, 'max':1}
+    {'path':'/Settings/OpkgManager/CustomNavPages', 'default':'', 'min':0, 'max':0}
 "
 
 post_install() {
-
+	# opkg-manager specific install script
   opkg_common_add_script_to_rc_local "${RC_LOCAL_SCRIPT}"
-
-  opkg_common_ensure_feed_symlink
-
-  echo "Please wait, updating packages..."
-  opkg_common_update_packages
-
-	[[ "$PACKAGE_ACTION" == "upgrade-install" ]] &&
-		svc -t /service/opkg-manager
-
-  RESTART_GUI_SERVICE=1
 }
 
 post_remove() {
-  [[ "$PACKAGE_ACTION" == "upgrade-remove" ]] && return;
 
   # upgrade does not remove existing dbus settings
   # remove symlink or call opkg update
+  install_common_is_upgrade && return;
 
   rm -f "${VE_ROOT_DIR:-}/var/log/opkg-manager/startup.log"
 
   serial_device_installer_remove_rules_file_symlink
 
-  opkg_common_remove_feed_symlink
+}
 
-  echo "Please wait, updating packages..."
+finalize_install() {
+	# ** This Runs after the install **
+	opkg_common_ensure_feed_symlink
+
+	PACKAGE_SERVICES=("opkg-manager")
+	# install_common_stop_services
+	install_common_start_services
+
+	/data/opkg-manager/opkg-bridge/packages_helper update &
+
+}
+
+finalize_remove() {
+  # ** This Runs after the install **
+
+	[[ "$PACKAGE_ACTION" == "upgrade-remove" ]] && return;
+
+	PACKAGE_SERVICES=("opkg-manager")
+	install_common_stop_services
+
+	opkg_common_remove_feed_symlink
   opkg_common_update_packages
+
+	/data/opkg-manager/opkg-bridge/packages_helper update &
+
 }
 
 ####################################################
 # shellcheck source="/data/dev/addons/opkg-manager/src/data/opkg-manager/source-common"
 [[ -n "${__SOURCE_COMMON_SOURCED:-}" ]] || { source "${VE_ROOT_PATH:-}/data/opkg-manager/source-common" && __SOURCE_COMMON_SOURCED=1; }
-addsource install-helper "$@"
+addsource installer-common "$@"

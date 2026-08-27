@@ -14,27 +14,32 @@
         <translation type="unfinished"></translation>
     </message>
     <message id="opkg_feeds">
-        <location filename="../OpkgPageSettings.qml" line="33"/>
+        <location filename="../OpkgPageSettings.qml" line="35"/>
         <source>Feeds</source>
         <translation type="unfinished"></translation>
     </message>
     <message id="opkg_custom_devices">
-        <location filename="../OpkgPageSettings.qml" line="42"/>
+        <location filename="../OpkgPageSettings.qml" line="46"/>
         <source>Custom Devices</source>
         <translation type="unfinished"></translation>
     </message>
     <message id="opkg_show_compact">
-        <location filename="../OpkgPageSettings.qml" line="50"/>
+        <location filename="../OpkgPageSettings.qml" line="56"/>
         <source>Show Compact</source>
         <translation type="unfinished"></translation>
     </message>
     <message id="opkg_no_action">
-        <location filename="../OpkgPageSettings.qml" line="55"/>
+        <location filename="../OpkgPageSettings.qml" line="61"/>
         <source>No Action</source>
         <translation type="unfinished"></translation>
     </message>
+    <message id="opkg_version">
+        <location filename="../OpkgPageSettings.qml" line="65"/>
+        <source>Version</source>
+        <translation type="unfinished"></translation>
+    </message>
     <message id="pagecontrollableloads_documentation">
-        <location filename="../OpkgPageSettings.qml" line="62"/>
+        <location filename="../OpkgPageSettings.qml" line="72"/>
         <source>Documentation</source>
         <translation type="unfinished"></translation>
     </message>
@@ -44,20 +49,19 @@
         <translation type="unfinished"></translation>
     </message>
     <message id="page_settings_modbus_scan_for_devices">
-        <location filename="../OpkgPageSettingsDevicesList.qml" line="34"/>
+        <location filename="../OpkgPageSettingsDevicesList.qml" line="51"/>
         <source></source>
         <oldsource>Scan for devices</oldsource>
         <translation type="unfinished"></translation>
     </message>
     <message id="page_settings_modbus_saved_devices">
-        <location filename="../OpkgPageSettingsDevicesList.qml" line="42"/>
+        <location filename="../OpkgPageSettingsDevicesList.qml" line="59"/>
         <source></source>
         <oldsource>Saved devices</oldsource>
         <translation type="unfinished"></translation>
     </message>
     <message id="opkgmanager_no_devices_discovered">
-        <location filename="../OpkgPageSettingsDiscoveredDevices.qml" line="23"/>
-        <location filename="../OpkgPageSettingsSavedDevices.qml" line="23"/>
+        <location filename="../OpkgPageSettingsDiscoveredDevices.qml" line="26"/>
         <source>No Usb devices discovered</source>
         <translation type="unfinished"></translation>
     </message>
@@ -98,7 +102,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message id="opkgmanager_added_device_success">
-        <location filename="../OpkgPageSettingsDiscoveredDevice.qml" line="108"/>
+        <location filename="../OpkgPageSettingsDiscoveredDevice.qml" line="112"/>
         <source>Device Added Successfully
 The service will start shortly...</source>
         <translation type="unfinished"></translation>
@@ -119,22 +123,22 @@ The service will start shortly...</source>
         <translation type="unfinished"></translation>
     </message>
     <message id="opkgmanager_removing_device">
-        <location filename="../OpkgPageSettingsSavedDevice.qml" line="66"/>
+        <location filename="../OpkgPageSettingsSavedDevice.qml" line="67"/>
         <source>Removing Device</source>
         <translation type="unfinished"></translation>
     </message>
     <message id="opkgmanager_device_successfully_removed">
-        <location filename="../OpkgPageSettingsSavedDevice.qml" line="74"/>
+        <location filename="../OpkgPageSettingsSavedDevice.qml" line="75"/>
         <source>Device successfully removed</source>
         <translation type="unfinished"></translation>
     </message>
     <message id="opkgmanager_are_you_sure">
-        <location filename="../OpkgPageSettingsSavedDevice.qml" line="87"/>
+        <location filename="../OpkgPageSettingsSavedDevice.qml" line="88"/>
         <source>Are you sure?</source>
         <translation type="unfinished"></translation>
     </message>
     <message id="opkgmanager_remove_device_description">
-        <location filename="../OpkgPageSettingsSavedDevice.qml" line="89"/>
+        <location filename="../OpkgPageSettingsSavedDevice.qml" line="90"/>
         <source>Clicking yes will permanently remove this devices settings</source>
         <translation type="unfinished"></translation>
     </message>
@@ -247,16 +251,26 @@ The service will start shortly...</source>
         <source>Refresh</source>
         <translation type="unfinished"></translation>
     </message>
+    <message id="opkg_wait_for_opkg_operation_to_finish">
+        <location filename="../components/OpkgManager.qml" line="32"/>
+        <source>Please wait for the operation to finish</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message id="opkg_finalize_install">
+        <location filename="../components/OpkgManager.qml" line="83"/>
+        <source>Finiazing install. The UI will restart shortly</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message id="opkgmanager_no_devices_saved">
+        <location filename="../OpkgPageSettingsSavedDevices.qml" line="23"/>
+        <source>No Usb devices saved</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>OpkgManager</name>
     <message>
-        <location filename="../components/OpkgManager.qml" line="29"/>
-        <source>Please wait for the operation to finish</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../components/OpkgManager.qml" line="101"/>
+        <location filename="../components/OpkgManager.qml" line="114"/>
         <source>Operation failed</source>
         <translation type="unfinished"></translation>
     </message>

@@ -5,12 +5,14 @@ set -o nounset
 readonly rc_local_file="${VENUS_ROOT_DIR:-}/data/rc.local"
 readonly opkg_installed_packages_file="/data/conf/opkg-manager-installed-packages.conf"
 readonly resize2fs_file="/opt/victronenergy/swupdate-scripts/resize2fs.sh"
+readonly opkg_finalize_install_file="/tmp/opkg-manager/finalize-install"
+readonly opkg_finalize_install_scheduled_file="/tmp/opkg-manager/finalize-install.scheduled"
+readonly opkg_finalize_install_log="/var/log/opkg-manager/finalize-install.log"
+
 # shellcheck disable=SC2034
 readonly OPKG_MANAGER_FEED_NAME="opkg-manager" # used by sourcing code
 
 OPKG_FEED_CONFIG_FILE_SYMLNK="${VENUS_ROOT_DIR:-}/etc/opkg/opkg-manager.conf"
-
-# OPKG_VENUS_VERSION=
 
 ___is_fs_readonly=
 init_opkg_helpers=
@@ -62,16 +64,88 @@ __restore_previous_fs_access() {
 
 }
 
+opkg_common_package_update_requested() {
+	test -f /var/run/update-feeds
+}
+
+opkg_common_request_package_update() {
+	mkdir -p /var/run/
+	touch /var/run/update-feeds
+}
+opkg_common_clear_requested_package_update() {
+	rm -f /var/run/update-feeds
+}
+
+opkg_common_append_finalize_install_script() {
+	local script_path="${1:-}"
+
+	[[ -f "${script_path}" ]] || {
+		log_error "ERROR: finalize-install invalid script path: ${script_path}"
+		return 1
+	}
+
+	mkdir -p "$(dirname "${opkg_finalize_install_file}")"
+	[[ -f "${opkg_finalize_install_file}" ]] || {
+		echo '#!/bin/bash' > "${opkg_finalize_install_file}"
+		chmod +x "${opkg_finalize_install_file}"
+	}
+
+	echo "$*" >> "${opkg_finalize_install_file}"
+
+	return 0
+}
+
+# shellcheck disable=SC2120
+opkg_common_run_finalize_install_scripts() {
+	local sleep_before_executing="${1:-0}"
+
+	[[ -f "${opkg_finalize_install_file}" ]] || {
+		rm -f "${opkg_finalize_install_scheduled_file}"
+		return 0
+	}
+
+	if [[ -f "${opkg_finalize_install_scheduled_file}" ]]; then
+		log_trace "Finalize-install already scheduled to run"
+		return 0
+	fi
+
+	local queued_script="${opkg_finalize_install_file}"
+	touch "${opkg_finalize_install_scheduled_file}"
+
+	(
+		__wait_for_opkg
+
+		sleep "$sleep_before_executing"
+
+		mkdir -p "$(dirname "${opkg_finalize_install_log}")"
+		rm -f "${opkg_finalize_install_log}"
+
+		log "Executing finalize-install script"
+		if [[ ! ${dry_run} ]]; then
+			"${queued_script}" >> "${opkg_finalize_install_log}" 2>&1 || log_error "Finalize-install script failed: ${queued_script}"
+		fi
+
+		rm -f "${queued_script}" "${opkg_finalize_install_scheduled_file}"
+	) &
+
+	return 0
+}
+
 opkg_common_ensure_feed_symlink() {
 
+	local requested_feed="${1:-}"
   local new_target="/data/conf/opkg-manager-feeds-${1:-release}.conf"
-
-  [[ ! -f "${new_target}" ]] && {
-    log_error "feed target file does not exist: ${new_target}"; }
 
   local current_source=""
   [[ -L "${OPKG_FEED_CONFIG_FILE_SYMLNK}" ]] &&
     current_source="$(readlink "${OPKG_FEED_CONFIG_FILE_SYMLNK}")"
+
+	# existing feed exists and no new feed requested so use existing
+	[[ -f "${current_source}" && -z "${requested_feed}" ]] &&
+		return 2 # nothing to do
+
+  [[ ! -f "${new_target}" ]] && {
+    log_error "feed target file does not exist: ${new_target}"; }
 
   if [[ "${current_source}" == "${new_target}" ]]; then
     return 0
@@ -230,12 +304,15 @@ opkg_common_get_venus_verion_byref() {
   fi
 }
 
+# Wait for /run/opkg.lock to be released.
+# Optional arg: max seconds to wait (default 0 = wait forever).
 __wait_for_opkg() {
+  local -i max_seconds="${1:-0}"
   local -i counter=0
   while [[ -e /run/opkg.lock ]]; do
     sleep 0.5
     ((++counter))
-    ((counter>30)) && return 1
+    (( max_seconds > 0 && counter > max_seconds * 2 )) && return 1
   done
   return 0
 }
@@ -245,8 +322,6 @@ opkg_common_update_packages() {
     __wait_for_opkg && opkg update
   ) &
 
-  local opkg_pid=$!
-  wait "$opkg_pid"
   return 0
 }
 
@@ -373,7 +448,7 @@ opkg_common_ensure_installed() {
       sleep 1
     fi
 
-    __wait_for_opkg
+    __wait_for_opkg 60
 
     __opkg_common_try_install_package "${line}"
 
@@ -463,7 +538,7 @@ opkg_common_register_package() {
 
 }
 
-# removes an opkg package name to the custom packages file
+# removes an opkg package name from the custom packages file
 # args: ${1} the name of the opkg package to remove
 opkg_common_unregister_package() {
 
@@ -490,6 +565,10 @@ case "${1:-}" in
       log "*** DRY RUN ***"
     fi
     opkg_common_ensure_installed
+    ;;
+
+  opkg_common_run_finalize_install_scripts)
+    opkg_common_run_finalize_install_scripts
     ;;
 
   ensure-feeds)

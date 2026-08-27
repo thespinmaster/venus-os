@@ -12,8 +12,8 @@ Page {
 		id: opkgManager
 		traceEnabled: true
 		function showToastNotification(level, message, duration) {
-			Global.showToastNotification(VenusOS.Notification_Warning, message, duration)
-			console.log("opkgManager:" + level + ", " + message)
+			Global.showToastNotification(level, message, duration)
+			// console.log("opkgManager:" + level + ", " + message)
 		}
 	}
 
@@ -25,14 +25,18 @@ Page {
 			ListNavigation {
 				//% "Packages"
 				text: qsTrId("opkg_packages")
-				onClicked: Global.pageManager.pushPage("qrc:/OpkgManager/OpkgPageSettingsPackages.qml",
-					{title: text, opkgManager: opkgManager})
+				onClicked: Global.pageManager.pushPage("qrc:/OpkgManager/OpkgPageSettingsPackages.qml", {
+						"title": text,
+						"opkgManager": opkgManager
+					})
 			}
 			ListNavigation {
 				//% "Feeds"
 				text: qsTrId("opkg_feeds")
-				onClicked: Global.pageManager.pushPage("qrc:/OpkgManager/OpkgPageSettingsFeeds.qml",
-					{title: text, opkgManager: opkgManager})
+				onClicked: Global.pageManager.pushPage("qrc:/OpkgManager/OpkgPageSettingsFeeds.qml", {
+						"title": text,
+						"opkgManager": opkgManager
+					})
 			}
 
 			ListNavigation {
@@ -40,8 +44,10 @@ Page {
 				bottomInset: Theme.geometry_listItem_itemSeparator_height
 				//% "Custom Devices"
 				text: qsTrId("opkg_custom_devices")
-				onClicked: Global.pageManager.pushPage("qrc:/OpkgManager/OpkgPageSettingsDevicesList.qml",
-					{title: text, opkgManager: opkgManager})
+				onClicked: Global.pageManager.pushPage("qrc:/OpkgManager/OpkgPageSettingsDevicesList.qml", {
+						"title": text,
+						"opkgManager": opkgManager
+					})
 			}
 
 			ListSwitch {
@@ -54,7 +60,11 @@ Page {
 				//% "No Action"
 				text: qsTrId("opkg_no_action")
 			}
-
+			ListText {
+				//% "Version"
+				text: qsTrId("opkg_version")
+				secondaryText: GuiPluginLoader.plugin("OpkgManager").version
+			}
 			ListLink {
 				id: documentation
 
@@ -64,5 +74,4 @@ Page {
 			}
 		}
 	}
-
 }

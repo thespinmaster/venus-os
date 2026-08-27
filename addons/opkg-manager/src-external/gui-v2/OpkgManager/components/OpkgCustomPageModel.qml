@@ -24,7 +24,7 @@ QtObject {
 	property var _customPageItems : ({})
 
 	property VeQuickItem _customPagesItem: VeQuickItem {
-		uid: !!Global.systemSettings ? Global.systemSettings.serviceUid + "/Settings/OpkgManager/CustomPages" : ""
+		uid: !!Global.systemSettings ? Global.systemSettings.serviceUid + "/Settings/OpkgManager/CustomNavPages" : ""
 		onValueChanged: root.onCustomPagesChanged(value)
 	}
 
@@ -41,8 +41,10 @@ QtObject {
 
 	function onCustomPagesChanged(value) {
 
-		if (_customPagesItem.uid == "" || value == undefined || typeof(value) !== "string")
+		if (!_customPagesItem.valid)
 			return
+		if (!value)
+			value = "[]"
 
 		//console.debug("OpkgCustomPageModel: onCustomPagesChanged:", "pages=", value, "allPagesLoaded=", allPagesLoaded)
 
@@ -60,8 +62,38 @@ QtObject {
 		root.syncPages(customPagesArray)
 	}
 
+	function toggleCustomPage(pageName, checked) {
+		console.log("OpkgCustomPageModel: toggleCustomPage: in:", pageName, checked)
+		var customPages = _customPages.slice()
+		var removed = false
+		for (var i = 0; i< customPages.length; i++) {
+			var itemName = customPages[i]
+			if (pageName = itemName) {
+				if (checked) {
+					console.log("OpkgCustomPageModel: toggleCustomPage: exit already checked")
+					return // already exists
+				}
+				removed = true
+				customPages.splice(i, 1);
+			}
+		}
+
+		if (checked)
+			customPages.push(pageName)
+		else if (!removed) {
+			console.log("OpkgCustomPageModel: toggleCustomPage: exit already unchecked")
+			return // already exists
+		}
+
+		console.log("OpkgCustomPageModel: setting value")
+
+		var pages = JSON.stringify(customPages)
+		_customPagesItem.setValue(pages)
+
+	}
+
 	function syncPages(customPages) {
-		//console.debug("OpkgCustomPageModel: syncPages in:", root._inSyncPages)
+		// console.debug("OpkgCustomPageModel: syncPages in:", root._inSyncPages)
 		if (root._inSyncPages)
 			return
 
@@ -132,7 +164,7 @@ QtObject {
 		for (var i = 0; i < model.count; ++i)
 			Global.mainView.navBar.pages[i] = model.get(i)
 
-		_customPages = customPages.slice()
+		_customPages = customPages
 		_inSyncPages = false
 	}
 

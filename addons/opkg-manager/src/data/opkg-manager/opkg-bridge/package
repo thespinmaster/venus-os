@@ -16,30 +16,51 @@ __validate_package_name() {
   return 0
 }
 
+__package_set_install_lock() {
+	mkdir -p /var/lock/
+	touch /var/lock/opkg-manager-install
+}
+__package_clear_install_lock() {
+	rm -f /var/lock/opkg-manager-install
+}
+
 __package_command() {
+	local action_msg="${1}"
 
-  local command="${1}"
-  local package_name="${2}"
-  local action_msg="${3}"
-
-  shift 3 # rest are args
+  shift 1 # rest are opkg args
 
   __init_root_fs_for_writing
 
-  opkg "$command" "${package_name}" "$@"
-  local -i status=$?
+	local this_path; this_path=$(dirname "${BASH_SOURCE[0]}")
+	"$this_path/packages_helper" update force # update packages and json
+
+	__cleanup() {
+		__package_clear_install_lock
+		opkg_common_clear_requested_package_update
+	}
+	trap '__cleanup' RETURN
+
+	__package_clear_install_lock
+  __package_set_install_lock
+
+  opkg "$@"
+	local -i status=$?
+
+	__package_clear_install_lock
+
+	opkg_common_package_update_requested && {
+		opkg_common_clear_requested_package_update
+		"$this_path/packages_helper" update force # update packages and json
+	}
 
   __restore_previous_fs_access
 
 	if [[ $status == 0 ]]; then
-		local this_path; this_path=$(dirname "${BASH_SOURCE[0]}")
-  	"$this_path/packages_helper" update force # update cached json
-
     log  "$action_msg succeeded"
   else
     log "$action_msg failed (status $status)"
   fi
- 
+
   return $status
 }
 
@@ -50,7 +71,7 @@ package_install() {
   __validate_package_name "${package_name}" || return
 
   log "Installing $*"
-  __package_command install "$package_name" "Install" "$@"
+  __package_command "Install" install "$@"
 
 }
 __status_message() {
@@ -68,7 +89,8 @@ package_upgrade() {
   __validate_package_name "${package_name}" || return
 
   log "Upgrading $*"
-  __package_command upgrade "$package_name" "Upgrade" "$@"
+
+  __package_command "Upgrade" upgrade "$@"
 
 }
 
@@ -83,7 +105,7 @@ package_remove() {
   fi
 
   log "Removing $*"
-  __package_command remove "${package_name}" "Remove" "$@"
+  __package_command "Remove" remove "$@"
 
 }
 

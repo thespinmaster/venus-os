@@ -19,9 +19,9 @@ Page {
 		spacing: 10
 		anchors {
 			left: parent.left
-			leftMargin: 15
 			right: parent.right
-			rightMargin: 15
+			leftMargin: Theme.geometry_page_content_horizontalMargin
+			rightMargin: Theme.geometry_page_content_horizontalMargin
 		}
 
 		IC.MotorhomeTankLevels {

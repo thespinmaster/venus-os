@@ -21,7 +21,8 @@ Page {
 
 		anchors {
 			left: parent.left
-			leftMargin: 20
+			leftMargin: Theme.geometry_page_content_horizontalMargin
+			rightMargin: Theme.geometry_page_content_horizontalMargin
 			right: parent.right
 		}
 		IC.MotorhomeTankLevels {
@@ -48,6 +49,7 @@ Page {
 	IC.ScheduleButton {
 		icon.source: "qrc:/images/icon_manualstart_timer_24.svg"
 		mainColor: '#387dc5'
+		visible: inetboxModel.device
 		anchors {
 			right: bg_image2.right
 			rightMargin: 200
@@ -82,10 +84,11 @@ Page {
 
 	// version
 	Label {
-		color: "grey"
+		color: Theme.color_gray4
+		font.pixelSize: Theme.font_size_tiny
 		anchors {
 			right: parent.right
-			rightMargin: 50
+			rightMargin: 70
 			bottom: bg_image.bottom
 		}
 		text: root.inetboxModel.version

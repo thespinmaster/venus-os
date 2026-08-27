@@ -18,14 +18,16 @@ SERIAL_STARTER_RULES_FILE_SYMLINK="${SERIAL_STARTER_RULES_FILE_SYMLINK:-"/etc/ud
 # Ensures the udev-visible rules symlink points at SERIAL_STARTER_RULES_FILE.
 __serial_device_installer_ensure_rules_file() {
 
-	if [[ ! -e "${SERIAL_STARTER_RULES_FILE_SYMLINK}" || ! -L "${SERIAL_STARTER_RULES_FILE_SYMLINK}" ]]; then
-		log_error "ERROR: SERIAL_STARTER_RULES_FILE_SYMLINK is an invalid :${SERIAL_STARTER_RULES_FILE_SYMLINK}"
-		return 1
+	if [[ -e "${SERIAL_STARTER_RULES_FILE_SYMLINK}" && -L "${SERIAL_STARTER_RULES_FILE_SYMLINK}" ]]; then
+		return 0
 	fi
 
 	local current_target=""
-	[[ ! -f "$SERIAL_STARTER_RULES_FILE" ]] &&
+	[[ ! -f "$SERIAL_STARTER_RULES_FILE" ]] && {
+		mkdir -p "$(dirname "${SERIAL_STARTER_RULES_FILE}")"
 		touch "$SERIAL_STARTER_RULES_FILE"
+	}
+
 
 	[[ -L "${SERIAL_STARTER_RULES_FILE_SYMLINK}" ]] && current_target="$(readlink "${SERIAL_STARTER_RULES_FILE_SYMLINK}")"
 	[[ "${current_target}" == "${SERIAL_STARTER_RULES_FILE}" ]] && return 0
@@ -66,8 +68,61 @@ serial_device_installer_get_tty_paths() {
 	echo "/sys/class/tty/ttyUSB* /sys/class/tty/ttyACM*"
 }
 
+serial_device_installer_get_available_devices() {
+	local tty_path= tty=${1:-}
+	local first_prog= previous_prog=
+	local i=0
+	local tty_paths=
+
+	svc -u /service/serial-starter
+
+	if [[ -n "${tty}" ]]; then
+	 	tty_paths=( "${tty}" )
+	else
+		tty_paths=( "$(serial_device_installer_get_tty_paths)" )
+	fi
+
+	for tty_path in "${tty_paths[@]}"; do
+		[[ -e "$tty_path" ]] || continue
+
+		tty="${tty_path##*/}"
+		[[ -e /dev/serial-starter/$tty ]] || {
+			echo "$tty";
+			continue
+		}
+
+		while (( i++ < 100 )); do
+			[[ -e /dev/serial-starter/$tty ]] || break;
+
+			if [[ -r "/tmp/$tty.prog" ]]; then
+				prog=$(cat "/tmp/$tty.prog")
+			else
+				sleep 1
+				continue
+			fi
+
+			if [[ -z "$first_prog" ]]; then
+				first_prog="$prog"
+				previous_prog="$prog"
+			elif [[ "$prog" != "$previous_prog" ]]; then
+				if [[ "$prog" == "$first_prog" ]]; then
+					echo "$tty"
+					break
+				fi
+
+				previous_prog="$prog"
+			fi
+
+			sleep 1
+		done
+	done
+
+}
+
 serial_device_installer_set_device_sid() {
+	# shellcheck disable=SC2034
 	local usb_props="${1}"
+	# shellcheck disable=SC2154
 	DEVICE_SID=$(printf '%s' "${usbProps}" | sha1sum | awk '{print substr($1,1,16)}') \
 		|| { log_error "ERROR: Error setting DEVICE_SID"; return 1; }
 }
@@ -77,7 +132,8 @@ serial_device_installer_set_device_sid() {
 # required arg1 (byref in) array of usb props
 __create_serial_starter_rule() {
 
-	local serial_starter_rule= serial_starter_rule_comment=
+	local serial_starter_rule=
+	local serial_starter_rule_comment=
 	local service_mapping_name
 	local kv prop_entry prop_value
 	local -a props
@@ -155,26 +211,10 @@ serial_device_installer_add_service_mapping() {
 	local find_pattern="^[[:space:]]*service[[:space:]]+${service_mapping_name}[[:space:]]+${DEVICE_SERVICE_NAME}[[:space:]]*$"
 
 	if ! grep -Eq "${find_pattern}" "${SERIAL_STARTER_CONFIG_FILE}" 2>/dev/null; then
-		local tmp
-		tmp=$(mktemp)
 		local entry="service ${service_mapping_name}"$'\t\t'"${DEVICE_SERVICE_NAME}"
 
-		{
-			printf '%s\n' "${entry}"
-			[[ -f "${SERIAL_STARTER_CONFIG_FILE}" ]] && cat "${SERIAL_STARTER_CONFIG_FILE}"
-		} >"$tmp" || {
-					rm -f "$tmp"
-					log_error "ERROR: could not update ${SERIAL_STARTER_CONFIG_FILE}"
-					return 1
-				}
-
-		mv "$tmp" "${SERIAL_STARTER_CONFIG_FILE}" || {
-			rm -f "$tmp"
-			log_error "ERROR: could not replace ${SERIAL_STARTER_CONFIG_FILE}"
-			return 1
-		}
-
-		service_common_restart_service
+		mkdir -p "$(dirname "${SERIAL_STARTER_CONFIG_FILE}")"
+		echo "${entry}" >> "${SERIAL_STARTER_CONFIG_FILE}"
 
 		log "Added service mapping config"
 	else
@@ -227,7 +267,7 @@ __serial_device_installer_refresh_udevadm() {
 	udevadm control --reload
 	[[ -n "${DEVICE_TTY:-}" ]] && {
 		udevadm trigger --action="$action" "/sys/class/tty/$DEVICE_TTY"
-		# when manualy removing we re-add so udevadm rules get re-run & thus re-freshed
+		# when manualy removing we re-add so udevadm rules get re-run & thus refreshed
 		[[ $action == "remove" ]] && {
 			udevadm trigger --action="add" "/sys/class/tty/$DEVICE_TTY"
 		}
@@ -308,6 +348,7 @@ serial_device_installer_fill_usb_props() {
 	if [[ -n $udevadm_props ]]; then
 		udevadm_props_ref=${udevadm_props:1} #strip starting ,
 	else
+		# shellcheck disable=SC2034
 		udevadm_props_ref=""
 		return 1
 	fi
@@ -331,7 +372,8 @@ __ensure_TTY_from_TTY_or_SID() {
 serial_device_installer_TTY_from_SID() {
 
 	local serial_device_id=${DEVICE_SID}
-	local dev value tty_paths
+	local dev
+	local value
 
 	[[ -z "${DEVICE_SID}" ]] && { log_error "DEVICE_SID not set"; return 1; }
 
@@ -365,10 +407,9 @@ serial_device_installer_service_name_from_tty() {
 	[[ ! -f "${SERIAL_STARTER_CONFIG_FILE}" ]] && {
 		log_error "ERROR: SERIAL_STARTER_CONFIG_FILE not found"; return 1; }
 
-	__service_name=$(grep -E "^service[[:space:]]+${ve_service}[[:space:]]+" "${SERIAL_STARTER_CONFIG_FILE}" \
-			| sed -n '1p')
-
-	__service_name=${__service_name##* }
+	local fields=
+	read -ra fields <<< "$(grep -F "service ${ve_service}" "${SERIAL_STARTER_CONFIG_FILE}")"
+	__service_name="${fields[-1]}"
 
 	[[ -z "${__service_name}" ]] && {
 		log_error "ERROR: DEVICE_SERVICE_NAME not found for VE_SERVICE:${ve_service}"

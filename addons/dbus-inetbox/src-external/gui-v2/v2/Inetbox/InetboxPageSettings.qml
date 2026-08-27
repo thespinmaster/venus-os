@@ -1,11 +1,20 @@
 import QtQuick 2
 import Victron.VenusOS
-import "qrc:/OpkgManager/OpkgSingleton.js" as OpkgSingleton
+// import "qrc:/OpkgManager/components"
+import "qrc:/OpkgManager/components/OpkgSingleton.js" as OpkgSingleton
 
 Page {
 	id: page
 	//% "Inetbox settings"
 	title: qsTrId("inetbox_settings")
+
+	property var customPagesArray: customPagesItem.valid ? JSON.parse(customPagesItem.value): []
+	property bool loaded
+
+	VeQuickItem {
+		id: customPagesItem
+		uid: !!Global.systemSettings ? Global.systemSettings.serviceUid + "/Settings/OpkgManager/CustomPages" : ""
+	}
 
 	GradientListView {
 		id: settingsListView
@@ -16,11 +25,14 @@ Page {
 				dataItem.uid:!!Global.systemSettings ? Global.systemSettings.serviceUid + "/Settings/Inetbox/ShowMotorhomePage" : ""
 				//% "Show Motorhome Page"
 				text: qsTrId("inetbox_show_motorhome_page")
-			}
+				writeAccessLevel: VenusOS.User_AccessType_User
+				onCheckedChanged: {
+							OpkgSingleton.toggleCustomPage("qrc:/Inetbox/MotorhomePage.qml", checked)
+					}
+				}
 
 			ListText {
-				//% "Version"
-				text: qsTrId("inetbox_version")
+				text: qsTrId("opkg_version")
 				secondaryText: GuiPluginLoader.plugin("Inetbox").version
 			}
 

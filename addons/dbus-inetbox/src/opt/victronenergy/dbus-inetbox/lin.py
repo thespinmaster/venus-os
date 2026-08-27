@@ -298,13 +298,13 @@ class Lin:
 				# Find sync 0x00 0x55
 				sync_idx = self._rx_buf.find(b'\x00\x55')
 				if sync_idx < 0:
-					#print(f"[LIN-DEBUG] No sync found, buffer: {self._rx_buf.hex(' ')}")
+					print(f"[LIN-DEBUG] No sync found, buffer: {self._rx_buf.hex(' ')}")
 					# Keep last 0x00 in case sync starts there
 					self._rx_buf = self._rx_buf[-1:] if self._rx_buf[-1:] == b'\x00' else bytearray()
-					#print(f"[LIN-DEBUG] Kept for next iteration: {self._rx_buf.hex(' ')}")
+					print(f"[LIN-DEBUG] Kept for next iteration: {self._rx_buf.hex(' ')}")
 					return
 
-				#print(f"[LIN-DEBUG] Sync found at index {sync_idx}")
+				print(f"[LIN-DEBUG] Sync found at index {sync_idx}")
 
 				# Need at least 3 bytes for raw PID
 				if len(self._rx_buf) < sync_idx + 3:
@@ -316,18 +316,18 @@ class Lin:
 				# Determine required frame length
 				frame_len = 3 if raw_pid in (0xD8, 0x7D) else 12
 				if len(self._rx_buf) < sync_idx + frame_len:
-					#print(f"[LIN-DEBUG] Need {frame_len} bytes, have {len(self._rx_buf) - sync_idx}")
+					print(f"[LIN-DEBUG] Need {frame_len} bytes, have {len(self._rx_buf) - sync_idx}")
 					return
 
 				line = bytes(self._rx_buf[sync_idx:sync_idx + frame_len])
-				#print(f"[LIN-DEBUG] Full frame received: {line.hex(' ')} ({len(line)} bytes)")				#print(f"[LIN-DEBUG] Extracted frame: {line.hex(' ')}")
+				print(f"[LIN-DEBUG] Full frame received: {line.hex(' ')} ({len(line)} bytes)")				#print(f"[LIN-DEBUG] Extracted frame: {line.hex(' ')}")
 				del self._rx_buf[:sync_idx + frame_len]
 
 				self._process_frame(raw_pid, line)
 
-		def _process_frame(self, raw_pid: int, line: bytes):
-			#print(f"[LIN-DEBUG] Processing frame: {line.hex(' ')}")
-
+		def _process_frame(self, raw_pid_old: int, line: bytes):
+			print(f"[LIN-DEBUG] Processing frame: {line.hex(' ')}")
+			raw_pid = line[2]
 			if raw_pid == 0xd8:
 				self.d8_alive = True
 				self.app.status["alive"] = ["ON", True, False]
@@ -340,7 +340,7 @@ class Lin:
 				if s:
 					self.app.upload_wait = 4
 					self.stop_async = True
-					#self.log.debug("0x18 - update-requested")
+					self.log.debug("0x18 - update-requested")
 					self._send_answer(bytearray.fromhex("ff ff ff ff ff ff ff ff 27".replace(" ","")))
 					return
 				else:

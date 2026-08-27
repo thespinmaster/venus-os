@@ -11,4 +11,4 @@ PACKAGE_DBUS_SETTINGS_DEPRECATED=
 
 # shellcheck source=/data/dev/addons/opkg-manager/src/data/opkg-manager/source-common
 source "${VE_ROOT_PATH:-}/data/opkg-manager/source-common"
-addsource install-helper "$@"
+addsource installer-common "$@"

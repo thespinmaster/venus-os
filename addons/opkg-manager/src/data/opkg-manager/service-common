@@ -19,6 +19,15 @@ __stop_service_tree() {
 }
 
 service_common_remove_service() {
+	local service="${1:-}" || return
+
+	svc -dx "/service/$service"
+	[[ -f "/service/${service}/log" ]] &&
+		svc -dx "/service/${service}/log"
+	rm -rf "/service/${service}"
+}
+
+service_common_remove_service_ex() {
 
   local service_name="${1}"
 
@@ -59,12 +68,12 @@ service_common_remove_service() {
 service_common_stop_service_and_wait() {
 	local service_name="${1}"
 
-	service_common_service_up $service_name || return
+	service_common_service_up "$service_name" || return
 
-	local pid_service=$(pgrep $service_name)
+	local pid_service;pid_service=$(pgrep "$service_name")
 	[[ -z $pid_service ]] && return
 
-	svc -d /service/$service_name >/dev/null 2>&1 || true
+	svc -d "/service/$service_name" >/dev/null 2>&1 || true
 	while [ -d "/proc/$pid_service"  ]; do
 		sleep 1 & wait $!
 	done
@@ -73,9 +82,8 @@ service_common_stop_service_and_wait() {
 
 service_common_restart_service() {
 	local service="${1}"
-	if service_common_service_up "$service"; then
-		svc -t "/service/$service"
-	else
-		svc -u "/service/$service"
-	fi
+
+	svc -t "/service/$service"
+	svc -u "/service/$service"
+
 }

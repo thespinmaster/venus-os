@@ -8,7 +8,7 @@ import weakref
 from collections import defaultdict
 from ve_utils import wrap_dbus_value, unwrap_dbus_value
 
- 
+
 # vedbus contains three classes:
 # VeDbusItemImport -> use this to read data from the dbus, ie import
 # VeDbusItemExport -> use this to export data to the dbus (one value)
@@ -58,7 +58,7 @@ from ve_utils import wrap_dbus_value, unwrap_dbus_value
 
 # Export ourselves as a D-Bus service.
 class VeDbusService(object):
- 
+
 	def __init__(self, servicename, bus=None, register=None):
 		# dict containing the VeDbusItemExport objects, with their path as the key.
 		self._dbusobjects = {}
@@ -88,12 +88,12 @@ class VeDbusService(object):
 			self.register()
 		elif register:
 			self.register()
-		
+
 	def register(self):
 		# Register ourselves on the dbus, trigger an error if already in use (do_not_queue)
 		self._dbusname = dbus.service.BusName(self.name, self._dbusconn, do_not_queue=True)
 		logging.info("registered ourselves on D-Bus as %s" % self.name)
-	
+
 	# To force immediate deregistering of this dbus service and all its object paths, explicitly
 	# call __del__().
 	def __del__(self):
@@ -153,7 +153,7 @@ class VeDbusService(object):
 		logging.debug("_value_changed")
 		if path not in self._onchangecallbacks:
 			return True
-		
+
 		return self._onchangecallbacks[path](path, newvalue)
 
 	def _item_deleted(self, path):

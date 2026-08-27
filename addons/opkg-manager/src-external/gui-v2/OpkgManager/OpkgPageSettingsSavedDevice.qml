@@ -13,7 +13,7 @@ Page {
 	//required property var deviceRemovedCallback
 
 	property var removingDeviceText: progressText.running ? progressText.text : ""
- 
+
 	property var jsonUsbProps: usbPropsItem.valid ? JSON.parse(usbPropsItem.value) : {}
 
 	VeQuickItem {
@@ -61,18 +61,19 @@ Page {
 
 	function removeDevice() {
 		var sid = root.serviceUid.split('/').pop()
-
+		sid = sid.replace(/^sid_/, "");
+		
 		//% "Removing Device"
 		progressText.start(qsTrId("opkgmanager_removing_device"))
 
 		root.opkgManager.removeDevice(
 			sid, function(result) {
-				progressText.stop()
+				if (progressText)
+					progressText.stop()
 				if (result.success) {
-					//deviceAddedCallback(true)
 					//% "Device successfully removed"
 					var successMessage = qsTrId("opkgmanager_device_successfully_removed")
-					toast.createToast(successMessage, 5000)
+					Global.showToastNotification(VenusOS.Notification_Info, successMessage, 5000)
 				}
 			}
 		)

@@ -4,23 +4,26 @@ import "qrc:/OpkgManager/components"
 
 Page {
 	id: root
-
+	title: CommonWords.discovered_devices
+	
 	required property OpkgManager opkgManager
 	property string devicesUid: opkgManager.serviceUid + "/Discovered"
+	property OpkgProgressText progressText
 
 	OpkgDbusChildModel {
 		id: devicesModel
 		uid: root.devicesUid
 		childId: "Port"
 	}
+	OpkgProgressText {}
 
  	GradientListView {
 		id: listview
 		header: PrimaryListLabel {
 			horizontalAlignment: Text.AlignHCenter
-			preferredVisible: listview.count === 0
+			preferredVisible: root.progressText.running || listview.count ===0
 			//% "No Usb devices discovered"
-			text: qsTrId("opkgmanager_no_devices_discovered")
+			text: root.progressText.running ? progressText.text : qsTrId("opkgmanager_no_devices_discovered")
 		}
 
 		model: devicesModel

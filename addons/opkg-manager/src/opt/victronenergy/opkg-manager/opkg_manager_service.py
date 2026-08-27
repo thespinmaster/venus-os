@@ -21,13 +21,13 @@ if EXT_DIR not in sys.path:
 from vedbus import VeDbusService  # type: ignore
 from settingsdevice import SettingsDevice  # type: ignore
 
-from chunk_processor import ChunkProcessor, CHUNK_DEFAULT_SIZE
+from chunk_processor import ChunkProcessor
 from command_processor import CommandProcessor
 from usb_scanner import UsbScanner
 
 SERVICE_NAME = "com.victronenergy.opkgmanager"
 #DUMMY_SERVICE_NAME = "com.victronenergy._opkgmanager"
-VERSION = "2.1.0"
+VERSION = "2.1.1"
 
 log = logging.getLogger(__name__)
 
@@ -86,52 +86,56 @@ class OpkgManagerService:
 				self._dbusservice.add_path("/Result/Error", "", valuetype=dbus.String)
 				self._dbusservice.add_path("/Result/Json", "", valuetype=dbus.String, writeable=True)
 
-				self._dbusservice.add_path("/Chunk/Request/Name", "", writeable=True, valuetype=dbus.String)
-				self._dbusservice.add_path("/Chunk/Request/Offset", dbus.UInt32(0), writeable=True, valuetype=dbus.UInt32)
-				self._dbusservice.add_path("/Chunk/Request/MaxSize", dbus.UInt32(CHUNK_DEFAULT_SIZE), writeable=True, valuetype=dbus.UInt32)
 				self._dbusservice.add_path(
-						"/Chunk/Request/Seq",
-						dbus.UInt32(0),
+						"/Chunk/Control/CreateSessionId",
+						"",
 						writeable=True,
-						valuetype=dbus.UInt32,
+						valuetype=dbus.String,
+						onchangecallback=self._on_chunk_create_session_requested,
+				)
+				self._dbusservice.add_path(
+						"/Chunk/Control/CloseSessionId",
+						"",
+						writeable=True,
+						valuetype=dbus.String,
+						onchangecallback=self._on_chunk_close_session_requested,
+				)
+				self._dbusservice.add_path(
+						"/Chunk/RequestJson",
+						"",
+						writeable=True,
+						valuetype=dbus.String,
 						onchangecallback=self._on_chunk_requested,
 				)
-				self._dbusservice.add_path("/Chunk/Result/Seq", dbus.UInt32(0), valuetype=dbus.UInt32)
-				self._dbusservice.add_path("/Chunk/Result/Data", "", valuetype=dbus.String)
-				self._dbusservice.add_path("/Chunk/Result/EndOfData", dbus.UInt16(0), valuetype=dbus.UInt16)
-				self._dbusservice.add_path("/Chunk/Result/SourceVersion", "", valuetype=dbus.String)
-				self._dbusservice.add_path("/Chunk/Result/Error", "", valuetype=dbus.String)
 
 				lock = threading.RLock()
 				self._usb_scanner = UsbScanner(self._dbusservice)
 				self._command_processor = CommandProcessor(self._dbusservice, lock, self._usb_scanner)
 				self._chunk_processor = ChunkProcessor(self._dbusservice)
 
-				self._initialize_settings()
+				# self._initialize_settings()
 				self._dbusservice.register()
-
-				#self._dummyService = Dummy_OpkgManagerService()
 
 				log.info("D-Bus service registered: %s", SERVICE_NAME)
 				self._loop = GLib.MainLoop()
 
-		def _initialize_settings(self):
-				try:
-						self._settings = SettingsDevice(
-								bus=self._system_bus,
-								supportedSettings={
-										"auto_scan": ["/Settings/OpkgManager/AutoScan", 0, 0, 1],
-								},
-								eventCallback=self._on_setting_changed,
-								timeout=30,
-						)
-				except Exception:
-						log.exception("Failed to initialize settings device")
-						self._settings = None
+		# def _initialize_settings(self):
+		# 		try:
+		# 				self._settings = SettingsDevice(
+		# 						bus=self._system_bus,
+		# 						supportedSettings={
+		# 								"auto_scan": ["/Settings/OpkgManager/AutoScan", 0, 0, 1],
+		# 						},
+		# 						eventCallback=self._on_setting_changed,
+		# 						timeout=30,
+		# 				)
+		# 		except Exception:
+		# 				log.exception("Failed to initialize settings device")
+		#  				self._settings = None
 
-		def _on_setting_changed(self, setting, oldvalue, newvalue):
-				log.info("Setting changed: %s %s -> %s", setting, oldvalue, newvalue)
-				return True
+		# def _on_setting_changed(self, setting, oldvalue, newvalue):
+		# 		log.info("Setting changed: %s %s -> %s", setting, oldvalue, newvalue)
+		# 		return True
 
 		def run(self):
 				log.info("Main loop started")
@@ -153,25 +157,8 @@ class OpkgManagerService:
 		def _on_chunk_requested(self, _path, _value):
 				return self._chunk_processor.on_chunk_requested(_path, _value)
 
+		def _on_chunk_create_session_requested(self, _path, _value):
+				return self._chunk_processor.on_create_session_requested(_path, _value)
 
-class Dummy_OpkgManagerService:
-		def __init__(self):
-
-			log.info("Initializing dummy_OpkgManagerService")
-
-			bus = dbus.SystemBus(private=True)
-			self._dbusservice = VeDbusService(DUMMY_SERVICE_NAME, bus=bus, register=False)
-
-			self._dbusservice.add_mandatory_paths(
-					processname=__file__,
-					processversion=VERSION,
-					connection="opkg-manager",
-					deviceinstance=0,
-					productid=0,
-					productname=".opkg-manager.", # makes sure we are top of the device list
-					firmwareversion=1,
-					hardwareversion=1,
-					connected=1,
-			)
-
-			self._dbusservice.register()
+		def _on_chunk_close_session_requested(self, _path, _value):
+				return self._chunk_processor.on_close_session_requested(_path, _value)

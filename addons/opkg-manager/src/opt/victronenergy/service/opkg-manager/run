@@ -1,4 +1,4 @@
 #!/bin/bash
+exec 2>&1
 . /etc/profile.d/profile.sh
-mkdir -p /var/log/opkg-manager
-exec /opt/victronenergy/opkg-manager/__main__.py >>	/var/log/opkg-manager/current 2>&1
+exec /opt/victronenergy/opkg-manager/__main__.py

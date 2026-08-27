@@ -26,13 +26,14 @@ class UsbScanner:
 
 		if line.startswith("DEVICE:DISCOVERED\t"):
 			GLib.idle_add(self._publish_discovered_device, line)
+			return True
 
 		if line.startswith("DEVICE:CLAIMED\t"):
 				log.info("adding _device_claimed to stack")
 				GLib.idle_add(self._device_claimed, line)
 				return True
 
-		return True
+		return False
 
 	def _device_claimed(self, line):
 		"""Delete all the keys with the /Discovered/[sid].
@@ -51,9 +52,8 @@ class UsbScanner:
 		log.info("_device_claimed deleting key:" + key)
 
 		if key in self._dbusservice:
-			log.info("_device_claimed deleting key2:" + key)
+			log.info("_device_claimed invalidating key:" + key)
 			self._dbusservice[key] = None
-			#del self._dbusservice[key]
 			return False
 
 		log.warning("_device_claimed key not found: " + key)
@@ -62,33 +62,35 @@ class UsbScanner:
 	def clear_discovered_devices(self):
 		"""Remove all /Discovered/* paths from the D-Bus service."""
 		self._claimed_sids.clear()
-		#self.__delete_path("/Discovered/")
+		self.__delete_path("/Discovered/")
 
 	def __delete_path(self, path):
 		"""Delete all the keys under the provided path* paths from the D-Bus service."""
+		log.info("in __delete_path: %s", path)
 		paths_to_delete = []
 		try:
-				for p in self._dbusservice._dbusobjects.keys():
-						if isinstance(p, str) and p.startswith(path):
-								log.info("__delete_path:FOUND")
-								paths_to_delete.append(p)
+			for p in list(self._dbusservice._dbusobjects.keys()):
+				if isinstance(p, str) and p.startswith(path):
+					log.info("__delete_path:FOUND %s", p)
+					paths_to_delete.append(p)
 		except Exception as e:
 			log.exception(f"Failed to enumerate /Discovered subtree for cleanup: {e}")
 
 		for p in paths_to_delete:
-				if p in self._dbusservice:
-						log.info("__delete_path:Deleting:" + p)
-						self._dbusservice[p] = None
-						#del self._dbusservice[p]
-
+			if p in self._dbusservice:
+				log.info("__delete_path:Invalidating:%s", p)
+				self._dbusservice[p] = None
 
 	def _publish_discovered_device(self, line: str):
 		# Called via GLib.idle_add; return False to run once and then be removed.
 
 		jsonPayload = _discovered_to_json(line)
-		sid = str(jsonPayload.get("hash", ""))
+		sid = str(jsonPayload.get("hash", "")).strip()
+		if not sid:
+			log.warning("_publish_discovered_device skipping invalid sid for line: %s", line)
+			return False
 		if sid in self._claimed_sids:
-			log.info("_publish_discovered_device skipping claimed sid:" + sid)
+			log.info("_publish_discovered_device skipping claimed sid:%s", sid)
 			return False
 
 		path = f"/Discovered/sid_{sid}/Port"

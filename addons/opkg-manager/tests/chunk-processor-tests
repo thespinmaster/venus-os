@@ -1,0 +1,124 @@
+#!/usr/bin/env bash
+
+set -o nounset
+
+this_path="$(dirname "${BASH_SOURCE[0]}")"
+. "$this_path/../../../scripts/libs/test-lib"
+
+run_chunk_cleanup_check() {
+  local scenario="$1"
+  local module_dir="$this_path/../src/opt/victronenergy/opkg-manager"
+
+  PYTHONPATH="$module_dir" python3 - "$scenario" <<'PY'
+import sys
+import types
+
+scenario = sys.argv[1]
+
+
+def install_test_stubs():
+    dbus_module = types.ModuleType("dbus")
+    dbus_module.UInt16 = lambda value=0: int(value)
+    dbus_module.UInt32 = lambda value=0: int(value)
+    dbus_module.UInt64 = lambda value=0: int(value)
+    dbus_module.Int32 = lambda value=0: int(value)
+    dbus_module.String = str
+    sys.modules["dbus"] = dbus_module
+
+    glib = types.SimpleNamespace(
+        timeout_add=lambda *_args, **_kwargs: 1,
+        idle_add=lambda func, *args: func(*args),
+    )
+
+    gi_module = types.ModuleType("gi")
+    repository_module = types.ModuleType("repository")
+    repository_module.GLib = glib
+    gi_module.repository = repository_module
+
+    sys.modules["gi"] = gi_module
+    sys.modules["gi.repository"] = repository_module
+
+
+class FakeServiceContext:
+    def __init__(self, parent):
+        self.parent = parent
+
+    def del_tree(self, root):
+        root = root.rstrip("/")
+        for path in list(self.parent._dbusobjects.keys()):
+            if path == root or path.startswith(root + "/"):
+                del self.parent._dbusobjects[path]
+
+
+class FakeDbusService:
+    def __init__(self):
+        self._dbusobjects = {}
+
+    def add_path(self, path, value, **_kwargs):
+        self._dbusobjects[path] = value
+
+    def __contains__(self, path):
+        return path in self._dbusobjects
+
+    def __getitem__(self, path):
+        return self._dbusobjects[path]
+
+    def __setitem__(self, path, value):
+        self._dbusobjects[path] = value
+
+    def __enter__(self):
+        return FakeServiceContext(self)
+
+    def __exit__(self, exc_type, exc, tb):
+        return False
+
+
+install_test_stubs()
+
+from chunk_processor import ChunkProcessor, CHUNK_SESSION_TTL_MS
+
+
+def assert_session_paths_removed(service, session_id):
+    root = f"/Chunk/Sessions/{session_id}"
+    leftovers = [p for p in service._dbusobjects.keys() if p == root or p.startswith(root + "/")]
+    if leftovers:
+        raise AssertionError(f"Expected no leftover session keys, found: {leftovers}")
+
+
+service = FakeDbusService()
+processor = ChunkProcessor(service)
+
+if scenario == "close":
+    sid = "sessclose1"
+    assert processor.on_create_session_requested(None, sid)
+    assert any(p.startswith(f"/Chunk/Sessions/{sid}/") for p in service._dbusobjects.keys())
+    assert processor.on_close_session_requested(None, sid)
+    assert_session_paths_removed(service, sid)
+    assert sid not in processor._sessions
+elif scenario == "ttl":
+    sid = "sessttl01"
+    assert processor.on_create_session_requested(None, sid)
+    processor._sessions[sid] = processor._now_ms() - CHUNK_SESSION_TTL_MS - 1
+    assert processor._cleanup_expired_sessions() is True
+    assert_session_paths_removed(service, sid)
+    assert sid not in processor._sessions
+else:
+    raise ValueError(f"Unknown scenario: {scenario}")
+
+print("ok")
+PY
+}
+
+test_chunk_cleanup_client_close_deletes_session_tree() {
+  local stdout
+  stdout="$(run_chunk_cleanup_check close 2>&1)"
+  assert_exitcode 0 "chunk close cleanup should succeed"
+  assert_eq "ok" "$stdout" "close cleanup returned ok"
+}
+
+test_chunk_cleanup_ttl_deletes_session_tree() {
+  local stdout
+  stdout="$(run_chunk_cleanup_check ttl 2>&1)"
+  assert_exitcode 0 "chunk ttl cleanup should succeed"
+  assert_eq "ok" "$stdout" "ttl cleanup returned ok"
+}

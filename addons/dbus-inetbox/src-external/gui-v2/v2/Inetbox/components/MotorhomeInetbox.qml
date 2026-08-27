@@ -10,23 +10,44 @@ Rectangle {
 	color: Theme.color_background_secondary
 	radius: Theme.geometry_button_radius
 	implicitHeight: inetboxColumn.implicitHeight + inetboxColumn.anchors.margins * 2
-
 	property alias targetTemperatureSlider: targetTemperatureSlider
 	property var model
 	property real buttonOffsetX: 0
+
+	Loader {
+		active: root.model.device === null
+		anchors.centerIn: parent
+		sourceComponent: Component {
+			ColumnLayout {
+
+				Label {
+					//% "No Inetbox device found"
+					text: qsTrId("inetbox_no_device_found")
+					Layout.alignment: Qt.AlignHCenter
+					Layout.bottomMargin: 10
+				}
+
+				ListItemButton {
+					//% "Click to install device"
+					text: qsTrId("inetbox_click_to_install_device")
+					Layout.alignment: Qt.AlignHCenter
+					onClicked:  {
+						Global.pageManager.pushPage("qrc:/OpkgManager/OpkgPageSettingsDevicesList.qml", {
+								"title": text
+							})
+					}
+				}
+			}
+		}
+	}
 
 	ColumnLayout {
 		id: inetboxColumn
 		anchors.fill: parent
 		anchors.margins: 4
-		// Room Temps
+		visible: root.model.device !== null
 
-		Connections {
-			target: Global.pageManager.navBar
-			function onCurrentIndexChanged() {
-				console.log("AAA: onCurrentIndexChanged", Global.mainView.navBar.currentIndex)
-			}
-		}
+		// Room Temps
 		RowLayout {
 			id: mainTemps
 			spacing: 10

@@ -74,7 +74,7 @@ QtObject {
 			error("Invalid args: expected '<command> <action> [args...]'")
 			return
 		}
-
+ 
 		_snapshotSeqState()
 
 		var inputArgs = Array.prototype.slice.call(arguments)

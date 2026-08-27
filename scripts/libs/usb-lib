@@ -118,7 +118,7 @@ usb_get_props() {
   local devpath="$1"
   local props prop
   shift
- 
+
   props=$(udevadm info --query=property --name="$devpath" || echo "")
   [[ -z "$*" ]] && return "$props"
 
@@ -139,23 +139,30 @@ __validatePort() {
   fi
 }
 
+usb_reload() {
+	udevadm control --reload
+	udevadm trigger
+}
+
 usb_help() {
   cat <<'EOF'
 A helper for connecting/disconnecting USB devices.
 
 Usage:
-  usb-device disconnect ttyUSB0
+  usb-lib disconnect ttyUSB0
       Disconnect a USB device. Simulates unplugging the device.
-  usb-device connect 1-1.4
+  usb-lib connect 1-1.4
       Connect a device using its USB device id.
-  usb-device reconnect ttyUSB0
+  usb-lib reconnect ttyUSB0
       Disconnect and reconnect a USB device. Simulates re-plugging it.
-  usb-device get-tty 003 002
+  usb-lib get-tty 003 002
       Resolve the tty from the bus:device values shown by `lsusb`.
-  usb-device list [ttyUSB0]
+  usb-lib list [ttyUSB0]
       Show all `udevadm` properties for one tty, or all USB tty devices.
-    usb-device get-prop ttyUSB0 ID_MODEL [ID_VENDOR ...]
+	usb-lib get-prop ttyUSB0 ID_MODEL [ID_VENDOR ...]
       Gets one or more udev properties for the given tty device.
+	usb-lib refresh|reload
+	    Reloads the usb info (udevadm reload)
 EOF
 }
 
@@ -164,6 +171,9 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     --help|help|"")
       usb_help
       ;;
+		reload|refresh)
+			usb_reload
+			;;
     get-tty)
       shift
       usb_get_tty "${1}" "${2}"

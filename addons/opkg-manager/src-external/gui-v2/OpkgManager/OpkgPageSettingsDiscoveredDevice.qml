@@ -99,17 +99,25 @@ Page {
 		progressText.start(addingDevice)
 
 		var sid = root.serviceUid.split('/').pop()
+		sid = sid.replace(/^sid_/, "");
 
 		root.opkgManager.bindDeviceToService(
 			sid, root.port, root.selectedDeviceServicePathName, root.jsonUsbProps,
 			function(result) {
-				progressText.stop()
+				if (progressText)
+					progressText.stop()
+				if (result) {
+					//Global.pageManager.popPage()
 					//% "Device Added Successfully\nThe service will start shortly..."
 					var successMessage = qsTrId("opkgmanager_added_device_success")
-					toast.createToast(successMessage, 5000)
+					Global.showToastNotification(VenusOS.Notification_Info, successMessage, 5000)
 				}
+
+
+			}
+
 		)
-		Global.pageManager.popPage()
+
 	}
 
 }

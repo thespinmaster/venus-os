@@ -36,6 +36,7 @@ ln -sfn "$QML_SOURCE_PATH/OpkgManager" "$QML_TARGET_PATH/OpkgManager"
 
 # symlink service program from dev source to ve service location
 # don't symlink; FIFO will error, copy from runit service to final service location
+rm -rf  "/opt/victronenergy/opkg-manager"
 ln -sfn "/data/dev/addons/opkg-manager/src/opt/victronenergy/opkg-manager" \
 				"/opt/victronenergy/opkg-manager"
 

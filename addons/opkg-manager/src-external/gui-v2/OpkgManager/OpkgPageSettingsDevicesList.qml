@@ -8,11 +8,23 @@ Page {
 	title: qsTrId("opkgmanager_custom_devices")
 	tryPop: opkgManager.tryPop
 
-	required property OpkgManager opkgManager
+	property OpkgManager opkgManager
 	property string service: "com.victronenergy.opkgmanager"
 	property string settings: "com.victronenergy.settings/Settings/OpkgManager"
 
+	Component {
+		id: opkgManagerFactory
+		OpkgManager {
+			function showToastNotification(level, message, duration) {
+				Global.showToastNotification(level, message, duration)
+			}
+		}
+	}
+
 	function toggleScan() {
+		if (opkgManager == null)
+			opkgManager = opkgManagerFactory.createObject(root)
+
 		if (opkgManager.running) {
 			opkgManager.cancel()
 			return
@@ -20,10 +32,15 @@ Page {
 
 		progressText.start(CommonWords.scanning.arg("").slice(0, -1))
 		opkgManager.usbScan(function (result) {
-			progressText.stop()
+			if (progressText)
+				progressText.stop()
 		})
+		showDiscoveredDevicesPage()
 	}
 
+	function showDiscoveredDevicesPage() {
+		Global.pageManager.pushPage("qrc:/OpkgManager/OpkgPageSettingsDiscoveredDevices.qml", {opkgManager: root.opkgManager, progressText: progressText})
+	}
 	OpkgProgressText {id: progressText}
 
 	GradientListView {
@@ -47,7 +64,7 @@ Page {
 			ListNavigation {
 				text: CommonWords.discovered_devices
 				//secondaryText: subpage.model.count //TODO
-				onClicked: Global.pageManager.pushPage("qrc:/OpkgManager/OpkgPageSettingsDiscoveredDevices.qml", {"title": text, opkgManager: root.opkgManager})
+				onClicked: root.showDiscoveredDevicesPage()
 			}
 		}
 	}

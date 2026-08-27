@@ -3,7 +3,7 @@
     // Hover to view descriptions of existing attributes.
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
- 
+
     "configurations": [
         {
             "type": "bashdb",
@@ -13,10 +13,10 @@
             "cwd": "${fileDirname}",
             "program": "${file}",
             "terminalKind": "integrated",
-            
+
             "args": []
         },
- 
+
         {
             "type": "bashdb",
             "presentation": { "group": "bash" },
@@ -32,74 +32,46 @@
             "presentation": { "group": "python"},
             "type": "debugpy",
             "request": "launch",
+            "python": "/usr/bin/python",
             "cwd": "${fileDirname}",
             "program": "${file}",
             "console": "integratedTerminal"
         },
+
         {
             "name": "dbus-inetbox (ttyUSB0)",
             "presentation": { "group": "inetbox" },
             "type": "debugpy",
             "request": "launch",
-            "cwd": "${workspaceFolder}/addons/dbus-inetbox/src/opt/victronenergy/dbus-inetbox-async",
+            "python": "/usr/bin/python",
+            "cwd": "${workspaceFolder}/addons/dbus-inetbox/src/opt/victronenergy/dbus-inetbox",
             "program": "__main__.py",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "args": ["--serial", "/dev/ttyUSB0", "--sid", "1c8e"] 
-        },
-        {
-            "name": "dbus-inetbox-orig (ttyUSB0)",
-            "presentation": { "group": "inetbox" },
-            "type": "debugpy",
-            "request": "launch",
-            "cwd": "${workspaceFolder}/addons/dbus-inetbox/src/opt/victronenergy/dbus-inetbox-orig",
-            "program": "__main__.py",
-            "console": "integratedTerminal",
-            "justMyCode": true,
-            "args": ["--serial", "/dev/ttyUSB0", 
+            "args": ["--serial", "/dev/ttyUSB0",
                 "--debug_lin"]
         },
         {
-            "name": "Inetbox-orig (SIM)",
-            "presentation": {"hidden": true},
-            "type": "debugpy",
-            "request": "launch",
-            "cwd": "${workspaceFolder}/addons/dbus-inetbox/src/opt/victronenergy/dbus-inetbox-orig",
-            "program": "__main__.py",
-            "console": "integratedTerminal",
-            "justMyCode": true,
-            "args": ["--serial", "/tmp/lin_sim", "--debug_lin"]
-        },
-        {
-            "name": "Inetbox-async (SIM)",
-            "presentation": {"hidden": true},
-            "type": "debugpy",
-            "request": "launch",
-            "cwd": "${workspaceFolder}/addons/dbus-inetbox/src/opt/victronenergy/dbus-inetbox-async",
-            "program": "__main__.py",
-            "console": "integratedTerminal",
-            "justMyCode": true,
-            "args": ["--serial", "/tmp/lin_sim", "--debug_lin"]
-        },
-        {
-            "name": "LIN Device Player",
-            "presentation": {"hidden": true},
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${workspaceFolder}/addons/dbus-inetbox/tests/device.py",
-            "args": [
-                "${workspaceFolder}/addons/dbus-inetbox/tests/assets/serial-init-recording.json",
-                "--speed",
-                "1"
-            ],
-            "console": "integratedTerminal",
-            "justMyCode": false
-        },
+					"name": "opkg-manager",
+					"presentation": { "group": "opkg-manager"},
+					"type": "debugpy",
+					"request": "launch",
+					"python": "/usr/bin/python",
+                    "cwd": "${workspaceFolder}",
+					"program": "${workspaceFolder}/addons/opkg-manager/src/opt/victronenergy/opkg-manager/__main__.py",
+					"console": "integratedTerminal",
+                    "stopOnEntry": false,
+                    "env": {
+                        "OPKG_MANAGER_LOG_LEVEL": "DEBUG"
+                    },
+                    "args": []
+			},
         {
             "name": "dbus-ne-shunt",
             "presentation": { "group": "dbus-ne-shunt"},
             "type": "debugpy",
             "request": "launch",
+            "python": "/usr/bin/python",
             "program": "${workspaceFolder}/addons/dbus-ne-shunt/src/opt/victronenergy/dbus-ne-shunt/__main__.py",
             "console": "integratedTerminal",
             "args": ["--serial", "/dev/ttyUSB0", "--debug"]
@@ -109,6 +81,7 @@
             "presentation": { "group": "python" },
             "request": "launch",
             "name": "Python - opkg-make-index",
+            "python": "/usr/bin/python",
             "cwd": "${workspaceFolder}/feeds/opkg-manager",
             "program": "${workspaceFolder}/tooling/opkg-utils/opkg-make-index",
             "args": ["-p", "Packages", "./"]
@@ -134,5 +107,5 @@
             "stopAll": true
         }
     ],
-    
+
 }

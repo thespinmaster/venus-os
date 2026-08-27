@@ -1,6 +1,7 @@
 .pragma library
 
 var _cache = []; // This array lives for the entire application life cycle
+var _customPageModel
 var _isReload = true;
 
 function getIsReload() {
@@ -16,18 +17,24 @@ function clearCache() {
 //We *must* create the OpkgCustomPageModel page in here and
 // *not* in a qml file to ensure the obj lifetime outlives the qml page
 function createOpkgCustomPageModel(parent) {
-	if (!OpkgCustomPageModelExists()) {
+	if (!_customPageModel) {
 		var pageUrl = "qrc:/OpkgManager/components/OpkgCustomPageModel.qml"
-		var obj = createPage(pageUrl, parent)
-		_cache.push({key: pageUrl, value: obj})
+		_customPageModel = createPage(pageUrl, parent)
+
+		_cache.push({key: pageUrl, value: _customPageModel})
 		return true
 	}
 	return false
 }
 
+function toggleCustomPage(pageName, toggleCustomPage) {
+	console.log("OpkgSingleton: in:",_customPageModel)
+	 if (_customPageModel)
+	 	_customPageModel.toggleCustomPage(pageName, toggleCustomPage)
+}
+
 function OpkgCustomPageModelExists() {
-	var pageUrl = "qrc:/OpkgManager/components/OpkgCustomPageModel.qml"
-	return (findIndexInCache(pageUrl) !== undefined)
+	return _customPageModel != undefined
 }
 
 function findIndexInCache(key) {

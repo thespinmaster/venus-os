@@ -1,4 +1,4 @@
-// SYM LINKED
+// HARD LINKED
 import QtQuick 2
 
 Rectangle {
