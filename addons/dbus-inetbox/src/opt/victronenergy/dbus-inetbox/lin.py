@@ -123,7 +123,7 @@ class Lin:
 			self.serial.write(databytes)
 			#self.serial.flush()
 			time.sleep(0.002)
-			#print(f"[LIN-DEBUG] out > {databytes.hex(' ')}")
+			self.log.debug(f"[LIN-DEBUG] out > {databytes.hex(' ')}")
 
 
 		def prepare_tl_str_response(self, message_str, info_str):
@@ -141,8 +141,8 @@ class Lin:
 						databytes = bytes(self.ts_response_buffer[0])
 						self.ts_response_buffer.pop(0)
 						self._send_answer(databytes)
-				#else:
-						#self.log.debug("unexpacted behavior - nothing to send")
+				else:
+						self.log.debug("unexpacted behavior - nothing to send")
 
 
 		def no_answer(self, s, p):
@@ -150,7 +150,7 @@ class Lin:
 						self.stop_async = self.response_waiting()
 				self.updates_to_send = (self.app.upload_buffer or self.app.upload02_buffer)
 				if p.startswith("_"): return
-				#self.log.debug(p)
+				self.log.debug(p)
 
 
 		def display_status(self):
@@ -178,7 +178,7 @@ class Lin:
 				buf_id = buf[8:10]
 				self.d8_alive = True
 				self.cpp_buffer[buf_id] = buf[10:]
-				#self.log.debug(f"Buf[{buf_id}]={self.cpp_buffer[buf_id]}")
+				self.log.debug(f"Buf[{buf_id}]={self.cpp_buffer[buf_id]}")
 				self.app.process_status_buffer_update(buf_id, self.cpp_buffer[buf_id])
 				return True
 
@@ -196,19 +196,19 @@ class Lin:
 #         self.prepare_tl_response(bytes.fromhex("03 26 00 00 00 00 00 00 d6".replace(" ","")))
 
 				if self.app.upload_buffer:
-						#self.log.debug("heater_status to be generated")
+						self.log.debug("heater_status to be generated")
 						self.cmd_buf = self.app._get_status_buffer_for_writing()
 						self.stop_async = True
 						if self.app.upload_buffer > 0: self.app.upload_buffer -= 1
 
 				if self.app.upload02_buffer:
-						#self.log.debug("aircon_status to be generated")
+						self.log.debug("aircon_status to be generated")
 						self.cmd_buf = self.app._get_status_buffer1_for_writing()
 						self.stop_async = True
 						if self.app.upload02_buffer > 0: self.app.upload02_buffer -= 1
 
 				if (self.cmd_buf == None) or (self.cmd_buf == {}):
-						#self.log.debug("cmd_buffer is empty")
+						self.log.debug("cmd_buffer is empty")
 						return
 				self.d8_alive = True
 				self.stop_async = True
@@ -216,13 +216,13 @@ class Lin:
 						self.prepare_tl_response(i)
 				self.updates_to_send = False
 				if p.startswith("_"): return
-				#self.log.debug(p)
+				self.log.debug(p)
 
 		async def watchdog(self):
 				self.log.info("watchdog activated")
 				await asyncio.sleep(60)
 				if (self.app.status["alive"][0] == "ON"):
-						#self.log.info("watchdog deactivated_s1")
+						self.log.info("watchdog deactivated_s1")
 						return
 				await asyncio.sleep(60)
 				if (self.app.status["alive"][0] == "ON"):
@@ -266,18 +266,21 @@ class Lin:
 						last_status_time = current_time
 
 				try:
-						# 2. Read accumulated bytes from the OS buffer
-						n = self.serial.in_waiting
-						if n > 0:
-								data = self.serial.read(n)
-								#if data:
-								self._loop_serial(data)
-						# elif self.response_waiting():
-						# 		self.log.debug(f"[LIN-DEBUG] response_waiting")
-						# 		self._answer_tl_request()
-				except Exception as e:
-						# Log your error here
-						await asyncio.sleep(1) # Prevent rapid looping if the USB unplugged
+					# 2. Read accumulated bytes from the OS buffer
+					n = self.serial.in_waiting
+					if n > 0:
+							data = self.serial.read(n)
+							if self.recorder:
+								self.recorder.record_read(data)
+
+							self._rx_buf.extend(data)
+
+					if n > 0 or self.response_waiting()
+						self._loop_serial()
+
+				Exception as e:
+					# Log your error here
+					await asyncio.sleep(1) # Prevent rapid looping if the USB unplugged
 
 				if not self.stop_async :
 					# Note stop_async is set to true only when writing data back.
@@ -287,28 +290,23 @@ class Lin:
 					# while keeping Cerbo GX CPU usage at absolute 0%.
 					await asyncio.sleep(0.1)
 
-		def _loop_serial(self, data):
-
-			if self.recorder:
-				self.recorder.record_read(data)
-				#print(f"[LIN-DEBUG] RX raw: {data.hex(' ')} ({len(data)} bytes)")
-			self._rx_buf.extend(data)
+		def _loop_serial(self):
 
 			while True:
 				# Find sync 0x00 0x55
 				sync_idx = self._rx_buf.find(b'\x00\x55')
 				if sync_idx < 0:
-					print(f"[LIN-DEBUG] No sync found, buffer: {self._rx_buf.hex(' ')}")
+					self.log.debug(f"[LIN-DEBUG] No sync found, buffer: {self._rx_buf.hex(' ')}")
 					# Keep last 0x00 in case sync starts there
 					self._rx_buf = self._rx_buf[-1:] if self._rx_buf[-1:] == b'\x00' else bytearray()
-					print(f"[LIN-DEBUG] Kept for next iteration: {self._rx_buf.hex(' ')}")
+					self.log.debug(f"[LIN-DEBUG] Kept for next iteration: {self._rx_buf.hex(' ')}")
 					return
 
-				print(f"[LIN-DEBUG] Sync found at index {sync_idx}")
+				self.log.debug(f"[LIN-DEBUG] Sync found at index {sync_idx}")
 
 				# Need at least 3 bytes for raw PID
 				if len(self._rx_buf) < sync_idx + 3:
-					#print(f"[LIN-DEBUG] Need 3 bytes, have {len(self._rx_buf) - sync_idx}")
+					self.log.debug(f"[LIN-DEBUG] Need 3 bytes, have {len(self._rx_buf) - sync_idx}")
 					return
 
 				raw_pid = self._rx_buf[sync_idx + 2]
@@ -316,23 +314,21 @@ class Lin:
 				# Determine required frame length
 				frame_len = 3 if raw_pid in (0xD8, 0x7D) else 12
 				if len(self._rx_buf) < sync_idx + frame_len:
-					print(f"[LIN-DEBUG] Need {frame_len} bytes, have {len(self._rx_buf) - sync_idx}")
+					self.log.debug(f"[LIN-DEBUG] Need {frame_len} bytes, have {len(self._rx_buf) - sync_idx}")
 					return
 
 				line = bytes(self._rx_buf[sync_idx:sync_idx + frame_len])
-				print(f"[LIN-DEBUG] Full frame received: {line.hex(' ')} ({len(line)} bytes)")				#print(f"[LIN-DEBUG] Extracted frame: {line.hex(' ')}")
+				self.log.debug(f"[LIN-DEBUG] Full frame received: {line.hex(' ')} ({len(line)} bytes)")
 				del self._rx_buf[:sync_idx + frame_len]
 
-				self._process_frame(raw_pid, line)
+				self._process_frame(line)
 
-		def _process_frame(self, raw_pid_old: int, line: bytes):
-			print(f"[LIN-DEBUG] Processing frame: {line.hex(' ')}")
+		def _process_frame(self, line: bytes):
+			self.log.debug(f"[LIN-DEBUG] Processing frame: {line.hex(' ')}")
 			raw_pid = line[2]
 			if raw_pid == 0xd8:
 				self.d8_alive = True
 				self.app.status["alive"] = ["ON", True, False]
-
-				#self.log.debug(f"in 1 < {line.hex(' ')}")
 
 				s = False
 				if not(self.app.upload_wait):
@@ -351,7 +347,7 @@ class Lin:
 
 			if raw_pid == 0x7d:
 				if self.response_waiting():
-					#self.log.debug(f"in 2 < {line.hex(' ')}")
+					self.log.debug(f"_answer_tl_request")
 					self._answer_tl_request()
 				return
 
@@ -360,8 +356,6 @@ class Lin:
 			self.cnt_rows = self.cnt_rows % self.CNT_ROWS_MAX
 			if not(self.cnt_rows):
 				self.display_status()
-
-			#self.log.debug(f"in 3 < {line.hex(' ')}")
 
 			buf_trans_id = bytes([0x00, 0x55, 0x3c, 0x03])
 			if (line[:4]==buf_trans_id) and (line[4] in range(0x21, 0x27)):
