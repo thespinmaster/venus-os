@@ -76,7 +76,7 @@ QtObject {
 	}
 
 	function _writeLog(line) {
-		if (line=="--#$~") {
+		if (line=="::FINALIZING-INSTALL::") {
 			_finalizing_install = true
 			const Notification_Info=2
 			//% "Finiazing install. The UI will restart shortly"

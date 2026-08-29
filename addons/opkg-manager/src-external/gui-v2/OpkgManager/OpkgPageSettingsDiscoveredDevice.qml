@@ -83,9 +83,10 @@ Page {
 			width: parent.width
 			topPadding: spacing
 			ListButton {
-				secondaryText: CommonWords.add_device
+				secondaryText: progressText.running ? progressText.text : CommonWords.add_device
 				enabled: root.selectedDeviceServicePathName
 				onClicked: root.addDevice()
+				implicitWidth: 100
 			}
 		}
 	}
@@ -106,8 +107,10 @@ Page {
 			function(result) {
 				if (progressText)
 					progressText.stop()
+
 				if (result) {
-					//Global.pageManager.popPage()
+					Global.pageManager.popPage()
+
 					//% "Device Added Successfully\nThe service will start shortly..."
 					var successMessage = qsTrId("opkgmanager_added_device_success")
 					Global.showToastNotification(VenusOS.Notification_Info, successMessage, 5000)

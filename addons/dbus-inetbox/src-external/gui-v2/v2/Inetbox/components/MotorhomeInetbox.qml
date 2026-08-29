@@ -1,8 +1,8 @@
 import QtQuick
 import QtQuick.Layouts
 import Victron.VenusOS
-import "qrc:/OpkgManager/components/OpkgSingleton.js" as OpkgSingleton
-
+import QtQuick.Controls.impl as CP
+//import "qrc:/OpkgManager/components/OpkgSingleton.js" as OpkgSingleton
 
 Rectangle {
 	id: root
@@ -19,7 +19,6 @@ Rectangle {
 		anchors.centerIn: parent
 		sourceComponent: Component {
 			ColumnLayout {
-
 				Label {
 					//% "No Inetbox device found"
 					text: qsTrId("inetbox_no_device_found")
@@ -40,12 +39,45 @@ Rectangle {
 			}
 		}
 	}
+	Loader {
+		active: root.model.device !== null && root.model.errorCodeItem.value !== 0
+		anchors.centerIn: parent
+		anchors.verticalCenterOffset: 30
+		sourceComponent: Component {
+
+ 			Row {
+				spacing: Theme.geometry_modalWarningDialog_description_spacing
+
+				CP.IconImage {
+					id: alarmIcon
+					source: "qrc:/images/icon_alarm_48.svg"
+					color: Theme.color_red
+					anchors.verticalCenter: errorInfo.verticalCenter
+				}
+				Column {
+					id: errorInfo
+					Label {
+						id: description
+						font.pixelSize: Theme.font_size_body2
+						//: %1 = error code
+						//% "Error Code: %1"
+						text: qsTrId("inetbox_error_code").arg(root.model.errorCodeItem.value)
+					}
+					Label {
+						text: (root.model.errorDescriptionItem.value ?? "").replace(/\|/g, "\n")
+						wrapMode: Text.WordWrap
+						width: Math.min(500, implicitWidth)
+					}
+				}
+			}
+		}
+	}
 
 	ColumnLayout {
 		id: inetboxColumn
 		anchors.fill: parent
 		anchors.margins: 4
-		visible: root.model.device !== null
+		visible: root.model.device !== null && root.model.errorCodeItem.value === 0
 
 		// Room Temps
 		RowLayout {

@@ -137,6 +137,12 @@ class InetboxController:
 					self._settings[path] = value
 				return True
 
+			if (path == "/Values/Error"):
+				error_description=get_error_description(value)
+				self._dbusInetboxService.set_value("/Values/ErrorDescription", error_description)
+				self._dbusInetboxService.inject_notification(dbus_constants.PRODUCT_NAME, error_description)
+				return True
+
 			name = path.removeprefix(self.DBUS_PATH)
 			if (name == "AirconTargetTemp"):
 				value = self._coerce_aircon_target_temp(value)

@@ -79,7 +79,7 @@ serial_device_installer_get_available_devices() {
 	if [[ -n "${tty}" ]]; then
 	 	tty_paths=( "${tty}" )
 	else
-		tty_paths=( "$(serial_device_installer_get_tty_paths)" )
+		tty_paths=( $(serial_device_installer_get_tty_paths) ) # don't quote
 	fi
 
 	for tty_path in "${tty_paths[@]}"; do
@@ -87,7 +87,8 @@ serial_device_installer_get_available_devices() {
 
 		tty="${tty_path##*/}"
 		[[ -e /dev/serial-starter/$tty ]] || {
-			echo "$tty";
+			[[ -z $(serial_device_installer_get_sid_from_tty "/dev/$tty" ) ]] &&
+				echo "$tty";
 			continue
 		}
 
@@ -123,7 +124,7 @@ serial_device_installer_set_device_sid() {
 	# shellcheck disable=SC2034
 	local usb_props="${1}"
 	# shellcheck disable=SC2154
-	DEVICE_SID=$(printf '%s' "${usbProps}" | sha1sum | awk '{print substr($1,1,16)}') \
+	DEVICE_SID=$(printf '%s' "${usb_props}" | sha1sum | awk '{print substr($1,1,16)}') \
 		|| { log_error "ERROR: Error setting DEVICE_SID"; return 1; }
 }
 
@@ -248,7 +249,7 @@ serial_device_installer_remove_service_mapping() {
 		mv "$tmp" "$SERIAL_STARTER_CONFIG_FILE"
 		log "Removed service mapping"
 
-		service_common_restart_service
+		service_common_restart_service "${DEVICE_SERVICE_NAME}"
 	fi
 }
 
@@ -323,6 +324,10 @@ serial_device_installer_get_usb_prop() {
 	udevadm info --query=property --name="$1" | sed -n "s/^$2=//p"
 }
 
+serial_device_installer_get_sid_from_tty() {
+	serial_device_installer_get_usb_prop "${1}" "SERIAL_DEVICE_ID"
+}
+
 # get_usb_props <tty> <array_var_name> <property list>
 # Usage: get_usb_props ttyUSB0 usb_props PROPS[@]
 serial_device_installer_fill_usb_props() {
@@ -372,17 +377,15 @@ __ensure_TTY_from_TTY_or_SID() {
 serial_device_installer_TTY_from_SID() {
 
 	local serial_device_id=${DEVICE_SID}
-	local dev
-	local value
+	local dev= tty=
+	local value=
 
 	[[ -z "${DEVICE_SID}" ]] && { log_error "DEVICE_SID not set"; return 1; }
 
 	for dev in $(serial_device_installer_get_tty_paths); do
 			[ -e "$dev" ] || continue
-
-			value=$(udevadm info --query=property --path="$dev" |
-					sed -n 's/^SERIAL_DEVICE_ID=//p')
-
+			tty="${dev##*/}"
+			value=$(serial_device_installer_get_sid_from_tty "/dev/${tty}")
 			if [[ "$value" == "$serial_device_id" ]]; then
 				DEVICE_TTY=$(basename "$dev")
 				return 0

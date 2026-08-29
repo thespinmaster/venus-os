@@ -5,10 +5,11 @@ import "qrc:/OpkgManager/components"
 Page {
 	id: root
 	title: CommonWords.discovered_devices
-	
+
 	required property OpkgManager opkgManager
 	property string devicesUid: opkgManager.serviceUid + "/Discovered"
 	property OpkgProgressText progressText
+	property var popToPage
 
 	OpkgDbusChildModel {
 		id: devicesModel
@@ -27,6 +28,15 @@ Page {
 		}
 
 		model: devicesModel
+		
+		Component {
+			id: opkgManagerFactory
+			OpkgManager {
+				function showToastNotification(level, message, duration) {
+					Global.showToastNotification(level, message, duration)
+				}
+			}
+		}
 
 		delegate: ListNavigation {
 			id: device
@@ -39,6 +49,7 @@ Page {
 				{"title": text,
 				opkgManager: root.opkgManager,
 				port: model.value,
+				popToPage: root.popToPage,
 				serviceUid: model.buddy.uid}
 			 )
 		}

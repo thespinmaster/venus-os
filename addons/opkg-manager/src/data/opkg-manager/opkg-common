@@ -5,9 +5,6 @@ set -o nounset
 readonly rc_local_file="${VENUS_ROOT_DIR:-}/data/rc.local"
 readonly opkg_installed_packages_file="/data/conf/opkg-manager-installed-packages.conf"
 readonly resize2fs_file="/opt/victronenergy/swupdate-scripts/resize2fs.sh"
-readonly opkg_finalize_install_file="/tmp/opkg-manager/finalize-install"
-readonly opkg_finalize_install_scheduled_file="/tmp/opkg-manager/finalize-install.scheduled"
-readonly opkg_finalize_install_log="/var/log/opkg-manager/finalize-install.log"
 
 # shellcheck disable=SC2034
 readonly OPKG_MANAGER_FEED_NAME="opkg-manager" # used by sourcing code
@@ -74,61 +71,6 @@ opkg_common_request_package_update() {
 }
 opkg_common_clear_requested_package_update() {
 	rm -f /var/run/update-feeds
-}
-
-opkg_common_append_finalize_install_script() {
-	local script_path="${1:-}"
-
-	[[ -f "${script_path}" ]] || {
-		log_error "ERROR: finalize-install invalid script path: ${script_path}"
-		return 1
-	}
-
-	mkdir -p "$(dirname "${opkg_finalize_install_file}")"
-	[[ -f "${opkg_finalize_install_file}" ]] || {
-		echo '#!/bin/bash' > "${opkg_finalize_install_file}"
-		chmod +x "${opkg_finalize_install_file}"
-	}
-
-	echo "$*" >> "${opkg_finalize_install_file}"
-
-	return 0
-}
-
-# shellcheck disable=SC2120
-opkg_common_run_finalize_install_scripts() {
-	local sleep_before_executing="${1:-0}"
-
-	[[ -f "${opkg_finalize_install_file}" ]] || {
-		rm -f "${opkg_finalize_install_scheduled_file}"
-		return 0
-	}
-
-	if [[ -f "${opkg_finalize_install_scheduled_file}" ]]; then
-		log_trace "Finalize-install already scheduled to run"
-		return 0
-	fi
-
-	local queued_script="${opkg_finalize_install_file}"
-	touch "${opkg_finalize_install_scheduled_file}"
-
-	(
-		__wait_for_opkg
-
-		sleep "$sleep_before_executing"
-
-		mkdir -p "$(dirname "${opkg_finalize_install_log}")"
-		rm -f "${opkg_finalize_install_log}"
-
-		log "Executing finalize-install script"
-		if [[ ! ${dry_run} ]]; then
-			"${queued_script}" >> "${opkg_finalize_install_log}" 2>&1 || log_error "Finalize-install script failed: ${queued_script}"
-		fi
-
-		rm -f "${queued_script}" "${opkg_finalize_install_scheduled_file}"
-	) &
-
-	return 0
 }
 
 opkg_common_ensure_feed_symlink() {
@@ -565,10 +507,6 @@ case "${1:-}" in
       log "*** DRY RUN ***"
     fi
     opkg_common_ensure_installed
-    ;;
-
-  opkg_common_run_finalize_install_scripts)
-    opkg_common_run_finalize_install_scripts
     ;;
 
   ensure-feeds)

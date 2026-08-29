@@ -30,6 +30,18 @@ PACKAGE_CUSTOM_MENUS=(
 	PageMain/PageSettings
 )
 
+# Requirements
+# 1. UI needs restarting.
+# 2. Plugin needs updating (restarts UI)
+# 3. Opkg update, and opkg-bridge/packages_helper need calling.
+# 4. Upgrading opkg-manager. opkg-manager service, needs restarting
+
+# Ordering
+# 1. Items 1, 2 & 4 need to notify the UI that it will restart shortly.
+#     then execute as a batch...
+# 2. Needs to be processed *After* the opkg install has finished
+
+
 PACKAGE_DBUS_SETTINGS="
     {'path':'/Settings/OpkgManager/ShowCompact', 'default':0, 'min':0, 'max':1}
     {'path':'/Settings/OpkgManager/NoAction', 'default':0, 'min':0, 'max':1}
@@ -39,6 +51,12 @@ PACKAGE_DBUS_SETTINGS="
 post_install() {
 	# opkg-manager specific install script
   opkg_common_add_script_to_rc_local "${RC_LOCAL_SCRIPT}"
+
+	opkg_common_ensure_feed_symlink
+
+	# ((RUNNING_FROM_GUI)) &&
+  # 	opkg_common_request_package_update
+
 }
 
 post_remove() {
@@ -51,22 +69,19 @@ post_remove() {
 
   serial_device_installer_remove_rules_file_symlink
 
+	# ((RUNNING_FROM_GUI)) &&
+	# 	opkg_common_request_package_update
+
 }
 
 finalize_install() {
-	# ** This Runs after the install **
-	opkg_common_ensure_feed_symlink
 
 	PACKAGE_SERVICES=("opkg-manager")
-	# install_common_stop_services
 	install_common_start_services
-
-	/data/opkg-manager/opkg-bridge/packages_helper update &
 
 }
 
 finalize_remove() {
-  # ** This Runs after the install **
 
 	[[ "$PACKAGE_ACTION" == "upgrade-remove" ]] && return;
 
@@ -74,9 +89,6 @@ finalize_remove() {
 	install_common_stop_services
 
 	opkg_common_remove_feed_symlink
-  opkg_common_update_packages
-
-	/data/opkg-manager/opkg-bridge/packages_helper update &
 
 }
 

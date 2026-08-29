@@ -28,7 +28,7 @@ device_remove() {
 
 	DEVICE_SID="${1}"
 	[[ -z "$DEVICE_SID" ]] && { echo "Invalid argument: sid empty" >&2; return 1; }
- 
+
 	echo "Removing serial device service"
 	serial_device_installer_remove_service
 
@@ -42,8 +42,11 @@ device_scan_usb() {
 	local tty
 	local usbProps=
 
-	for tty in $(serial_device_installer_get_available_devices); do
 
+
+	for tty in $(serial_device_installer_get_available_devices); do
+		echo "tty=$tty"
+		continue
 		serial_device_installer_fill_usb_props "$tty" "$DEFAULT_USB_PROPS" usbProps || { continue; }
 
 		serial_device_installer_set_device_sid "$usbProps"
@@ -77,19 +80,29 @@ device_bind_usb_to_service() {
 	# get dbus values
 	local service_name=
 	dbus_common_get_value "/Settings/OpkgManager/CustomServices/${device_path}/ServiceName" service_name
+	[[ -z "${service_name}" ]] &&
+		{ echo "Error: Service name not found"; return 1; }
 
 	# fill serial-starter-installer variables
 	DEVICE_UDEV_PROPS="${usbProps}"
 	DEVICE_TTY="${tty}"
 	DEVICE_SERVICE_NAME="${service_name}"
 
-	# echo "DEVICE_UDEV_PROPS=${usbProps}, DEVICE_TTY=${tty}, DEVICE_SERVICE_NAME=${service_name}"
+	# echo "DEVICE_TTY=${tty}, DEVICE_SERVICE_NAME=${service_name}, DEVICE_UDEV_PROPS=${usbProps}"
 
 	serial_device_installer_install 1>/dev/null || return 1
 
-	dbus_common_set_string_value "/Settings/Devices/${sid}/UsbProps" "${jsonUsbProps}" 1>/dev/null
+	#find /var/volatile/services -type d -name "*.${DEVICE_TTY}" \
+	#		! -name "${service_name}.${DEVICE_TTY}" -exec rm -rf {} +
+
+	# Remove stale service symlinks
+	#find -L /service -maxdepth 1 -type l -delete
+
+	dbus_common_set_string_value "/Settings/Devices/sid_${sid}/UsbProps" "${jsonUsbProps}" 1>/dev/null
 
 	printf 'DEVICE:CLAIMED\t%s\n' "${DEVICE_SID}"
+
+	echo "done"
 }
 
 if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then

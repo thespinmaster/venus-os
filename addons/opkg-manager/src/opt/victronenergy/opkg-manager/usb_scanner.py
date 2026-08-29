@@ -20,7 +20,7 @@ class UsbScanner:
 	def handle_line(self, state: CommandState, line: str) -> bool:
 		"""Return True if the line was a DEVICE:[ACTION] record and was consumed."""
 		log.info(line)
-		if not (state.operation_name == "device scan" or state.operation_name == "device bind"):
+		if state.operation_name not in ("device scan", "device bind", "device apply"):
 				log.info("exiting handle_line:" + state.operation_name)
 				return False
 
@@ -48,15 +48,18 @@ class UsbScanner:
 
 		sid = parts[1].strip()
 		self._claimed_sids.add(sid)
-		key = f"/Discovered/sid_{sid}"
-		log.info("_device_claimed deleting key:" + key)
+		prefix = f"/Discovered/sid_{sid}/"
+		log.info("_device_claimed deleting subtree:" + prefix)
 
-		if key in self._dbusservice:
-			log.info("_device_claimed invalidating key:" + key)
-			self._dbusservice[key] = None
-			return False
+		deleted = False
+		for p in list(self._dbusservice._dbusobjects.keys()):
+			if isinstance(p, str) and p.startswith(prefix) and p in self._dbusservice:
+				log.info("_device_claimed invalidating key:" + p)
+				self._dbusservice[p] = None
+				deleted = True
 
-		log.warning("_device_claimed key not found: " + key)
+		if not deleted:
+			log.warning("_device_claimed subtree not found: " + prefix)
 		return False
 
 	def clear_discovered_devices(self):

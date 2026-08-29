@@ -39,7 +39,9 @@ Page {
 	}
 
 	function showDiscoveredDevicesPage() {
-		Global.pageManager.pushPage("qrc:/OpkgManager/OpkgPageSettingsDiscoveredDevices.qml", {opkgManager: root.opkgManager, progressText: progressText})
+		Global.pageManager.pushPage("qrc:/OpkgManager/OpkgPageSettingsDiscoveredDevices.qml", {
+			opkgManager: root.opkgManager,
+			progressText: progressText})
 	}
 	OpkgProgressText {id: progressText}
 

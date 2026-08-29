@@ -15,11 +15,14 @@ SwipeViewPage {
 	topLeftButton: VenusOS.StatusBar_LeftButton_ControlsInactive
 
 	Component.onCompleted: {
-		console.log("Inetbox: onCompleted:",
-		"page=", url,
-		"version=", inetbox.version,
-		"device.firstObject=", devices.firstObject)
+
 		inetbox.device = devices.firstObject
+
+		console.log("Inetbox: onCompleted:",
+			"page=", url,
+			"version=", inetbox.version,
+			"device.firstObject=", devices.firstObject,
+			"inetbox.ErrorDescription.value =", inetbox.errorDescription.valid)
 	}
 	Component.onDestruction: {
 		console.log("Inetbox: onDestruction:", "page=", url, "version=", inetbox.version)
@@ -29,7 +32,6 @@ SwipeViewPage {
 		id: devices
 		serviceTypes: ["inetbox"]
 		onFirstObjectChanged: {
-			console.log("onFirstObjectChanged")
 			inetbox.device = devices.firstObject
 		}
 
@@ -83,6 +85,7 @@ SwipeViewPage {
 	InetboxModel {
 		id: inetbox
 		serviceUid: device?.serviceUid ?? ""
+		page: root
 
 		property var device : null
 		property bool showAircon : showAirconItem.valid && showAirconItem.value == 1
@@ -105,6 +108,10 @@ SwipeViewPage {
 		property VeQuickItem airconFanSpeedItem: VeQuickItem {uid: inetbox.bindPrefix("/AirconFanSpeed")}
 		property VeQuickItem energyMixItem: VeQuickItem {uid: inetbox.bindPrefix("/EnergyMixCombined")}
 		property VeQuickItem showAirconItem: VeQuickItem {uid: inetbox.bindSettingsPrefix("/ShowAircon")}
+		property VeQuickItem errorCodeItem: VeQuickItem {
+			uid: inetbox.bindPrefix("/ErrorCode")
+			}
+ 		property VeQuickItem errorDescriptionItem: VeQuickItem {uid: inetbox.bindPrefix("/ErrorDescription")}
 
 		Component.onCompleted: {
 			console.log("InetboxModel:",

@@ -4,13 +4,14 @@ import Victron.VenusOS
 QtObject {
 	id: root
 
+	property var page
 	property string serviceUid
 	property string settingsPrefix: _sidItem.valid ? Global.systemSettings.serviceUid + "/Settings/Devices/" + _sidItem.value : ""
 
 	property VeQuickItem _sidItem: VeQuickItem {
 		uid: root.serviceUid ? root.serviceUid + "/Sid" : ""
 	}
-
+ 
 	property var waterModeModel: [{
 			"value": "0",
 			//% "Off"

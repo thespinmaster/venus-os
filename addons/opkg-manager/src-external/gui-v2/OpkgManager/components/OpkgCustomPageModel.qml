@@ -93,9 +93,12 @@ QtObject {
 	}
 
 	function syncPages(customPages) {
-		// console.debug("OpkgCustomPageModel: syncPages in:", root._inSyncPages)
-		if (root._inSyncPages)
+		console.debug("OpkgCustomPageModel: syncPages in:", root._inSyncPages)
+		if (root._inSyncPages || !Global.mainView.swipeView) {
+			console.debug("OpkgCustomPageModel: out")
 			return
+		}
+
 
 		_inSyncPages = true
 
@@ -182,10 +185,10 @@ QtObject {
 	}
 
 	onAllPagesLoadedChanged: {
-		//console.debug("OpkgCustomPageModel: onAllPagesLoadedChanged:",
-		//"allPagesLoaded=", allPagesLoaded,
-		//"hadCustomPages=", _customPageItems.length>0,
-		//)
+		console.debug("OpkgCustomPageModel: onAllPagesLoadedChanged:",
+		"allPagesLoaded=", allPagesLoaded,
+		"hadCustomPages=", _customPageItems.length>0,
+		)
 
 		OpkgSingleton.setIsReload(true)
 		if (allPagesLoaded == false) {

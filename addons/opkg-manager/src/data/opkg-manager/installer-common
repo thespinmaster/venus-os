@@ -14,7 +14,6 @@ PACKAGE_SERVICES="${PACKAGE_SERVICES-}"
 PACKAGE_GUI_V2_PLUGIN_NAME="${PACKAGE_GUI_V2_PLUGIN_NAME-}"
 PACKAGE_VERSION_NEW=
 PACKAGE_VERSION_CURRENT=
-PACKAGE_FINALIZER_REQUIRED=
 RESTART_GUI=
 RUNNING_FROM_GUI=
 
@@ -394,50 +393,11 @@ install_common_start_services() {
 	for service in "${PACKAGE_SERVICES[@]}"; do
 		cp -rf "/opt/victronenergy/service/${service}" "/service"
 
-		svc -t "/service/$service"
-		svc -t "/service/${service}/log"
+		service_common_restart_service "$service"
+		service_common_restart_service "${service}/log"
 
-		svc -u "/service/$service"
-		svc -u "/service/${service}/log"
 		# svscan will start any other services
 	done
-
-}
-
-__install_common_register_finalize_install_script() {
-
-	((RESTART_GUI)) &&
-		PACKAGE_FINALIZER_REQUIRED=1
-
-	if [[ -z ${PACKAGE_FINALIZER_REQUIRED:-} ]]; then
-	  # check if finalize_install / finalize_remove methods exist
-		if ! declare -F finalize_install >/dev/null 2>&1 && \
-			! declare -F finalize_remove >/dev/null 2>&1; then
-			return 0
-		fi
-		PACKAGE_FINALIZER_REQUIRED=1
-	fi
-
-	echo "Registering installer finalizer"
-
-	local installer_script="/data/${PACKAGE_NAME}/installer"
-	[[ -f "${installer_script}" ]] || return 0
-
-	local sleep_before_executing=0
-	local guiArgs=
-	((RUNNING_FROM_GUI)) && {
-		guiArgs="--running-from-gui=1" || guiArgs="--running-from-gui=0"
-		sleep_before_executing=5 # give time to see messages in ui before restarting
-	}
-
-	opkg_common_append_finalize_install_script \
-		"${installer_script}" \
-		"finalize-install" \
-		"${PACKAGE_ACTION}" \
-		"${guiArgs}"
-		#"${flags}"
-
-	opkg_common_run_finalize_install_scripts $sleep_before_executing
 
 }
 
@@ -504,9 +464,9 @@ install_common_install() {
 
 	__try_call "post_install"
 
-	__install_common_register_finalize_install_script
+	__install_common_finalize
 
-	echo "Finished installing $PACKAGE_ACTION"
+	echo "Finished installing $PACKAGE_NAME"
 
 	return 0
 }
@@ -563,56 +523,54 @@ install_common_remove() {
 		install_common_uninstall_serial_device_services
 	fi
 
-	[[ -n "${PACKAGE_GUI_V2_PLUGIN_NAME:-}" ]] &&
+	[[ -n "${PACKAGE_GUI_V2_PLUGIN_NAME:-}" || "$PACKAGE_NAME" == "opkg-manager" ]] &&
 		RESTART_GUI=1
 
 	__try_call "post_remove"
- 
+
 	if install_common_is_upgrade; then
 		echo "Removed previous install, upgrading now..."
 	else
-	  __install_common_register_finalize_install_script
-		echo "Finished removing $PACKAGE_ACTION"
+	  __install_common_finalize
+		echo "Finished removing $PACKAGE_NAME"
 	fi
 
 	return 0
 }
+
 install_common_is_upgrade() {
 	[[ $PACKAGE_ACTION == "upgrade-remove" || $PACKAGE_ACTION == "upgrade-install"  ]]
 }
 
-install_common_finalize_install() {
-	echo "In install_common_finalize_remove"
-
-	install_common_initialize
-
-  __try_call "finalize_install"
-
-  __install_common_install_guiv2_plugin
-
-	# ((RESTART_GUI)) && # always restart ui(s)
-	install_common_restart_gui
-
-	echo "Finished $PACKAGE_ACTION"
+install_common_is_remove() {
+	[[ $PACKAGE_ACTION == "remove" || $PACKAGE_ACTION == "upgrade-remove" || $PACKAGE_ACTION == "dev-remove" ]]
 }
 
-install_common_finalize_remove() {
+__install_common_finalize() {
 
-	echo "In install_common_finalize_remove"
+	((!RESTART_GUI)) && {
+		echo "  nothing to do "
+		return
+	}
 
-	install_common_initialize
-
-	((RUNNING_FROM_GUI)) &&
+	if ((RUNNING_FROM_GUI)); then
+		echo "::FINALIZING-INSTALL::" # ui
 		sleep 5 # time to see final messages in ui before restarting
+	else
+		echo "Finalizing install" # ui
+	fi
 
-  __try_call "finalize_remove"
-
-	__install_common_remove_guiv2_plugin
+	if install_common_is_remove; then
+		__try_call "finalize_remove"
+		__install_common_remove_guiv2_plugin
+	else
+		__try_call "finalize_install"
+		__install_common_install_guiv2_plugin
+	fi
 
 	# ((RESTART_GUI)) && # always restart ui(s)
 		install_common_restart_gui
 
-	echo "Finished $PACKAGE_ACTION"
 }
 
 install_common_restart_gui() {
@@ -626,8 +584,7 @@ install_common_restart_gui() {
 if [[ $PACKAGE_ACTION == "configure" ]]; then
   declare package_no_extension="${2%.*}"
 
-	#PACKAGE_NAME="$(awk '/Package:/ {print $2}' ${package_no_extension}.control)"
-	# shellcheck disable=SC2034  # Unused in other scripts
+	# shellcheck disable=SC2034  # Used in other scripts
 	PACKAGE_VERSION_NEW="$(awk '/Version:/ {print $2}' "${package_no_extension}".control 2>/dev/null)"
 	PACKAGE_VERSION_CURRENT="$(opkg status "$PACKAGE_NAME" 2>/dev/null | awk '/Version:/ {print $2}' 2>/dev/null)"
 	[[ -z "$PACKAGE_VERSION_CURRENT" ]] \
@@ -644,17 +601,5 @@ case "${PACKAGE_ACTION}" in
 		install_common_install;;
   remove|upgrade-remove|dev-remove)
 	  echo "Install Action: $PACKAGE_ACTION"
-
     install_common_remove;;
-	finalize-install)
-		PACKAGE_ACTION="${2}"
-		[[ "${3:-}" == "--running-from-gui=1" ]] && RUNNING_FROM_GUI=1
-		echo "In finalize-install"
-		case "${PACKAGE_ACTION}" in
-		  install|upgrade-install|configure|dev-install)
-			  install_common_finalize_install;;
-			remove|upgrade-remove|dev-remove)
-			  install_common_finalize_remove;;
-		esac
-    ;;
 esac

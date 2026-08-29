@@ -76,19 +76,21 @@ QtObject {
 	}
 
 	function _writeLog(line) {
-		if (line=="--#$~") {
+
+		if (traceEnabled)
+			console.log(line)
+
+		if (line=="::FINALIZING-INSTALL::") {
 			_finalizing_install = true
 			const Notification_Info=2
 			//% "Finiazing install. The UI will restart shortly"
 			line = qsTrId("opkg_finalize_install")
 			showToastNotification(Notification_Info, line, 5000)
+			return
 		}
 
 		if (outputLog)
 			outputLog.log(line)
-
-		if (traceEnabled)
-			console.log(line)
 
 		log(line) // signal
 	}

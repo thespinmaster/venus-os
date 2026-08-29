@@ -3,7 +3,6 @@
 # Valid callbacks
 # pre_remove
 # post_remove
-# finalize_remove - called after opkg has finished
 #
 # pre_install
 # post_install

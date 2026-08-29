@@ -49,20 +49,15 @@
         <translation type="unfinished"></translation>
     </message>
     <message id="page_settings_modbus_scan_for_devices">
-        <location filename="../OpkgPageSettingsDevicesList.qml" line="51"/>
+        <location filename="../OpkgPageSettingsDevicesList.qml" line="53"/>
         <source></source>
         <oldsource>Scan for devices</oldsource>
         <translation type="unfinished"></translation>
     </message>
     <message id="page_settings_modbus_saved_devices">
-        <location filename="../OpkgPageSettingsDevicesList.qml" line="59"/>
+        <location filename="../OpkgPageSettingsDevicesList.qml" line="61"/>
         <source></source>
         <oldsource>Saved devices</oldsource>
-        <translation type="unfinished"></translation>
-    </message>
-    <message id="opkgmanager_no_devices_discovered">
-        <location filename="../OpkgPageSettingsDiscoveredDevices.qml" line="26"/>
-        <source>No Usb devices discovered</source>
         <translation type="unfinished"></translation>
     </message>
     <message id="opkgmanager_add_usb_serial_device">
@@ -97,12 +92,12 @@
         <translation type="unfinished"></translation>
     </message>
     <message id="opkgmanager_adding_device">
-        <location filename="../OpkgPageSettingsDiscoveredDevice.qml" line="98"/>
+        <location filename="../OpkgPageSettingsDiscoveredDevice.qml" line="99"/>
         <source>Adding Device</source>
         <translation type="unfinished"></translation>
     </message>
     <message id="opkgmanager_added_device_success">
-        <location filename="../OpkgPageSettingsDiscoveredDevice.qml" line="112"/>
+        <location filename="../OpkgPageSettingsDiscoveredDevice.qml" line="115"/>
         <source>Device Added Successfully
 The service will start shortly...</source>
         <translation type="unfinished"></translation>
@@ -264,6 +259,11 @@ The service will start shortly...</source>
     <message id="opkgmanager_no_devices_saved">
         <location filename="../OpkgPageSettingsSavedDevices.qml" line="23"/>
         <source>No Usb devices saved</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message id="opkgmanager_no_devices_discovered">
+        <location filename="../OpkgPageSettingsDiscoveredDevices.qml" line="27"/>
+        <source>No Usb devices discovered</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

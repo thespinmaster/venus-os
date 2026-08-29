@@ -99,6 +99,7 @@ class CommandProcessor:
 			state.cancelled = True
 
 	def start_command(self):
+		
 		with self._lock:
 			if self._active and self._active.process.poll() is None:
 				log.warning("Rejecting start: command already running")
@@ -337,13 +338,6 @@ class CommandProcessor:
 		state.finish_scheduled = True
 		GLib.idle_add(self._finish_command, state, state.exit_code, state.exit_status)
 
-	def _notify_post_install_if_pending(self):
-		if not os.path.exists("/tmp/opkg-manager/finalize-install"):
-			return
-
-		self._dbusservice["/Event/StdoutLine"] = "--#$~"
-		self._dbusservice["/Event/StdoutSeq"] = dbus.UInt32(int(self._dbusservice["/Event/StdoutSeq"]) + 1)
-
 	def _finish_command(self, state: Optional[CommandState], exit_code: int, exit_status: int):
 		with self._lock:
 			active = self._active
@@ -351,7 +345,6 @@ class CommandProcessor:
 				return False
 			self._active = None
 
-		self._notify_post_install_if_pending()
 		self._dbusservice["/State/Status"] = dbus.UInt16(0)
 		self._dbusservice["/Result/ExitCode"] = dbus.Int32(exit_code)
 		self._dbusservice["/Result/ExitStatus"] = dbus.UInt16(exit_status)

@@ -37,8 +37,8 @@ class dbusInetboxService(dbus_base_service):
 				'/Values/AirconTargetTemp': {'initial': None,'writable': True},
 				'/Values/AirconFanSpeed': {'initial': None,'writable': True},
 				'/Values/Status': {'initial': None,'writable': False},
-				'/Values/Error': {'initial': None,'writable': False},
-				'/Values/ErrorDescription': {'initial': None,'writable': False},
+				'/Values/Error': {'initial': None,'writable': True},
+				'/Values/ErrorDescription': {'initial': None,'writable': True},
 				'/Values/Clock': {'initial': None,'writable': False},
 				'/Values/Alive': {'initial': None,'writable': False},
 

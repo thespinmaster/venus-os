@@ -48,10 +48,10 @@ __package_command() {
 
 	__package_clear_install_lock
 
-	opkg_common_package_update_requested && {
-		opkg_common_clear_requested_package_update
+	#opkg_common_package_update_requested && {
+		#opkg_common_clear_requested_package_update
 		"$this_path/packages_helper" update force # update packages and json
-	}
+	#}
 
   __restore_previous_fs_access
 

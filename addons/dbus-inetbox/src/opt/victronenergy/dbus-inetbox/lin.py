@@ -275,10 +275,10 @@ class Lin:
 
 							self._rx_buf.extend(data)
 
-					if n > 0 or self.response_waiting()
+					if n > 0 or self.response_waiting():
 						self._loop_serial()
 
-				Exception as e:
+				except Exception as e:
 					# Log your error here
 					await asyncio.sleep(1) # Prevent rapid looping if the USB unplugged
 
