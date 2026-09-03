@@ -35,8 +35,8 @@ COMMAND_REGISTRY = {
 	},
 	"packages": {
 		"default": {
-			"helper_name": "packages_helper",
-			"helper_path": f"{BRIDGE_ROOT}/packages_helper",
+			"helper_name": "opkg-json-indexer",
+			"helper_path": f"{BRIDGE_ROOT}/opkg-json-indexer",
 		},
 		"actions": {
 			"update": {},

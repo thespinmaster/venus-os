@@ -2,12 +2,17 @@
 
 set -o nounset
 
-readonly rc_local_file="${VENUS_ROOT_DIR:-}/data/rc.local"
-readonly opkg_installed_packages_file="/data/conf/opkg-manager-installed-packages.conf"
-readonly resize2fs_file="/opt/victronenergy/swupdate-scripts/resize2fs.sh"
+[[ -z "${__SOURCE_COMMON_SOURCED:-}" ]] && {
+	# shellcheck source=/data/dev/addons/opkg-manager/src/data/opkg-manager/source-common
+	source "${VE_ROOT_PATH:-}/data/opkg-manager/source-common" && __SOURCE_COMMON_SOURCED=1
+	addsource "libs/log-lib"
+}
 
-# shellcheck disable=SC2034
-readonly OPKG_MANAGER_FEED_NAME="opkg-manager" # used by sourcing code
+readonly CONFIG_DIR="/data/conf/opkg-manager"
+readonly RC_LOCAL_FILE="${VENUS_ROOT_DIR:-}/data/rc.local"
+readonly RCS_LOCAL_FILE="${VENUS_ROOT_DIR:-}/data/rcS.local"
+readonly OPKG_INSTALLED_PACKAGES_FILE="${CONFIG_DIR}/installed-packages.conf"
+readonly RESIZE2FS_FILE="/opt/victronenergy/swupdate-scripts/resize2fs.sh"
 
 OPKG_FEED_CONFIG_FILE_SYMLNK="${VENUS_ROOT_DIR:-}/etc/opkg/opkg-manager.conf"
 
@@ -15,15 +20,12 @@ ___is_fs_readonly=
 init_opkg_helpers=
 dry_run=
 
-declare __this_path; __this_path="$(dirname "${BASH_SOURCE[0]}")"
-. "${__this_path}/libs/log-lib"
-
 # Expand rootfs and make it writable
 opkg_common_expand_root_fs() {
 
   log_trace "expanding root fs"
   if [[ ! $dry_run ]]; then
-    $resize2fs_file
+    $RESIZE2FS_FILE
   fi
 }
 
@@ -76,11 +78,12 @@ opkg_common_clear_requested_package_update() {
 opkg_common_ensure_feed_symlink() {
 
 	local requested_feed="${1:-}"
-  local new_target="/data/conf/opkg-manager-feeds-${1:-release}.conf"
+  local new_target="${CONFIG_DIR}/feeds-${1:-release}.conf"
 
   local current_source=""
   [[ -L "${OPKG_FEED_CONFIG_FILE_SYMLNK}" ]] &&
     current_source="$(readlink "${OPKG_FEED_CONFIG_FILE_SYMLNK}")"
+
 
 	# existing feed exists and no new feed requested so use existing
 	[[ -f "${current_source}" && -z "${requested_feed}" ]] &&
@@ -262,21 +265,25 @@ __wait_for_opkg() {
 opkg_common_update_packages() {
   (
     __wait_for_opkg && opkg update
-  ) &
+  ) </dev/null >/dev/null 2>&1 &
 
   return 0
 }
 
 __ensure_rc_local() {
+	local file=
+
+	[[ "${1:-}" == 1 ]] && file="$RCS_LOCAL_FILE" || file="$RC_LOCAL_FILE"
+
   log_trace "__ensure_rc_local"
-  if [[ ! -f "${rc_local_file}" ]]; then
-    log "rc.local does not exist; creating..."
+  if [[ ! -f "${file}" ]]; then
+    log_trace "rc.local does not exist; creating..."
     if [[ ! $dry_run ]]; then
-      touch "${rc_local_file}"
+      touch "${file}"
     fi
   fi
   if [[ ! $dry_run ]]; then
-    chmod +x "${rc_local_file}"
+    chmod +x "${file}"
   fi
 }
 
@@ -365,14 +372,14 @@ __opkg_common_try_install_package() {
 }
 
 # loops through all the lines in
-# the opkg_installed_packages_file
+# the OPKG_INSTALLED_PACKAGES_FILE
 # and proceeds to install each
 # package.
 # takes care of read write access
 opkg_common_ensure_installed() {
 
-  [[ -f "$opkg_installed_packages_file" ]] || {
-     log "opkg_installed_packages_file does not exist"; return 0; }
+  [[ ! -f "$OPKG_INSTALLED_PACKAGES_FILE" ]] && {
+     log_trace "OPKG_INSTALLED_PACKAGES_FILE does not exist"; return 0; }
 
   log_trace "opkg_common_ensure_installed"
 
@@ -394,7 +401,7 @@ opkg_common_ensure_installed() {
 
     __opkg_common_try_install_package "${line}"
 
-  done < "${opkg_installed_packages_file}"
+  done < "${OPKG_INSTALLED_PACKAGES_FILE}"
 
   __restore_previous_fs_access
 
@@ -405,28 +412,31 @@ opkg_common_ensure_installed() {
   return 0
 }
 
+# function: opkg_common_add_script_to_rc_local
 # adds script to the rc_local file
 # args: ${1} the script to add
+#       ${2:-} pass 1 to use rcS.local instead of rc.local
 # this script can be multiple lines
 opkg_common_add_script_to_rc_local() {
 
   [[ -z "${1:-}" ]] && { log_error "ERROR: no script supplied" ; return 1; }
 
-  __ensure_rc_local
+	local file=
+	[[ "${2:-}" == 1 ]] && file="$RCS_LOCAL_FILE" || file="$RC_LOCAL_FILE"
+  __ensure_rc_local "${2:-}"
 
   local thispath; thispath="$(dirname "${BASH_SOURCE[0]}")"
   . "$thispath/libs/string-lib"
 
   local found
-  found=$(string_lib_multiline_find_replace "${1}" --find-only --break-on-first < "$rc_local_file")
+  found=$(string_lib_multiline_find_replace "${1}" --find-only --break-on-first < "$file")
 
   if [[ -z $found ]]; then
-    log "Adding custom script to ${rc_local_file}"
     if [[ ! $dry_run ]]; then
-      echo "${1}" >> "${rc_local_file}"
+      echo "${1}" >> "${file}"
     fi
   else
-    log "Custom script already added"
+    log_trace "Custom script already added"
   fi
   return 0
 }
@@ -437,22 +447,23 @@ opkg_common_add_script_to_rc_local() {
 opkg_common_remove_script_from_rc_local() {
 
   [[ -z "${1:-}" ]] && { log_error "ERROR: no script supplied" ; return 1; }
-  [[ -f "${rc_local_file}" ]] || return 0
 
-  log "Removing custom script from ${rc_local_file}"
+	local file=
+	[[ "${2:-}" == 1 ]] && file="$RCS_LOCAL_FILE" || file="$RC_LOCAL_FILE"
 
-  # reads from ${rc_local_file} removes ${1} and saves back to ${rc_local_file}
-  # string_lib_multiline_find_replace "${1}" --trim-lines < "${rc_local_file}" > "${rc_local_file}"
+  [[ -f "${file}" ]] || return 0
+
+  log_trace "Removing custom script from ${file}"
 
   if [[ ! $dry_run ]]; then
 
-  thispath="$(dirname "${BASH_SOURCE[0]}")"
-  . "$thispath/libs/string-lib"
+		thispath="$(dirname "${BASH_SOURCE[0]}")"
+		. "$thispath/libs/string-lib"
 
     # TODO add inplace option to string_lib_multiline_find_replace
     local tmp; tmp=$(mktemp)
-    string_lib_multiline_find_replace "${1}" --trim-lines < "${rc_local_file}" > "$tmp" && {
-      mv "$tmp" "${rc_local_file}"
+    string_lib_multiline_find_replace "${1}" --trim-lines < "${file}" > "$tmp" && {
+      mv "$tmp" "${file}"
     }
 
   fi
@@ -469,13 +480,12 @@ opkg_common_register_package() {
 
   local package_name="${1:-}"
 
-  if [[ ! -f "${opkg_installed_packages_file}" ]] || ! grep -q "^${package_name}$" "${opkg_installed_packages_file}" ; then
-    log "Adding ${package_name} to ${opkg_installed_packages_file}"
+  if [[ ! -f "${OPKG_INSTALLED_PACKAGES_FILE}" ]] || ! grep -q "^${package_name}$" "${OPKG_INSTALLED_PACKAGES_FILE}" ; then
+    log_trace "Adding ${package_name} to ${OPKG_INSTALLED_PACKAGES_FILE}"
     if [[ ! $dry_run ]]; then
-      echo "${package_name}" >> "${opkg_installed_packages_file}"
+			mkdir -p "$(dirname "${OPKG_INSTALLED_PACKAGES_FILE}")"
+      echo "${package_name}" >> "${OPKG_INSTALLED_PACKAGES_FILE}"
     fi
-  else
-    log "Package ${package_name} already added"
   fi
 
 }
@@ -485,14 +495,14 @@ opkg_common_register_package() {
 opkg_common_unregister_package() {
 
   [[ -z "${1:-}" ]] && { log_error "ERROR: no package name supplied" ; return 1; }
-  [[ -f "${opkg_installed_packages_file}" ]] || return 0
+  [[ ! -f "${OPKG_INSTALLED_PACKAGES_FILE}" ]] && return 0
 
   local package_name="${1:-}"
 
-  if grep -q "^${package_name}$" "${opkg_installed_packages_file}" ; then
-    log "Removing ${package_name} from ${opkg_installed_packages_file}"
+  if grep -q "^${package_name}$" "${OPKG_INSTALLED_PACKAGES_FILE}" ; then
+    log_trace "Removing ${package_name} from ${OPKG_INSTALLED_PACKAGES_FILE}"
     if [[ ! $dry_run ]]; then
-      sed -i "/^$package_name/d" "${opkg_installed_packages_file}"
+      sed -i "/^$package_name/d" "${OPKG_INSTALLED_PACKAGES_FILE}"
     fi
   else
     log_trace "opkg_common_unregister_package:package '${package_name}' not found"

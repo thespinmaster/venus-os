@@ -21,7 +21,19 @@
 <file>../components/OpkgJsonReader.qml</file>
 <file>../components/OpkgLogViewer.qml</file>
 <file>../components/OpkgSingleton.js</file>
+<file>../OpkgManager_zh.qm</file>
+<file>../OpkgManager_fi.qm</file>
+<file>../OpkgManager_de.qm</file>
+<file>../OpkgManager_nl.qm</file>
+<file>../OpkgManager_pt.qm</file>
+<file>../OpkgManager_ja.qm</file>
+<file>../OpkgManager_es.qm</file>
+<file>../OpkgManager_fr.qm</file>
+<file>../OpkgManager_pl.qm</file>
+<file>../OpkgManager_it.qm</file>
+<file>../OpkgManager_ko.qm</file>
 <file>../OpkgManager_en.qm</file>
+<file>../OpkgManager_sv.qm</file>
 </qresource>
 <qresource prefix="/qt/qml/Victron/VenusOS/pages/settings/devicelist/delegates">
 <file>../DeviceListDelegate_opkgmanager.qml</file>

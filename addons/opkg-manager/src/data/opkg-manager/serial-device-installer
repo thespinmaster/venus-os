@@ -10,8 +10,11 @@ declare __this_path;__this_path="$(dirname "${BASH_SOURCE[0]}")"
 addsource "libs/log-lib"
 addsource "service-common"
 
-SERIAL_STARTER_CONFIG_FILE="${SERIAL_STARTER_CONFIG_FILE:-"/data/conf/serial-starter.d/opkg-manager.conf"}" # "/etc/venus/serial-starter.conf"}"
-SERIAL_STARTER_RULES_FILE="${SERIAL_STARTER_RULES_FILE:-"/data/conf/opkg-manager-serial-starter.rules"}"
+SERIAL_STARTER_CONFIG_FILE="${SERIAL_STARTER_CONFIG_FILE:-"/data/conf/opkg-manager/serial-starter.conf"}"
+
+readonly VENUS_OS_SERIAL_STARTER_CONFIG_FILE="/etc/venus/serial-starter.conf"
+
+SERIAL_STARTER_RULES_FILE="${SERIAL_STARTER_RULES_FILE:-"/data/conf/opkg-manager/serial-starter.rules"}"
 #symlink file *must* be placed after the serial-starter.rules file
 SERIAL_STARTER_RULES_FILE_SYMLINK="${SERIAL_STARTER_RULES_FILE_SYMLINK:-"/etc/udev/rules.d/serial-starter.rules-50-opkg-manager.rules"}"
 
@@ -28,12 +31,29 @@ __serial_device_installer_ensure_rules_file() {
 		touch "$SERIAL_STARTER_RULES_FILE"
 	}
 
-
 	[[ -L "${SERIAL_STARTER_RULES_FILE_SYMLINK}" ]] && current_target="$(readlink "${SERIAL_STARTER_RULES_FILE_SYMLINK}")"
 	[[ "${current_target}" == "${SERIAL_STARTER_RULES_FILE}" ]] && return 0
 
 	ln -sfn "${SERIAL_STARTER_RULES_FILE}" "${SERIAL_STARTER_RULES_FILE_SYMLINK}" || {
 		log_error "ERROR: failed to update SERIAL_STARTER_RULES_FILE_SYMLINK:${SERIAL_STARTER_RULES_FILE_SYMLINK} -> ${SERIAL_STARTER_RULES_FILE}"
+		return 1
+	}
+
+	return 0
+}
+
+__serial_device_installer_ensure_include_config() {
+	local include_line="include ${SERIAL_STARTER_CONFIG_FILE}"
+
+	mkdir -p "$(dirname "${VENUS_OS_SERIAL_STARTER_CONFIG_FILE}")" || return 1
+	touch "${VENUS_OS_SERIAL_STARTER_CONFIG_FILE}" || return 1
+
+	if grep -Fqx -- "${include_line}" "${VENUS_OS_SERIAL_STARTER_CONFIG_FILE}"; then
+		return 0
+	fi
+
+	echo "${include_line}" >> "${VENUS_OS_SERIAL_STARTER_CONFIG_FILE}" || {
+		log_error "ERROR: failed to add include line to ${VENUS_OS_SERIAL_STARTER_CONFIG_FILE}"
 		return 1
 	}
 
@@ -68,13 +88,31 @@ serial_device_installer_get_tty_paths() {
 	echo "/sys/class/tty/ttyUSB* /sys/class/tty/ttyACM*"
 }
 
+# function serial_device_installer_get_available_devices
+# returns all the available usb serial device ports
+# making sure the port is/will not be claimed by the serial-starter
+# Args 1: optional, tty, the name of a single tty port to check if available
+#             when not supplied all ports are checked
+# returns the port(s) if deemed available
 serial_device_installer_get_available_devices() {
-	local tty_path= tty=${1:-}
-	local first_prog= previous_prog=
+	local tty_path=
+	local tty=${1:-}
+	local first_prog=
+	local previous_prog=
 	local i=0
-	local tty_paths=
+	local -a tty_paths=()
+	local -i serial_starter_up=0
+	local serial_starter_pid=
+	local lock_dir="/var/lock/serial-starter"
+	local pid_tty_lock
 
-	svc -u /service/serial-starter
+	serial_starter_pid=$(pgrep -x serial-starter || echo 0)
+
+	if [[ -z ${tty} ]]; then
+		udevadm control --reload-rules >/dev/null;
+		udevadm trigger --action=add --subsystem-match=tty --property-match=ID_BUS=usb >/dev/null
+		udevadm settle >/dev/null
+	fi
 
 	if [[ -n "${tty}" ]]; then
 	 	tty_paths=( "${tty}" )
@@ -86,31 +124,38 @@ serial_device_installer_get_available_devices() {
 		[[ -e "$tty_path" ]] || continue
 
 		tty="${tty_path##*/}"
-		[[ -e /dev/serial-starter/$tty ]] || {
-			[[ -z $(serial_device_installer_get_sid_from_tty "/dev/$tty" ) ]] &&
-				echo "$tty";
-			continue
-		}
 
+		# Check if there is a stale tty lock in /var/lock/serial-starter/
+		pid_tty_lock=$(readlink "${lock_dir}/${tty}")
+		[[ "${serial_starter_pid}" != "${pid_tty_lock}" ]] &&
+			rm -f "${lock_dir}/${tty}"
+
+		if ((!serial_starter_pid)); then
+			# Check no other process is using the port
+			! fuser "/dev/$tty" && echo "$tty";
+			continue;
+		fi
+		i=0
 		while (( i++ < 100 )); do
 			[[ -e /dev/serial-starter/$tty ]] || break;
 
-			if [[ -r "/tmp/$tty.prog" ]]; then
-				prog=$(cat "/tmp/$tty.prog")
-			else
+			if [[ ! -r "/tmp/$tty.prog" ]]; then
+				# The serial-starter service is processing another port
+				# or the file is in use; Wait and continue
 				sleep 1
 				continue
 			fi
 
+			prog=$(cat "/tmp/$tty.prog")
 			if [[ -z "$first_prog" ]]; then
 				first_prog="$prog"
 				previous_prog="$prog"
 			elif [[ "$prog" != "$previous_prog" ]]; then
 				if [[ "$prog" == "$first_prog" ]]; then
+					# The prog has cycled; Assume port is unclaimed
 					echo "$tty"
 					break
 				fi
-
 				previous_prog="$prog"
 			fi
 
@@ -177,7 +222,6 @@ __create_serial_starter_rule() {
 	local rule_with_comment="${serial_starter_rule_comment}"$'\n'"${serial_starter_rule}"$'\n'
 	echo "${rule_with_comment}" >> "${SERIAL_STARTER_RULES_FILE}"
 
-	log "Rule added successfully."
 	log_trace "new serial starter rule=${serial_starter_rule}"
 
 	return 0
@@ -197,6 +241,7 @@ serial_device_installer_install() {
 		return 1
 	}
 
+	__serial_device_installer_ensure_include_config || return 1
 	__serial_device_installer_ensure_rules_file || return 1
 	__ensure_TTY_from_TTY_or_SID || return 1
 	__create_serial_starter_rule || return 1
@@ -207,6 +252,7 @@ serial_device_installer_install() {
 
 # required vars: SERIAL_STARTER_CONFIG_FILE, DEVICE_SERVICE_MAPPING_NAME, DEVICE_SERVICE_NAME
 serial_device_installer_add_service_mapping() {
+	__serial_device_installer_ensure_include_config || return 1
 
 	local service_mapping_name; __get_service_mapping_name_byref service_mapping_name
 	local find_pattern="^[[:space:]]*service[[:space:]]+${service_mapping_name}[[:space:]]+${DEVICE_SERVICE_NAME}[[:space:]]*$"
@@ -217,20 +263,15 @@ serial_device_installer_add_service_mapping() {
 		mkdir -p "$(dirname "${SERIAL_STARTER_CONFIG_FILE}")"
 		echo "${entry}" >> "${SERIAL_STARTER_CONFIG_FILE}"
 
-		log "Added service mapping config"
-	else
-		log "Service mapping already exists"
+		service_common_restart_service "serial-starter"
 	fi
 }
 
-
-################################################
 # Removes the rule added to the serial-starter.rules file
 # Removes the service mapping from the serial-starter.conf file
 # Sets DEVICE_TTY var to empty
 # required vars: SERIAL_STARTER_CONFIG_FILE, DEVICE_SERVICE_NAME
 # optional vars: DEVICE_SERVICE_MAPPING_NAME
-################################################
 serial_device_installer_remove_service_mapping() {
 
 	[[ ! -f "${SERIAL_STARTER_CONFIG_FILE}" ]] && return 0
@@ -249,15 +290,14 @@ serial_device_installer_remove_service_mapping() {
 		mv "$tmp" "$SERIAL_STARTER_CONFIG_FILE"
 		log "Removed service mapping"
 
-		service_common_restart_service "${DEVICE_SERVICE_NAME}"
+		# need to restart the serial starter so the changed config is loaded.
+		service_common_restart_service "serial-starter"
 	fi
 }
 
-################################################
 # updates udevadm for a usb device
 # optional vars: DEVICE_TTY
 # required arg 1: "add" if adding a device; "remove" if removing
-################################################
 __serial_device_installer_refresh_udevadm() {
 	local action="${1}"
 
@@ -266,6 +306,7 @@ __serial_device_installer_refresh_udevadm() {
 		 log_error "ERROR: invalid action. should be 'add' or 'remove'"; return 1; }
 
 	udevadm control --reload
+
 	[[ -n "${DEVICE_TTY:-}" ]] && {
 		udevadm trigger --action="$action" "/sys/class/tty/$DEVICE_TTY"
 		# when manualy removing we re-add so udevadm rules get re-run & thus refreshed
@@ -276,11 +317,8 @@ __serial_device_installer_refresh_udevadm() {
 
 }
 
-
-################################################
 # removes a serial starter rule from the serial-starter.rules file (/etc/udev/rules.d/serial-starter.rules)
 # required vars: SERIAL_STARTER_RULES_FILE, either DEVICE_SID or DEVICE_TTY must be set
-################################################
 __serial_device_installer_remove_rule() {
 
 	[[ ! -f "${SERIAL_STARTER_RULES_FILE:-}" ]] && return 0
@@ -290,7 +328,8 @@ __serial_device_installer_remove_rule() {
 
 		DEVICE_SID=$(serial_device_installer_get_usb_prop "$DEVICE_TTY" "SERIAL_DEVICE_ID")
 
-		[[ -z "${DEVICE_SID:-}" ]] && { log_info "Cannot find SERIAL_DEVICE_ID, nothing to do"; return 0; }
+		[[ -z "${DEVICE_SID:-}" ]] && {
+			log_trace "Cannot find SERIAL_DEVICE_ID, nothing to do"; return 0; }
 	fi
 
 	local tmp
@@ -306,6 +345,7 @@ __serial_device_installer_remove_rule() {
 	}
 
 	if ! cmp -s "${SERIAL_STARTER_RULES_FILE}" "$tmp"; then
+		mkdir -p "$(dirname "${SERIAL_STARTER_RULES_FILE}")"
 		mv "$tmp" "${SERIAL_STARTER_RULES_FILE}"
 		local file_name;file_name="$(basename "${SERIAL_STARTER_RULES_FILE}")"
 		log "Removed rule from ${file_name}"
@@ -377,7 +417,8 @@ __ensure_TTY_from_TTY_or_SID() {
 serial_device_installer_TTY_from_SID() {
 
 	local serial_device_id=${DEVICE_SID}
-	local dev= tty=
+	local dev=
+	local tty=
 	local value=
 
 	[[ -z "${DEVICE_SID}" ]] && { log_error "DEVICE_SID not set"; return 1; }
@@ -415,18 +456,15 @@ serial_device_installer_service_name_from_tty() {
 	__service_name="${fields[-1]}"
 
 	[[ -z "${__service_name}" ]] && {
-		log_error "ERROR: DEVICE_SERVICE_NAME not found for VE_SERVICE:${ve_service}"
 		__service_name=""
 		return 1
 	}
 	return 0
 }
 
-#########################################
 # Stops all the services using running using the supplied DEVICE_SERVICE_NAME
 # Then removes the directories /service/DEVICE_SERVICE_NAME.DEVICE_TTY & /var/volatile/services/DEVICE_SERVICE_NAME.DEVICE_TTY
 # required variables: 1 : DEVICE_SERVICE_NAME
-#########################################
 serial_device_installer_uninstall_service() {
 	local service_name="${1:-DEVICE_SERVICE_NAME}"
 

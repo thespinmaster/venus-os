@@ -2,9 +2,13 @@
 # shellcheck disable=SC2317,SC2329  # Don't warn about unreachable commands in this file
 
 set -o nounset
+export RUNNING_FROM_GUI=1
 
-declare _this_path; _this_path=$(dirname "${BASH_SOURCE[0]}")
-source "$_this_path/../opkg-common"
+ [[ -z "${__SOURCE_COMMON_SOURCED:-}" ]] && {
+	# shellcheck source=/data/dev/addons/opkg-manager/src/data/opkg-manager/source-common
+	source "${VE_ROOT_PATH:-}/data/opkg-manager/source-common" && __SOURCE_COMMON_SOURCED=1
+}
+addsource "opkg-common"
 
 __feed_command() {
 	local retVal=
@@ -14,7 +18,7 @@ __feed_command() {
 
 	if [[ $retVal == 0 ]]; then
 		local this_path; this_path=$(dirname "${BASH_SOURCE[0]}")
-  	"$this_path/packages_helper" update force # update cached json
+	  	"$this_path/opkg-json-indexer" update force # update cached json
 	fi
 
 	return $retVal

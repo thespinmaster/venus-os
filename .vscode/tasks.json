@@ -166,10 +166,10 @@
 			}
 		},
 		{
-			"label": "build packages_helper armhf",
+			"label": "build opkg-json-indexer armhf",
 			"type": "shell",
 			"problemMatcher": [],
-			"command": "${workspaceFolder}/tasks/build-packages-helper",
+			"command": "${workspaceFolder}/tasks/build-opkg-json-indexer",
 			"args": [
 				"armhf"
 			],
@@ -181,7 +181,7 @@
 				"showReuseMessage": false,
 				"clear": true
 			},
-			"detail": "Compile json_helper with armhf toolchain and write output to opkg-bridge/json_helper"
+			"detail": "Compile opkg-json-indexer with armhf toolchain and write output to opkg-bridge/opkg-json-indexer"
 		},
 		{
 			"label": "cleanup opkg develop feed",

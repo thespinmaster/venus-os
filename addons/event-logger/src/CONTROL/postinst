@@ -1,8 +1,0 @@
-#!/bin/bash
-
-package_name="event-logger"
-
-source "${VE_ROOT_DIR:-}/data/opkg-manager/opkg-common"
-opkg_common_register_package "${package_name}"
-
-echo "successfully added ${package_name}"

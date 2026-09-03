@@ -43,7 +43,7 @@ Comprehensive testing for opkg-manager installation/removal and core features.
 - [ ] Search for available package in UI
 - [ ] Install package via UI (non-critical test addon recommended)
 - [ ] Verify package appears in installed list
-- [ ] Verify `/data/conf/opkg-manager-installed-packages.conf` updated
+- [ ] Verify `/data/conf/opkg-manager/installed-packages.conf` updated
 - [ ] Check `/opt/victronenergy/<package>/` directory created
 - [ ] If package has service, verify it starts and runs
 

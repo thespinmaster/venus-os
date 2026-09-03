@@ -26,7 +26,7 @@ Page {
 
 	OpkgDbusChildModel {
 		id: opkgAvailableServicesModel
-		uid: Global.systemSettings.serviceUid + "/Settings/OpkgManager/Devices"
+		uid: Global.systemSettings.serviceUid + "/Settings/OpkgManager/CustomServices"
 		childId: "ProductName"
 		valueDelegate: function (model) {
 			return {display: model.value, value: model.buddyId}
@@ -93,6 +93,8 @@ Page {
 
 	function addDevice() {
 		if (!root.selectedDeviceServicePathName)
+			return
+		if (progressText.running)
 			return
 
 		//% "Adding Device"

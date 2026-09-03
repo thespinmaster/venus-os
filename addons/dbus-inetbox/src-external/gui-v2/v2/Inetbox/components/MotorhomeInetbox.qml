@@ -14,6 +14,8 @@ Rectangle {
 	property var model
 	property real buttonOffsetX: 0
 
+
+	//No device detected loader
 	Loader {
 		active: root.model.device === null
 		anchors.centerIn: parent
@@ -31,31 +33,32 @@ Rectangle {
 					text: qsTrId("inetbox_click_to_install_device")
 					Layout.alignment: Qt.AlignHCenter
 					onClicked:  {
-						Global.pageManager.pushPage("qrc:/OpkgManager/OpkgPageSettingsDevicesList.qml", {
-								"title": text
-							})
+						Global.pageManager.pushPage("qrc:/OpkgManager/OpkgPageSettingsDevicesList.qml")
 					}
 				}
 			}
 		}
 	}
+	// Error Description loader
 	Loader {
-		active: root.model.device !== null && root.model.errorCodeItem.value !== 0
+		id: errorLoader
+		active: root.model.device !== null && root.model.hasError && root.model.seenError != root.model.errorCodeItem.value
 		anchors.centerIn: parent
 		anchors.verticalCenterOffset: 30
 		sourceComponent: Component {
 
- 			Row {
+			Row {
 				spacing: Theme.geometry_modalWarningDialog_description_spacing
 
 				CP.IconImage {
 					id: alarmIcon
 					source: "qrc:/images/icon_alarm_48.svg"
-					color: Theme.color_red
+					color: Theme.color_warning
 					anchors.verticalCenter: errorInfo.verticalCenter
 				}
-				Column {
+				ColumnLayout {
 					id: errorInfo
+
 					Label {
 						id: description
 						font.pixelSize: Theme.font_size_body2
@@ -66,9 +69,20 @@ Rectangle {
 					Label {
 						text: (root.model.errorDescriptionItem.value ?? "").replace(/\|/g, "\n")
 						wrapMode: Text.WordWrap
-						width: Math.min(500, implicitWidth)
+						Layout.preferredWidth: Math.min(500, implicitWidth)
 					}
+					// ListItemButton {
+					// 	//% "Close"
+					// 	text: qsTrId("inetbox_close")
+					// 	Layout.preferredWidth: Math.min(100, implicitWidth)
+					// 	Layout.alignment: Qt.AlignHCenter
+
+					// 	onClicked:  {
+					// 		root.model.seenError=root.model.errorCodeItem.value
+					// 	}
+					// }
 				}
+
 			}
 		}
 	}
@@ -77,7 +91,7 @@ Rectangle {
 		id: inetboxColumn
 		anchors.fill: parent
 		anchors.margins: 4
-		visible: root.model.device !== null && root.model.errorCodeItem.value === 0
+		visible: root.model.device !== null && !errorLoader.active
 
 		// Room Temps
 		RowLayout {
@@ -121,9 +135,7 @@ Rectangle {
 			}
 		}
 
-		CycleButtonGroup {
-			id: cycleButtonGroup
-		}
+		CycleButtonGroup { id: cycleButtonGroup }
 
 		// Water
 		RowLayout {
@@ -182,6 +194,8 @@ Rectangle {
 				sourceComponent: airconFanSpeedCycleButtonFactory
 			}
 		}
+
+		//Aircon Fan (changes location based on orientation)
 		Loader {
 			active: root.model.showAircon && Theme.screenSize === Theme.Portrait
 			Layout.preferredHeight: !root.model?.showAircon ? 0 : implicitHeight
@@ -219,5 +233,8 @@ Rectangle {
 				: heatingCycleButton.x) + root.buttonOffsetX
 
 		}
+
+
+
 	}
 }

@@ -28,7 +28,7 @@ Page {
 		}
 
 		model: devicesModel
-		
+
 		Component {
 			id: opkgManagerFactory
 			OpkgManager {
@@ -49,7 +49,6 @@ Page {
 				{"title": text,
 				opkgManager: root.opkgManager,
 				port: model.value,
-				popToPage: root.popToPage,
 				serviceUid: model.buddy.uid}
 			 )
 		}

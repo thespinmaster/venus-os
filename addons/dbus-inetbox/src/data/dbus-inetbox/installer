@@ -1,18 +1,7 @@
 #!/usr/bin/env bash
 
-# Valid callbacks
-# pre_remove
-# post_remove
-#
-# pre_install
-# post_install
-# finalize_install - called after opkg has finished
-
-# Valid $PACKAGE_ACTION's
-# install|upgrade-install|configure|dev-install
-# remove|upgrade-remove|dev-remove
-
 # shellcheck disable=SC2034
+
 
 PACKAGE_GUI_V2_PLUGIN_NAME="Inetbox"
 PACKAGE_DEVICE_KEY="Inetbox"
@@ -23,8 +12,7 @@ PACKAGE_CUSTOM_OVERVIEW_PAGES=(InetboxOverview)
 PACKAGE_CUSTOM_NAV_PAGES=(MotorhomePage)
 PACKAGE_CUSTOM_MENUS=(PageSettings/InetboxPageSettingsSubMenu)
 
-PACKAGE_DBUS_SETTINGS=
+# PACKAGE_DBUS_SETTINGS=
 
-# shellcheck source=/data/dev/addons/opkg-manager/src/data/opkg-manager/source-common
-source "${VE_ROOT_PATH:-}/data/opkg-manager/source-common"
-addsource installer-common "$@"
+####################################################
+source /data/opkg-manager/installer-common "$@"

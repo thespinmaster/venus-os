@@ -121,25 +121,25 @@
     </message>
     <message id="inetbox_energy_water">
         <location filename="../InetboxDevicePage.qml" line="69"/>
-        <location filename="../components/MotorhomeInetbox.qml" line="140"/>
+        <location filename="../components/MotorhomeInetbox.qml" line="152"/>
         <source>Water</source>
         <translation type="unfinished"></translation>
     </message>
     <message id="inetbox_energy_heating">
         <location filename="../InetboxDevicePage.qml" line="76"/>
-        <location filename="../components/MotorhomeInetbox.qml" line="160"/>
+        <location filename="../components/MotorhomeInetbox.qml" line="172"/>
         <source>Heating</source>
         <translation type="unfinished"></translation>
     </message>
     <message id="inetbox_energy_aircon">
         <location filename="../InetboxDevicePage.qml" line="82"/>
-        <location filename="../components/MotorhomeInetbox.qml" line="174"/>
+        <location filename="../components/MotorhomeInetbox.qml" line="186"/>
         <source>Aircon</source>
         <translation type="unfinished"></translation>
     </message>
     <message id="inetbox_energy_fan_speed">
         <location filename="../InetboxDevicePage.qml" line="90"/>
-        <location filename="../components/MotorhomeInetbox.qml" line="205"/>
+        <location filename="../components/MotorhomeInetbox.qml" line="219"/>
         <source>Fan speed</source>
         <translation type="unfinished"></translation>
     </message>
@@ -169,23 +169,23 @@
         <translation type="unfinished"></translation>
     </message>
     <message id="inetbox_no_device_found">
-        <location filename="../components/MotorhomeInetbox.qml" line="24"/>
+        <location filename="../components/MotorhomeInetbox.qml" line="26"/>
         <source>No Inetbox device found</source>
         <translation type="unfinished"></translation>
     </message>
     <message id="inetbox_click_to_install_device">
-        <location filename="../components/MotorhomeInetbox.qml" line="31"/>
+        <location filename="../components/MotorhomeInetbox.qml" line="33"/>
         <source>Click to install device</source>
         <translation type="unfinished"></translation>
     </message>
     <message id="inetbox_error_code">
-        <location filename="../components/MotorhomeInetbox.qml" line="64"/>
+        <location filename="../components/MotorhomeInetbox.qml" line="67"/>
         <source>Error Code: %1</source>
         <extracomment>%1 = error code</extracomment>
         <translation type="unfinished"></translation>
     </message>
     <message id="inetbox_energy_mix">
-        <location filename="../components/MotorhomeInetbox.qml" line="216"/>
+        <location filename="../components/MotorhomeInetbox.qml" line="230"/>
         <source>Energy Mix</source>
         <translation type="unfinished"></translation>
     </message>

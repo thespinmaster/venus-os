@@ -47,6 +47,7 @@ Page {
   //  topMargin: root.inetboxOffsetY + 198
 
 	IC.ScheduleButton {
+		id: scheduleButton
 		icon.source: "qrc:/images/icon_manualstart_timer_24.svg"
 		mainColor: '#387dc5'
 		visible: inetboxModel.device
@@ -57,12 +58,31 @@ Page {
 			topMargin: 50
 		}
 
+		onClicked: Global.dialogLayer.open(dateSelectorDialog)
+	}
+	IC.ScheduleButton {
+		icon.source: "qrc:/images/icon_alarm_32.svg"
+		//icon.color: "red"
+		mainColor: Theme.color_warning // '#387dc5'
+		secondaryColor: Theme.color_darkWarning
+		visible: root.inetboxModel.hasError
+		anchors {
+			right: bg_image2.right
+			rightMargin: 200 - 20
+			top: scheduleButton.bottom
+			topMargin: 20
+		}
+
 		onClicked: {
-			Global.dialogLayer.open(dateSelectorDialog)
-			return
+			if (root.inetboxModel.seenError === undefined) {
+				root.inetboxModel.seenError = root.inetboxModel.errorCodeItem.value
+				secondaryColor  = mainColor
+			} else {
+				root.inetboxModel.seenError = undefined
+				secondaryColor  = Theme.color_darkWarning
+			}
 		}
 	}
-
 	ColumnLayout {
 		anchors {
 			left: parent.left; leftMargin: 40

@@ -13,7 +13,7 @@ set -euo pipefail
 #   Arg1:"all" (default): Builds all folders under under services & utils.
 #   Arg[n]: Or a list of folders under services or utils to build
 # Options:
-#   --develop-only             Build and index into develop folders only (stamps version with +dYYMMDD.HHMM)
+#   --develop-only             Build and index into develop folders only (stamps version with +~YYMMDD.HHMM)
 #   --promote                  Promote develop feed to release feed
 #   --clean-develop            Remove all contents from the develop feeds folder
 ####################################################################
@@ -30,11 +30,13 @@ declare -a cli_build_args=()
 declare -a normalized_cli_build_args=()
 declare pwd_old="$PWD"
 declare -A update_feeds=()
+declare -A build_all_required=()
 declare promote_target=
 
 declare -i develop_only=0
 declare -i promote_only=0
 declare -i clean_develop_only=0
+declare -i all_mode=0
 
 usage() {
   cat <<EOF
@@ -42,7 +44,7 @@ Usage: $(basename "$0") [options] [all|<package> ...]
 
 Options:
   --develop-only           Build and index packages in develop only.
-                           Version is stamped as MAJOR.MINOR.PATCH+dYYMMDD.HHMM
+                           Version is stamped as MAJOR.MINOR.PATCH~dYYMMDD.HHMM
                            Old develop packages for the same name are removed before placing the new one.
   --promote                Promote develop feed to release feed
   --clean-develop          Remove all contents from the develop feeds folder
@@ -149,15 +151,81 @@ build_feed_indexes() {
   done
 }
 
+folder_has_newer_file_than_ipk() {
+  local ipk_path="$1"
+  local base_folder="$2"
+
+  find "$base_folder" -type f -newer "$ipk_path" -print -quit | grep -q .
+}
+
+newest_ipk_for_package() {
+  local feed_path="$1"
+  local package_name="$2"
+
+  [[ -d "$feed_path" ]] || return 0
+
+  find "$feed_path" -maxdepth 1 -type f -name "${package_name}_*.ipk" -printf '%T@ %p\n' | sort -nr | head -n1 | cut -d' ' -f2-
+}
+
+filter_all_mode_build_items() {
+  local filtered_items=()
+  local pkg_root
+  local name
+  local feed_name
+  local feed_path
+  local newest_ipk
+  local source_path
+  local source_is_newer
+  local run_build_all
+
+  for pkg_root in "${build_items[@]}"; do
+    name="$(basename "$pkg_root")"
+    feed_name="$(feed_name_for_package "$name")"
+    feed_path="$(feed_path_for_name "$feed_name")"
+    newest_ipk="$(newest_ipk_for_package "$feed_path" "$name")"
+
+    source_is_newer=0
+    run_build_all=0
+    for source_path in "$pkg_root/src" "$pkg_root/src-external"; do
+      [[ -d "$source_path" ]] || continue
+      if [[ -z "$newest_ipk" ]] || folder_has_newer_file_than_ipk "$newest_ipk" "$source_path"; then
+        source_is_newer=1
+        [[ "$source_path" == "$pkg_root/src-external" ]] && run_build_all=1
+        break
+      fi
+    done
+
+    if [[ $source_is_newer -eq 0 ]]; then
+      echo "skipping ${name}: source is not newer than newest ipk"
+      continue
+    fi
+
+    build_all_required["$pkg_root"]="$run_build_all"
+    filtered_items+=("$pkg_root")
+  done
+
+  build_items=("${filtered_items[@]}")
+}
+
 resolve_build_items() {
   declare -i found=0
   local i
   local f
 
   if [[ ${#cli_build_args[@]} -eq 0 || "${cli_build_args[0]}" == "all" ]]; then
+    all_mode=1
     echo "cur dir: $PWD"
-    mapfile -t build_items < <(find "${folders[@]}" ! -name '*.old' -mindepth 1 -maxdepth 1 -type d -exec realpath {} +)
+    mapfile -t build_items < <(
+      for folder in "${folders[@]}"; do
+        find "$folder" -mindepth 1 -maxdepth 1 ! -name '*.old' -type d -exec realpath {} +
+      done
+    )
 
+  filter_all_mode_build_items
+  if [[ ${#build_items[@]} -eq 0 ]]; then
+    echo "nothing to build"
+    exit 0
+  fi
 		return 0
   fi
 
@@ -246,7 +314,7 @@ develop_source_byref() {
   return 0
 }
 
-# Appends a develop build stamp (+dYYMMDD.HHMM) to the Version field in
+# Appends a develop build stamp (~dYYMMDD.HHMM) to the Version field in
 # the copied CONTROL/control file. Never touches the source control file.
 stamp_develop_version() {
   local develop_path="${1}"
@@ -255,9 +323,10 @@ stamp_develop_version() {
 
   [[ -f "$control_file" ]] || { echo "ERROR: control file not found: $control_file" >&2; return 1; }
 
-  stamp="+d$(date -u +'%y%m%d.%H%M')"
+  #stamp="~d$(date -u +'%y%m%d.%H%M')"
+	stamp="~d$(date +'%y%m%d.%H%M')"
 
-  sed -i "s/^\(Version:.*\)$/\1${stamp}/" "$control_file"
+	sed -i "s/^\(Version:.*\)$/\1${stamp}/" "$control_file"
 }
 
 build_package() {
@@ -273,7 +342,14 @@ build_package() {
   feed_path="${update_feeds[$feed_name]}"
   feed_path_abs="$(cd "$feed_path" && pwd)"
 
-  echo "building ${name} -> ${feed_path_abs}"
+  echo -e "\e[32mbuilding ${name} -> ${feed_path_abs}\e[0m"
+
+	if [[ -f "${pkg_root}/build-all" ]]; then
+    if (( all_mode == 0 )) || [[ "${build_all_required[$pkg_root]:-0}" == "1" ]]; then
+      echo "  executing ${pkg_root}/build-all"
+      "${pkg_root}/build-all" 3>&1 1>/dev/null || return 1
+    fi
+	fi
 
   [[ -d "${path}" ]] || { echo "invalid path: ${path}" >&2 ; return 1; }
 
@@ -364,6 +440,7 @@ clean_develop_root() {
   mkdir -p "$develop_root"
   echo "cleaned develop feeds folder: ${develop_root}"
 }
+
 
 if (( clean_develop_only == 1 )); then
   clean_develop_root

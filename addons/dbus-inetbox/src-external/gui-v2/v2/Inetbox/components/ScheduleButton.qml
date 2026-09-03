@@ -10,7 +10,34 @@ import QtQuick.Layouts
 
 		// Base color
 		property color mainColor: "#387DC5"
+		property color secondaryColor: mainColor
+		readonly property bool animateSecondaryColor: secondaryColor !== mainColor
+		property real secondaryBlend: 0
 		property real iconOpacity: 1
+
+		onAnimateSecondaryColorChanged: {
+			if (!animateSecondaryColor)
+				secondaryBlend = 0
+		}
+
+		SequentialAnimation {
+			running: control.visible && control.animateSecondaryColor
+			loops: Animation.Infinite
+			NumberAnimation {
+				target: control
+				property: "secondaryBlend"
+				from: 0
+				to: 1
+				duration: 1200
+			}
+			NumberAnimation {
+				target: control
+				property: "secondaryBlend"
+				from: 1
+				to: 0
+				duration: 1200
+			}
+		}
 
 		icon.width: 24
 		icon.height: 24
@@ -48,6 +75,16 @@ import QtQuick.Layouts
 				border.width: 1
 			}
 
+			Rectangle {
+				anchors.fill: parent
+				radius: width / 2
+				color: Qt.darker(control.secondaryColor, 1.2)
+				border.color: Qt.lighter(control.secondaryColor, 1.2)
+				visible: control.animateSecondaryColor
+				opacity: control.secondaryBlend
+				border.width: 1
+			}
+
 			// 2. Concave Bowl
 			Rectangle {
 				anchors.fill: parent
@@ -70,6 +107,32 @@ import QtQuick.Layouts
 					GradientStop {
 						position: 1.0
 						color: control.down ? control.mainColor : Qt.lighter(control.mainColor, 1.25)
+					}
+				}
+
+				Rectangle {
+					anchors.fill: parent
+					radius: width / 2
+					visible: control.animateSecondaryColor
+					opacity: control.secondaryBlend
+
+					gradient: Gradient {
+						orientation: Gradient.Vertical
+
+						GradientStop {
+							position: 0.0
+							color: control.down ? Qt.darker(control.secondaryColor, 1.5) : Qt.darker(control.secondaryColor, 1.3)
+						}
+
+						GradientStop {
+							position: 0.5
+							color: control.down ? Qt.darker(control.secondaryColor, 1.15) : control.secondaryColor
+						}
+
+						GradientStop {
+							position: 1.0
+							color: control.down ? control.secondaryColor : Qt.lighter(control.secondaryColor, 1.25)
+						}
 					}
 				}
 

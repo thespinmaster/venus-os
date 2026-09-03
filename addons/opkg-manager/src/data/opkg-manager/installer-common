@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2034
 
 set -o nounset
-RC_LOCAL_SCRIPT="${RC_LOCAL_SCRIPT-}"
+
+readonly INSTALLER_VERSION=1.0
 
 PACKAGE_ACTION="${1:-}"
 # set package name using the path of the calling file's location
@@ -12,21 +14,29 @@ PACKAGE_DEVICE_SERVICE_NAME="${PACKAGE_DEVICE_SERVICE_NAME-}"
 PACKAGE_DEVICE_DISPLAY_NAME="${PACKAGE_DEVICE_DISPLAY_NAME-}"
 PACKAGE_SERVICES="${PACKAGE_SERVICES-}"
 PACKAGE_GUI_V2_PLUGIN_NAME="${PACKAGE_GUI_V2_PLUGIN_NAME-}"
+declare -p PACKAGE_CUSTOM_OVERVIEW_PAGES &>/dev/null || PACKAGE_CUSTOM_OVERVIEW_PAGES=()
+declare -p PACKAGE_CUSTOM_NAV_PAGES &>/dev/null || PACKAGE_CUSTOM_NAV_PAGES=()
+PACKAGE_CUSTOM_MENUS="${PACKAGE_CUSTOM_MENUS-}"
 PACKAGE_VERSION_NEW=
 PACKAGE_VERSION_CURRENT=
 RESTART_GUI=
 RUNNING_FROM_GUI=
 
+RC_LOCAL_SCRIPT="${RC_LOCAL_SCRIPT-}"
+RCS_LOCAL_SCRIPT="${RCS_LOCAL_SCRIPT-}"
+
 [[ "$PACKAGE_ACTION" == "dev-install" || "$PACKAGE_ACTION" == "dev-remove" ]] &&
 	DEV_INSTALL=1;
 
-[[ ${DEV_INSTALL:-} == 1 ]] && [[ -d /data/dev/addons/opkg-manager/src ]] &&
+[[ "${DEV_INSTALL:-}" == 1 ]] && [[ -d "/data/dev/addons/opkg-manager/src" ]] &&
 	export VE_ROOT_PATH=/data/dev/addons/opkg-manager/src
 
-
-[[ -n "${__SOURCE_COMMON_SOURCED:-}" ]] || {
-	# shellcheck source=/data/dev/addons/opkg-manager/src/data/opkg-manager/source-common
-	source "${VE_ROOT_PATH:-}/data/opkg-manager/source-common" && __SOURCE_COMMON_SOURCED=1; }
+[[ -z "${__SOURCE_COMMON_SOURCED:-}" ]] && {
+	[[ -f "${VE_ROOT_PATH:-}/data/opkg-manager/source-common" ]] && {
+		# shellcheck source=/data/dev/addons/opkg-manager/src/data/opkg-manager/source-common
+		source "${VE_ROOT_PATH:-}/data/opkg-manager/source-common" && __SOURCE_COMMON_SOURCED=1
+	}
+}
 
 __try_call() {
 	local calling_method="${1}"
@@ -67,7 +77,6 @@ __install_common_validate_custom_overview_pages_definition() {
 
 	return 0
 }
-
 
 __install_common_validate_custom_menus_definition() {
 	declare -p PACKAGE_CUSTOM_MENUS >/dev/null 2>&1 || return 0
@@ -115,7 +124,7 @@ __install_common_install_guiv2_plugin() {
 
 	RESTART_GUI=1
 
-	echo "Installing gui-v2 plugin: ${plugin_name}"
+	echo_lang "$LANG_INSTALLING_GUI_V2_PLUGIN_ARG1" "${plugin_name}"
 
 	mkdir -p "/data/apps/available/${plugin_name}/gui-v2" && \
 		cp "/data/${PACKAGE_NAME}/${plugin_name}.json" \
@@ -124,7 +133,6 @@ __install_common_install_guiv2_plugin() {
 	mkdir -p "/data/apps/enabled" && \
 		ln -sf "/data/apps/available/${plugin_name}" /data/apps/enabled
 
-	echo "Installing gui-v2 plugin: ${PACKAGE_GUI_V2_PLUGIN_NAME} - done"
 	return 0
 }
 
@@ -133,7 +141,7 @@ __install_common_remove_guiv2_plugin() {
 
 	RESTART_GUI=1
 
-	echo "Removing gui-v2 plugin: $PACKAGE_GUI_V2_PLUGIN_NAME"
+	echo_lang "$LANG_REMOVING_GUI_V2_PLUGIN_ARG1" "$PACKAGE_GUI_V2_PLUGIN_NAME"
 
 	rm -rf "/data/apps/available/${PACKAGE_GUI_V2_PLUGIN_NAME}"
 	rm -rf "/data/apps/enabled/${PACKAGE_GUI_V2_PLUGIN_NAME}"
@@ -173,11 +181,11 @@ install_common_add_remove_custom_overview_pages() {
 
 	for entry in "${PACKAGE_CUSTOM_OVERVIEW_PAGES[@]}"; do
 		__install_common_parse_custom_overview_page_entry "${entry}" key value || return 1
-		local path="'path':'/Settings/OpkgManager/CustomOverviewPages/${key}'"
+		local path="\"path\":\"/Settings/OpkgManager/CustomOverviewPages/${key}\""
 		if [[ "${action}" == "remove" ]]; then
 			dbus_common_remove_settings 1>/dev/null <<< "{$path}"
 		else
-			dbus_common_add_settings 1>/dev/null <<< "{$path, 'default':'${value}'}"
+			dbus_common_add_settings 1>/dev/null <<< "{$path, \"default\":\"${value}\"}"
 		fi
 
 	done
@@ -185,11 +193,11 @@ install_common_add_remove_custom_overview_pages() {
 
 __install_common_json_to_array() {
 	local -n __json="$1"
-	local -n __result="$2"
+	local -n __ary_result="$2"
 
-	[[ "${__json:1}" != "[" ]] && { __result=(); return 0; }
+	[[ "${__json:1}" != "[" ]] && { __ary_result=(); return 0; }
 
-	mapfile -t __result < <(
+	mapfile -t __ary_result < <(
 		python3 -c '
 import json
 import sys
@@ -201,9 +209,9 @@ for value in json.loads(sys.argv[1]):
 }
 __install_common_array_to_json() {
 	local -n __ary="$1"
-	local -n __result="$2"
+	local -n __str_result="$2"
 
-	__result=$(
+	__str_result=$(
 		python3 -c '
 import json
 import sys
@@ -250,29 +258,37 @@ install_common_add_remove_custom_nav_pages() {
 	return 0
 }
 
-
 install_common_add_custom_menus() {
 	local entry=
 	local menu_path=
 	local value=
+  local path=
 
 	for entry in "${PACKAGE_CUSTOM_MENUS[@]}"; do
+		#echo "calling __install_common_parse_custom_menu_entry"
 		__install_common_parse_custom_menu_entry "${entry}" menu_path value || return 1
-		local path="{'path':'/Settings/OpkgManager/CustomMenus/${menu_path}', 'default':'${value}'}"
-		dbus_common_add_settings 1>/dev/null <<< "$path"
+		path+="{\"path\":\"/Settings/OpkgManager/CustomMenus/${menu_path}\", \"default\":\"${value}\"}"$'\n'
 	done
+
+	if [[ -n "$path" ]]; then
+		dbus_common_add_settings 1>/dev/null <<< "$path"
+	fi
+
 }
 
 install_common_remove_custom_menus() {
 	local entry=
 	local menu_path=
 	local value=
+	local path=
 
 	for entry in "${PACKAGE_CUSTOM_MENUS[@]}"; do
 		__install_common_parse_custom_menu_entry "${entry}" menu_path value || return 1
-		local path="{'path':'/Settings/OpkgManager/CustomMenus/${menu_path}'}"
-		dbus_common_remove_settings 1>/dev/null <<< "$path"
+		path+="{\"path\":\"/Settings/OpkgManager/CustomMenus/${menu_path}\"}"$'\n'
 	done
+	if [[ -n "$path" ]]; then
+		dbus_common_remove_settings 1>/dev/null <<< "$path"
+	fi
 }
 
 __install_common_require_custom_device_vars() {
@@ -298,8 +314,8 @@ install_common_add_custom_device() {
 	__install_common_require_custom_device_vars || return 1
 
 	dbus_common_add_settings 1>/dev/null <<EOF
-{'path':'/Settings/OpkgManager/Devices/${PACKAGE_DEVICE_KEY}/ProductName', 'default':'${PACKAGE_DEVICE_DISPLAY_NAME}'}
-{'path':'/Settings/OpkgManager/Devices/${PACKAGE_DEVICE_KEY}/ServiceName', 'default':'${PACKAGE_DEVICE_SERVICE_NAME}'}
+{"path":"/Settings/OpkgManager/CustomServices/${PACKAGE_DEVICE_KEY}/ProductName", "default":"${PACKAGE_DEVICE_DISPLAY_NAME}"}
+{"path":"/Settings/OpkgManager/CustomServices/${PACKAGE_DEVICE_KEY}/ServiceName", "default":"${PACKAGE_DEVICE_SERVICE_NAME}"}
 EOF
 }
 
@@ -307,21 +323,20 @@ install_common_remove_custom_device() {
 	__install_common_require_custom_device_vars || return 1
 
 	dbus_common_remove_settings 1>/dev/null <<EOF
-{'path':'/Settings/OpkgManager/Devices/${PACKAGE_DEVICE_KEY}/ProductName'}
-{'path':'/Settings/OpkgManager/Devices/${PACKAGE_DEVICE_KEY}/ServiceName'}
+{\"path\":\"/Settings/OpkgManager/CustomServices/${PACKAGE_DEVICE_KEY}/ProductName\"}
+{\"path\":\"/Settings/OpkgManager/CustomServices/${PACKAGE_DEVICE_KEY}/ServiceName\"}
 EOF
 }
 
 # arguments {1} (optional): set to "remove" to remove
 install_common_add_remove_patch() {
 	local remove=0
-	local msg=
 
 	if [[ "${1:-}" == "remove" ]]; then
 		remove=1
-		msg="Reverting patched files"
-  else
-		msg="Patching files"
+		echo_lang "$LANG_REVERTING_PATCHED_FILES"
+	else
+		echo_lang "$LANG_PACKAGE_BUILD_TIME"
 	fi
 
 	shopt -s nullglob
@@ -329,8 +344,6 @@ install_common_add_remove_patch() {
   local installer_path; installer_path="$(dirname "$(realpath "${0}")")"
 
 	for patchfile in "$installer_path"/*.patch; do
-		[[ -n "$msg" ]] && { echo "$msg"; msg=; }
-
 		RESTART_GUI=1
 		if ((remove==0)); then
 			file_patcher_apply_patch "$patchfile"
@@ -350,11 +363,14 @@ install_common_initialize() {
 	[[ -z "${RUNNING_FROM_GUI}" ]] && {
 		[[ -f /var/lock/opkg-manager-install ]] && RUNNING_FROM_GUI=1 || RUNNING_FROM_GUI=0; }
 
+	addsource "lang-common"
 	addsource "opkg-common"
 	addsource "dbus-common"
 	addsource "file-patcher"
 	addsource "service-common"
   addsource "serial-device-installer"
+	echo_lang "$LANG_LANGUAGE_ARG1" "$LANG_CODE"
+
 }
 
 install_common_uninstall_serial_device_services() {
@@ -362,22 +378,18 @@ install_common_uninstall_serial_device_services() {
 	install_common_is_upgrade &&
 		return
 
-	addsource "serial-device-installer"
-
 	serial_device_installer_uninstall_service "${PACKAGE_DEVICE_SERVICE_NAME}"
 }
 
-install_common_stop_services() {
+install_common_remove_services() {
 
 	[[ -z ${PACKAGE_SERVICES:-} ]] && return
 
-	echo "Removing services"
+	echo_lang "$LANG_REMOVING_SERVICES"
 
 	local service=
 	for service in "${PACKAGE_SERVICES[@]}"; do
-	  # Don't remove the opkg-manager service if upgrading
-		[[ "$service" == "opkg-manager" ]] && continue
-		echo "Removing service: $service"
+		echo_lang "$LANG_REMOVING_SERVICE_ARG1" "$service"
 		service_common_remove_service "$service"
 	done
 }
@@ -388,12 +400,18 @@ install_common_start_services() {
 
 	local service=
 
-	echo "Restarting services"
+	echo_lang "$LANG_RESTARTING_SERVICES"
 
 	for service in "${PACKAGE_SERVICES[@]}"; do
 		cp -rf "/opt/victronenergy/service/${service}" "/service"
-
+		while [[ ! -e "/service/${service}/supervise/control" ]]; do
+				sleep 0.1
+		done
 		service_common_restart_service "$service"
+
+		while [[ ! -e "/service/${service}/log/supervise/control" ]]; do
+				sleep 0.1
+		done
 		service_common_restart_service "${service}/log"
 
 		# svscan will start any other services
@@ -407,21 +425,20 @@ install_common_install() {
 	__install_common_validate_custom_overview_pages_definition || return 1
 	__install_common_validate_custom_menus_definition || return 1
 
-	install_common_initialize
-
 	__try_call "pre_install"
 
-	echo "Registering package: ${PACKAGE_NAME}"
+	echo_lang "$LANG_REGISTERING_PACKAGE_ARG1" "${PACKAGE_NAME}"
 	opkg_common_register_package "${PACKAGE_NAME}"
 
 	if [[ -f "/data/${PACKAGE_NAME}/buildtime" ]]; then
-		echo "Package build time: $(cat /data/"${PACKAGE_NAME}"/buildtime)"
+		local package_build_time; package_build_time="$(< /data/${PACKAGE_NAME}/buildtime)"
+		echo_lang "$LANG_PACKAGE_BUILD_TIME_ARG1" "${package_build_time}"
 	fi
 
 	install_common_add_remove_patch add
 
   if [[ -n "${PACKAGE_DBUS_SETTINGS:-}" || -n "${PACKAGE_DBUS_SETTINGS_DEPRECATED:-}" ]]; then
-		echo "Adding dbus settings"
+		echo_lang "$LANG_ADDING_DBUS_SETTINGS"
 
 		[[ -n "${PACKAGE_DBUS_SETTINGS_DEPRECATED:-}" ]] &&
 			dbus_common_remove_settings <<< "${PACKAGE_DBUS_SETTINGS_DEPRECATED}" 1>/dev/null
@@ -436,22 +453,21 @@ install_common_install() {
 	fi
 
 	if __install_common_has_custom_nav_pages; then
-	  echo "Adding custom nav pages"
+	  echo_lang "$LANG_ADDING_CUSTOM_NAVIGATION_PAGES"
 		install_common_add_remove_custom_nav_pages || return 1
 	fi
 
 	if __install_common_has_custom_menus; then
-		echo "Adding gui-v1 custom menus"
+		echo_lang "$LANG_ADDING_GUI_V1_CUSTOM_MENUES"
 		install_common_add_custom_menus || return 1
 	fi
 
 	if __install_common_has_device_vars; then
-		echo "Adding custom device info"
+		echo_lang "$LANG_ADDING_CUSTOM_DEVICE_TEMPLATES"
 		install_common_add_custom_device || return 1
 	fi
 
 	if [[ -n "${PACKAGE_DEVICE_SERVICE_NAME}" ]]; then
-		addsource "serial-device-installer"
 		# shellcheck disable=SC2034  # used by serial_device_installer
 		DEVICE_SERVICE_NAME="${PACKAGE_DEVICE_SERVICE_NAME}"
 		serial_device_installer_add_service_mapping
@@ -462,11 +478,20 @@ install_common_install() {
 	[[ -n "${PACKAGE_GUI_V2_PLUGIN_NAME:-}" ]] &&
 		RESTART_GUI=1
 
+	if [[ -n "${RC_LOCAL_SCRIPT:-}" ]]; then
+		echo_lang "$LANG_ADDING_CUSTOM_SCRIPT_TO_ARG1" "rc-local"
+		opkg_common_add_script_to_rc_local "${RC_LOCAL_SCRIPT}"
+	fi
+	if [[ -n "${RCS_LOCAL_SCRIPT:-}" ]]; then
+		echo_lang "$LANG_ADDING_CUSTOM_SCRIPT_TO_ARG1" "rcS-local"
+		opkg_common_add_script_to_rc_local "${RCS_LOCAL_SCRIPT}" 1
+	fi
+
 	__try_call "post_install"
 
 	__install_common_finalize
 
-	echo "Finished installing $PACKAGE_NAME"
+	echo_lang "$LANG_FINISHED_INSTALLING_ARG1" "$PACKAGE_NAME"
 
 	return 0
 }
@@ -475,64 +500,68 @@ install_common_remove() {
 
 	[[ -z "$PACKAGE_NAME" ]] && { echo "ERROR: PACKAGE_NAME not set"; return 1; }
 
-	__install_common_validate_custom_overview_pages_definition || return 1
-	__install_common_validate_custom_menus_definition || return 1
+	__install_common_validate_custom_overview_pages_definition || true
+	__install_common_validate_custom_menus_definition || true
 
-	install_common_initialize
+	__try_call "pre_remove" || true
 
-	__try_call "pre_remove"
-
-	[[ -n "${RC_LOCAL_SCRIPT:-}" ]] &&
-		opkg_common_remove_script_from_rc_local "${RC_LOCAL_SCRIPT}"
+	if [[ -n "${RC_LOCAL_SCRIPT:-}" ]]; then
+		echo_lang "$LANG_REMOVING_CUSTOM_SCRIPT_FROM_ARG1" "rc-local"
+		opkg_common_remove_script_from_rc_local "${RC_LOCAL_SCRIPT}" || true
+	fi
+	if [[ -n "${RCS_LOCAL_SCRIPT:-}" ]]; then
+		echo_lang "$LANG_REMOVING_CUSTOM_SCRIPT_FROM_ARG1" "rcS-local"
+		opkg_common_remove_script_from_rc_local "${RCS_LOCAL_SCRIPT}" 1 || true
+	fi
 
 	opkg_common_unregister_package "$PACKAGE_NAME"
 
-	install_common_stop_services
+	install_common_remove_services || true
 
-	install_common_add_remove_patch remove
+	install_common_add_remove_patch remove || true
 
 	if __install_common_has_device_vars; then
-		echo "Removing custom service settings"
-		install_common_remove_custom_device || return 1
+		echo_lang "$LANG_REMOVING_CUSTOM_SERVICE_SETTINGS"
+		install_common_remove_custom_device || true
 	fi
 
 	if ! install_common_is_upgrade; then
 		if [[ -n "${PACKAGE_DBUS_SETTINGS:-}" ]]; then
-			echo "Removing dbus settings"
-			dbus_common_remove_settings <<< "$PACKAGE_DBUS_SETTINGS" 1>/dev/null
+			echo_lang "$LANG_REMOVING_DBUS_SETTINGS"
+			dbus_common_remove_settings <<< "$PACKAGE_DBUS_SETTINGS" 1>/dev/null || true
 		fi
 	fi
 
 	if __install_common_has_custom_overview_pages; then
-		echo "Removing custom overview page settings"
-		install_common_add_remove_custom_overview_pages remove || return 1
+		echo_lang "$LANG_REMOVING_CUSTOM_OVERVIEW_PAGE_SETTINGS"
+		install_common_add_remove_custom_overview_pages remove || true
 	fi
 
 	if __install_common_has_custom_nav_pages; then
-		echo "Removing custom gui-v2 navigation page settings"
-		install_common_add_remove_custom_nav_pages remove || return 1
+		echo_lang "$LANG_REMOVING_CUSTOM_GUI_V2_NAVIGATION_PAGE_SETTINGS"
+		install_common_add_remove_custom_nav_pages remove || true
 	fi
 
 	if __install_common_has_custom_menus; then
-		echo "Removing custom menu settings"
-		install_common_remove_custom_menus || return 1
+		echo_lang "$LANG_REMOVING_CUSTOM_MENU_SETTINGS"
+		install_common_remove_custom_menus || true
 	fi
 
 	if [[ -n "${PACKAGE_DEVICE_SERVICE_NAME}" ]]; then
-		echo "Removing services for ${PACKAGE_DEVICE_SERVICE_NAME}"
-		install_common_uninstall_serial_device_services
+		echo_lang "$LANG_REMOVING_SERVICES_FOR_ARG1" "${PACKAGE_DEVICE_SERVICE_NAME}"
+		install_common_uninstall_serial_device_services || true
 	fi
 
 	[[ -n "${PACKAGE_GUI_V2_PLUGIN_NAME:-}" || "$PACKAGE_NAME" == "opkg-manager" ]] &&
 		RESTART_GUI=1
 
-	__try_call "post_remove"
+	__try_call "post_remove" || true
 
 	if install_common_is_upgrade; then
-		echo "Removed previous install, upgrading now..."
+		echo_lang "$LANG_REMOVED_PREVIOUS_INSTALL_UPGRADING_NOW"
 	else
-	  __install_common_finalize
-		echo "Finished removing $PACKAGE_NAME"
+	  __install_common_finalize || true
+		echo_lang "$LANG_FINISHED_REMOVING_OPKG_MANAGER"
 	fi
 
 	return 0
@@ -549,7 +578,6 @@ install_common_is_remove() {
 __install_common_finalize() {
 
 	((!RESTART_GUI)) && {
-		echo "  nothing to do "
 		return
 	}
 
@@ -557,7 +585,7 @@ __install_common_finalize() {
 		echo "::FINALIZING-INSTALL::" # ui
 		sleep 5 # time to see final messages in ui before restarting
 	else
-		echo "Finalizing install" # ui
+		echo_lang "$LANG_FINALIZING_INSTALL" # ui
 	fi
 
 	if install_common_is_remove; then
@@ -568,18 +596,24 @@ __install_common_finalize() {
 		__install_common_install_guiv2_plugin
 	fi
 
-	# ((RESTART_GUI)) && # always restart ui(s)
-		install_common_restart_gui
+	install_common_restart_gui
 
 }
 
 install_common_restart_gui() {
-	echo "Restarting UI..."
-	svc -t /service/flashmq
-	svc -t /service/gui >/dev/null
+	echo_lang "$LANG_RESTARTING_UI"
+	[[ -d /service/gui ]] &&
+		svc -t /service/gui >/dev/null				# gui-v1
+	[[ -d /service/flashmq ]] &&
+		svc -t /service/flashmq >/dev/null		# gui-v2 wasam
+	[[ -d /service/start-gui ]] &&
+		svc -t /service/start-gui >/dev/null  # gui-v2
 }
 
 ###########################################################################
+
+install_common_initialize
+
 
 if [[ $PACKAGE_ACTION == "configure" ]]; then
   declare package_no_extension="${2%.*}"
@@ -597,9 +631,9 @@ fi
 
 case "${PACKAGE_ACTION}" in
   install|upgrade-install|configure|dev-install)
-	  echo "Install Action: $PACKAGE_ACTION"
+	  echo_lang "$LANG_INSTALL_ACTION_ARG1" "$PACKAGE_ACTION"
 		install_common_install;;
   remove|upgrade-remove|dev-remove)
-	  echo "Install Action: $PACKAGE_ACTION"
+	  echo_lang "$LANG_INSTALL_ACTION_ARG1" "$PACKAGE_ACTION"
     install_common_remove;;
 esac

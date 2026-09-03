@@ -3,10 +3,15 @@
 # shellcheck disable=SC2317,SC2329  # Don't warn about unreachable commands in this file
 
 set -o nounset
+export RUNNING_FROM_GUI=1
 
-declare __this_path;__this_path=$(dirname "${BASH_SOURCE[0]}")
-
-. "$__this_path/../opkg-common"
+[[ -z "${__SOURCE_COMMON_SOURCED:-}" ]] && {
+	# shellcheck source=/data/dev/addons/opkg-manager/src/data/opkg-manager/source-common
+	source "${VE_ROOT_PATH:-}/data/opkg-manager/source-common" && __SOURCE_COMMON_SOURCED=1
+}
+addsource "opkg-common"
+addsource "lang-common"
+addsource "/libs/log-lib"
 
 __validate_package_name() {
   if [[ -z "$1" ]]; then
@@ -32,7 +37,9 @@ __package_command() {
   __init_root_fs_for_writing
 
 	local this_path; this_path=$(dirname "${BASH_SOURCE[0]}")
-	"$this_path/packages_helper" update force # update packages and json
+
+	echo_lang "$LANG_PACKAGE_UPDATING_PACKAGES"
+  "$this_path/opkg-json-indexer" update force 1>/dev/null # update packages and json
 
 	__cleanup() {
 		__package_clear_install_lock
@@ -50,15 +57,16 @@ __package_command() {
 
 	#opkg_common_package_update_requested && {
 		#opkg_common_clear_requested_package_update
-		"$this_path/packages_helper" update force # update packages and json
+		echo_lang "$LANG_PACKAGE_UPDATING_PACKAGES"
+    "$this_path/opkg-json-indexer" update force 1>/dev/null # update packages and json
 	#}
 
   __restore_previous_fs_access
 
 	if [[ $status == 0 ]]; then
-    log  "$action_msg succeeded"
+    echo_lang "$LANG_PACKAGE_SUCCEEDED" "$action_msg"
   else
-    log "$action_msg failed (status $status)"
+    echo_lang "$LANG_PACKAGE_ARG1_FAILED_ARG2" "$action_msg" "$status"
   fi
 
   return $status
@@ -70,27 +78,29 @@ package_install() {
 
   __validate_package_name "${package_name}" || return
 
-  log "Installing $*"
-  __package_command "Install" install "$@"
+  echo_lang "${LANG_PACKAGE_INSTALLING_ARG1}" "$@"
+
+  __package_command "${LANG_PACKAGE_INSTALL}" install "$@"
 
 }
 __status_message() {
   local status="${1}"
   local action="${2}"
   if [[ $status == 0 ]]; then
-    log  "$action succeeded"
+    echo_lang "$LANG_PACKAGE_SUCCEEDED" "$action"
   else
-    log "$action failed (status $status)"
+	  echo_lang "$LANG_PACKAGE_ARG1_FAILED_ARG2" "$action" "$status"
   fi
 }
+
 package_upgrade() {
   local package_name="$1"
 
   __validate_package_name "${package_name}" || return
 
-  log "Upgrading $*"
+  echo_lang "$LANG_PACKAGE_UPGRADING_ARG1" "$*"
 
-  __package_command "Upgrade" upgrade "$@"
+  __package_command "$LANG_PACKAGE_UPGRADE" upgrade "$@"
 
 }
 
@@ -104,8 +114,8 @@ package_remove() {
     return 0
   fi
 
-  log "Removing $*"
-  __package_command "Remove" remove "$@"
+  echo_lang "$LANG_PACKAGE_REMOVING_ARG1" "$*"
+  __package_command "$LANG_PACKAGE_REMOVE" remove "$@"
 
 }
 

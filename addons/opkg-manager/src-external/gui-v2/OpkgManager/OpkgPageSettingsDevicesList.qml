@@ -21,10 +21,12 @@ Page {
 		}
 	}
 
-	function toggleScan() {
+	Component.onCompleted: {
 		if (opkgManager == null)
 			opkgManager = opkgManagerFactory.createObject(root)
+	}
 
+	function toggleScan() {
 		if (opkgManager.running) {
 			opkgManager.cancel()
 			return

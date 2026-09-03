@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+BASE_DIR='/opt/victronenergy'
+SERVICE_DIR='/var/volatile/services'
+
 service_common_service_up() { svstat "/service/${1}" | grep -q "^/service/${1}: up "; }
 
 __stop_service_tree() {
@@ -21,9 +24,16 @@ __stop_service_tree() {
 service_common_remove_service() {
 	local service="${1:-}" || return
 
+	[[ ! -d "/service/${service}" ]] &&
+		return
+
+	echo "calling svc -dx /service/$service"
 	svc -dx "/service/$service"
-	[[ -f "/service/${service}/log" ]] &&
+
+	[[ -d "/service/${service}/log" ]] &&
 		svc -dx "/service/${service}/log"
+
+	echo "removing: rm -rf /service/${service}"
 	rm -rf "/service/${service}"
 }
 
@@ -79,11 +89,61 @@ service_common_stop_service_and_wait() {
 	done
 	return 0
 }
+service_common_start_service() {
+	svc -u "/service/${1}"
+}
 
 service_common_restart_service() {
-	local service="${1}"
+	svc -t "/service/${1}"
+}
 
-	svc -t "/service/$service"
-	svc -u "/service/$service"
+__create_templated_service() {
+	local service=$1
+	local tty=$2
+
+	local SERVICE="$service.$2"
+	# check if service already exists
+	test -d "/service/$SERVICE" && return 0
+
+	local tmpl=$BASE_DIR/service-templates/$service
+
+	# check existence of service template
+	[[ ! -d "$tmpl" ]] && { echo "ERROR: no service template for $service" >&2; return 1; }
+
+	# copy service
+	cp -a "$tmpl" "$SERVICE_DIR/$SERVICE"
+
+	# Patch run files for tty device
+	sed -i "s:TTY:$tty:" "$SERVICE_DIR/$SERVICE/run"
+	sed -i "s:TTY:$tty:" "$SERVICE_DIR/$SERVICE/log/run"
+
+	# Create symlink to /service
+	ln -sf "$SERVICE_DIR/$SERVICE" "/service/$SERVICE"
+
+	# wait for svscan to find service
+	sleep 6
+}
+
+service_common_start_templated_service() {
+	local tty="$1"
+	local service="$2"
+
+  [[ -e "/dev/$tty" ]] || { echo "ERROR: invalid device $1" >&2; return 1; }
+	[[ -z "$service" ]] && { echo "ERROR: unknown service $2" >&2; return 1; }
+
+	get_product() {
+		udevadm info --query=property --name="$1" | sed -n "s/^ID_MODEL=//p"
+	}
+
+	__create_templated_service "$service" "$tty" || { echo "ERROR: could not create service" >&2; return 1; }
+
+	local SERVICE="$service.$tty"
+
+	# update product string
+	PRODUCT=$(get_product "$tty")
+	sed -i "s:PRODUCT\(=[^ ]*\)*:PRODUCT=$PRODUCT:" "$SERVICE_DIR/$SERVICE/run"
+
+	svc -u "/service/$SERVICE/log"
+	svc -u "/service/$SERVICE"
 
 }

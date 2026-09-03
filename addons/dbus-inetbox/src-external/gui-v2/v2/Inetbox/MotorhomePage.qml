@@ -21,8 +21,7 @@ SwipeViewPage {
 		console.log("Inetbox: onCompleted:",
 			"page=", url,
 			"version=", inetbox.version,
-			"device.firstObject=", devices.firstObject,
-			"inetbox.ErrorDescription.value =", inetbox.errorDescription.valid)
+			"device.firstObject=", devices.firstObject)
 	}
 	Component.onDestruction: {
 		console.log("Inetbox: onDestruction:", "page=", url, "version=", inetbox.version)
@@ -86,7 +85,8 @@ SwipeViewPage {
 		id: inetbox
 		serviceUid: device?.serviceUid ?? ""
 		page: root
-
+		
+		property var seenError
 		property var device : null
 		property bool showAircon : showAirconItem.valid && showAirconItem.value == 1
 		function bindPrefix(name) { return device ? device.serviceUid + "/Values" + name : ""}
@@ -109,15 +109,19 @@ SwipeViewPage {
 		property VeQuickItem energyMixItem: VeQuickItem {uid: inetbox.bindPrefix("/EnergyMixCombined")}
 		property VeQuickItem showAirconItem: VeQuickItem {uid: inetbox.bindSettingsPrefix("/ShowAircon")}
 		property VeQuickItem errorCodeItem: VeQuickItem {
-			uid: inetbox.bindPrefix("/ErrorCode")
+			uid: inetbox.bindPrefix("/Error")
 			}
  		property VeQuickItem errorDescriptionItem: VeQuickItem {uid: inetbox.bindPrefix("/ErrorDescription")}
+	  property bool hasError: errorCodeItem.valid && errorCodeItem.value != 0
 
 		Component.onCompleted: {
 			console.log("InetboxModel:",
 			"showAirconItem.uid =", showAirconItem.uid,
 			"showAirconItem.valid =", showAirconItem.valid,
-			"showAirconItem.value =", showAirconItem.value)
+			"showAirconItem.value =", showAirconItem.value,
+			"errorCodeItem.valid =", errorCodeItem.valid,
+			"errorCodeItem.value =", errorCodeItem.value,
+			)
 		}
 
 		onHeatingOnChanged: exclusiveHeating(airconModeItem)
